@@ -1,6 +1,14 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Star, ArrowRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
 
 const features = [
   "The Funding Radar (Weekly curated grants & opportunities)",
@@ -11,27 +19,49 @@ const features = [
   "Direct email support",
 ];
 
-const plans = [
-  {
-    name: "Monthly",
-    price: "$20",
-    period: "/month",
-    description: "Flexible month-to-month access to the full ecosystem.",
-    popular: false,
-    cta: "Start Monthly",
-  },
-  {
-    name: "Annual",
-    price: "$200",
-    period: "/year",
-    description: "Best value—get 2 months free with annual commitment.",
-    popular: true,
-    cta: "Join Annually",
-    savings: "Save $40",
-  },
+const countries = [
+  { code: "NG", name: "Nigeria", currency: "₦", monthlyPrice: 9500, annualPrice: 95000 },
+  { code: "GH", name: "Ghana", currency: "₵", monthlyPrice: 180, annualPrice: 1800 },
+  { code: "KE", name: "Kenya", currency: "KSh", monthlyPrice: 2600, annualPrice: 26000 },
+  { code: "ZA", name: "South Africa", currency: "R", monthlyPrice: 380, annualPrice: 3800 },
+  { code: "US", name: "United States", currency: "$", monthlyPrice: 20, annualPrice: 200 },
+  { code: "GB", name: "United Kingdom", currency: "£", monthlyPrice: 16, annualPrice: 160 },
 ];
 
 const Pricing = () => {
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+
+  const handleCountryChange = (countryCode: string) => {
+    const country = countries.find((c) => c.code === countryCode);
+    if (country) {
+      setSelectedCountry(country);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return price.toLocaleString();
+  };
+
+  const plans = [
+    {
+      name: "Monthly",
+      price: `${selectedCountry.currency}${formatPrice(selectedCountry.monthlyPrice)}`,
+      period: "/month",
+      description: "Start scaling today with flexible month-to-month access.",
+      popular: true,
+      cta: "Start Monthly",
+    },
+    {
+      name: "Annual",
+      price: `${selectedCountry.currency}${formatPrice(selectedCountry.annualPrice)}`,
+      period: "/year",
+      description: "Best value—get 2 months free with annual commitment.",
+      popular: false,
+      cta: "Join Annually",
+      savings: "Save 2 months",
+    },
+  ];
+
   return (
     <section id="pricing" className="bg-secondary py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -52,6 +82,26 @@ const Pricing = () => {
           <p className="text-lg leading-relaxed text-muted-foreground">
             One membership, complete access. Choose the plan that works for your business.
           </p>
+
+          {/* Country Selector */}
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <span className="text-sm text-muted-foreground">Select your country:</span>
+            <Select
+              value={selectedCountry.code}
+              onValueChange={handleCountryChange}
+            >
+              <SelectTrigger className="w-[200px] bg-card">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent className="bg-card">
+                {countries.map((country) => (
+                  <SelectItem key={country.code} value={country.code}>
+                    {country.name} ({country.currency})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </motion.div>
 
         {/* Pricing Cards */}
@@ -74,7 +124,7 @@ const Pricing = () => {
                 <div className="absolute right-0 top-0">
                   <div className="flex items-center gap-1 rounded-bl-2xl bg-gold px-4 py-2 text-sm font-semibold text-forest-dark">
                     <Star className="h-4 w-4 fill-current" />
-                    Best Value
+                    Most Popular
                   </div>
                 </div>
               )}
@@ -94,7 +144,7 @@ const Pricing = () => {
                 </span>
                 <span className="text-lg text-muted-foreground">{plan.period}</span>
                 {plan.savings && (
-                  <span className="ml-2 rounded-full bg-gold/20 px-3 py-1 text-sm font-semibold text-gold-dark">
+                  <span className="ml-2 rounded-full bg-forest/10 px-3 py-1 text-sm font-semibold text-forest">
                     {plan.savings}
                   </span>
                 )}
