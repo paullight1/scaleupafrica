@@ -6,7 +6,6 @@ import heroImage from "@/assets/hero-entrepreneurs.jpg";
 const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-primary">
-      {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img
           src={heroImage}
@@ -17,9 +16,7 @@ const Hero = () => {
         <div className="absolute inset-0 bg-hero-pattern" />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 py-24 text-center lg:px-8">
-        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -32,7 +29,6 @@ const Hero = () => {
           </span>
         </motion.div>
 
-        {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -46,19 +42,17 @@ const Hero = () => {
           <span className="text-gradient-gold">With Clarity.</span>
         </motion.h1>
 
-        {/* Subheadline */}
         <motion.p
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mb-10 max-w-2xl text-lg leading-relaxed text-primary-foreground/80 md:text-xl"
         >
-          Join Africa's premier membership collective for SME founders in Fashion, 
-          Retail, Agriculture, and Food Processing. Get curated funding intel, 
-          expert coaching, and a powerful peer network.
+          The premier membership collective for African SME founders ready to scale.
+          Get curated funding intelligence, sector peer circles, and a pathway into
+          our selective Accelerator Program.
         </motion.p>
 
-        {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -66,25 +60,23 @@ const Hero = () => {
           className="flex flex-col gap-4 sm:flex-row"
         >
           <Button variant="hero" size="xl">
-            Join Annually - $200/year
+            Join the Collective
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           <Button variant="heroOutline" size="xl">
-            Start Monthly - $20/month
+            See What's Included
           </Button>
         </motion.div>
 
-        {/* Trust Indicator */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.5 }}
           className="mt-8 text-sm text-primary-foreground/60"
         >
-          Save 2 months with annual membership • Cancel anytime
+          Annual membership. Cancel anytime.
         </motion.p>
 
-        {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

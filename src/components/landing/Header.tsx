@@ -6,7 +6,6 @@ import { Menu, X } from "lucide-react";
 const navLinks = [
   { label: "Why Join", href: "#problem" },
   { label: "What You Get", href: "#solution" },
-  { label: "Industries", href: "#industries" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
@@ -16,9 +15,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -26,18 +23,14 @@ const Header = () => {
   return (
     <header
       className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-primary/95 shadow-medium backdrop-blur-md"
-          : "bg-transparent"
+        isScrolled ? "bg-primary/95 shadow-medium backdrop-blur-md" : "bg-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-        {/* Logo */}
         <a href="#" className="font-serif text-xl font-bold text-primary-foreground">
           ScaleUp Africa<span className="text-gold">.</span>
         </a>
 
-        {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((link) => (
             <a
@@ -50,30 +43,20 @@ const Header = () => {
           ))}
         </nav>
 
-        {/* CTA Buttons */}
         <div className="hidden items-center gap-3 lg:flex">
-          <Button variant="goldOutline" size="sm">
-            Monthly - $20
-          </Button>
           <Button variant="gold" size="sm">
-            Annual - $200
+            Join the Collective
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="rounded-lg p-2 text-primary-foreground lg:hidden"
         >
-          {isMobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -94,11 +77,8 @@ const Header = () => {
                 </a>
               ))}
               <div className="mt-4 flex flex-col gap-3">
-                <Button variant="goldOutline" className="w-full">
-                  Monthly - $20
-                </Button>
                 <Button variant="gold" className="w-full">
-                  Annual - $200
+                  Join the Collective
                 </Button>
               </div>
             </nav>
