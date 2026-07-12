@@ -18,6 +18,11 @@ const disclaimerPoints = [
       "Our team does not write, edit, or submit grant applications on behalf of members. We provide information and guidance, but the application process remains your responsibility.",
   },
   {
+    title: "Accelerator Program Eligibility",
+    description:
+      "The Accelerator Program is selective and reserved for revenue-generating SMEs based in Africa at the scale stage. Being a Collective member is the first step toward eligibility. Membership does not guarantee a place in the Accelerator Program.",
+  },
+  {
     title: "Information Accuracy",
     description:
       "We strive to provide accurate and timely information about funding opportunities. However, details change frequently, and members should always verify information directly with funding sources.",
@@ -28,7 +33,6 @@ const Disclaimer = () => {
   return (
     <section className="bg-card py-24">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -47,7 +51,6 @@ const Disclaimer = () => {
           </p>
         </motion.div>
 
-        {/* Disclaimer Points */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -67,9 +70,7 @@ const Disclaimer = () => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="mb-2 font-semibold text-foreground">
-                    {point.title}
-                  </h3>
+                  <h3 className="mb-2 font-semibold text-foreground">{point.title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {point.description}
                   </p>
@@ -78,13 +79,12 @@ const Disclaimer = () => {
             ))}
           </div>
 
-          {/* Summary Note */}
           <div className="mt-8 flex items-start gap-3 rounded-xl bg-gold/10 p-4">
             <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-gold-dark" />
             <p className="text-sm text-foreground">
-              <strong>In Summary:</strong> We are your supportive partner in the scaling 
-              journey—providing intelligence, community, and coaching. The work of 
-              building and funding your business remains yours.
+              <strong>In Summary:</strong> We are your supportive partner in the scaling
+              journey, providing intelligence, community, and a pathway into our
+              Accelerator. The work of building and funding your business remains yours.
             </p>
           </div>
         </motion.div>

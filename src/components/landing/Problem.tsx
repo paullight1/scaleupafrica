@@ -12,7 +12,7 @@ const problems = [
     icon: Search,
     title: "Fragmented Funding Information",
     description:
-      "Grant opportunities exist, but they're scattered across websites, WhatsApp groups, and word of mouth. You spend hours searching instead of building.",
+      "Grant opportunities exist, but they are scattered across websites, WhatsApp groups, and word of mouth. You spend hours searching instead of building.",
   },
   {
     icon: Users,
@@ -26,7 +26,6 @@ const Problem = () => {
   return (
     <section className="bg-secondary py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -42,12 +41,11 @@ const Problem = () => {
             <span className="text-forest">Structure Is Scarce.</span>
           </h2>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Across Africa, brilliant founders are building incredible businesses. 
-            But too many are held back not by lack of ambition—but by lack of access.
+            Across Africa, brilliant founders are building incredible businesses.
+            But too many are held back not by lack of ambition, but by lack of access.
           </p>
         </motion.div>
 
-        {/* Problem Cards */}
         <div className="mt-16 grid gap-8 md:grid-cols-3">
           {problems.map((problem, index) => (
             <motion.div
@@ -71,7 +69,6 @@ const Problem = () => {
           ))}
         </div>
 
-        {/* Transition Statement */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -83,7 +80,7 @@ const Problem = () => {
           <span className="text-gradient-gold font-bold">
             The ScaleUp Africa Collective
           </span>
-          —a bridge between hustle and scale.
+          , a bridge between hustle and scale.
         </motion.p>
       </div>
     </section>

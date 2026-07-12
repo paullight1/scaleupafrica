@@ -8,44 +8,44 @@ import {
 
 const faqs = [
   {
-    question: "Can I pay in my local currency?",
+    question: "Which SMEs is the Collective for?",
     answer:
-      "Our payment processor accepts major international payment methods including Visa, Mastercard, and mobile money options in select African countries. The price is displayed in USD, but your card/payment provider will convert it to your local currency at the current exchange rate. We're actively working to add more local payment options.",
+      "The Collective is sector-agnostic. We welcome African SME founders across all industries who are ready to scale their businesses with structure, community, and access to curated capital intelligence.",
   },
   {
-    question: "How often are the coaching sessions held?",
+    question: "Can I pay in my local currency?",
     answer:
-      "We host Monthly Mastery Coaching sessions—typically one deep-dive session per month on rotation between our three core themes: Funding Strategy, Scaling Operations, and Digital Transformation. All sessions are held virtually and recorded for members who can't attend live. You'll also have access to our complete library of past sessions.",
+      "Yes. Pricing is displayed in your selected country's currency, and our payment processor supports major cards and mobile money options across several African markets. If your local currency is not shown, your bank will convert at the prevailing rate.",
+  },
+  {
+    question: "What is the Accelerator Program, and how do I join?",
+    answer:
+      "The Accelerator Program is a selective, application-based program for revenue-generating SMEs based in Africa at the scale stage of their business. Being a member of the Collective is the first step toward eligibility. Membership does not guarantee a place in the Accelerator Program.",
   },
   {
     question: "What types of grants and funding opportunities are shared?",
     answer:
-      "We focus on opportunities relevant to SMEs in our core sectors: Fashion, Retail, Agriculture, Food Processing, and Confectionery. This includes grants, competitions, pitch events, accelerator programs, and development finance opportunities from both African and international organizations. We filter for opportunities that are actually accessible to African SMEs—no misleading or irrelevant listings.",
+      "We curate grants, competitions, pitch events, accelerator programs, and development finance opportunities from both African and international organizations. We filter for opportunities that are actually accessible to African SMEs, so members are not chasing irrelevant leads.",
   },
   {
     question: "How do the Peer Circles work?",
     answer:
-      "Peer Circles are sector-specific groups of 8-15 founders who meet bi-weekly for structured peer learning sessions. You'll be matched with others in your industry (e.g., Fashion founders, Agri founders) for relevant discussions. Sessions are facilitated to ensure productive conversations around shared challenges, wins, and opportunities.",
+      "Peer Circles are small groups of founders that meet regularly for structured peer learning sessions. Circles are curated to bring together founders who can meaningfully learn from and support one another around shared challenges, wins, and opportunities.",
   },
   {
-    question: "What's the difference between Monthly and Annual membership?",
+    question: "Is there a monthly plan?",
     answer:
-      "Both plans give you identical access to all features—Funding Radar, Peer Circles, and Monthly Mastery Coaching. The only difference is pricing: Annual members pay $200/year (equivalent to $16.67/month), saving 2 months compared to paying monthly. Annual is best if you're committed to your growth journey for the year ahead.",
+      "We offer an annual membership only. This keeps the community focused, committed, and easier to serve deeply throughout the year.",
   },
   {
-    question: "Can I cancel my membership anytime?",
+    question: "Can I cancel my membership?",
     answer:
-      "Yes. Monthly members can cancel anytime, and your access continues until the end of your current billing period. Annual members can also cancel, but refunds are not provided for the remaining months—your access simply continues until your year ends. We don't believe in trapping members, so cancellation is straightforward.",
-  },
-  {
-    question: "I'm just starting my business. Is this for me?",
-    answer:
-      "The Collective is designed for founders who have moved beyond the pure ideation stage—you have a product or service, some revenue (even if small), and are ready to think about structured growth. If you're still figuring out your business model, you might benefit more from other resources first. That said, if you're in our sectors and serious about building, you're welcome to join and learn.",
+      "Yes. You can cancel at any time. Your access continues until the end of your current annual term, and refunds for remaining months are not provided. We do not believe in trapping members, so cancellation is straightforward.",
   },
   {
     question: "How is this different from other founder communities?",
     answer:
-      "Three things set us apart: (1) Sector Focus—we specialize in Fashion, Retail, Agri-food, and Confectionery, not generic 'startups'; (2) Pan-African Network—we bring together founders from across the continent, not just one city or country; and (3) Curated Capital Intelligence—our Funding Radar is specifically filtered for SMEs in our sectors, not a generic opportunity feed.",
+      "Three things set us apart: a Pan-African network of serious SME founders across all sectors, curated capital intelligence filtered specifically for African SMEs, and a clear pathway into a selective Accelerator Program for members ready to scale.",
   },
 ];
 
@@ -53,7 +53,6 @@ const FAQ = () => {
   return (
     <section className="bg-background py-24">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -62,7 +61,7 @@ const FAQ = () => {
           className="mb-16 text-center"
         >
           <span className="mb-4 inline-block font-semibold uppercase tracking-wider text-gold">
-            Questions & Answers
+            Questions and Answers
           </span>
           <h2 className="mb-4 font-serif text-3xl font-bold text-foreground md:text-4xl">
             Frequently Asked Questions
@@ -72,7 +71,6 @@ const FAQ = () => {
           </p>
         </motion.div>
 
-        {/* FAQ Accordion */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -97,7 +95,6 @@ const FAQ = () => {
           </Accordion>
         </motion.div>
 
-        {/* Contact CTA */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

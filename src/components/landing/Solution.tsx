@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Radar, Users2, GraduationCap, CheckCircle } from "lucide-react";
+import { Radar, Users2, Rocket, CheckCircle } from "lucide-react";
 
 const pillars = [
   {
@@ -7,10 +7,10 @@ const pillars = [
     title: "The Funding Radar",
     subtitle: "Capital Intelligence",
     description:
-      "Stop hunting for opportunities. Our team curates and delivers relevant grants, competitions, and funding calls directly to your inbox—filtered by sector and stage.",
+      "Stop hunting for opportunities. Our team curates and delivers relevant grants, competitions, and funding calls directly to your inbox, filtered for African SMEs.",
     features: [
       "Weekly curated funding digest",
-      "Sector-specific opportunities",
+      "Opportunities across sectors",
       "Early alerts on upcoming deadlines",
       "Grant eligibility breakdowns",
     ],
@@ -20,25 +20,25 @@ const pillars = [
     title: "Peer Circles",
     subtitle: "Pan-African Community",
     description:
-      "Connect with founders who understand your journey. Our sector-specific peer circles bring together Fashion, Agri, Retail, and Food Processing entrepreneurs from across the continent.",
+      "Connect with founders who understand your journey. Our peer circles bring together SME entrepreneurs from across the continent for structured, honest conversations.",
     features: [
-      "Industry-specific groups",
+      "Cross-industry founder groups",
       "Bi-weekly peer sessions",
       "Founder accountability partners",
       "Cross-border networking",
     ],
   },
   {
-    icon: GraduationCap,
-    title: "Monthly Mastery Coaching",
-    subtitle: "Expert-Led Growth",
+    icon: Rocket,
+    title: "The Accelerator Program",
+    subtitle: "Selective Deep Support",
     description:
-      "Every month, dive deep with expert-led sessions on Funding Strategy, Scaling Operations, and Digital Transformation. Practical frameworks, not theory.",
+      "A selective program for revenue-generating SMEs based in Africa at the scale stage. Membership in the Collective is the first step toward eligibility. It does not guarantee a place.",
     features: [
-      "Live virtual coaching sessions",
-      "Recorded session library",
-      "Q&A with industry experts",
-      "Actionable playbooks",
+      "Application-based selection",
+      "Cohort-based deep support",
+      "Available to Collective members only",
+      "For revenue-generating African SMEs",
     ],
   },
 ];
@@ -47,7 +47,6 @@ const Solution = () => {
   return (
     <section className="bg-background py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -63,12 +62,11 @@ const Solution = () => {
             <span className="text-forest">Scaling Ecosystem</span>
           </h2>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            We've built the infrastructure you need to move from surviving to thriving. 
-            Capital, Community, and Coaching—working together.
+            We have built the infrastructure you need to move from surviving to thriving.
+            Capital, Community, and a pathway into our Accelerator.
           </p>
         </motion.div>
 
-        {/* Pillars Grid */}
         <div className="mt-20 space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-8">
           {pillars.map((pillar, index) => (
             <motion.div
@@ -79,14 +77,11 @@ const Solution = () => {
               transition={{ duration: 0.6, delay: index * 0.15 }}
               className="relative"
             >
-              {/* Card */}
               <div className="group h-full rounded-3xl border border-border bg-card p-8 shadow-soft transition-all duration-500 hover:border-gold/40 hover:shadow-elevated lg:p-10">
-                {/* Icon */}
                 <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-forest to-forest-light text-primary-foreground shadow-medium">
                   <pillar.icon className="h-8 w-8" />
                 </div>
 
-                {/* Content */}
                 <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gold">
                   {pillar.subtitle}
                 </p>
@@ -97,7 +92,6 @@ const Solution = () => {
                   {pillar.description}
                 </p>
 
-                {/* Features */}
                 <ul className="space-y-3">
                   {pillar.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
