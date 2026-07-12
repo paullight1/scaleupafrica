@@ -17,15 +17,16 @@ const pillars = [
   },
   {
     icon: Users2,
-    title: "Peer Circles",
-    subtitle: "Pan-African Community",
+    title: "The WhatsApp Community",
+    subtitle: "Pan-African SME Directory",
     description:
-      "Connect with founders who understand your journey. Our peer circles bring together SME entrepreneurs from across the continent for structured, honest conversations.",
+      "A low-lift, high-signal WhatsApp group that functions as a Pan-African SME directory. Ask questions, share challenges, find suppliers, and build partnerships for cross-border trade.",
     features: [
-      "Cross-industry founder groups",
-      "Bi-weekly peer sessions",
-      "Founder accountability partners",
-      "Cross-border networking",
+      "Pan-African SME directory",
+      "Ask questions and share challenges",
+      "Find suppliers and trusted vendors",
+      "Cross-border trade partnerships",
+      "Opportunities posted directly in-group",
     ],
   },
   {
