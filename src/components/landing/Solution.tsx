@@ -9,7 +9,7 @@ const pillars = [
     description:
       "Stop hunting for opportunities. Our team curates and delivers relevant grants, competitions, and funding calls directly to your inbox, filtered for African SMEs.",
     features: [
-      "Weekly curated funding digest",
+      "Monthly curated funding digest",
       "Opportunities across sectors",
       "Early alerts on upcoming deadlines",
       "Grant eligibility breakdowns",
