@@ -12,7 +12,7 @@ import { useState } from "react";
 
 const features = [
   "The Funding Radar (weekly curated grants and opportunities)",
-  "Peer Circles access across the continent",
+  "WhatsApp Community: Pan-African SME directory",
   "Eligibility to apply to the Accelerator Program",
   "Exclusive member resources and playbooks",
   "Pan-African founder network",
