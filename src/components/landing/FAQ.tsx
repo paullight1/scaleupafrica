@@ -28,9 +28,9 @@ const faqs = [
       "We curate grants, competitions, pitch events, accelerator programs, and development finance opportunities from both African and international organizations. We filter for opportunities that are actually accessible to African SMEs, so members are not chasing irrelevant leads.",
   },
   {
-    question: "How do the Peer Circles work?",
+    question: "How does the WhatsApp Community work?",
     answer:
-      "Peer Circles are small groups of founders that meet regularly for structured peer learning sessions. Circles are curated to bring together founders who can meaningfully learn from and support one another around shared challenges, wins, and opportunities.",
+      "The WhatsApp Community is a Pan-African SME directory. Members use it to ask questions, share challenges, find suppliers, post and discover opportunities, and build partnerships for cross-border trade. It is designed to be low-lift and member-driven, not a scheduled program.",
   },
   {
     question: "Is there a monthly plan?",
