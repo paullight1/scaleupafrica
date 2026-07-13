@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Star, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -191,10 +192,12 @@ const Pricing = () => {
               <span className="text-lg text-muted-foreground">/year</span>
             </div>
 
-            <Button variant="gold" size="lg" className="mb-8 w-full">
-              Join the Collective
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <Link to="/auth?next=/directory/create">
+              <Button variant="gold" size="lg" className="mb-8 w-full">
+                Join the Collective
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
 
             <ul className="space-y-4">
               {features.map((feature) => (
