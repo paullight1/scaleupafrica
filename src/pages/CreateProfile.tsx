@@ -92,7 +92,13 @@ const CreateProfile = () => {
       return;
     }
     setSaving(true);
-    const payload = { ...parsed.data, user_id: user.id };
+    const payload = {
+      ...parsed.data,
+      business_name: parsed.data.business_name,
+      country: parsed.data.country,
+      sector: parsed.data.sector,
+      user_id: user.id,
+    };
     const { error } = existingId
       ? await supabase.from("profiles").update(payload).eq("id", existingId)
       : await supabase.from("profiles").insert(payload);
