@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-entrepreneurs.jpg";
 
 const Hero = () => {
@@ -48,9 +49,8 @@ const Hero = () => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mb-10 max-w-2xl text-lg leading-relaxed text-primary-foreground/80 md:text-xl"
         >
-          The premier membership collective for African SME founders ready to scale.
-          Get curated funding intelligence, sector peer circles, and a pathway into
-          our selective Accelerator Program.
+          Get listed on the Pan-African SME Directory and unlock AI-curated funding
+          intelligence built for African founders ready to scale.
         </motion.p>
 
         <motion.div
@@ -59,13 +59,17 @@ const Hero = () => {
           transition={{ duration: 0.7, delay: 0.3 }}
           className="flex flex-col gap-4 sm:flex-row"
         >
-          <Button variant="hero" size="xl">
-            Join the Collective
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-          <Button variant="heroOutline" size="xl">
-            See What's Included
-          </Button>
+          <Link to="/auth?next=/directory/create">
+            <Button variant="hero" size="xl" className="w-full sm:w-auto">
+              Get started
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+          <Link to="/funding">
+            <Button variant="heroOutline" size="xl" className="w-full sm:w-auto">
+              Access Funding Intelligence
+            </Button>
+          </Link>
         </motion.div>
 
         <motion.p
@@ -74,23 +78,8 @@ const Hero = () => {
           transition={{ duration: 0.7, delay: 0.5 }}
           className="mt-8 text-sm text-primary-foreground/60"
         >
-          Annual membership. Cancel anytime.
+          Directory is free. Funding Intelligence unlocks with annual membership.
         </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex h-12 w-7 items-start justify-center rounded-full border-2 border-gold/40 p-2"
-          >
-            <motion.div className="h-2 w-1 rounded-full bg-gold" />
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );

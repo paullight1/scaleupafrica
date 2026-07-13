@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Star, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -11,11 +12,11 @@ import {
 import { useState } from "react";
 
 const features = [
-  "The Funding Radar (monthly curated grants and opportunities)",
-  "WhatsApp Community: Pan-African SME directory",
-  "Eligibility to apply to the Accelerator Program",
+  "Free profile on the Pan-African SME Directory",
+  "Full access to the AI-powered Funding Radar",
+  "Monthly curated grants and opportunities",
+  "Search funding by your business keywords",
   "Exclusive member resources and playbooks",
-  "Pan-African founder network",
 ];
 
 // Annual membership priced at ~US$200 equivalent, with a local rate for Nigeria (base).
@@ -179,8 +180,8 @@ const Pricing = () => {
                 The Collective
               </h3>
               <p className="text-muted-foreground">
-                Full-year access to funding intelligence, community, and Accelerator
-                eligibility.
+                Full-year access to the AI-powered Funding Radar, curated grants, and
+                exclusive member resources.
               </p>
             </div>
 
@@ -191,10 +192,12 @@ const Pricing = () => {
               <span className="text-lg text-muted-foreground">/year</span>
             </div>
 
-            <Button variant="gold" size="lg" className="mb-8 w-full">
-              Join the Collective
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <Link to="/auth?next=/directory/create">
+              <Button variant="gold" size="lg" className="mb-8 w-full">
+                Join the Collective
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
 
             <ul className="space-y-4">
               {features.map((feature) => (

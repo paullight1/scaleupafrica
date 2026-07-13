@@ -18,9 +18,9 @@ const disclaimerPoints = [
       "Our team does not write, edit, or submit grant applications on behalf of members. We provide information and guidance, but the application process remains your responsibility.",
   },
   {
-    title: "Accelerator Program Eligibility",
+    title: "Directory Listings Are Member-Provided",
     description:
-      "The Accelerator Program is selective and reserved for revenue-generating SMEs based in Africa at the scale stage. Being a Collective member is the first step toward eligibility. Membership does not guarantee a place in the Accelerator Program.",
+      "SME Directory profiles are created and maintained by members themselves. We do not verify, endorse, or guarantee the accuracy of any business listed. Do your own due diligence before transacting.",
   },
   {
     title: "Information Accuracy",
@@ -83,8 +83,8 @@ const Disclaimer = () => {
             <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-gold-dark" />
             <p className="text-sm text-foreground">
               <strong>In Summary:</strong> We are your supportive partner in the scaling
-              journey, providing intelligence, community, and a pathway into our
-              Accelerator. The work of building and funding your business remains yours.
+              journey, providing visibility through the directory and curated capital
+              intelligence. The work of building and funding your business remains yours.
             </p>
           </div>
         </motion.div>

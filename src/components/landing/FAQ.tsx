@@ -10,27 +10,27 @@ const faqs = [
   {
     question: "Which SMEs is the Collective for?",
     answer:
-      "The Collective is sector-agnostic. We welcome African SME founders across all industries who are ready to scale their businesses with structure, community, and access to curated capital intelligence.",
+      "The Collective is sector-agnostic. We welcome African SME founders across all industries who are ready to scale their businesses with structure and access to curated capital intelligence.",
+  },
+  {
+    question: "Is the SME Directory free?",
+    answer:
+      "Yes. The Pan-African SME Directory is free to join and public. Create a profile in minutes and become discoverable to buyers, partners, and collaborators across the continent.",
+  },
+  {
+    question: "What is the Funding Radar?",
+    answer:
+      "The Funding Radar is our AI-powered page that aggregates relevant grants, competitions, accelerators, pitch events, and development finance opportunities for African SMEs. Enter keywords describing your business and get a curated list.",
+  },
+  {
+    question: "How do I access the Funding Radar?",
+    answer:
+      "The Funding Radar is available exclusively to active Collective members with an annual subscription. Once your subscription expires, access is revoked until you resubscribe.",
   },
   {
     question: "Can I pay in my local currency?",
     answer:
       "Yes. Pricing is displayed in your selected country's currency, and our payment processor supports major cards and mobile money options across several African markets. If your local currency is not shown, your bank will convert at the prevailing rate.",
-  },
-  {
-    question: "What is the Accelerator Program, and how do I join?",
-    answer:
-      "The Accelerator Program is a selective, application-based program for revenue-generating SMEs based in Africa at the scale stage of their business. Being a member of the Collective is the first step toward eligibility. Membership does not guarantee a place in the Accelerator Program.",
-  },
-  {
-    question: "What types of grants and funding opportunities are shared?",
-    answer:
-      "We curate grants, competitions, pitch events, accelerator programs, and development finance opportunities from both African and international organizations. We filter for opportunities that are actually accessible to African SMEs, so members are not chasing irrelevant leads.",
-  },
-  {
-    question: "How does the WhatsApp Community work?",
-    answer:
-      "The WhatsApp Community is a Pan-African SME directory. Members use it to ask questions, share challenges, find suppliers, post and discover opportunities, and build partnerships for cross-border trade. It is designed to be low-lift and member-driven, not a scheduled program.",
   },
   {
     question: "Is there a monthly plan?",
@@ -40,12 +40,12 @@ const faqs = [
   {
     question: "Can I cancel my membership?",
     answer:
-      "Yes. You can cancel at any time. Your access continues until the end of your current annual term, and refunds for remaining months are not provided. We do not believe in trapping members, so cancellation is straightforward.",
+      "Yes. You can cancel at any time. Your access continues until the end of your current annual term, and refunds for remaining months are not provided.",
   },
   {
     question: "How is this different from other founder communities?",
     answer:
-      "Three things set us apart: a Pan-African network of serious SME founders across all sectors, curated capital intelligence filtered specifically for African SMEs, and a clear pathway into a selective Accelerator Program for members ready to scale.",
+      "Two things set us apart: a free public directory that gives every African founder visibility, and AI-curated capital intelligence filtered specifically for African SMEs ready to scale.",
   },
 ];
 
