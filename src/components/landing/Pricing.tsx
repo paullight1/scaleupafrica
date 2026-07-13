@@ -11,11 +11,11 @@ import {
 import { useState } from "react";
 
 const features = [
-  "The Funding Radar (monthly curated grants and opportunities)",
-  "WhatsApp Community: Pan-African SME directory",
-  "Eligibility to apply to the Accelerator Program",
+  "Free profile on the Pan-African SME Directory",
+  "Full access to the AI-powered Funding Radar",
+  "Monthly curated grants and opportunities",
+  "Search funding by your business keywords",
   "Exclusive member resources and playbooks",
-  "Pan-African founder network",
 ];
 
 // Annual membership priced at ~US$200 equivalent, with a local rate for Nigeria (base).
