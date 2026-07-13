@@ -14,13 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          business_name: string
+          country: string
+          created_at: string
+          email: string | null
+          founder_name: string | null
+          founder_photo_url: string | null
+          id: string
+          instagram: string | null
+          keywords: string[] | null
+          linkedin: string | null
+          logo_url: string | null
+          long_description: string | null
+          phone: string | null
+          sector: string
+          short_description: string | null
+          twitter: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          business_name: string
+          country: string
+          created_at?: string
+          email?: string | null
+          founder_name?: string | null
+          founder_photo_url?: string | null
+          id?: string
+          instagram?: string | null
+          keywords?: string[] | null
+          linkedin?: string | null
+          logo_url?: string | null
+          long_description?: string | null
+          phone?: string | null
+          sector: string
+          short_description?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          business_name?: string
+          country?: string
+          created_at?: string
+          email?: string | null
+          founder_name?: string | null
+          founder_photo_url?: string | null
+          id?: string
+          instagram?: string | null
+          keywords?: string[] | null
+          linkedin?: string | null
+          logo_url?: string | null
+          long_description?: string | null
+          phone?: string | null
+          sector?: string
+          short_description?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          has_access: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          has_access?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          has_access?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
