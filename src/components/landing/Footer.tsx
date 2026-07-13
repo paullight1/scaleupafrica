@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -19,15 +20,17 @@ const Footer = () => {
               <span className="text-gradient-gold">With Intent?</span>
             </h2>
             <p className="mb-10 text-lg text-primary-foreground/80">
-              Join Africa's most focused SME founder collective. Get the capital
-              intelligence, community, and Accelerator pathway you need to build
-              sustainably.
+              Join Africa's most focused SME founder collective. List your business on
+              the free directory and unlock AI-curated funding intelligence when you're
+              ready to scale.
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Button variant="hero" size="xl">
-                Join the Collective
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              <Link to="/auth?next=/directory/create">
+                <Button variant="hero" size="xl">
+                  Get started
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>

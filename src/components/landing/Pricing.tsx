@@ -179,8 +179,8 @@ const Pricing = () => {
                 The Collective
               </h3>
               <p className="text-muted-foreground">
-                Full-year access to funding intelligence, community, and Accelerator
-                eligibility.
+                Full-year access to the AI-powered Funding Radar, curated grants, and
+                exclusive member resources.
               </p>
             </div>
 
