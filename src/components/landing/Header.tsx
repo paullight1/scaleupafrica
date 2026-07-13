@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const navLinks = [
-  { label: "Why Join", href: "#problem" },
-  { label: "What You Get", href: "#solution" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "What You Get", href: "/#solution" },
+  { label: "Directory", href: "/directory" },
+  { label: "Funding", href: "/funding" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 const Header = () => {
@@ -27,9 +29,9 @@ const Header = () => {
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-        <a href="#" className="font-serif text-xl font-bold text-primary-foreground">
+        <Link to="/" className="font-serif text-xl font-bold text-primary-foreground">
           ScaleUp Africa<span className="text-gold">.</span>
-        </a>
+        </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((link) => (
@@ -44,9 +46,8 @@ const Header = () => {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button variant="gold" size="sm">
-            Join the Collective
-          </Button>
+          <Link to="/auth"><Button variant="ghost" size="sm" className="text-primary-foreground hover:text-gold hover:bg-transparent">Sign in</Button></Link>
+          <Link to="/auth?next=/directory/create"><Button variant="gold" size="sm">Get started</Button></Link>
         </div>
 
         <button
@@ -77,9 +78,8 @@ const Header = () => {
                 </a>
               ))}
               <div className="mt-4 flex flex-col gap-3">
-                <Button variant="gold" className="w-full">
-                  Join the Collective
-                </Button>
+                <Link to="/auth"><Button variant="outline" className="w-full">Sign in</Button></Link>
+                <Link to="/auth?next=/directory/create"><Button variant="gold" className="w-full">Get started</Button></Link>
               </div>
             </nav>
           </motion.div>
