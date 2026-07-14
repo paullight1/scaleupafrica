@@ -87,7 +87,7 @@ const Funding = () => {
             The Funding Intelligence page is available to active Collective members. Subscribe to unlock AI-curated grants and opportunities matched to your keywords.
           </p>
           <Link to="/#pricing"><Button variant="gold" size="lg">See membership</Button></Link>
-          <p className="mt-6 text-xs text-muted-foreground">Signed in as {user.email}</p>
+          {user && <p className="mt-6 text-xs text-muted-foreground">Signed in as {user.email}</p>}
         </div>
       </main>
     );
