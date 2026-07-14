@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, ExternalLink, Lock, RefreshCw, Calendar } from "lucide-react";
+
+const SAMPLE_OPPS: Opportunity[] = [
+  { title: "Africa Climate Innovation Grant", funder: "Green Africa Foundation", summary: "Non-dilutive grant for climate-focused African SMEs building scalable solutions in agriculture, energy or water.", amount: "Up to $50,000", deadline: "Rolling", eligibility: "Revenue-generating SMEs in Africa", url: "https://example.com", tags: ["Grant", "Climate", "Africa-wide"] },
+  { title: "Women Founders Growth Fund", funder: "AfriVentures", summary: "Equity-free capital and mentorship for women-led SMEs scaling across West and East Africa.", amount: "$25,000 + mentorship", deadline: "March 31, 2026", eligibility: "Women-led, 2+ years revenue", url: "https://example.com", tags: ["Grant", "Women-led"] },
+  { title: "Pan-African Agritech Challenge", funder: "AGRA & partners", summary: "Competition for agritech startups improving smallholder farmer productivity across the continent.", amount: "$100,000 prize pool", deadline: "May 15, 2026", eligibility: "Agritech, post-revenue", url: "https://example.com", tags: ["Competition", "Agritech"] },
+];
 
 type Opportunity = {
   title: string;
@@ -21,26 +27,35 @@ type Opportunity = {
 const Funding = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const isPreview = params.get("preview") === "1";
   const [access, setAccess] = useState<null | boolean>(null);
   const [keywords, setKeywords] = useState("");
-  const [opps, setOpps] = useState<Opportunity[]>([]);
+  const [opps, setOpps] = useState<Opportunity[]>(isPreview ? SAMPLE_OPPS : []);
   const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
     document.title = "Funding Intelligence | ScaleUp Africa Collective";
+    if (isPreview) return;
     if (!loading && !user) navigate("/auth?next=/funding", { replace: true });
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isPreview]);
 
   useEffect(() => {
+    if (isPreview) { setAccess(true); return; }
     if (!user) return;
     (async () => {
       const { data } = await supabase.from("subscriptions").select("has_access, expires_at").eq("user_id", user.id).maybeSingle();
       const active = !!data?.has_access && (!data.expires_at || new Date(data.expires_at) > new Date());
       setAccess(active);
     })();
-  }, [user]);
+  }, [user, isPreview]);
 
   const generate = async () => {
+    if (isPreview) {
+      setOpps(SAMPLE_OPPS);
+      toast.info("Preview mode — showing sample opportunities. Live AI curation runs for subscribed members.");
+      return;
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase.functions.invoke("aggregate-funding", {
@@ -56,7 +71,7 @@ const Funding = () => {
     }
   };
 
-  if (loading || !user || access === null) {
+  if (!isPreview && (loading || !user || access === null)) {
     return <main className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></main>;
   }
 
@@ -72,7 +87,7 @@ const Funding = () => {
             The Funding Intelligence page is available to active Collective members. Subscribe to unlock AI-curated grants and opportunities matched to your keywords.
           </p>
           <Link to="/#pricing"><Button variant="gold" size="lg">See membership</Button></Link>
-          <p className="mt-6 text-xs text-muted-foreground">Signed in as {user.email}</p>
+          {user && <p className="mt-6 text-xs text-muted-foreground">Signed in as {user.email}</p>}
         </div>
       </main>
     );

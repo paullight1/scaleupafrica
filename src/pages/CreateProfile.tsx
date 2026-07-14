@@ -9,16 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
+import ImageUploadCrop from "@/components/ImageUploadCrop";
 
 const AFRICAN_COUNTRIES = [
   "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic","Chad","Comoros","Congo (Brazzaville)","Congo (DRC)","Côte d'Ivoire","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","São Tomé and Príncipe","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe","Other"
+];
+
+const SECTORS = [
+  "Agriculture & Agritech","Fashion & Apparel","Food & Beverage","Retail & E-commerce","Logistics & Supply Chain","Manufacturing","Construction & Real Estate","Financial Services & Fintech","Health & Wellness","Healthtech & Pharma","Education & Edtech","Media, Arts & Entertainment","Beauty & Personal Care","Hospitality & Tourism","Professional Services","Marketing & Creative","Technology & Software","Energy & Cleantech","Transportation & Mobility","Automotive","Telecommunications","Import / Export & Trade","Mining & Natural Resources","Non-profit & Social Enterprise","Other"
 ];
 
 const schema = z.object({
   business_name: z.string().trim().min(1, "Required").max(120),
   founder_name: z.string().trim().max(120).optional().or(z.literal("")),
   country: z.string().min(1, "Required"),
-  sector: z.string().trim().min(1, "Required").max(80),
+  sector: z.string().min(1, "Required"),
   short_description: z.string().trim().max(180).optional().or(z.literal("")),
   long_description: z.string().trim().max(2000).optional().or(z.literal("")),
   website: z.string().trim().max(255).optional().or(z.literal("")),
@@ -128,7 +133,12 @@ const CreateProfile = () => {
                   {AFRICAN_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
-              <Field label="Sector / industry *"><Input value={form.sector} onChange={update("sector")} required maxLength={80} placeholder="e.g. Agritech, Fashion, Logistics" /></Field>
+              <Field label="Sector / industry *">
+                <select value={form.sector} onChange={update("sector")} required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="">Select a sector</option>
+                  {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
             </div>
 
             <Field label="Short description (one-liner, up to 180 chars)">
@@ -139,9 +149,10 @@ const CreateProfile = () => {
               <Textarea value={form.long_description} onChange={update("long_description")} maxLength={2000} rows={5} />
             </Field>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Logo URL"><Input value={form.logo_url} onChange={update("logo_url")} maxLength={500} placeholder="https://..." /></Field>
-              <Field label="Founder photo URL"><Input value={form.founder_photo_url} onChange={update("founder_photo_url")} maxLength={500} placeholder="https://..." /></Field>
+            <h2 className="font-serif text-lg font-semibold text-foreground pt-4">Images</h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              <ImageUploadCrop label="Logo" value={form.logo_url} onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))} userId={user.id} aspect={1} shape="rect" folder="logo" />
+              <ImageUploadCrop label="Founder photo" value={form.founder_photo_url} onChange={(url) => setForm((f) => ({ ...f, founder_photo_url: url }))} userId={user.id} aspect={1} shape="round" folder="founder" />
             </div>
 
             <h2 className="font-serif text-lg font-semibold text-foreground pt-4">Contact</h2>
