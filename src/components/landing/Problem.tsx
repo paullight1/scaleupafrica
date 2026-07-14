@@ -1,24 +1,24 @@
 import { motion } from "framer-motion";
-import { AlertCircle, Search, Users } from "lucide-react";
+import { Search, TrendingUp, Compass } from "lucide-react";
 
 const problems = [
   {
-    icon: AlertCircle,
-    title: "Great Ideas, No Structure",
-    description:
-      "You have the vision and the drive, but scaling feels like building a plane while flying it. Without proper frameworks, growth becomes chaos.",
-  },
-  {
     icon: Search,
-    title: "Fragmented Funding Information",
+    title: "Funding Feels Out of Reach",
     description:
-      "Grant opportunities exist, but they are scattered across websites, WhatsApp groups, and word of mouth. You spend hours searching instead of building.",
+      "Grants, competitions and capital calls exist for African SMEs, but they are scattered across websites, newsletters and WhatsApp groups. You spend hours hunting instead of building.",
   },
   {
-    icon: Users,
-    title: "The Loneliness of Leadership",
+    icon: Compass,
+    title: "Growth Without a Framework",
     description:
-      "Being a founder can be isolating. Few understand your challenges, and finding peers who truly get the African SME journey is rare.",
+      "You are generating revenue, but scaling feels like guesswork. Without proven growth frameworks tailored to African realities, momentum stalls before it compounds.",
+  },
+  {
+    icon: TrendingUp,
+    title: "No Shared Growth Infrastructure",
+    description:
+      "Serious SMEs across the continent are solving the same problems in isolation. There is no shared, trusted place that pairs funding intelligence with growth playbooks built for us.",
   },
 ];
 
@@ -34,15 +34,15 @@ const Problem = () => {
           className="mx-auto max-w-3xl text-center"
         >
           <span className="mb-4 inline-block font-semibold uppercase tracking-wider text-gold-dark">
-            The African Paradox
+            The African SME Reality
           </span>
           <h2 className="mb-6 font-serif text-3xl font-bold text-foreground md:text-4xl lg:text-5xl">
-            Talent Is Abundant.{" "}
-            <span className="text-forest">Structure Is Scarce.</span>
+            Ambition Is Not the Problem.{" "}
+            <span className="text-forest">Access Is.</span>
           </h2>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Across Africa, brilliant founders are building incredible businesses.
-            But too many are held back not by lack of ambition, but by lack of access.
+            African SMEs already have the drive. What they need is access to funding
+            and proven growth frameworks that actually move the needle.
           </p>
         </motion.div>
 
@@ -80,7 +80,7 @@ const Problem = () => {
           <span className="text-gradient-gold font-bold">
             The ScaleUp Africa Collective
           </span>
-          , a bridge between hustle and scale.
+          , the funding and growth infrastructure for serious African SMEs.
         </motion.p>
       </div>
     </section>
