@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, ExternalLink, Lock, RefreshCw, Calendar } from "lucide-react";
+
+const SAMPLE_OPPS: Opportunity[] = [
+  { title: "Africa Climate Innovation Grant", funder: "Green Africa Foundation", summary: "Non-dilutive grant for climate-focused African SMEs building scalable solutions in agriculture, energy or water.", amount: "Up to $50,000", deadline: "Rolling", eligibility: "Revenue-generating SMEs in Africa", url: "https://example.com", tags: ["Grant", "Climate", "Africa-wide"] },
+  { title: "Women Founders Growth Fund", funder: "AfriVentures", summary: "Equity-free capital and mentorship for women-led SMEs scaling across West and East Africa.", amount: "$25,000 + mentorship", deadline: "March 31, 2026", eligibility: "Women-led, 2+ years revenue", url: "https://example.com", tags: ["Grant", "Women-led"] },
+  { title: "Pan-African Agritech Challenge", funder: "AGRA & partners", summary: "Competition for agritech startups improving smallholder farmer productivity across the continent.", amount: "$100,000 prize pool", deadline: "May 15, 2026", eligibility: "Agritech, post-revenue", url: "https://example.com", tags: ["Competition", "Agritech"] },
+];
 
 type Opportunity = {
   title: string;
