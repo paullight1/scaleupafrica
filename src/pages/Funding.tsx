@@ -94,10 +94,6 @@ const Funding = () => {
   }, [user, isPreview]);
 
   const generate = async () => {
-    if (!acknowledged) {
-      toast.error("Please tick the acknowledgement to proceed.");
-      return;
-    }
     if (isPreview) {
       setOpps(SAMPLE_OPPS);
       toast.info("Preview mode — showing sample opportunities.");
