@@ -219,6 +219,13 @@ const Funding = () => {
             </label>
           </div>
 
+          <div className="rounded-2xl border border-gold/20 bg-primary-foreground/5 p-4 mb-6 text-xs text-primary-foreground/80 flex items-start gap-2">
+            <ShieldAlert className="h-4 w-4 text-gold shrink-0 mt-0.5" />
+            <span>
+              Reminder: verify each opportunity on the funder's own site before applying, and <strong>never pay a fee</strong> to apply for or receive a grant.
+            </span>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3">
             <Input
               value={keywords}
@@ -227,7 +234,7 @@ const Funding = () => {
               maxLength={200}
               className="h-12 bg-card text-foreground"
             />
-            <Button variant="gold" size="lg" onClick={generate} disabled={fetching || !acknowledged}>
+            <Button variant="gold" size="lg" onClick={generate} disabled={fetching}>
               {fetching ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Curating...</> : "Find opportunities"}
             </Button>
           </div>
@@ -237,7 +244,7 @@ const Funding = () => {
       <section className="mx-auto max-w-5xl px-6 py-16">
         {opps.length === 0 && !fetching && (
           <p className="text-center text-muted-foreground py-16">
-            Tick the acknowledgement, enter keywords above, and press "Find opportunities" to generate a curated list.
+            Enter keywords above and press "Find opportunities" to generate a curated list.
           </p>
         )}
         <div className="grid gap-6">
