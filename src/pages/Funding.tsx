@@ -4,25 +4,63 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, ExternalLink, Lock, RefreshCw, Calendar } from "lucide-react";
+import {
+  ArrowLeft, Sparkles, ExternalLink, Lock, RefreshCw, Calendar,
+  AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Info, Target, Users, Lightbulb, Plane,
+} from "lucide-react";
 
-const SAMPLE_OPPS: Opportunity[] = [
-  { title: "Africa Climate Innovation Grant", funder: "Green Africa Foundation", summary: "Non-dilutive grant for climate-focused African SMEs building scalable solutions in agriculture, energy or water.", amount: "Up to $50,000", deadline: "Rolling", eligibility: "Revenue-generating SMEs in Africa", url: "https://example.com", tags: ["Grant", "Climate", "Africa-wide"] },
-  { title: "Women Founders Growth Fund", funder: "AfriVentures", summary: "Equity-free capital and mentorship for women-led SMEs scaling across West and East Africa.", amount: "$25,000 + mentorship", deadline: "March 31, 2026", eligibility: "Women-led, 2+ years revenue", url: "https://example.com", tags: ["Grant", "Women-led"] },
-  { title: "Pan-African Agritech Challenge", funder: "AGRA & partners", summary: "Competition for agritech startups improving smallholder farmer productivity across the continent.", amount: "$100,000 prize pool", deadline: "May 15, 2026", eligibility: "Agritech, post-revenue", url: "https://example.com", tags: ["Competition", "Agritech"] },
-];
-
+type Recipient = { business_name: string; founder_name: string; website: string; note: string };
 type Opportunity = {
   title: string;
   funder: string;
+  type?: string;
   summary: string;
   amount: string;
   deadline: string;
   eligibility: string;
   url: string;
   tags: string[];
+  funder_about?: string;
+  sdg_focus?: string[];
+  past_recipients?: Recipient[];
+  application_tips?: string[];
+  travel_component?: string;
+  important_notes?: string;
 };
+
+const SAMPLE_OPPS: Opportunity[] = [
+  {
+    title: "Africa Climate Innovation Grant",
+    funder: "Green Africa Foundation",
+    type: "Grant",
+    summary: "Non-dilutive grant for climate-focused African SMEs building scalable solutions in agriculture, energy or water.",
+    amount: "Up to $50,000",
+    deadline: "Annual — typically opens Q1",
+    eligibility: "Revenue-generating SMEs in Africa",
+    url: "https://example.com",
+    tags: ["Grant", "Climate"],
+    funder_about: "A sample foundation supporting climate innovation across Africa since 2015.",
+    sdg_focus: ["SDG 13: Climate Action", "SDG 7: Affordable Energy"],
+    past_recipients: [],
+    application_tips: ["Lead with measurable climate impact", "Show a clear path to scale", "Include local partnerships"],
+    important_notes: "Sample data — subscribe to see live curated opportunities.",
+  },
+  {
+    title: "Mandela Washington Fellowship",
+    funder: "U.S. Department of State",
+    type: "Fellowship",
+    summary: "Flagship fellowship of the Young African Leaders Initiative (YALI) with a 6-week U.S. leadership institute.",
+    amount: "Fully funded",
+    deadline: "Annual — opens September",
+    eligibility: "Africans aged 25-35",
+    url: "https://example.com",
+    tags: ["Fellowship", "Travel", "Leadership"],
+    travel_component: "6 weeks in the U.S. at a host university plus optional professional development experience.",
+    application_tips: ["Tell a specific story of community impact", "Be concrete about your growth goals"],
+  },
+];
 
 const Funding = () => {
   const { user, loading } = useAuth();
@@ -33,6 +71,8 @@ const Funding = () => {
   const [keywords, setKeywords] = useState("");
   const [opps, setOpps] = useState<Opportunity[]>(isPreview ? SAMPLE_OPPS : []);
   const [fetching, setFetching] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
     document.title = "Funding Intelligence | ScaleUp Africa Collective";
@@ -51,9 +91,13 @@ const Funding = () => {
   }, [user, isPreview]);
 
   const generate = async () => {
+    if (!acknowledged) {
+      toast.error("Please tick the acknowledgement to proceed.");
+      return;
+    }
     if (isPreview) {
       setOpps(SAMPLE_OPPS);
-      toast.info("Preview mode — showing sample opportunities. Live AI curation runs for subscribed members.");
+      toast.info("Preview mode — showing sample opportunities.");
       return;
     }
     setFetching(true);
@@ -107,17 +151,46 @@ const Funding = () => {
             The <span className="text-gradient-gold">Funding Radar</span>
           </h1>
           <p className="text-primary-foreground/80 max-w-2xl mb-8">
-            Enter keywords describing your business or the funding you're looking for. Our AI aggregates and curates relevant opportunities for African SMEs.
+            Enter keywords describing your business or the funding you're looking for. Our AI aggregates grants, competitions, accelerators and fellowships (including travel opportunities) relevant to African SMEs.
           </p>
+
+          {/* Disclaimer + acknowledgement */}
+          <div className="rounded-2xl border border-gold/30 bg-primary-foreground/5 backdrop-blur p-5 mb-6 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-gold shrink-0 mt-0.5" />
+              <div className="text-sm text-primary-foreground/90 space-y-2">
+                <p>
+                  <strong>Please note:</strong> There is a chance a given search may not surface opportunities you are eligible for, or that are open right now. Most reputable grants and fellowships run on an <strong>annual cycle</strong> — if this year's deadline has passed, the same opportunity typically reopens next year, so bookmark those that fit you.
+                </p>
+                <p className="flex items-start gap-2">
+                  <ShieldAlert className="h-4 w-4 text-gold shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Fraud warning:</strong> All opportunities are curated to be real and verifiable, but always research further before applying. <strong>Never pay a fee to apply for or receive a grant</strong> — that is a strong indicator the "grant" is fraudulent.
+                  </span>
+                </p>
+              </div>
+            </div>
+            <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-primary-foreground/10">
+              <Checkbox
+                checked={acknowledged}
+                onCheckedChange={(v) => setAcknowledged(v === true)}
+                className="mt-0.5 border-gold data-[state=checked]:bg-gold data-[state=checked]:text-primary"
+              />
+              <span className="text-sm text-primary-foreground/90">
+                I understand results may vary by cycle, I will do my own due diligence, and I will never pay to apply for or receive a grant.
+              </span>
+            </label>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3">
             <Input
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
-              placeholder="e.g. agritech Nigeria climate grant"
+              placeholder="e.g. agritech Nigeria climate grant fellowship"
               maxLength={200}
               className="h-12 bg-card text-foreground"
             />
-            <Button variant="gold" size="lg" onClick={generate} disabled={fetching}>
+            <Button variant="gold" size="lg" onClick={generate} disabled={fetching || !acknowledged}>
               {fetching ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Curating...</> : "Find opportunities"}
             </Button>
           </div>
@@ -127,36 +200,115 @@ const Funding = () => {
       <section className="mx-auto max-w-5xl px-6 py-16">
         {opps.length === 0 && !fetching && (
           <p className="text-center text-muted-foreground py-16">
-            Enter keywords above and press "Find opportunities" to generate a curated list.
+            Tick the acknowledgement, enter keywords above, and press "Find opportunities" to generate a curated list.
           </p>
         )}
         <div className="grid gap-6">
-          {opps.map((o, i) => (
-            <article key={i} className="rounded-2xl border border-border bg-card p-6 shadow-soft hover:border-gold/40 transition-all">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <h3 className="font-serif text-xl font-bold text-foreground mb-1">{o.title}</h3>
-                  <p className="text-sm text-muted-foreground">by {o.funder}</p>
+          {opps.map((o, i) => {
+            const isOpen = expanded === i;
+            return (
+              <article key={i} className="rounded-2xl border border-border bg-card p-6 shadow-soft hover:border-gold/40 transition-all">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      {o.type && <span className="rounded-full bg-forest/10 px-2.5 py-0.5 text-xs font-semibold text-forest">{o.type}</span>}
+                      {o.travel_component && <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2.5 py-0.5 text-xs font-semibold text-gold-dark"><Plane className="h-3 w-3" /> Travel</span>}
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-foreground mb-1">{o.title}</h3>
+                    <p className="text-sm text-muted-foreground">by {o.funder}</p>
+                  </div>
+                  {o.amount && <span className="shrink-0 rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-gold-dark">{o.amount}</span>}
                 </div>
-                {o.amount && <span className="shrink-0 rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-gold-dark">{o.amount}</span>}
-              </div>
-              <p className="text-sm text-foreground/80 mb-4">{o.summary}</p>
-              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-4">
-                {o.deadline && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {o.deadline}</span>}
-                {o.eligibility && <span>Eligibility: {o.eligibility}</span>}
-              </div>
-              {o.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {o.tags.map((t) => <span key={t} className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">{t}</span>)}
+                <p className="text-sm text-foreground/80 mb-4">{o.summary}</p>
+                <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-4">
+                  {o.deadline && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {o.deadline}</span>}
+                  {o.eligibility && <span>Eligibility: {o.eligibility}</span>}
                 </div>
-              )}
-              {o.url && (
-                <a href={o.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-semibold text-forest hover:text-gold">
-                  Learn more <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-            </article>
-          ))}
+                {o.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {o.tags.map((t) => <span key={t} className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">{t}</span>)}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setExpanded(isOpen ? null : i)}
+                  >
+                    {isOpen ? <><ChevronUp className="mr-1 h-4 w-4" /> Show less</> : <><ChevronDown className="mr-1 h-4 w-4" /> Learn more</>}
+                  </Button>
+                </div>
+
+                {isOpen && (
+                  <div className="mt-6 space-y-5 border-t border-border pt-6">
+                    {o.funder_about && (
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-forest mb-2"><Info className="h-4 w-4" /> About the funder</h4>
+                        <p className="text-sm text-foreground/80">{o.funder_about}</p>
+                      </div>
+                    )}
+                    {o.travel_component && (
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-forest mb-2"><Plane className="h-4 w-4" /> Travel / exchange component</h4>
+                        <p className="text-sm text-foreground/80">{o.travel_component}</p>
+                      </div>
+                    )}
+                    {o.sdg_focus && o.sdg_focus.length > 0 && (
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-forest mb-2"><Target className="h-4 w-4" /> SDG focus</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {o.sdg_focus.map((s) => <span key={s} className="rounded-full bg-forest/10 px-2.5 py-0.5 text-xs text-forest">{s}</span>)}
+                        </div>
+                      </div>
+                    )}
+                    {o.past_recipients && o.past_recipients.length > 0 && (
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-forest mb-2"><Users className="h-4 w-4" /> Businesses previously funded</h4>
+                        <ul className="space-y-2">
+                          {o.past_recipients.map((r, idx) => (
+                            <li key={idx} className="text-sm text-foreground/80">
+                              <span className="font-semibold text-foreground">{r.business_name}</span>
+                              {r.founder_name && <> — founded by {r.founder_name}</>}
+                              {r.website && <> · <a href={r.website} target="_blank" rel="noopener noreferrer" className="text-forest hover:text-gold underline-offset-4 hover:underline">website</a></>}
+                              {r.note && <div className="text-muted-foreground text-xs mt-0.5">{r.note}</div>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {o.application_tips && o.application_tips.length > 0 && (
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-forest mb-2"><Lightbulb className="h-4 w-4" /> Tips for a stellar application</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80">
+                          {o.application_tips.map((t, idx) => <li key={idx}>{t}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    {o.important_notes && (
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-forest mb-2"><Info className="h-4 w-4" /> Important to note</h4>
+                        <p className="text-sm text-foreground/80">{o.important_notes}</p>
+                      </div>
+                    )}
+
+                    <div className="rounded-lg bg-gold/10 p-3 text-xs text-foreground/80 flex items-start gap-2">
+                      <ShieldAlert className="h-4 w-4 text-gold-dark shrink-0 mt-0.5" />
+                      <span>Verify the current cycle on the funder's site before applying. Never pay any fee to apply for or receive a grant — legitimate funders do not charge applicants.</span>
+                    </div>
+
+                    {o.url && (
+                      <a href={o.url} target="_blank" rel="noopener noreferrer">
+                        <Button variant="gold" size="sm">
+                          Visit funder site <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
       </section>
     </main>
