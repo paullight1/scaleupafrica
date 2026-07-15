@@ -44,10 +44,11 @@ Return a JSON object with an "opportunities" array. Each item MUST have:
 {
   "title": string,
   "funder": string,
-  "type": "Grant" | "Competition" | "Accelerator" | "Fellowship" | "Pitch Event" | "Development Finance",
+  "type": "Grant" | "Competition" | "Accelerator" | "Incubator" | "Fellowship" | "Scholarship" | "Pitch Event" | "Development Finance",
   "summary": string (2 sentences overview),
   "amount": string (e.g. "Up to $50,000" or "" if unknown),
-  "deadline": string (e.g. "Rolling", "March 2026", or "Annual — typically opens Q1"),
+  "opens": string (when applications open, e.g. "January 2026", "Rolling", "Annual — typically opens Q1"),
+  "deadline": string (APPLICATION DEADLINE — the last day to apply, e.g. "31 March 2026", "Annual — closes end of April". Required. If unknown for the current cycle, give the typical closing month.),
   "eligibility": string (short),
   "url": string (funder homepage or program URL — must be a real domain),
   "tags": string[] (2-4 short tags),
@@ -59,7 +60,7 @@ Return a JSON object with an "opportunities" array. Each item MUST have:
   "important_notes": string (any caveats, common pitfalls, or things to know)
 }
 
-If you cannot recall genuine past recipients, return an empty array for past_recipients — never invent names.`;
+Return AT LEAST 15 opportunities spanning different funder types (grants, fellowships, accelerators, competitions, development finance). Do NOT return fewer than 12 unless the keywords are extremely narrow. If you cannot recall genuine past recipients, return an empty array for past_recipients — never invent names.`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
