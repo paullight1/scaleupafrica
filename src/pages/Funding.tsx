@@ -125,16 +125,50 @@ const Funding = () => {
   if (!access) {
     return (
       <main className="min-h-screen bg-secondary flex items-center justify-center px-6 py-24">
-        <div className="max-w-lg w-full rounded-3xl border border-border bg-card p-10 text-center shadow-elevated">
+        <div className="max-w-xl w-full rounded-3xl border border-border bg-card p-10 shadow-elevated">
           <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-forest text-primary-foreground flex items-center justify-center">
             <Lock className="h-8 w-8" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-foreground mb-3">Members only</h1>
-          <p className="text-muted-foreground mb-6">
-            The Funding Intelligence page is available to active Collective members. Subscribe to unlock AI-curated grants and opportunities matched to your keywords.
+          <h1 className="font-serif text-2xl font-bold text-foreground mb-3 text-center">Members only</h1>
+          <p className="text-muted-foreground mb-6 text-center">
+            The Funding Radar is available to active Collective members. Before you subscribe, please read and accept the notice below.
           </p>
-          <Link to="/#pricing"><Button variant="gold" size="lg">See membership</Button></Link>
-          {user && <p className="mt-6 text-xs text-muted-foreground">Signed in as {user.email}</p>}
+
+          <div className="rounded-2xl border border-gold/40 bg-gold/5 p-5 mb-5 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-gold-dark shrink-0 mt-0.5" />
+              <div className="text-sm text-foreground/80 space-y-2">
+                <p>
+                  <strong>Please note:</strong> A given search may not always surface opportunities you are eligible for, or that are open right now. Most reputable grants and fellowships run on an <strong>annual cycle</strong> — if this year's deadline has passed, the same opportunity typically reopens next year, so bookmark those that fit you.
+                </p>
+                <p className="flex items-start gap-2">
+                  <ShieldAlert className="h-4 w-4 text-gold-dark shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Fraud warning:</strong> Opportunities are curated to be real and verifiable, but always do further research. <strong>Never pay a fee to apply for or receive a grant</strong> — that is a strong signal it is fraudulent.
+                  </span>
+                </p>
+              </div>
+            </div>
+            <label className="flex items-start gap-3 cursor-pointer pt-3 border-t border-gold/20">
+              <Checkbox
+                checked={acknowledged}
+                onCheckedChange={(v) => setAcknowledged(v === true)}
+                className="mt-0.5"
+              />
+              <span className="text-sm text-foreground/80">
+                I understand results may vary by cycle, I will do my own due diligence, and I will never pay to apply for or receive a grant.
+              </span>
+            </label>
+          </div>
+
+          <div className="text-center">
+            {acknowledged ? (
+              <Link to="/#pricing"><Button variant="gold" size="lg">See membership</Button></Link>
+            ) : (
+              <Button variant="gold" size="lg" disabled>See membership</Button>
+            )}
+          </div>
+          {user && <p className="mt-6 text-xs text-muted-foreground text-center">Signed in as {user.email}</p>}
         </div>
       </main>
     );
