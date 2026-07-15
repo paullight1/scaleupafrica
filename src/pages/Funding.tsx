@@ -18,6 +18,7 @@ type Opportunity = {
   type?: string;
   summary: string;
   amount: string;
+  opens?: string;
   deadline: string;
   eligibility: string;
   url: string;
