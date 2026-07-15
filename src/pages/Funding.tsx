@@ -224,7 +224,8 @@ const Funding = () => {
                 </div>
                 <p className="text-sm text-foreground/80 mb-4">{o.summary}</p>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-4">
-                  {o.deadline && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {o.deadline}</span>}
+                  {o.opens && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> Opens: {o.opens}</span>}
+                  {o.deadline && <span className="inline-flex items-center gap-1 font-semibold text-foreground"><Calendar className="h-3 w-3" /> Deadline: {o.deadline}</span>}
                   {o.eligibility && <span>Eligibility: {o.eligibility}</span>}
                 </div>
                 {o.tags?.length > 0 && (
