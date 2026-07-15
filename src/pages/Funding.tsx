@@ -18,6 +18,7 @@ type Opportunity = {
   type?: string;
   summary: string;
   amount: string;
+  opens?: string;
   deadline: string;
   eligibility: string;
   url: string;
@@ -37,7 +38,8 @@ const SAMPLE_OPPS: Opportunity[] = [
     type: "Grant",
     summary: "Non-dilutive grant for climate-focused African SMEs building scalable solutions in agriculture, energy or water.",
     amount: "Up to $50,000",
-    deadline: "Annual — typically opens Q1",
+    opens: "January (annual)",
+    deadline: "31 March (annual)",
     eligibility: "Revenue-generating SMEs in Africa",
     url: "https://example.com",
     tags: ["Grant", "Climate"],
@@ -53,7 +55,8 @@ const SAMPLE_OPPS: Opportunity[] = [
     type: "Fellowship",
     summary: "Flagship fellowship of the Young African Leaders Initiative (YALI) with a 6-week U.S. leadership institute.",
     amount: "Fully funded",
-    deadline: "Annual — opens September",
+    opens: "September (annual)",
+    deadline: "Early October (annual)",
     eligibility: "Africans aged 25-35",
     url: "https://example.com",
     tags: ["Fellowship", "Travel", "Leadership"],
@@ -91,10 +94,6 @@ const Funding = () => {
   }, [user, isPreview]);
 
   const generate = async () => {
-    if (!acknowledged) {
-      toast.error("Please tick the acknowledgement to proceed.");
-      return;
-    }
     if (isPreview) {
       setOpps(SAMPLE_OPPS);
       toast.info("Preview mode — showing sample opportunities.");
@@ -122,16 +121,50 @@ const Funding = () => {
   if (!access) {
     return (
       <main className="min-h-screen bg-secondary flex items-center justify-center px-6 py-24">
-        <div className="max-w-lg w-full rounded-3xl border border-border bg-card p-10 text-center shadow-elevated">
+        <div className="max-w-xl w-full rounded-3xl border border-border bg-card p-10 shadow-elevated">
           <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-forest text-primary-foreground flex items-center justify-center">
             <Lock className="h-8 w-8" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-foreground mb-3">Members only</h1>
-          <p className="text-muted-foreground mb-6">
-            The Funding Intelligence page is available to active Collective members. Subscribe to unlock AI-curated grants and opportunities matched to your keywords.
+          <h1 className="font-serif text-2xl font-bold text-foreground mb-3 text-center">Members only</h1>
+          <p className="text-muted-foreground mb-6 text-center">
+            The Funding Radar is available to active Collective members. Before you subscribe, please read and accept the notice below.
           </p>
-          <Link to="/#pricing"><Button variant="gold" size="lg">See membership</Button></Link>
-          {user && <p className="mt-6 text-xs text-muted-foreground">Signed in as {user.email}</p>}
+
+          <div className="rounded-2xl border border-gold/40 bg-gold/5 p-5 mb-5 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-gold-dark shrink-0 mt-0.5" />
+              <div className="text-sm text-foreground/80 space-y-2">
+                <p>
+                  <strong>Please note:</strong> A given search may not always surface opportunities you are eligible for, or that are open right now. Most reputable grants and fellowships run on an <strong>annual cycle</strong> — if this year's deadline has passed, the same opportunity typically reopens next year, so bookmark those that fit you.
+                </p>
+                <p className="flex items-start gap-2">
+                  <ShieldAlert className="h-4 w-4 text-gold-dark shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Fraud warning:</strong> Opportunities are curated to be real and verifiable, but always do further research. <strong>Never pay a fee to apply for or receive a grant</strong> — that is a strong signal it is fraudulent.
+                  </span>
+                </p>
+              </div>
+            </div>
+            <label className="flex items-start gap-3 cursor-pointer pt-3 border-t border-gold/20">
+              <Checkbox
+                checked={acknowledged}
+                onCheckedChange={(v) => setAcknowledged(v === true)}
+                className="mt-0.5"
+              />
+              <span className="text-sm text-foreground/80">
+                I understand results may vary by cycle, I will do my own due diligence, and I will never pay to apply for or receive a grant.
+              </span>
+            </label>
+          </div>
+
+          <div className="text-center">
+            {acknowledged ? (
+              <Link to="/#pricing"><Button variant="gold" size="lg">See membership</Button></Link>
+            ) : (
+              <Button variant="gold" size="lg" disabled>See membership</Button>
+            )}
+          </div>
+          {user && <p className="mt-6 text-xs text-muted-foreground text-center">Signed in as {user.email}</p>}
         </div>
       </main>
     );
@@ -154,32 +187,12 @@ const Funding = () => {
             Enter keywords describing your business or the funding you're looking for. Our AI aggregates grants, competitions, accelerators and fellowships (including travel opportunities) relevant to African SMEs.
           </p>
 
-          {/* Disclaimer + acknowledgement */}
-          <div className="rounded-2xl border border-gold/30 bg-primary-foreground/5 backdrop-blur p-5 mb-6 space-y-3">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-gold shrink-0 mt-0.5" />
-              <div className="text-sm text-primary-foreground/90 space-y-2">
-                <p>
-                  <strong>Please note:</strong> There is a chance a given search may not surface opportunities you are eligible for, or that are open right now. Most reputable grants and fellowships run on an <strong>annual cycle</strong> — if this year's deadline has passed, the same opportunity typically reopens next year, so bookmark those that fit you.
-                </p>
-                <p className="flex items-start gap-2">
-                  <ShieldAlert className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Fraud warning:</strong> All opportunities are curated to be real and verifiable, but always research further before applying. <strong>Never pay a fee to apply for or receive a grant</strong> — that is a strong indicator the "grant" is fraudulent.
-                  </span>
-                </p>
-              </div>
-            </div>
-            <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-primary-foreground/10">
-              <Checkbox
-                checked={acknowledged}
-                onCheckedChange={(v) => setAcknowledged(v === true)}
-                className="mt-0.5 border-gold data-[state=checked]:bg-gold data-[state=checked]:text-primary"
-              />
-              <span className="text-sm text-primary-foreground/90">
-                I understand results may vary by cycle, I will do my own due diligence, and I will never pay to apply for or receive a grant.
-              </span>
-            </label>
+
+          <div className="rounded-2xl border border-gold/20 bg-primary-foreground/5 p-4 mb-6 text-xs text-primary-foreground/80 flex items-start gap-2">
+            <ShieldAlert className="h-4 w-4 text-gold shrink-0 mt-0.5" />
+            <span>
+              Reminder: verify each opportunity on the funder's own site before applying, and <strong>never pay a fee</strong> to apply for or receive a grant.
+            </span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -190,7 +203,7 @@ const Funding = () => {
               maxLength={200}
               className="h-12 bg-card text-foreground"
             />
-            <Button variant="gold" size="lg" onClick={generate} disabled={fetching || !acknowledged}>
+            <Button variant="gold" size="lg" onClick={generate} disabled={fetching}>
               {fetching ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Curating...</> : "Find opportunities"}
             </Button>
           </div>
@@ -200,7 +213,7 @@ const Funding = () => {
       <section className="mx-auto max-w-5xl px-6 py-16">
         {opps.length === 0 && !fetching && (
           <p className="text-center text-muted-foreground py-16">
-            Tick the acknowledgement, enter keywords above, and press "Find opportunities" to generate a curated list.
+            Enter keywords above and press "Find opportunities" to generate a curated list.
           </p>
         )}
         <div className="grid gap-6">
@@ -221,7 +234,8 @@ const Funding = () => {
                 </div>
                 <p className="text-sm text-foreground/80 mb-4">{o.summary}</p>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-4">
-                  {o.deadline && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {o.deadline}</span>}
+                  {o.opens && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> Opens: {o.opens}</span>}
+                  {o.deadline && <span className="inline-flex items-center gap-1 font-semibold text-foreground"><Calendar className="h-3 w-3" /> Deadline: {o.deadline}</span>}
                   {o.eligibility && <span>Eligibility: {o.eligibility}</span>}
                 </div>
                 {o.tags?.length > 0 && (
