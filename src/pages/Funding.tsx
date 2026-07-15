@@ -187,33 +187,6 @@ const Funding = () => {
             Enter keywords describing your business or the funding you're looking for. Our AI aggregates grants, competitions, accelerators and fellowships (including travel opportunities) relevant to African SMEs.
           </p>
 
-          {/* Disclaimer + acknowledgement */}
-          <div className="rounded-2xl border border-gold/30 bg-primary-foreground/5 backdrop-blur p-5 mb-6 space-y-3">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-gold shrink-0 mt-0.5" />
-              <div className="text-sm text-primary-foreground/90 space-y-2">
-                <p>
-                  <strong>Please note:</strong> There is a chance a given search may not surface opportunities you are eligible for, or that are open right now. Most reputable grants and fellowships run on an <strong>annual cycle</strong> — if this year's deadline has passed, the same opportunity typically reopens next year, so bookmark those that fit you.
-                </p>
-                <p className="flex items-start gap-2">
-                  <ShieldAlert className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Fraud warning:</strong> All opportunities are curated to be real and verifiable, but always research further before applying. <strong>Never pay a fee to apply for or receive a grant</strong> — that is a strong indicator the "grant" is fraudulent.
-                  </span>
-                </p>
-              </div>
-            </div>
-            <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-primary-foreground/10">
-              <Checkbox
-                checked={acknowledged}
-                onCheckedChange={(v) => setAcknowledged(v === true)}
-                className="mt-0.5 border-gold data-[state=checked]:bg-gold data-[state=checked]:text-primary"
-              />
-              <span className="text-sm text-primary-foreground/90">
-                I understand results may vary by cycle, I will do my own due diligence, and I will never pay to apply for or receive a grant.
-              </span>
-            </label>
-          </div>
 
           <div className="rounded-2xl border border-gold/20 bg-primary-foreground/5 p-4 mb-6 text-xs text-primary-foreground/80 flex items-start gap-2">
             <ShieldAlert className="h-4 w-4 text-gold shrink-0 mt-0.5" />
