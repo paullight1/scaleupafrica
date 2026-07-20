@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!--
+    ScaleUp Africa social banner (1200x630). Authored to Foundation §1 tokens:
+      navy hero gradient #12263A -> #1B2A4A -> #0D1B2E, single orange accent #FF7A59.
+    Rasterized to public/og-banner.png via scripts/generate-assets.sh (sips).
+    NOTE: sips uses a system sans (Sora is not available to the rasterizer). For a
+    Sora-accurate render, use scripts/og-banner.html with Playwright (see that file).
+  -->
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(20 0.5 0.5)">
+      <stop offset="0" stop-color="#12263A"/>
+      <stop offset="0.55" stop-color="#1B2A4A"/>
+      <stop offset="1" stop-color="#0D1B2E"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#navy)"/>
+
+  <!-- thin orange rule above the wordmark -->
+  <rect x="96" y="214" width="120" height="4" rx="2" fill="#FF7A59"/>
+
+  <!-- wordmark -->
+  <text x="94" y="332" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#FFFFFF">ScaleUp</text>
+  <text x="438" y="332" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#FF7A59">Africa</text>
+
+  <!-- tagline -->
+  <text x="96" y="404" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="34" font-weight="500" fill="#CBD6E2">The Pan-African SME directory + real funding intelligence.</text>
+
+  <!-- domain -->
+  <text x="96" y="556" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#8FA6BC">scaleupafrica.com</text>
+</svg>

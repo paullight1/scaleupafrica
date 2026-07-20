@@ -1,6 +1,7 @@
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_AUTHED_ROUTE } from "@/lib/routes";
+import { SEO } from "@/components/common/SEO";
 import Hero from "@/components/landing/Hero";
 import Problem from "@/components/landing/Problem";
 import Solution from "@/components/landing/Solution";
@@ -20,6 +21,10 @@ const Index = () => {
 
   return (
     <div className="overflow-x-hidden">
+      <SEO
+        title="Pan-African SME Directory & Funding Intelligence"
+        description="List your business on the Pan-African SME directory and find real, current funding opportunities — grants, accelerators, and fellowships curated for African founders."
+      />
       <Hero />
       <section id="problem">
         <Problem />

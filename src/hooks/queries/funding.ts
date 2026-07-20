@@ -12,6 +12,9 @@ import {
   writeFundingCache,
   type FundingCacheEntry,
 } from "@/lib/fundingCache";
+import { useApiFor } from "@/lib/api/flags";
+import { ApiError } from "@/lib/api/client";
+import { searchFunding, getLatestFunding, listCuratedFunding } from "@/lib/api/funding";
 
 // funding_results and the new funding_opportunities columns (details, source,
 // last_verified_at) are added by 20260720140000_funding_feed_cache.sql. types.ts
@@ -40,6 +43,24 @@ export class FundingError extends Error {
     super(fundingErrorMessage(code));
     this.name = "FundingError";
     this.code = code;
+  }
+}
+
+/** Map a NestJS API error code onto the funding UI's error vocabulary. */
+function apiCodeToFundingCode(code: string): FundingErrorCode {
+  switch (code) {
+    case "SUBSCRIPTION_REQUIRED":
+      return "subscription_required";
+    case "RATE_LIMITED":
+      return "rate_limited";
+    case "TIMEOUT":
+      return "timeout";
+    case "UPSTREAM_ERROR":
+      return "invalid_ai_output";
+    case "UNAUTHENTICATED":
+      return "unauthorized";
+    default:
+      return "unknown";
   }
 }
 
@@ -78,6 +99,7 @@ export function fundingResultKey(userId: string | undefined) {
 export function useFundingResult() {
   const { user } = useAuth();
   const userId = user?.id;
+  const viaApi = useApiFor("funding");
 
   const seed = userId ? readFundingCache(userId) : null;
   const initialData: FundingResult | undefined = seed
@@ -91,6 +113,16 @@ export function useFundingResult() {
     gcTime: 24 * 60 * 60 * 1000,
     initialData,
     queryFn: async () => {
+      if (viaApi) {
+        const res = await getLatestFunding();
+        if (!res) return null;
+        return {
+          opportunities: parseOpportunities(res.opportunities),
+          keywordsRaw: res.keywordsRaw ?? "",
+          generatedAt: res.generatedAt,
+          cached: true,
+        };
+      }
       const { data, error } = await untyped
         .from("funding_results")
         .select("keywords_raw, opportunities, created_at, expires_at")
@@ -128,6 +160,7 @@ export function useGenerateFunding() {
   const userId = user?.id;
   const queryClient = useQueryClient();
   const inFlight = useRef(false);
+  const viaApi = useApiFor("funding");
 
   return useMutation<FundingResult, FundingError, string>({
     mutationFn: async (rawKeywords: string) => {
@@ -136,6 +169,21 @@ export function useGenerateFunding() {
       inFlight.current = true;
       try {
         const keywords = rawKeywords.trim() || "African SMEs";
+
+        if (viaApi) {
+          try {
+            const res = await searchFunding(keywords);
+            return {
+              opportunities: parseOpportunities(res.opportunities),
+              keywordsRaw: res.keywordsRaw || keywords,
+              generatedAt: res.generatedAt ?? new Date().toISOString(),
+              cached: !!res.cached,
+            };
+          } catch (e) {
+            if (e instanceof ApiError) throw new FundingError(apiCodeToFundingCode(e.code));
+            throw new FundingError("unknown");
+          }
+        }
 
         const invoke = supabase.functions
           .invoke<GenerateResponse>("aggregate-funding", { body: { keywords } })
@@ -202,12 +250,36 @@ export interface FeedItem extends Opportunity {
 /** Published, member-gated funding_opportunities mapped through the Opportunity schema. */
 export function useFundingFeed() {
   const { user } = useAuth();
+  const viaApi = useApiFor("funding");
 
   return useQuery<FeedItem[]>({
     queryKey: ["funding", "feed"],
     enabled: !!user,
     staleTime: 5 * 60_000,
     queryFn: async () => {
+      if (viaApi) {
+        const rows = await listCuratedFunding();
+        const out: FeedItem[] = [];
+        for (const row of rows) {
+          const details = (row.details && typeof row.details === "object" ? row.details : {}) as Record<string, unknown>;
+          const merged = {
+            ...details,
+            title: row.title,
+            funder: row.funder,
+            type: row.type ?? undefined,
+            summary: row.summary ?? "",
+            amount: row.amount ?? "",
+            opens: row.opens ?? "",
+            deadline: row.deadline ?? "",
+            eligibility: row.eligibility ?? "",
+            url: row.url ?? "",
+            tags: Array.isArray(row.tags) ? row.tags : [],
+          };
+          const [op] = parseOpportunities([merged]);
+          if (op) out.push({ ...op, id: row.id, lastVerifiedAt: row.lastVerifiedAt ?? null, featured: !!row.featured });
+        }
+        return out;
+      }
       const { data, error } = await untyped
         .from("funding_opportunities")
         .select(

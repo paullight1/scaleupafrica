@@ -7,6 +7,10 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useApiFor } from "@/lib/api/flags";
+import { getMyProfile } from "@/lib/api/profiles";
+import { getMySubscription } from "@/lib/api/subscriptions";
+import { listCuratedFunding } from "@/lib/api/funding";
 import type {
   FundingOpportunity,
   Profile,
@@ -48,11 +52,15 @@ export const qk = {
 export function useMyProfile(): UseQueryResult<Profile | null> {
   const { user } = useAuth();
   const uid = user?.id ?? "";
+  const viaApi = useApiFor("profiles");
   return useQuery({
     queryKey: qk.myProfile(uid),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async (): Promise<Profile | null> => {
+      if (viaApi) {
+        return (await getMyProfile()) as unknown as Profile | null;
+      }
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -102,11 +110,20 @@ export function useSetProfileVisibility() {
 export function useMySubscription(): UseQueryResult<Subscription | null> {
   const { user } = useAuth();
   const uid = user?.id ?? "";
+  const viaApi = useApiFor("subscriptions");
   return useQuery({
     queryKey: qk.mySubscription(uid),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async (): Promise<Subscription | null> => {
+      if (viaApi) {
+        const dto = await getMySubscription();
+        return {
+          has_access: dto.hasAccess,
+          expires_at: dto.expiresAt,
+          created_at: null,
+        } as unknown as Subscription;
+      }
       const { data, error } = await supabase
         .from("subscriptions")
         .select("has_access, expires_at, created_at")
@@ -122,10 +139,32 @@ export function useMySubscription(): UseQueryResult<Subscription | null> {
 // Funding feed (public — shared key with plan 05's /funding page)
 // ---------------------------------------------------------------------------
 export function useFundingFeed(): UseQueryResult<FundingOpportunity[]> {
+  const viaApi = useApiFor("funding");
   return useQuery({
     queryKey: qk.fundingFeed(),
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<FundingOpportunity[]> => {
+      if (viaApi) {
+        const rows = await listCuratedFunding();
+        return rows.map((r) => ({
+          id: r.id,
+          title: r.title,
+          funder: r.funder,
+          type: r.type,
+          summary: r.summary,
+          amount: r.amount,
+          opens: r.opens,
+          deadline: r.deadline,
+          eligibility: r.eligibility,
+          url: r.url,
+          tags: r.tags,
+          country_focus: r.countryFocus,
+          featured: r.featured,
+          last_verified_at: r.lastVerifiedAt,
+          details: r.details,
+          status: "published",
+        })) as unknown as FundingOpportunity[];
+      }
       const { data, error } = await supabase
         .from("funding_opportunities")
         .select("*")

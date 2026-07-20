@@ -183,7 +183,7 @@ All primitives: keyboard-operable, `aria` correct, theme-aware (light/dark), mob
   Supabase client. Path alias `@/` → `src/`. Dev server port 8080. Package manager: bun (bun.lockb
   present) but `npm` scripts work.
 - **Do not hand-edit** generated files: `src/integrations/supabase/client.ts`,
-  `src/integrations/lovable/index.ts`, `src/integrations/supabase/types.ts` (regenerate),
+  `src/integrations/supabase/types.ts` (regenerate),
   `src/components/ui/*` (stock shadcn — compose, don't fork; adding a *new* button variant is OK).
 - **Data fetching:** use **TanStack Query** for every server read (it's installed but unused).
   Centralize queries in `src/lib/queries/` or `src/hooks/`. Handle `error` on EVERY fetch → render

@@ -1,73 +1,100 @@
-# Welcome to your Lovable project
+# ScaleUp Africa
 
-## Project info
+ScaleUp Africa is a Pan-African SME platform: a public, searchable directory where founders
+publish one credible business profile, plus subscription-gated **funding intelligence** — AI-curated
+grants, accelerators, and fellowships relevant to African SMEs. Browsing the directory is free and
+open; the Funding Radar is available to members with an active subscription.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Stack
 
-## How can I edit this code?
+- **Frontend:** Vite + React 18 + TypeScript, [shadcn/ui](https://ui.shadcn.com) (Radix + Tailwind CSS),
+  React Router v6, TanStack Query, Framer Motion.
+- **Backend (current):** [Supabase](https://supabase.com) — auth, Postgres with Row-Level Security,
+  storage, and edge functions (Deno).
+- **API server (in progress):** a NestJS + Drizzle service under `server/` is being introduced —
+  see `docs/plans/07` for scope and migration status.
+- **Testing:** Vitest + Testing Library (jsdom).
 
-There are several ways of editing your application.
+## Getting started
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+**Prerequisites:** Node.js 20+ (bun also supported).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Install dependencies
+npm install          # or: bun install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Configure environment
+cp .env.example .env # then fill in your Supabase project values
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# 3. Start the dev server
+npm run dev          # http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+## Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| Script              | Description                                  |
+| ------------------- | -------------------------------------------- |
+| `npm run dev`       | Start the Vite dev server on port 8080       |
+| `npm run build`     | Production build to `dist/`                  |
+| `npm run build:dev` | Build with development mode settings         |
+| `npm run lint`      | Run ESLint                                   |
+| `npm run preview`   | Preview the production build locally         |
+| `npm test`          | Run the Vitest suite once                    |
+| `npm run test:watch`| Run Vitest in watch mode                     |
 
-**Use GitHub Codespaces**
+Run a single test file with `npx vitest run <path/to/file.test.ts>`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Environment
 
-## What technologies are used for this project?
+Frontend variables (all prefixed `VITE_`, safe to expose to the client):
 
-This project is built with:
+| Variable                        | Description                              |
+| ------------------------------- | ---------------------------------------- |
+| `VITE_SUPABASE_URL`             | Supabase project URL                     |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/publishable key            |
+| `VITE_SUPABASE_PROJECT_ID`      | Supabase project ref/ID                  |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Edge-function secrets (set on the Supabase function, never in the client bundle): the
+`aggregate-funding` function reads an AI-gateway API key from its environment to curate funding
+opportunities. See `supabase/functions/aggregate-funding/`.
 
-## How can I deploy this project?
+## Project structure
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```
+src/
+  pages/                 route components (directory, funding, auth, dashboard, admin, marketing)
+  components/
+    ui/                  shadcn/ui primitives
+    common/              shared app primitives (SEO, layouts, states, header/footer)
+    landing/             marketing landing sections
+  integrations/supabase/ Supabase client + generated types
+  hooks/ lib/            auth, queries, helpers
+supabase/
+  migrations/            SQL schema + RLS policies
+  functions/             Deno edge functions
+scripts/                 branding asset sources + generation (og-banner, favicon)
+docs/plans/              implementation plans
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Deploy
 
-Yes, you can!
+The app is a static SPA. Build and host the output on any static host:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```sh
+npm run build            # outputs dist/
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Host `dist/` on Vercel, Netlify, or Cloudflare Pages with an SPA fallback to `index.html` (so
+client-side routes resolve). Apply database changes with `supabase db push`, and deploy edge
+functions with `supabase functions deploy aggregate-funding`.
+
+To regenerate branding assets (favicon set + social banner) from their SVG sources:
+
+```sh
+bash scripts/generate-assets.sh
+```
+
+## License & contact
+
+TODO(owner): license.
+TODO(owner): contact / support email.

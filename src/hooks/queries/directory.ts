@@ -7,6 +7,14 @@ import {
 } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useApiFor } from "@/lib/api/flags";
+import { ApiError } from "@/lib/api/client";
+import {
+  listProfiles,
+  getProfileBySlug,
+  getMyProfile,
+  upsertMyProfile,
+} from "@/lib/api/profiles";
 
 /**
  * Directory data layer (Plan 04). All server reads go through TanStack Query per FOUNDATION §4.
@@ -142,11 +150,42 @@ export function directoryNextPageParam(last: DirectoryPage): number | undefined 
   return last.rows.length === PAGE_SIZE ? last.nextOffset : undefined;
 }
 
+/** Allowed profile-upsert keys — the API's strict schema rejects anything else. */
+const UPSERT_KEYS = [
+  "business_name", "founder_name", "country", "sector", "short_description",
+  "long_description", "website", "email", "phone", "whatsapp", "instagram",
+  "linkedin", "twitter", "logo_url", "founder_photo_url", "keywords",
+  "show_email", "show_phone", "show_whatsapp",
+] as const;
+
+function pickUpsertPayload(payload: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of UPSERT_KEYS) if (payload[k] !== undefined) out[k] = payload[k];
+  return out;
+}
+
 export function useDirectorySearch(filters: DirectoryFilters) {
+  const viaApi = useApiFor("directory");
   return useInfiniteQuery({
     queryKey: directoryKeys.list(filters),
     initialPageParam: 0,
     queryFn: async ({ pageParam }): Promise<DirectoryPage> => {
+      if (viaApi) {
+        const page = Math.floor(pageParam / PAGE_SIZE) + 1;
+        const res = await listProfiles({
+          q: filters.q || undefined,
+          country: filters.country ?? undefined,
+          sector: filters.sector ?? undefined,
+          page,
+          pageSize: PAGE_SIZE,
+          sort: "featured",
+        });
+        return {
+          rows: res.items as unknown as DirectoryCardRow[],
+          count: res.total,
+          nextOffset: pageParam + PAGE_SIZE,
+        };
+      }
       const base = db.from("profiles").select(CARD_COLUMNS, { count: "exact" });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const filtered = buildDirectoryQuery(base as any, filters) as any;
@@ -189,10 +228,19 @@ export function useDirectoryFacets() {
 }
 
 export function useProfileBySlug(slug: string | undefined) {
+  const viaApi = useApiFor("directory");
   return useQuery<ProfileDetailRow | null>({
     queryKey: directoryKeys.profile(slug ?? ""),
     enabled: !!slug,
     queryFn: async () => {
+      if (viaApi) {
+        try {
+          return (await getProfileBySlug(slug as string)) as unknown as ProfileDetailRow;
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 404) return null; // not-found, not error
+          throw e;
+        }
+      }
       const { data, error } = await db
         .from("profiles")
         .select(PROFILE_COLUMNS)
@@ -223,10 +271,14 @@ export function useProfileContact(
 
 /** Own-profile load for CreateProfile + owner detection (authenticated, full row). */
 export function useOwnProfile(userId: string | undefined) {
+  const viaApi = useApiFor("profiles");
   return useQuery<Record<string, unknown> | null>({
     queryKey: directoryKeys.own(userId ?? ""),
     enabled: !!userId,
     queryFn: async () => {
+      if (viaApi) {
+        return (await getMyProfile()) as unknown as Record<string, unknown> | null;
+      }
       const { data, error } = await db
         .from("profiles")
         .select("*")
@@ -241,8 +293,14 @@ export function useOwnProfile(userId: string | undefined) {
 /** Upsert wrapper keyed by user_id; returns the (trigger-assigned) slug. */
 export function useSaveProfile() {
   const qc = useQueryClient();
+  const viaApi = useApiFor("profiles");
   return useMutation<{ slug: string }, Error, Record<string, unknown>>({
     mutationFn: async (payload) => {
+      if (viaApi) {
+        // user_id / slug / status / featured are never accepted by the API (strict).
+        const saved = await upsertMyProfile(pickUpsertPayload(payload));
+        return { slug: (saved as { slug: string }).slug };
+      }
       const { data, error } = await db
         .from("profiles")
         .upsert(payload, { onConflict: "user_id" })

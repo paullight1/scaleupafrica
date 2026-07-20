@@ -1,0 +1,42 @@
+<!doctype html>
+<!--
+  Sora-accurate source for public/og-banner.png. This env has no Playwright, so the
+  committed PNG was rasterized from scripts/og-banner.svg via sips (system sans).
+  To regenerate at full fidelity with the real Sora/Inter faces:
+    npx playwright screenshot --viewport-size=1200,630 scripts/og-banner.html public/og-banner.png
+  Keep this in sync with scripts/og-banner.svg (same layout + Foundation §1 tokens).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500&family=Sora:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1200px; height: 630px; }
+      .banner {
+        width: 1200px; height: 630px; padding: 96px;
+        display: flex; flex-direction: column; justify-content: center;
+        background: linear-gradient(160deg, #12263A 0%, #1B2A4A 55%, #0D1B2E 100%);
+        color: #fff; position: relative;
+      }
+      .rule { width: 120px; height: 4px; border-radius: 2px; background: #FF7A59; margin-bottom: 40px; }
+      .wordmark { font-family: "Sora", sans-serif; font-weight: 700; font-size: 92px; line-height: 1; letter-spacing: -0.01em; }
+      .wordmark .accent { color: #FF7A59; }
+      .tagline { font-family: "Inter", sans-serif; font-weight: 500; font-size: 34px; color: #CBD6E2; margin-top: 32px; }
+      .domain { font-family: "Inter", sans-serif; font-size: 24px; color: #8FA6BC; position: absolute; left: 96px; bottom: 74px; }
+    </style>
+  </head>
+  <body>
+    <div class="banner">
+      <div class="rule"></div>
+      <div class="wordmark">ScaleUp <span class="accent">Africa</span></div>
+      <div class="tagline">The Pan-African SME directory + real funding intelligence.</div>
+      <div class="domain">scaleupafrica.com</div>
+    </div>
+  </body>
+</html>
