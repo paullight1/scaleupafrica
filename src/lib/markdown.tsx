@@ -150,7 +150,7 @@ export function Markdown({ content, className = "" }: { content: string; classNa
   const html = useMemo(() => renderMarkdown(content), [content]);
   return (
     <div
-      className={`prose prose-slate max-w-none prose-headings:font-serif prose-a:text-forest ${className}`}
+      className={`prose prose-slate max-w-none prose-headings:font-display prose-a:text-navy prose-a:underline ${className}`}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

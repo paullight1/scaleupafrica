@@ -47,7 +47,7 @@ const NewsletterSignup = ({ source = "site", className = "", variant = "inline" 
   if (done) {
     return (
       <div className={`flex items-center gap-2 text-sm ${className}`}>
-        <Check className="h-4 w-4 text-gold" />
+        <Check className="h-4 w-4 text-primary-dark" />
         <span>Thanks — check your inbox for what's next.</span>
       </div>
     );
@@ -74,7 +74,7 @@ const NewsletterSignup = ({ source = "site", className = "", variant = "inline" 
           required
         />
       </div>
-      <Button type="submit" variant="gold" size="lg" disabled={busy}>
+      <Button type="submit" variant="default" size="lg" disabled={busy}>
         {busy ? "Subscribing..." : "Subscribe"}
       </Button>
     </form>

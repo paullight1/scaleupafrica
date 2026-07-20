@@ -30,7 +30,7 @@ const AdminGuard = ({
   if (authLoading || roleLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-secondary">
-        <Loader2 className="h-6 w-6 animate-spin text-forest" />
+        <Loader2 className="h-6 w-6 animate-spin text-navy" />
       </div>
     );
   }
@@ -44,11 +44,11 @@ const AdminGuard = ({
   if (!allowed) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-secondary px-6 py-24">
-        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-10 text-center shadow-elevated">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+        <div className="w-full max-w-md rounded-xl border border-border bg-card p-10 text-center shadow-elevated">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
             <ShieldAlert className="h-8 w-8" />
           </div>
-          <h1 className="mb-3 font-serif text-2xl font-bold text-foreground">Access denied</h1>
+          <h1 className="mb-3 font-display text-2xl font-bold text-foreground">Access denied</h1>
           <p className="mb-6 text-muted-foreground">
             This area is restricted to ScaleUp Africa staff. If you believe you should have access,
             contact an administrator.

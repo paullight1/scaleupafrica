@@ -74,10 +74,10 @@ const Auth = () => {
   return (
     <main className="min-h-screen bg-secondary flex items-center justify-center px-6 py-24">
       <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-elevated">
-        <Link to="/" className="mb-6 block font-serif text-xl font-bold text-primary">
-          ScaleUp Africa<span className="text-gold">.</span>
+        <Link to="/" className="mb-6 block font-display text-xl font-bold text-navy">
+          ScaleUp Africa<span className="text-primary">.</span>
         </Link>
-        <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
+        <h1 className="font-display text-3xl font-bold text-foreground mb-2">
           {mode === "signin" ? "Welcome back" : "Create your account"}
         </h1>
         <p className="text-muted-foreground mb-6">
@@ -127,7 +127,7 @@ const Auth = () => {
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
             />
           </div>
-          <Button type="submit" variant="gold" className="w-full" disabled={busy}>
+          <Button type="submit" variant="default" className="w-full" disabled={busy}>
             {busy ? "Please wait..." : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
@@ -135,7 +135,7 @@ const Auth = () => {
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {mode === "signin" ? "New here?" : "Already have an account?"}{" "}
           <button
-            className="font-semibold text-forest hover:underline"
+            className="font-semibold text-navy hover:underline"
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           >
             {mode === "signin" ? "Create an account" : "Sign in"}

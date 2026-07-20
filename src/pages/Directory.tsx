@@ -53,15 +53,15 @@ const Directory = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="bg-primary text-primary-foreground py-16 px-6">
+      <header className="bg-navy text-white py-16 px-6">
         <div className="mx-auto max-w-6xl">
-          <Link to="/" className="inline-flex items-center gap-2 text-primary-foreground/70 hover:text-gold text-sm mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/75 hover:text-primary text-sm mb-6">
             <ArrowLeft className="h-4 w-4" /> Back home
           </Link>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
-            The Pan-African <span className="text-gradient-gold">SME Directory</span>
+          <h1 className="font-display text-4xl md:text-5xl font-bold mb-3 text-white">
+            The Pan-African <span className="text-primary">SME Directory</span>
           </h1>
-          <p className="text-primary-foreground/80 max-w-2xl mb-8">
+          <p className="text-white/80 max-w-2xl mb-8">
             A public, searchable directory of African founders and their businesses. Find suppliers, discover partners, and connect for cross-border trade.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -75,7 +75,7 @@ const Directory = () => {
               />
             </div>
             <Link to={user ? "/directory/create" : "/auth?next=/directory/create"}>
-              <Button variant="gold" size="lg" className="w-full sm:w-auto">
+              <Button variant="default" size="lg" className="w-full sm:w-auto">
                 {user ? "Manage my profile" : "Create a profile"}
               </Button>
             </Link>
@@ -95,7 +95,7 @@ const Directory = () => {
             </p>
             {profiles.length === 0 && (
               <Link to={user ? "/directory/create" : "/auth?next=/directory/create"}>
-                <Button variant="gold">Create the first profile</Button>
+                <Button variant="default">Create the first profile</Button>
               </Link>
             )}
           </div>
@@ -108,18 +108,18 @@ const Directory = () => {
               {filtered.map((p) => (
                 <article
                   key={p.id}
-                  className="rounded-2xl border border-border bg-card p-6 shadow-soft hover:shadow-medium hover:border-gold/40 transition-all"
+                  className="rounded-xl border border-border bg-card p-6 shadow-soft hover:shadow-medium hover:border-primary/40 transition-colors"
                 >
                   <div className="flex items-start gap-4 mb-4">
                     {p.logo_url ? (
                       <img src={p.logo_url} alt={`${p.business_name} logo`} className="h-14 w-14 rounded-xl object-cover" loading="lazy" />
                     ) : (
-                      <div className="h-14 w-14 rounded-xl bg-forest text-primary-foreground flex items-center justify-center font-serif text-xl font-bold">
+                      <div className="h-14 w-14 rounded-xl bg-navy text-white flex items-center justify-center font-display text-xl font-bold">
                         {p.business_name.charAt(0)}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <h3 className="font-serif text-lg font-bold text-foreground truncate">
+                      <h3 className="font-display text-lg font-bold text-foreground truncate">
                         {p.business_name}
                       </h3>
                       {p.founder_name && (
@@ -139,17 +139,17 @@ const Directory = () => {
 
                   <div className="flex flex-wrap gap-3 text-xs">
                     {p.website && (
-                      <a href={p.website.startsWith("http") ? p.website : `https://${p.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-forest hover:text-gold">
+                      <a href={p.website.startsWith("http") ? p.website : `https://${p.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-navy hover:text-navy-light">
                         <Globe className="h-3 w-3" /> Site
                       </a>
                     )}
                     {p.email && (
-                      <a href={`mailto:${p.email}`} className="inline-flex items-center gap-1 text-forest hover:text-gold">
+                      <a href={`mailto:${p.email}`} className="inline-flex items-center gap-1 text-navy hover:text-navy-light">
                         <Mail className="h-3 w-3" /> Email
                       </a>
                     )}
                     {p.phone && (
-                      <a href={`tel:${p.phone}`} className="inline-flex items-center gap-1 text-forest hover:text-gold">
+                      <a href={`tel:${p.phone}`} className="inline-flex items-center gap-1 text-navy hover:text-navy-light">
                         <Phone className="h-3 w-3" /> Call
                       </a>
                     )}

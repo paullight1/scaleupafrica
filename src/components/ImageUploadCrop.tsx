@@ -106,7 +106,7 @@ const ImageUploadCrop = ({ label, value, onChange, userId, aspect = 1, shape = "
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setSrc(null)}>Cancel</Button>
-            <Button type="button" variant="gold" onClick={save} disabled={uploading}>{uploading ? "Uploading..." : "Save"}</Button>
+            <Button type="button" variant="default" onClick={save} disabled={uploading}>{uploading ? "Uploading..." : "Save"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

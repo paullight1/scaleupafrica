@@ -1,6 +1,5 @@
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, Star, ArrowRight } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -125,18 +124,9 @@ const Pricing = () => {
   return (
     <section id="pricing" className="bg-secondary py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center"
-        >
-          <span className="mb-4 inline-block font-semibold uppercase tracking-wider text-gold-dark">
-            Membership
-          </span>
-          <h2 className="mb-6 font-serif text-3xl font-bold text-foreground md:text-4xl lg:text-5xl">
-            Invest in Your <span className="text-forest">Growth Journey</span>
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="mb-6 font-display text-3xl font-bold text-foreground md:text-4xl lg:text-5xl">
+            Invest in Your <span className="text-navy">Growth Journey</span>
           </h2>
           <p className="text-lg leading-relaxed text-muted-foreground">
             One annual membership, complete access. Simple, transparent, built for
@@ -158,25 +148,15 @@ const Pricing = () => {
               </SelectContent>
             </Select>
           </div>
-        </motion.div>
+        </div>
 
         <div className="mx-auto mt-16 max-w-lg">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative overflow-hidden rounded-3xl border-2 border-gold bg-card p-8 shadow-gold lg:p-10"
-          >
-            <div className="absolute right-0 top-0">
-              <div className="flex items-center gap-1 rounded-bl-2xl bg-gold px-4 py-2 text-sm font-semibold text-forest-dark">
-                <Star className="h-4 w-4 fill-current" />
+          <div className="relative overflow-hidden rounded-xl border border-border bg-card p-8 shadow-medium lg:p-10">
+            <div className="mb-8">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-navy">
                 Annual Membership
-              </div>
-            </div>
-
-            <div className="mb-8 mt-6">
-              <h3 className="mb-2 font-serif text-2xl font-bold text-foreground">
+              </p>
+              <h3 className="mb-2 font-display text-2xl font-bold text-foreground">
                 The Collective
               </h3>
               <p className="text-muted-foreground">
@@ -186,14 +166,14 @@ const Pricing = () => {
             </div>
 
             <div className="mb-8 flex items-baseline gap-2">
-              <span className="font-serif text-5xl font-bold text-foreground">
+              <span className="font-display text-5xl font-bold text-foreground">
                 {selectedCountry.currency}{formatPrice(selectedCountry.annualPrice)}
               </span>
               <span className="text-lg text-muted-foreground">/year</span>
             </div>
 
             <Link to="/auth?next=/directory/create">
-              <Button variant="gold" size="lg" className="mb-8 w-full">
+              <Button variant="default" size="lg" className="mb-8 w-full">
                 Join the Collective
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -202,23 +182,17 @@ const Pricing = () => {
             <ul className="space-y-4">
               {features.map((feature) => (
                 <li key={feature} className="flex items-start gap-3">
-                  <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-forest" />
+                  <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-dark" />
                   <span className="text-sm text-foreground">{feature}</span>
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
         </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mx-auto mt-12 max-w-xl text-center text-sm text-muted-foreground"
-        >
+        <p className="mx-auto mt-12 max-w-xl text-center text-sm text-muted-foreground">
           Immediate access to all features on join. Cancel anytime, no questions asked.
-        </motion.p>
+        </p>
       </div>
     </section>
   );

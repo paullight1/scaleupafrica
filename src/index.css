@@ -2,122 +2,127 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-
-/* ScaleUp Africa Collective Design System
-   A premium, growth-oriented palette inspired by African landscapes
-   Deep Forest Green, Rich Gold, Clean White
-*/
+/* ScaleUp Africa Design System — orange / white / dark navy (see docs/plans/00-FOUNDATION.md §1) */
 
 @layer base {
   :root {
-    /* Core Background & Foreground */
-    --background: 60 20% 98%;
-    --foreground: 150 30% 12%;
+    /* Canvas & ink */
+    --background: 0 0% 100%;
+    --foreground: 210 29% 27%;          /* #33475B body ink */
+    --ink-strong: 217 47% 20%;          /* #1B2A4A headings */
+    --surface-subtle: 204 44% 98%;      /* #F5F8FA alt sections */
+    --surface-muted: 212 40% 94%;       /* #EAF0F6 muted panels */
 
-    /* Deep Forest Green - Primary Brand Color */
-    --primary: 150 40% 22%;
-    --primary-foreground: 45 60% 95%;
-    
-    /* Rich Gold - Accent & CTA */
-    --accent: 42 80% 50%;
-    --accent-foreground: 150 30% 12%;
-    
-    /* Secondary - Warm Earth Tones */
-    --secondary: 35 25% 92%;
-    --secondary-foreground: 150 30% 18%;
+    /* Brand */
+    --primary: 11 100% 68%;             /* #FF7A59 orange — CTAs, active */
+    --primary-foreground: 217 47% 20%;  /* navy label on orange (AA, see plan §1) */
+    --primary-hover: 12 100% 61%;       /* ~#FF5E37 — nudged +1% L so navy label ≥4.5:1 AA (see plan §1) */
+    --primary-dark: 11 78% 52%;         /* #E44E2E pressed / icons-on-light */
+    --navy: 217 47% 20%;                /* #1B2A4A dark brand surfaces */
+    --navy-light: 211 42% 30%;          /* #2C4A6B */
+    --navy-dark: 216 55% 12%;           /* #0D1B2E footer / darkest */
 
-    /* Muted - Subtle Backgrounds */
-    --muted: 45 15% 95%;
-    --muted-foreground: 150 15% 40%;
+    --secondary: 212 40% 94%;
+    --secondary-foreground: 210 29% 27%;
+    --muted: 204 44% 98%;
+    --muted-foreground: 210 27% 44%;    /* #516F90, 5.6:1 on white */
+    --accent: 11 100% 68%;
+    --accent-foreground: 217 47% 20%;
 
-    /* Card Surfaces */
-    --card: 60 30% 99%;
-    --card-foreground: 150 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 29% 27%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 29% 27%;
 
-    --popover: 60 30% 99%;
-    --popover-foreground: 150 30% 12%;
+    --border: 213 33% 84%;              /* #CBD6E2 */
+    --input: 213 33% 84%;
+    --ring: 11 78% 52%;                 /* #E44E2E — 3.85:1 on white (1.4.11) */
 
-    /* Destructive */
-    --destructive: 0 72% 45%;
+    /* Status */
+    --destructive: 356 75% 54%;         /* #F2545B — borders/icons/tints only */
+    --destructive-strong: 356 65% 42%;  /* fills w/ white text, error text on white */
     --destructive-foreground: 0 0% 100%;
+    --success: 170 100% 37%;            /* #00BDA5 — fills/icons */
+    --success-strong: 170 100% 25%;     /* success text on light */
+    --warning: 36 89% 65%;              /* #F5C26B — always with ink text */
+    --data-teal: 189 100% 37%;          /* charts/admin only, never CTAs */
 
-    /* Borders & Inputs */
-    --border: 45 20% 88%;
-    --input: 45 20% 88%;
-    --ring: 150 40% 22%;
+    --radius: 0.625rem;                 /* 10px */
 
-    --radius: 0.75rem;
+    /* Fonts (loaded via @fontsource in src/main.tsx) */
+    --font-sans: "Inter", system-ui, sans-serif;
+    --font-display: "Sora", system-ui, sans-serif;
 
-    /* Custom Brand Colors */
-    --forest: 150 40% 22%;
-    --forest-light: 150 35% 35%;
-    --forest-dark: 150 45% 12%;
-    --gold: 42 80% 50%;
-    --gold-light: 45 85% 65%;
-    --gold-dark: 38 75% 40%;
-    --cream: 45 40% 96%;
-    --warm-white: 40 30% 98%;
-    
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(150 40% 22%) 0%, hsl(150 35% 28%) 50%, hsl(150 30% 18%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(42 80% 50%) 0%, hsl(45 85% 60%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(60 30% 99%) 0%, hsl(45 25% 97%) 100%);
-    
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(150 30% 12% / 0.08);
-    --shadow-medium: 0 8px 30px -6px hsl(150 30% 12% / 0.12);
-    --shadow-gold: 0 4px 20px -4px hsl(42 80% 50% / 0.3);
-    --shadow-elevated: 0 20px 50px -12px hsl(150 30% 12% / 0.15);
+    /* The one allowed gradient: dark navy hero panels. No gradient text anywhere. */
+    --gradient-hero: linear-gradient(160deg, #12263A 0%, #1B2A4A 55%, #0D1B2E 100%);
 
-    /* Sidebar */
-    --sidebar-background: 150 40% 22%;
-    --sidebar-foreground: 45 60% 95%;
-    --sidebar-primary: 42 80% 50%;
-    --sidebar-primary-foreground: 150 30% 12%;
-    --sidebar-accent: 150 35% 28%;
-    --sidebar-accent-foreground: 45 60% 95%;
-    --sidebar-border: 150 30% 30%;
-    --sidebar-ring: 42 80% 50%;
+    /* Shadows — navy-tinted, soft */
+    --shadow-soft: 0 2px 8px -2px hsl(217 47% 20% / 0.08);
+    --shadow-medium: 0 6px 20px -6px hsl(217 47% 20% / 0.12);
+    --shadow-elevated: 0 18px 40px -14px hsl(217 47% 20% / 0.18);
+    --shadow-focus: 0 0 0 3px hsl(11 100% 68% / 0.35);
+
+    /* Sidebar (admin) — navy */
+    --sidebar-background: 217 47% 20%;
+    --sidebar-foreground: 210 30% 92%;
+    --sidebar-primary: 11 100% 68%;
+    --sidebar-primary-foreground: 217 47% 20%;
+    --sidebar-accent: 211 42% 30%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 213 30% 30%;
+    --sidebar-ring: 11 100% 68%;
   }
 
   .dark {
-    --background: 150 35% 8%;
-    --foreground: 45 40% 96%;
+    --background: 216 55% 9%;           /* #0A1626 */
+    --foreground: 210 30% 92%;
+    --ink-strong: 0 0% 100%;
+    --surface-subtle: 216 45% 13%;
+    --surface-muted: 214 30% 18%;
 
-    --primary: 42 80% 50%;
-    --primary-foreground: 150 30% 12%;
-    
-    --accent: 42 80% 55%;
-    --accent-foreground: 150 30% 12%;
+    --primary: 11 100% 68%;             /* orange unchanged */
+    --primary-foreground: 217 47% 20%;
+    --primary-hover: 12 100% 61%;
+    --primary-dark: 11 78% 52%;
+    --navy: 216 45% 13%;
+    --navy-light: 211 42% 30%;
+    --navy-dark: 216 55% 7%;
 
-    --secondary: 150 25% 15%;
-    --secondary-foreground: 45 40% 96%;
+    --secondary: 214 30% 18%;
+    --secondary-foreground: 210 30% 92%;
+    --muted: 214 30% 18%;
+    --muted-foreground: 210 20% 68%;    /* AA on navy */
+    --accent: 11 100% 68%;
+    --accent-foreground: 217 47% 20%;
 
-    --muted: 150 20% 18%;
-    --muted-foreground: 45 20% 65%;
+    --card: 216 45% 13%;
+    --card-foreground: 210 30% 92%;
+    --popover: 216 45% 13%;
+    --popover-foreground: 210 30% 92%;
 
-    --card: 150 30% 12%;
-    --card-foreground: 45 40% 96%;
+    --border: 214 25% 24%;
+    --input: 214 25% 24%;
+    --ring: 11 100% 68%;                /* 5.78:1 on navy canvas */
 
-    --popover: 150 30% 12%;
-    --popover-foreground: 45 40% 96%;
-
-    --destructive: 0 62% 45%;
+    --destructive: 356 75% 54%;
+    --destructive-strong: 356 75% 54%;  /* bright red reads fine on navy (≥4.5:1 w/ white) */
     --destructive-foreground: 0 0% 100%;
+    --success: 170 100% 37%;
+    --success-strong: 170 100% 37%;
+    --warning: 36 89% 65%;
 
-    --border: 150 25% 20%;
-    --input: 150 25% 20%;
-    --ring: 42 80% 50%;
+    --shadow-soft: 0 2px 8px -2px hsl(216 55% 4% / 0.5);
+    --shadow-medium: 0 6px 20px -6px hsl(216 55% 4% / 0.6);
+    --shadow-elevated: 0 18px 40px -14px hsl(216 55% 4% / 0.7);
 
-    --sidebar-background: 150 35% 6%;
-    --sidebar-foreground: 45 40% 96%;
-    --sidebar-primary: 42 80% 50%;
-    --sidebar-primary-foreground: 150 30% 12%;
-    --sidebar-accent: 150 25% 15%;
-    --sidebar-accent-foreground: 45 40% 96%;
-    --sidebar-border: 150 25% 18%;
-    --sidebar-ring: 42 80% 50%;
+    --sidebar-background: 216 55% 7%;
+    --sidebar-foreground: 210 30% 92%;
+    --sidebar-primary: 11 100% 68%;
+    --sidebar-primary-foreground: 217 47% 20%;
+    --sidebar-accent: 214 30% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 214 25% 20%;
+    --sidebar-ring: 11 100% 68%;
   }
 }
 
@@ -128,33 +133,49 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    color: hsl(var(--ink-strong));
+  }
+
+  /* Visible focus for non-component elements (shadcn handles its own) */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(42 80% 50%) 0%, hsl(45 85% 65%) 100%);
+  /* Dark navy hero/CTA panel background — the only gradient in the system */
+  .bg-hero {
+    background-image: var(--gradient-hero);
   }
-  
-  .bg-hero-pattern {
-    background-image: 
-      radial-gradient(circle at 20% 50%, hsl(42 80% 50% / 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, hsl(150 40% 35% / 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 60% 80%, hsl(42 80% 50% / 0.05) 0%, transparent 45%);
-  }
-  
+
   .card-hover {
-    @apply transition-all duration-300 ease-out;
+    @apply transition-shadow duration-200 ease-out motion-safe:transition-all;
   }
-  
   .card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--shadow-medium);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card-hover:hover { transform: translateY(-2px); }
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50
+           focus:rounded-lg focus:bg-navy focus:px-4 focus:py-2 focus:text-white;
   }
 }

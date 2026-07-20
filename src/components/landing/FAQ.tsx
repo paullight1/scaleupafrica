@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
@@ -53,65 +52,43 @@ const FAQ = () => {
   return (
     <section className="bg-background py-24">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-16 text-center"
-        >
-          <span className="mb-4 inline-block font-semibold uppercase tracking-wider text-gold">
-            Questions and Answers
-          </span>
-          <h2 className="mb-4 font-serif text-3xl font-bold text-foreground md:text-4xl">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 font-display text-3xl font-bold text-foreground md:text-4xl">
             Frequently Asked Questions
           </h2>
           <p className="text-muted-foreground">
             Everything you need to know about The ScaleUp Africa Collective.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="rounded-xl border border-border bg-card px-6 shadow-soft data-[state=open]:border-gold/30 data-[state=open]:shadow-medium"
-              >
-                <AccordionTrigger className="py-5 text-left font-semibold text-foreground hover:text-forest hover:no-underline [&[data-state=open]]:text-forest">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="pb-5 leading-relaxed text-muted-foreground">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </motion.div>
+        <Accordion type="single" collapsible className="space-y-4">
+          {faqs.map((faq, index) => (
+            <AccordionItem
+              key={index}
+              value={`item-${index}`}
+              className="rounded-xl border border-border bg-card px-6 shadow-soft data-[state=open]:border-primary/40 data-[state=open]:shadow-medium"
+            >
+              <AccordionTrigger className="py-5 text-left font-semibold text-foreground hover:text-navy hover:no-underline [&[data-state=open]]:text-navy">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="pb-5 leading-relaxed text-muted-foreground">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 text-center"
-        >
+        <div className="mt-12 text-center">
           <p className="text-muted-foreground">
             Still have questions?{" "}
             <a
               href="mailto:hello@scaleupafricacollective.com"
-              className="font-semibold text-forest underline-offset-4 transition-colors hover:text-gold hover:underline"
+              className="font-semibold text-navy underline-offset-4 transition-colors hover:text-navy-light hover:underline"
             >
               Reach out to us
             </a>
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

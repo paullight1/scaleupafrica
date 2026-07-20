@@ -112,11 +112,11 @@ const CreateProfile = () => {
   return (
     <main className="min-h-screen bg-secondary py-16 px-6">
       <div className="mx-auto max-w-3xl">
-        <Link to="/directory" className="inline-flex items-center gap-2 text-muted-foreground hover:text-forest text-sm mb-6">
+        <Link to="/directory" className="inline-flex items-center gap-2 text-muted-foreground hover:text-navy-light text-sm mb-6">
           <ArrowLeft className="h-4 w-4" /> Back to directory
         </Link>
-        <div className="rounded-3xl border border-border bg-card p-8 shadow-elevated">
-          <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
+        <div className="rounded-xl border border-border bg-card p-8 shadow-elevated">
+          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
             {existingId ? "Edit your profile" : "Create your SME profile"}
           </h1>
           <p className="text-muted-foreground mb-8">
@@ -149,13 +149,13 @@ const CreateProfile = () => {
               <Textarea value={form.long_description} onChange={update("long_description")} maxLength={2000} rows={5} />
             </Field>
 
-            <h2 className="font-serif text-lg font-semibold text-foreground pt-4">Images</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground pt-4">Images</h2>
             <div className="grid gap-6 md:grid-cols-2">
               <ImageUploadCrop label="Logo" value={form.logo_url} onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))} userId={user.id} aspect={1} shape="rect" folder="logo" />
               <ImageUploadCrop label="Founder photo" value={form.founder_photo_url} onChange={(url) => setForm((f) => ({ ...f, founder_photo_url: url }))} userId={user.id} aspect={1} shape="round" folder="founder" />
             </div>
 
-            <h2 className="font-serif text-lg font-semibold text-foreground pt-4">Contact</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground pt-4">Contact</h2>
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="Website"><Input value={form.website} onChange={update("website")} maxLength={255} placeholder="https://..." /></Field>
               <Field label="Public email"><Input type="email" value={form.email} onChange={update("email")} maxLength={255} /></Field>
@@ -163,7 +163,7 @@ const CreateProfile = () => {
               <Field label="WhatsApp"><Input value={form.whatsapp} onChange={update("whatsapp")} maxLength={40} /></Field>
             </div>
 
-            <h2 className="font-serif text-lg font-semibold text-foreground pt-4">Social</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground pt-4">Social</h2>
             <div className="grid gap-5 md:grid-cols-3">
               <Field label="Instagram"><Input value={form.instagram} onChange={update("instagram")} maxLength={120} placeholder="@handle" /></Field>
               <Field label="LinkedIn"><Input value={form.linkedin} onChange={update("linkedin")} maxLength={255} /></Field>
@@ -171,7 +171,7 @@ const CreateProfile = () => {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" variant="gold" size="lg" disabled={saving}>
+              <Button type="submit" variant="default" size="lg" disabled={saving}>
                 {saving ? "Saving..." : existingId ? "Save changes" : "Publish to directory"}
               </Button>
               <Link to="/directory"><Button type="button" variant="outline" size="lg">Cancel</Button></Link>

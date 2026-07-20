@@ -272,6 +272,11 @@ MUST obey this section over its own plan file where they disagree.
 on white. Orange as *text* is allowed **only on navy/dark** (5.78:1), never on white. Dark-mode
 `--ring` = `11 100% 68%`. Any plan that drew a "white text on orange button" is corrected to navy.
 
+**Micro-amendment (Wave 1, implemented):** `--primary-hover` is set to `12 100% 61%` (not `60%`).
+`hsl(12 100% 60%)` renders to ~#FF5C33, giving navy-on-hover **4.46:1** (fails AA for normal text);
+`61%` yields **4.56:1** ✓. The +1% lightness bump is visually imperceptible and keeps the button
+hover label AA-compliant. Applied in both light and dark `:root`.
+
 ### 8.2 Single-owner file & artifact map (NO two agents write the same file in a wave)
 - **`src/components/common/*` primitives** — EmptyState, ErrorState, LoadingState/skeletons,
   PageHeader, StatCard, Illustration, **and `SEO.tsx`** → **owned by Plan 01** (created in Wave 1).

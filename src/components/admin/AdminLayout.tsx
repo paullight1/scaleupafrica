@@ -88,7 +88,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     className={({ isActive }) =>
                       `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                         isActive
-                          ? "bg-sidebar-accent text-gold"
+                          ? "bg-sidebar-accent text-primary"
                           : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                       }`
                     }
@@ -122,8 +122,8 @@ const AdminLayout = () => {
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <Link to="/admin" className="flex items-center gap-2 px-6 py-5">
-          <span className="font-serif text-lg font-bold text-sidebar-foreground">
-            ScaleUp <span className="text-gold">Admin</span>
+          <span className="font-display text-lg font-bold text-sidebar-foreground">
+            ScaleUp <span className="text-primary">Admin</span>
           </span>
         </Link>
         <div className="flex-1 overflow-hidden">
@@ -157,8 +157,8 @@ const AdminLayout = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 border-sidebar-border bg-sidebar p-0">
                 <div className="px-6 py-5">
-                  <span className="font-serif text-lg font-bold text-sidebar-foreground">
-                    ScaleUp <span className="text-gold">Admin</span>
+                  <span className="font-display text-lg font-bold text-sidebar-foreground">
+                    ScaleUp <span className="text-primary">Admin</span>
                   </span>
                 </div>
                 <SidebarContent onNavigate={() => setMobileOpen(false)} />
