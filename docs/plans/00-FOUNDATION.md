@@ -43,9 +43,9 @@ Light mode `:root`:
 | `--foreground` | `210 29% 27%` | #33475B | body text (navy slate) |
 | `--ink-strong` | `217 47% 20%` | #1B2A4A | headings (deep navy) |
 | `--primary` | `11 100% 68%` | #FF7A59 | **orange** — CTAs, active |
-| `--primary-foreground` | `0 0% 100%` | #FFFFFF | text on orange |
+| `--primary-foreground` | `217 47% 20%` | #1B2A4A | **navy** text on orange (AA — see amendment) |
 | `--primary-hover` | `12 100% 60%` | #FF5C35 | orange hover/press |
-| `--primary-dark` | `11 78% 52%` | #E44E2E | orange pressed/emphasis |
+| `--primary-dark` | `11 78% 52%` | #E44E2E | orange pressed / icons-on-light |
 | `--navy` | `217 47% 20%` | #1B2A4A | dark brand surfaces |
 | `--navy-light` | `211 42% 30%` | #2C4A6B | navy hover/lighter |
 | `--navy-dark` | `216 55% 12%` | #0D1B2E | darkest navy (footer/dark bg) |
@@ -60,10 +60,12 @@ Light mode `:root`:
 | `--popover` / `-foreground` | `0 0% 100%` / `210 29% 27%` | | |
 | `--border` | `213 33% 84%` | #CBD6E2 | borders |
 | `--input` | `213 33% 84%` | #CBD6E2 | |
-| `--ring` | `11 100% 68%` | #FF7A59 | focus ring (orange) |
-| `--destructive` | `356 75% 54%` | #F2545B | error |
+| `--ring` | `11 78% 52%` | #E44E2E | focus ring (needs 3:1 on white — see amendment) |
+| `--destructive` | `356 75% 54%` | #F2545B | error borders/icons/tints only |
+| `--destructive-strong` | `356 65% 42%` | ~#B1252F | destructive FILLS + error TEXT on white (6.6:1) |
 | `--destructive-foreground` | `0 0% 100%` | | |
-| `--success` | `170 100% 37%` | #00BDA5 | success (teal-green) |
+| `--success` | `170 100% 37%` | #00BDA5 | success fills-with-ink / icons / borders only |
+| `--success-strong` | `170 100% 25%` | ~#008070 | success TEXT on white (4.9:1) |
 | `--warning` | `36 89% 65%` | #F5C26B | warning |
 | `--radius` | `0.625rem` | | 10px base radius |
 
@@ -255,3 +257,83 @@ otherwise plan removal). Replace OG image with our homepage-derived `og-banner`.
   profiles/directory/funding/subscriptions) with the Supabase client retained for auth/storage.
 - Zero Lovable branding; real meta/OG banner; branded NotFound.
 - `npm run build`, `npm run lint`, `npm test` all green.
+
+---
+
+## 8. CROSS-PLAN RECONCILIATION (authoritative — overrides any conflicting statement in 01–08)
+
+The 8 plans were written in parallel and overlap. These rulings win. Every implementation agent
+MUST obey this section over its own plan file where they disagree.
+
+### 8.1 WCAG contrast amendment (from plan 01 — applies everywhere)
+`--primary-foreground` is **navy `217 47% 20%`**, NOT white. **Solid orange fills get navy labels**
+(white-on-#FF7A59 = 2.45:1, fails AA; navy-on-orange = 5.78:1). `--ring` (light) = `11 78% 52%`
+(#E44E2E). Add `--destructive-strong 356 65% 42%` and `--success-strong 170 100% 25%` for fills/text
+on white. Orange as *text* is allowed **only on navy/dark** (5.78:1), never on white. Dark-mode
+`--ring` = `11 100% 68%`. Any plan that drew a "white text on orange button" is corrected to navy.
+
+### 8.2 Single-owner file & artifact map (NO two agents write the same file in a wave)
+- **`src/components/common/*` primitives** — EmptyState, ErrorState, LoadingState/skeletons,
+  PageHeader, StatCard, Illustration, **and `SEO.tsx`** → **owned by Plan 01** (created in Wave 1).
+  Plan 08 *uses* `<SEO>` for per-route meta but does NOT create it. All other plans import these.
+- **`src/index.css`, `tailwind.config.ts`, fonts, NotFound restyle, MotionConfig, color sweep** →
+  Plan 01 only. Plan 01 does **NOT** restyle `src/components/landing/Header.tsx` or `Footer.tsx`
+  (Plan 02 deletes them). Skip those two files in the sweep.
+- **`App.tsx` routing** → restructured by **Plan 02** (SiteLayout wrapper, auth routes). Wave-3 route
+  additions (`/dashboard/*`, `/directory/:slug`, `/billing`, `/payment/callback`) are added by the
+  ORCHESTRATOR between Wave 2 and Wave 3. Wave-3 agents create page files but do **NOT** edit App.tsx.
+- **Auth surface** — `useAuth.tsx`, `src/pages/Auth.tsx`, `/auth/forgot`, `/auth/reset`,
+  `SiteLayout`/`AppHeader`/`AppFooter`, `RequireAuth`, `ScrollToTop`, `authErrors.ts`, `routes.ts`,
+  **and the native `supabase.auth.signInWithOAuth('google')` swap** → Plan 02.
+- **Lovable removal** — `index.html`, `README.md`, `package.json` (rename + drop `lovable-tagger`),
+  `vite.config.ts` tagger usage, favicon/manifest/og-banner, robots/sitemap → Plan 08. Deleting
+  `src/integrations/lovable/` + dropping `@lovable.dev/cloud-auth-js` happens in Wave 4 **after**
+  Plan 02's OAuth swap removes the last import (orchestrator verifies no imports remain first).
+- **`src/lib/subscription.ts`** (frontend active-subscription rule) → Plan 05 owns. Plans 03/06 import.
+- **Funding** — `src/pages/Funding.tsx`, `src/components/funding/*`, `fundingSchema.ts`,
+  `supabase/functions/aggregate-funding/*` → Plan 05. The paywall CTA calls a Paystack hook from
+  Plan 06; Plan 05 wires it. Plan 06 does **NOT** edit Funding.tsx.
+- **Payments** — `supabase/functions/paystack-*`, `src/components/billing/*` (incl. `BillingPanel`),
+  `src/lib/paystack.ts`/checkout hook, `Pricing.tsx` + `FAQ.tsx` copy/pricing → Plan 06. Plan 03's
+  Account-&-billing sub-route **imports** `BillingPanel`; it does not build billing itself.
+- **Dashboard** — `src/pages/dashboard/*`, `src/components/dashboard/*` → Plan 03.
+- **Directory/Profiles** — `src/pages/Directory.tsx`, `src/pages/ProfileDetail.tsx` (new),
+  `src/pages/CreateProfile.tsx`, `src/components/directory/*`, `ImageUploadCrop.tsx` → Plan 04.
+- **Data hooks** — each domain writes `src/hooks/queries/<domain>.ts` (disjoint per domain) calling
+  the **Supabase client directly** for now. Do NOT create `src/lib/api/*` in Wave 3 — Plan 07 (Wave 4)
+  introduces the API client and rewires these hooks behind `VITE_API_DOMAINS`. Structure hooks so the
+  data-source can be swapped without changing components.
+- **NestJS server** — everything under `server/` (new dir) + `src/lib/api/*` + `shared/contracts/*`
+  → Plan 07. It edits Wave-3 query hooks (Wave 4, serial) to route through the API.
+
+### 8.3 Database migration ownership + reserved timestamps (one file each, no collisions)
+`supabase/migrations/` stays the SOLE DDL pipeline. Plan 07 mirrors these in Drizzle (read-only,
+`drizzle-kit pull` as drift-check) and authors NO DDL. Use exactly these filenames:
+| Owner | File | Contents |
+|---|---|---|
+| Plan 04 | `20260720130000_directory_search_slug.sql` | `profiles.slug` (+ trigger/backfill), pg_trgm indexes, `directory_facets()`, `show_email/phone/whatsapp` flags, `get_profile_contact()`, `increment_profile_views()` |
+| Plan 05 | `20260720140000_funding_feed_cache.sql` | `funding_results` cache table, `funding_opportunities` new cols (`last_verified_at`,`source`,`details`), member-gated RLS |
+| Plan 06 | `20260720150000_paystack_payments.sql` | `payments`, `payment_webhook_events` (idempotency), `grant_annual_access()` service-role routine |
+| Plan 03 | `20260720160000_dashboard_tables.sql` | `saved_opportunities`, `user_preferences` |
+`increment_profile_views()` is owned by Plan 04 (Plan 03 calls it). The active-subscription rule lives
+in exactly: the SQL `has_active_subscription()` fn (DB), `src/lib/subscription.ts` (FE, Plan 05),
+`server/`'s `isActive()` (Plan 07). Remove the third ad-hoc copy in `Funding.tsx`.
+
+### 8.4 Implementation WAVES (dependency-ordered; build + commit between waves)
+- **Wave 1 — Plan 01 (solo):** tokens, tailwind, ALL `common/*` primitives incl `SEO`, color sweep,
+  fonts, MotionConfig, NotFound. Gate: `npm run build` green.
+- **Wave 2 — Plan 02 (solo):** auth pages, `useAuth`, SiteLayout/AppHeader/AppFooter, guards,
+  ScrollToTop, native OAuth, App.tsx restructure, delete landing Header/Footer. Gate: build green.
+- **Orchestrator:** add Wave-3 routes to App.tsx.
+- **Wave 3 — Plans 03 + 04 + 05 + 06 (parallel, disjoint write-sets + owned migrations).** Gate: build.
+- **Wave 4 — Plan 07 (solo):** NestJS `server/`, Drizzle mirror, `src/lib/api/*`, rewire query hooks
+  behind flag; then Lovable-dep cleanup (delete `src/integrations/lovable/`, drop deps). Gate: build.
+- **Wave 5 — Orchestrator:** full `npm run build` + `lint` + `test`, fixer agent for failures,
+  code-review skill, document manual steps (env, run migrations, Paystack keys, OAuth config, deploy).
+
+### 8.5 Honest autonomy boundary (must be surfaced, not silently skipped)
+Agents write all CODE. These require the human and MUST be listed in a final `docs/plans/HANDOFF.md`,
+never faked as done: running the new SQL migrations against Supabase; setting env/secrets
+(`PAYSTACK_SECRET_KEY`, `DATABASE_URL` pooler string, JWT secret/JWKS, `LOVABLE_API_KEY`); enabling
+Google OAuth in the Supabase dashboard; deploying `server/`; and any Paystack dashboard/webhook-URL
+config. Tests must run and their real results reported (per verification-before-completion).
