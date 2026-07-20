@@ -22,7 +22,7 @@ const TOKENS = {
   white: [0, 0, 100],
 } as const;
 
-function hslToRgb([h, s, l]: readonly [number, number, number] | number[]): [number, number, number] {
+function hslToRgb([h, s, l]: readonly number[]): [number, number, number] {
   const sN = s / 100;
   const lN = l / 100;
   const c = (1 - Math.abs(2 * lN - 1)) * sN;
@@ -40,7 +40,7 @@ function hslToRgb([h, s, l]: readonly [number, number, number] | number[]): [num
   return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
 }
 
-function relLum(rgb: number[]): number {
+function relLum(rgb: readonly number[]): number {
   const [r, g, b] = rgb.map((v) => {
     const s = v / 255;
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
@@ -48,14 +48,14 @@ function relLum(rgb: number[]): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-function contrast(a: number[], b: number[]): number {
+function contrast(a: readonly number[], b: readonly number[]): number {
   const l1 = relLum(hslToRgb(a));
   const l2 = relLum(hslToRgb(b));
   const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1];
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const CASES: Array<[string, number[], number[], number]> = [
+const CASES: Array<[string, readonly number[], readonly number[], number]> = [
   ["body text on white", TOKENS.foreground, TOKENS.background, 4.5],
   ["headings on white", TOKENS.inkStrong, TOKENS.background, 7],
   ["muted text on white", TOKENS.mutedForeground, TOKENS.background, 4.5],

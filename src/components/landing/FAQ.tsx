@@ -27,9 +27,14 @@ const faqs = [
       "The Funding Radar is available exclusively to active Collective members with an annual subscription. Once your subscription expires, access is revoked until you resubscribe.",
   },
   {
-    question: "Can I pay in my local currency?",
+    question: "How do I pay, and in which currency?",
     answer:
-      "Yes. Pricing is displayed in your selected country's currency, and our payment processor supports major cards and mobile money options across several African markets. If your local currency is not shown, your bank will convert at the prevailing rate.",
+      "Card payments are processed securely by Paystack in Nigerian Naira (NGN) or US Dollars (USD). If you pay a USD price with a local card, your bank converts at its own rate. Prefer mobile money or a bank transfer? Message us on WhatsApp — we confirm your payment and activate your membership within 12 hours.",
+  },
+  {
+    question: "How fast is access after I pay?",
+    answer:
+      "Card payments are automatic — access is usually unlocked in under a minute once the payment is confirmed. Bank transfers and mobile-money payments handled by our concierge are activated within 12 hours.",
   },
   {
     question: "Is there a monthly plan?",
@@ -37,9 +42,9 @@ const faqs = [
       "We offer an annual membership only. This keeps the community focused, committed, and easier to serve deeply throughout the year.",
   },
   {
-    question: "Can I cancel my membership?",
+    question: "Does my membership auto-renew? Can I cancel?",
     answer:
-      "Yes. You can cancel at any time. Your access continues until the end of your current annual term, and refunds for remaining months are not provided.",
+      "No auto-renew — we never store your card or charge you again, so there's nothing to cancel. Your access runs until it expires; renew any time (renewing early adds a year to your current expiry). We don't provide partial refunds.",
   },
   {
     question: "How is this different from other founder communities?",

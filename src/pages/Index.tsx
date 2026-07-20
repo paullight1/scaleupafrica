@@ -1,3 +1,6 @@
+import { Navigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_AUTHED_ROUTE } from "@/lib/routes";
 import Hero from "@/components/landing/Hero";
 import Problem from "@/components/landing/Problem";
 import Solution from "@/components/landing/Solution";
@@ -6,6 +9,15 @@ import Disclaimer from "@/components/landing/Disclaimer";
 import FAQ from "@/components/landing/FAQ";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const [params] = useSearchParams();
+
+  // Returning members land on their dashboard, not the marketing page.
+  // Escape hatch: /?home=1 keeps them on the landing page.
+  if (!loading && user && params.get("home") !== "1") {
+    return <Navigate to={DEFAULT_AUTHED_ROUTE} replace />;
+  }
+
   return (
     <div className="overflow-x-hidden">
       <Hero />

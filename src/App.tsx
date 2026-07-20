@@ -3,11 +3,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SiteLayout } from "@/components/common/SiteLayout";
 import { RequireAuth } from "@/components/common/RequireAuth";
 import { ScrollToTop } from "@/components/common/ScrollToTop";
+import { LoadingState } from "@/components/common/LoadingState";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthForgot from "./pages/AuthForgot";
@@ -16,6 +18,11 @@ import Directory from "./pages/Directory";
 import CreateProfile from "./pages/CreateProfile";
 import Funding from "./pages/Funding";
 import NotFound from "./pages/NotFound";
+
+// Wave-3 pages (lazy — split from the initial bundle for mobile)
+const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+const ProfileDetail = lazy(() => import("./pages/ProfileDetail"));
+const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 
 // Public content + marketing pages
 import Resources from "./pages/Resources";
@@ -54,6 +61,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ScrollToTop />
+          <Suspense fallback={<LoadingState className="min-h-[60vh]" label="Loading…" />}>
           <Routes>
             {/* Global chrome (auth-aware header + footer) on every non-admin route */}
             <Route element={<SiteLayout />}>
@@ -62,7 +70,9 @@ const App = () => (
               <Route path="/auth/forgot" element={<AuthForgot />} />
               <Route path="/auth/reset" element={<AuthReset />} />
               <Route path="/directory" element={<Directory />} />
+              <Route path="/directory/:slug" element={<ProfileDetail />} />
               <Route path="/funding" element={<Funding />} />
+              <Route path="/payment/callback" element={<PaymentCallback />} />
 
               {/* Public resource hub + blog */}
               <Route path="/resources" element={<Resources />} />
@@ -79,10 +89,8 @@ const App = () => (
               {/* Authed area */}
               <Route element={<RequireAuth />}>
                 <Route path="/directory/create" element={<CreateProfile />} />
-                {/* TODO(plan-03): replace this placeholder with the real Dashboard page.
-                    DEFAULT_AUTHED_ROUTE is "/dashboard"; until Wave 3 ships it, we redirect
-                    authed users to the directory so the route resolves. */}
-                <Route path="/dashboard" element={<Navigate to="/directory" replace />} />
+                {/* Dashboard owns its own internal sub-routing (home/profile/billing/activity) */}
+                <Route path="/dashboard/*" element={<Dashboard />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
@@ -156,6 +164,7 @@ const App = () => (
               />
             </Route>
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

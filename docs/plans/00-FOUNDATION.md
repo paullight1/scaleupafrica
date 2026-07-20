@@ -329,8 +329,12 @@ in exactly: the SQL `has_active_subscription()` fn (DB), `src/lib/subscription.t
   fonts, MotionConfig, NotFound. Gate: `npm run build` green.
 - **Wave 2 — Plan 02 (solo):** auth pages, `useAuth`, SiteLayout/AppHeader/AppFooter, guards,
   ScrollToTop, native OAuth, App.tsx restructure, delete landing Header/Footer. Gate: build green.
-- **Orchestrator:** add Wave-3 routes to App.tsx.
-- **Wave 3 — Plans 03 + 04 + 05 + 06 (parallel, disjoint write-sets + owned migrations).** Gate: build.
+- **Wave 3 — Plans 03 + 04 + 05 + 06 (parallel, disjoint write-sets + owned migrations).**
+  Agents do NOT edit App.tsx. Since new pages are unrouted during the wave, each agent VALIDATES with
+  `npx tsc --noEmit` (type-checks new files even when unreferenced) + `npm test`, fixing only errors
+  in files IT created/modified (sibling agents' in-progress files may show transient errors — ignore).
+- **Orchestrator (after all 4 land):** wire Wave-3 routes/imports into App.tsx, then run the
+  authoritative full `npm run build` + `tsc` + `npm test`; dispatch a fixer for any real breakage.
 - **Wave 4 — Plan 07 (solo):** NestJS `server/`, Drizzle mirror, `src/lib/api/*`, rewire query hooks
   behind flag; then Lovable-dep cleanup (delete `src/integrations/lovable/`, drop deps). Gate: build.
 - **Wave 5 — Orchestrator:** full `npm run build` + `lint` + `test`, fixer agent for failures,

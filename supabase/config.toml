@@ -1,1 +1,13 @@
 project_id = "dwyglydswegyvjowzdot"
+
+# Paystack payment functions (Plan 06).
+# init/verify require the caller's Supabase JWT (default); the webhook must NOT,
+# because Paystack sends no JWT — its authenticity is proven by the HMAC signature.
+[functions.paystack-init]
+verify_jwt = true
+
+[functions.paystack-verify]
+verify_jwt = true
+
+[functions.paystack-webhook]
+verify_jwt = false

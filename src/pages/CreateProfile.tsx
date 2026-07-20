@@ -1,189 +1,360 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { z } from "zod";
-import ImageUploadCrop from "@/components/ImageUploadCrop";
+import ImageUploadCrop, { storagePathFromUrl } from "@/components/ImageUploadCrop";
+import { KeywordInput } from "@/components/directory/KeywordInput";
+import { SEO } from "@/components/common/SEO";
+import { ErrorState } from "@/components/common/ErrorState";
+import { CardSkeleton } from "@/components/common/LoadingState";
+import { useOwnProfile, useSaveProfile } from "@/hooks/queries/directory";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import {
+  profileSchema,
+  profileFormDefaults,
+  normalizeProfileInput,
+  type ProfileFormValues,
+} from "@/lib/validation/profile";
 
 const AFRICAN_COUNTRIES = [
-  "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic","Chad","Comoros","Congo (Brazzaville)","Congo (DRC)","Côte d'Ivoire","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","São Tomé and Príncipe","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe","Other"
+  "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic","Chad","Comoros","Congo (Brazzaville)","Congo (DRC)","Côte d'Ivoire","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","São Tomé and Príncipe","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe","Other",
 ];
 
 const SECTORS = [
-  "Agriculture & Agritech","Fashion & Apparel","Food & Beverage","Retail & E-commerce","Logistics & Supply Chain","Manufacturing","Construction & Real Estate","Financial Services & Fintech","Health & Wellness","Healthtech & Pharma","Education & Edtech","Media, Arts & Entertainment","Beauty & Personal Care","Hospitality & Tourism","Professional Services","Marketing & Creative","Technology & Software","Energy & Cleantech","Transportation & Mobility","Automotive","Telecommunications","Import / Export & Trade","Mining & Natural Resources","Non-profit & Social Enterprise","Other"
+  "Agriculture & Agritech","Fashion & Apparel","Food & Beverage","Retail & E-commerce","Logistics & Supply Chain","Manufacturing","Construction & Real Estate","Financial Services & Fintech","Health & Wellness","Healthtech & Pharma","Education & Edtech","Media, Arts & Entertainment","Beauty & Personal Care","Hospitality & Tourism","Professional Services","Marketing & Creative","Technology & Software","Energy & Cleantech","Transportation & Mobility","Automotive","Telecommunications","Import / Export & Trade","Mining & Natural Resources","Non-profit & Social Enterprise","Other",
 ];
 
-const schema = z.object({
-  business_name: z.string().trim().min(1, "Required").max(120),
-  founder_name: z.string().trim().max(120).optional().or(z.literal("")),
-  country: z.string().min(1, "Required"),
-  sector: z.string().min(1, "Required"),
-  short_description: z.string().trim().max(180).optional().or(z.literal("")),
-  long_description: z.string().trim().max(2000).optional().or(z.literal("")),
-  website: z.string().trim().max(255).optional().or(z.literal("")),
-  email: z.string().trim().email("Invalid email").max(255).optional().or(z.literal("")),
-  phone: z.string().trim().max(40).optional().or(z.literal("")),
-  whatsapp: z.string().trim().max(40).optional().or(z.literal("")),
-  instagram: z.string().trim().max(120).optional().or(z.literal("")),
-  linkedin: z.string().trim().max(255).optional().or(z.literal("")),
-  twitter: z.string().trim().max(120).optional().or(z.literal("")),
-  logo_url: z.string().trim().max(500).optional().or(z.literal("")),
-  founder_photo_url: z.string().trim().max(500).optional().or(z.literal("")),
-});
-
-type FormState = z.infer<typeof schema>;
-
-const initial: FormState = {
-  business_name: "", founder_name: "", country: "", sector: "",
-  short_description: "", long_description: "", website: "", email: "",
-  phone: "", whatsapp: "", instagram: "", linkedin: "", twitter: "",
-  logo_url: "", founder_photo_url: "",
-};
-
 const CreateProfile = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState<FormState>(initial);
-  const [saving, setSaving] = useState(false);
-  const [existingId, setExistingId] = useState<string | null>(null);
+  const save = useSaveProfile();
 
+  const ownQuery = useOwnProfile(user?.id);
+  const existing = ownQuery.data;
+  const isEditing = !!existing;
+
+  const replacedPaths = useRef<Set<string>>(new Set());
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const hydrated = useRef(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    setFocus,
+    setValue,
+    getValues,
+    watch,
+    formState: { errors, isDirty },
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: profileFormDefaults,
+  });
+
+  useUnsavedChanges(isDirty && !save.isPending);
+
+  // Hydrate the form once the own-profile row arrives.
   useEffect(() => {
-    document.title = "Create Profile | ScaleUp Africa Collective";
-    // Auth is enforced by <RequireAuth> in App.tsx; no page-level redirect needed.
-  }, []);
+    if (!existing || hydrated.current) return;
+    hydrated.current = true;
+    reset({
+      ...profileFormDefaults,
+      business_name: (existing.business_name as string) ?? "",
+      founder_name: (existing.founder_name as string) ?? "",
+      country: (existing.country as string) ?? "",
+      sector: (existing.sector as string) ?? "",
+      short_description: (existing.short_description as string) ?? "",
+      long_description: (existing.long_description as string) ?? "",
+      website: (existing.website as string) ?? "",
+      email: (existing.email as string) ?? "",
+      phone: (existing.phone as string) ?? "",
+      whatsapp: (existing.whatsapp as string) ?? "",
+      instagram: (existing.instagram as string) ?? "",
+      linkedin: (existing.linkedin as string) ?? "",
+      twitter: (existing.twitter as string) ?? "",
+      logo_url: (existing.logo_url as string) ?? "",
+      founder_photo_url: (existing.founder_photo_url as string) ?? "",
+      keywords: (existing.keywords as string[]) ?? [],
+      show_email: (existing.show_email as boolean) ?? true,
+      show_phone: (existing.show_phone as boolean) ?? true,
+      show_whatsapp: (existing.show_whatsapp as boolean) ?? true,
+    });
+  }, [existing, reset]);
 
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
-      if (data) {
-        setExistingId(data.id);
-        setForm({
-          business_name: data.business_name ?? "",
-          founder_name: data.founder_name ?? "",
-          country: data.country ?? "",
-          sector: data.sector ?? "",
-          short_description: data.short_description ?? "",
-          long_description: data.long_description ?? "",
-          website: data.website ?? "",
-          email: data.email ?? "",
-          phone: data.phone ?? "",
-          whatsapp: data.whatsapp ?? "",
-          instagram: data.instagram ?? "",
-          linkedin: data.linkedin ?? "",
-          twitter: data.twitter ?? "",
-          logo_url: data.logo_url ?? "",
-          founder_photo_url: data.founder_photo_url ?? "",
-        });
-      }
-    })();
-  }, [user]);
-
-  const update = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm({ ...form, [k]: e.target.value });
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const parsed = schema.safeParse(form);
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0].message);
-      return;
+  const handleImage = (field: "logo_url" | "founder_photo_url") => (url: string, _path: string | null) => {
+    const prev = getValues(field);
+    if (prev && prev !== url) {
+      const prevPath = storagePathFromUrl(prev);
+      if (prevPath) replacedPaths.current.add(prevPath);
     }
-    setSaving(true);
-    const payload = { ...parsed.data, user_id: user.id };
-    const { error } = existingId
-      ? await supabase.from("profiles").update(payload).eq("id", existingId)
-      : await supabase.from("profiles").insert(payload as never);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success(existingId ? "Profile updated" : "Profile published to the directory");
-    navigate("/directory");
+    setValue(field, url, { shouldDirty: true });
   };
 
-  if (loading || !user) return null;
+  const onSubmit = async (values: ProfileFormValues) => {
+    if (!user) return;
+    const payload = { ...normalizeProfileInput(values), user_id: user.id };
+    try {
+      const { slug } = await save.mutateAsync(payload);
+      // Best-effort orphan cleanup — only AFTER a successful save (an abandoned edit keeps
+      // its old image). Failures are ignored.
+      const paths = [...replacedPaths.current].filter(Boolean);
+      if (paths.length) {
+        await supabase.storage.from("profile-media").remove(paths).catch(() => {});
+        replacedPaths.current.clear();
+      }
+      toast.success("Profile published — this is what the world sees.");
+      navigate(`/directory/${slug}`, { state: { justPublished: !isEditing } });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      if (/duplicate key|already exists|23505/i.test(message)) {
+        toast.error("You already have a profile — reload to edit it.");
+      } else {
+        toast.error(message);
+      }
+    }
+  };
+
+  const onInvalid = () => {
+    toast.error("Fix the highlighted fields");
+    const firstError = Object.keys(errors)[0] as keyof ProfileFormValues | undefined;
+    if (firstError) setFocus(firstError);
+  };
+
+  const leave = () => navigate("/directory");
+  const requestCancel = () => {
+    if (isDirty) setDiscardOpen(true);
+    else leave();
+  };
+
+  if (authLoading || !user) return null;
 
   return (
-    <main className="min-h-screen bg-secondary py-16 px-6">
+    <main className="min-h-screen bg-secondary px-6 py-16">
+      <SEO title={isEditing ? "Edit your profile" : "Create your profile"} noindex />
       <div className="mx-auto max-w-3xl">
-        <div className="rounded-xl border border-border bg-card p-8 shadow-elevated">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-            {existingId ? "Edit your profile" : "Create your SME profile"}
+        <div className="rounded-xl border border-border bg-card p-8 shadow-medium">
+          <h1 className="mb-2 font-display text-3xl font-bold text-ink-strong">
+            {isEditing ? "Edit your profile" : "Create your SME profile"}
           </h1>
-          <p className="text-muted-foreground mb-8">
+          <p className="mb-8 text-muted-foreground">
             Your profile is public and searchable on the directory as soon as you save.
           </p>
 
-          <form onSubmit={onSubmit} className="space-y-5">
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Business name *"><Input value={form.business_name} onChange={update("business_name")} required maxLength={120} /></Field>
-              <Field label="Founder name"><Input value={form.founder_name} onChange={update("founder_name")} maxLength={120} /></Field>
-              <Field label="Country *">
-                <select value={form.country} onChange={update("country")} required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-                  <option value="">Select a country</option>
-                  {AFRICAN_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+          {ownQuery.isLoading ? (
+            <div className="space-y-4">
+              <CardSkeleton lines={4} />
+              <CardSkeleton lines={4} />
+            </div>
+          ) : ownQuery.isError ? (
+            <ErrorState
+              title="Couldn't load your profile"
+              message="We couldn't check whether you already have a profile. Try again."
+              onRetry={() => ownQuery.refetch()}
+            />
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5" noValidate>
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field label="Business name *" error={errors.business_name?.message} name="business_name">
+                  <Input {...register("business_name")} maxLength={120} aria-invalid={!!errors.business_name} aria-describedby={errors.business_name ? "err-business_name" : undefined} />
+                </Field>
+                <Field label="Founder name" error={errors.founder_name?.message} name="founder_name">
+                  <Input {...register("founder_name")} maxLength={120} />
+                </Field>
+                <Field label="Country *" error={errors.country?.message} name="country">
+                  <select {...register("country")} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm" aria-invalid={!!errors.country}>
+                    <option value="">Select a country</option>
+                    {AFRICAN_COUNTRIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Sector / industry *" error={errors.sector?.message} name="sector">
+                  <select {...register("sector")} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm" aria-invalid={!!errors.sector}>
+                    <option value="">Select a sector</option>
+                    {SECTORS.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Short description (one-liner, up to 180 chars)" error={errors.short_description?.message} name="short_description">
+                <Input {...register("short_description")} maxLength={180} />
               </Field>
-              <Field label="Sector / industry *">
-                <select value={form.sector} onChange={update("sector")} required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-                  <option value="">Select a sector</option>
-                  {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+
+              <Field label="About the business" error={errors.long_description?.message} name="long_description">
+                <Textarea {...register("long_description")} maxLength={2000} rows={5} />
               </Field>
-            </div>
 
-            <Field label="Short description (one-liner, up to 180 chars)">
-              <Input value={form.short_description} onChange={update("short_description")} maxLength={180} />
-            </Field>
+              <div>
+                <Label htmlFor="keywords" className="mb-1.5 block">Keywords</Label>
+                <Controller
+                  control={control}
+                  name="keywords"
+                  render={({ field }) => (
+                    <KeywordInput value={field.value ?? []} onChange={field.onChange} />
+                  )}
+                />
+                {errors.keywords && (
+                  <p className="mt-1 text-sm text-destructive-strong">
+                    {errors.keywords.message as string}
+                  </p>
+                )}
+              </div>
 
-            <Field label="About the business">
-              <Textarea value={form.long_description} onChange={update("long_description")} maxLength={2000} rows={5} />
-            </Field>
+              <h2 className="pt-4 font-display text-lg font-semibold text-ink-strong">Images</h2>
+              <div className="grid gap-6 md:grid-cols-2">
+                <ImageUploadCrop label="Logo" value={watch("logo_url") ?? ""} onChange={handleImage("logo_url")} userId={user.id} aspect={1} shape="rect" folder="logo" />
+                <ImageUploadCrop label="Founder photo" value={watch("founder_photo_url") ?? ""} onChange={handleImage("founder_photo_url")} userId={user.id} aspect={1} shape="round" folder="founder" />
+              </div>
 
-            <h2 className="font-display text-lg font-semibold text-foreground pt-4">Images</h2>
-            <div className="grid gap-6 md:grid-cols-2">
-              <ImageUploadCrop label="Logo" value={form.logo_url} onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))} userId={user.id} aspect={1} shape="rect" folder="logo" />
-              <ImageUploadCrop label="Founder photo" value={form.founder_photo_url} onChange={(url) => setForm((f) => ({ ...f, founder_photo_url: url }))} userId={user.id} aspect={1} shape="round" folder="founder" />
-            </div>
+              <h2 className="pt-4 font-display text-lg font-semibold text-ink-strong">Contact</h2>
+              <p className="text-sm text-muted-foreground">
+                Visible details appear after a visitor taps "Show contact". You can turn any of
+                these off anytime.
+              </p>
+              <div className="grid gap-5 md:grid-cols-2">
+                <ContactField label="Public email" error={errors.email?.message} name="email" control={control} switchName="show_email">
+                  <Input type="email" {...register("email")} maxLength={255} aria-invalid={!!errors.email} />
+                </ContactField>
+                <ContactField label="Phone" error={errors.phone?.message} name="phone" control={control} switchName="show_phone">
+                  <Input {...register("phone")} maxLength={40} />
+                </ContactField>
+                <ContactField label="WhatsApp" error={errors.whatsapp?.message} name="whatsapp" control={control} switchName="show_whatsapp">
+                  <Input {...register("whatsapp")} maxLength={40} />
+                </ContactField>
+                <Field label="Website" error={errors.website?.message} name="website">
+                  <Input {...register("website")} maxLength={255} placeholder="https://..." aria-invalid={!!errors.website} />
+                </Field>
+              </div>
 
-            <h2 className="font-display text-lg font-semibold text-foreground pt-4">Contact</h2>
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Website"><Input value={form.website} onChange={update("website")} maxLength={255} placeholder="https://..." /></Field>
-              <Field label="Public email"><Input type="email" value={form.email} onChange={update("email")} maxLength={255} /></Field>
-              <Field label="Phone"><Input value={form.phone} onChange={update("phone")} maxLength={40} /></Field>
-              <Field label="WhatsApp"><Input value={form.whatsapp} onChange={update("whatsapp")} maxLength={40} /></Field>
-            </div>
+              <h2 className="pt-4 font-display text-lg font-semibold text-ink-strong">Social</h2>
+              <div className="grid gap-5 md:grid-cols-3">
+                <Field label="Instagram" error={errors.instagram?.message} name="instagram">
+                  <Input {...register("instagram")} maxLength={120} placeholder="@handle" />
+                </Field>
+                <Field label="LinkedIn" error={errors.linkedin?.message} name="linkedin">
+                  <Input {...register("linkedin")} maxLength={255} placeholder="https://linkedin.com/in/..." aria-invalid={!!errors.linkedin} />
+                </Field>
+                <Field label="X (Twitter)" error={errors.twitter?.message} name="twitter">
+                  <Input {...register("twitter")} maxLength={120} placeholder="@handle" />
+                </Field>
+              </div>
 
-            <h2 className="font-display text-lg font-semibold text-foreground pt-4">Social</h2>
-            <div className="grid gap-5 md:grid-cols-3">
-              <Field label="Instagram"><Input value={form.instagram} onChange={update("instagram")} maxLength={120} placeholder="@handle" /></Field>
-              <Field label="LinkedIn"><Input value={form.linkedin} onChange={update("linkedin")} maxLength={255} /></Field>
-              <Field label="X (Twitter)"><Input value={form.twitter} onChange={update("twitter")} maxLength={120} placeholder="@handle" /></Field>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" variant="default" size="lg" disabled={saving}>
-                {saving ? "Saving..." : existingId ? "Save changes" : "Publish to directory"}
-              </Button>
-              <Link to="/directory"><Button type="button" variant="outline" size="lg">Cancel</Button></Link>
-            </div>
-          </form>
+              <div className="flex gap-3 pt-4">
+                <Button type="submit" variant="default" size="lg" className="min-h-[44px]" disabled={save.isPending}>
+                  {save.isPending ? "Saving..." : isEditing ? "Save changes" : "Publish to directory"}
+                </Button>
+                <Button type="button" variant="outline" size="lg" className="min-h-[44px]" onClick={requestCancel}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
+
+      <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard your changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. If you leave now, they'll be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogAction onClick={leave}>Discard</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div>
-    <Label className="mb-1.5 block">{label}</Label>
-    {children}
-  </div>
-);
+function Field({
+  label,
+  error,
+  name,
+  children,
+}: {
+  label: string;
+  error?: string;
+  name: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <Label className="mb-1.5 block">{label}</Label>
+      {children}
+      {error && (
+        <p id={`err-${name}`} className="mt-1 text-sm text-destructive-strong">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ContactField({
+  label,
+  error,
+  name,
+  control,
+  switchName,
+  children,
+}: {
+  label: string;
+  error?: string;
+  name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  control: any;
+  switchName: "show_email" | "show_phone" | "show_whatsapp";
+  children: React.ReactNode;
+}) {
+  const switchId = `${switchName}-toggle`;
+  return (
+    <div>
+      <Label className="mb-1.5 block">{label}</Label>
+      {children}
+      {error && (
+        <p id={`err-${name}`} className="mt-1 text-sm text-destructive-strong">
+          {error}
+        </p>
+      )}
+      <div className="mt-2 flex items-center gap-2">
+        <Controller
+          control={control}
+          name={switchName}
+          render={({ field }) => (
+            <Switch id={switchId} checked={!!field.value} onCheckedChange={field.onChange} />
+          )}
+        />
+        <Label htmlFor={switchId} className="text-xs font-normal text-muted-foreground">
+          Visible on your public page
+        </Label>
+      </div>
+    </div>
+  );
+}
 
 export default CreateProfile;

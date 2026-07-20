@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { clearFundingCache } from "@/lib/fundingCache";
 
 type SignUpResult = { error: AuthError | null; confirmationRequired: boolean };
 
@@ -116,6 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    // Clear per-user funding results cached in localStorage (shared/family devices).
+    clearFundingCache();
   };
 
   return (
