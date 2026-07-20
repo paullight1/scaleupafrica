@@ -1,20 +1,22 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useRole } from "@/hooks/useRole";
 
 const navLinks = [
-  { label: "What You Get", href: "/#solution" },
   { label: "Directory", href: "/directory" },
   { label: "Funding", href: "/funding" },
+  { label: "Resources", href: "/resources" },
+  { label: "Blog", href: "/blog" },
   { label: "Pricing", href: "/#pricing" },
-  { label: "FAQ", href: "/#faq" },
 ];
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isStaff } = useRole();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -46,6 +48,13 @@ const Header = () => {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          {isStaff && (
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="text-gold hover:text-gold hover:bg-transparent">
+                <ShieldCheck className="mr-1 h-4 w-4" /> Admin
+              </Button>
+            </Link>
+          )}
           <Link to="/auth"><Button variant="ghost" size="sm" className="text-primary-foreground hover:text-gold hover:bg-transparent">Sign in</Button></Link>
           <Link to="/auth?next=/directory/create"><Button variant="gold" size="sm">Get started</Button></Link>
         </div>
@@ -78,6 +87,13 @@ const Header = () => {
                 </a>
               ))}
               <div className="mt-4 flex flex-col gap-3">
+                {isStaff && (
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full text-gold">
+                      <ShieldCheck className="mr-1 h-4 w-4" /> Admin panel
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/auth"><Button variant="outline" className="w-full">Sign in</Button></Link>
                 <Link to="/auth?next=/directory/create"><Button variant="gold" className="w-full">Get started</Button></Link>
               </div>

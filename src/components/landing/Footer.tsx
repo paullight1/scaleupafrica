@@ -1,7 +1,36 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import NewsletterSignup from "@/components/NewsletterSignup";
+
+const footerNav: { heading: string; links: { label: string; to: string }[] }[] = [
+  {
+    heading: "Product",
+    links: [
+      { label: "Directory", to: "/directory" },
+      { label: "Funding Radar", to: "/funding" },
+      { label: "List your business", to: "/directory/create" },
+      { label: "Pricing", to: "/#pricing" },
+    ],
+  },
+  {
+    heading: "Resources",
+    links: [
+      { label: "Resource Library", to: "/resources" },
+      { label: "Blog", to: "/blog" },
+      { label: "Templates", to: "/resources?type=template" },
+      { label: "Playbooks", to: "/resources?type=playbook" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { label: "About", to: "/about" },
+      { label: "Contact", to: "/contact" },
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms of Service", to: "/terms" },
+    ],
+  },
+];
 
 const Footer = () => {
   return (
@@ -16,46 +45,61 @@ const Footer = () => {
             className="mx-auto max-w-3xl text-center"
           >
             <h2 className="mb-6 font-serif text-3xl font-bold text-primary-foreground md:text-4xl lg:text-5xl">
-              Ready to Scale{" "}
-              <span className="text-gradient-gold">With Intent?</span>
+              Ready to Scale <span className="text-gradient-gold">With Intent?</span>
             </h2>
-            <p className="mb-10 text-lg text-primary-foreground/80">
-              Join Africa's most focused SME founder collective. List your business on
-              the free directory and unlock AI-curated funding intelligence when you're
-              ready to scale.
+            <p className="mb-8 text-lg text-primary-foreground/80">
+              Get funding intelligence, founder playbooks and new opportunities in your inbox.
+              Join Africa's most focused SME founder collective.
             </p>
-            <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Link to="/auth?next=/directory/create">
-                <Button variant="hero" size="xl">
-                  Get started
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+            <div className="mx-auto flex max-w-md justify-center">
+              <NewsletterSignup source="footer" variant="card" className="mx-auto" />
             </div>
           </motion.div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="grid gap-10 md:grid-cols-4">
           <div>
             <p className="font-serif text-xl font-bold text-primary-foreground">
               ScaleUp Africa<span className="text-gold">.</span>
             </p>
-            <p className="mt-1 text-sm text-primary-foreground/60">
-              The Collective for Pan-African SME Founders
+            <p className="mt-2 max-w-xs text-sm text-primary-foreground/60">
+              The Collective for Pan-African SME founders — visibility, funding intelligence and
+              the playbooks to grow.
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-primary-foreground/60">
-            <a href="#" className="transition-colors hover:text-gold">Terms of Service</a>
-            <a href="#" className="transition-colors hover:text-gold">Privacy Policy</a>
-            <a href="#" className="transition-colors hover:text-gold">Contact Us</a>
-          </div>
+          {footerNav.map((col) => (
+            <div key={col.heading}>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">
+                {col.heading}
+              </p>
+              <ul className="space-y-2.5">
+                {col.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className="text-sm text-primary-foreground/70 transition-colors hover:text-gold"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
 
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-primary-foreground/10 pt-8 sm:flex-row">
           <p className="text-sm text-primary-foreground/40">
-            © {new Date().getFullYear()} ScaleUp Africa Collective
+            © {new Date().getFullYear()} ScaleUp Africa Collective. All rights reserved.
           </p>
+          <div className="flex gap-6 text-sm text-primary-foreground/50">
+            <Link to="/privacy" className="transition-colors hover:text-gold">Privacy</Link>
+            <Link to="/terms" className="transition-colors hover:text-gold">Terms</Link>
+            <Link to="/contact" className="transition-colors hover:text-gold">Contact</Link>
+          </div>
         </div>
       </div>
     </footer>
