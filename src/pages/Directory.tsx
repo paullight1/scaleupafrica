@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Briefcase, Globe, Mail, Phone, ArrowLeft } from "lucide-react";
+import { Search, MapPin, Briefcase, Globe, Mail, Phone } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { authPathWithNext } from "@/lib/routes";
 
 type Profile = {
   id: string;
@@ -26,6 +27,9 @@ const Directory = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const { user } = useAuth();
+  const createHref = user
+    ? "/directory/create"
+    : authPathWithNext({ pathname: "/directory/create", search: "" });
 
   useEffect(() => {
     document.title = "SME Directory | ScaleUp Africa Collective";
@@ -55,9 +59,6 @@ const Directory = () => {
     <main className="min-h-screen bg-background">
       <header className="bg-navy text-white py-16 px-6">
         <div className="mx-auto max-w-6xl">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/75 hover:text-primary text-sm mb-6">
-            <ArrowLeft className="h-4 w-4" /> Back home
-          </Link>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-3 text-white">
             The Pan-African <span className="text-primary">SME Directory</span>
           </h1>
@@ -74,11 +75,11 @@ const Directory = () => {
                 className="pl-12 h-12 bg-card text-foreground"
               />
             </div>
-            <Link to={user ? "/directory/create" : "/auth?next=/directory/create"}>
-              <Button variant="default" size="lg" className="w-full sm:w-auto">
+            <Button asChild variant="default" size="lg" className="w-full sm:w-auto">
+              <Link to={createHref}>
                 {user ? "Manage my profile" : "Create a profile"}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </header>
@@ -94,9 +95,9 @@ const Directory = () => {
                 : "No matches for your search."}
             </p>
             {profiles.length === 0 && (
-              <Link to={user ? "/directory/create" : "/auth?next=/directory/create"}>
-                <Button variant="default">Create the first profile</Button>
-              </Link>
+              <Button asChild variant="default">
+                <Link to={createHref}>Create the first profile</Link>
+              </Button>
             )}
           </div>
         ) : (

@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
 import ImageUploadCrop from "@/components/ImageUploadCrop";
 
 const AFRICAN_COUNTRIES = [
@@ -55,8 +54,8 @@ const CreateProfile = () => {
 
   useEffect(() => {
     document.title = "Create Profile | ScaleUp Africa Collective";
-    if (!loading && !user) navigate("/auth?next=/directory/create", { replace: true });
-  }, [user, loading, navigate]);
+    // Auth is enforced by <RequireAuth> in App.tsx; no page-level redirect needed.
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -112,9 +111,6 @@ const CreateProfile = () => {
   return (
     <main className="min-h-screen bg-secondary py-16 px-6">
       <div className="mx-auto max-w-3xl">
-        <Link to="/directory" className="inline-flex items-center gap-2 text-muted-foreground hover:text-navy-light text-sm mb-6">
-          <ArrowLeft className="h-4 w-4" /> Back to directory
-        </Link>
         <div className="rounded-xl border border-border bg-card p-8 shadow-elevated">
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">
             {existingId ? "Edit your profile" : "Create your SME profile"}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ExternalLink, Lock, RefreshCw, Calendar,
+  ExternalLink, Lock, RefreshCw, Calendar,
   AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Info, Target, Users, Lightbulb, Plane,
 } from "lucide-react";
 
@@ -67,7 +67,6 @@ const SAMPLE_OPPS: Opportunity[] = [
 
 const Funding = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const [params] = useSearchParams();
   const isPreview = params.get("preview") === "1";
   const [access, setAccess] = useState<null | boolean>(null);
@@ -79,19 +78,19 @@ const Funding = () => {
 
   useEffect(() => {
     document.title = "Funding Intelligence | ScaleUp Africa Collective";
-    if (isPreview) return;
-    if (!loading && !user) navigate("/auth?next=/funding", { replace: true });
-  }, [user, loading, navigate, isPreview]);
+  }, []);
 
   useEffect(() => {
     if (isPreview) { setAccess(true); return; }
-    if (!user) return;
+    // /funding is public: visitors see the membership paywall (guard removed — plan 02).
+    if (loading) return;
+    if (!user) { setAccess(false); return; }
     (async () => {
       const { data } = await supabase.from("subscriptions").select("has_access, expires_at").eq("user_id", user.id).maybeSingle();
       const active = !!data?.has_access && (!data.expires_at || new Date(data.expires_at) > new Date());
       setAccess(active);
     })();
-  }, [user, isPreview]);
+  }, [user, loading, isPreview]);
 
   const generate = async () => {
     if (isPreview) {
@@ -114,7 +113,7 @@ const Funding = () => {
     }
   };
 
-  if (!isPreview && (loading || !user || access === null)) {
+  if (!isPreview && (loading || access === null)) {
     return <main className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></main>;
   }
 
@@ -174,9 +173,6 @@ const Funding = () => {
     <main className="min-h-screen bg-background">
       <header className="bg-navy text-white py-16 px-6">
         <div className="mx-auto max-w-5xl">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/75 hover:text-primary text-sm mb-6">
-            <ArrowLeft className="h-4 w-4" /> Back home
-          </Link>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-3 text-white">
             The <span className="text-primary">Funding Radar</span>
           </h1>

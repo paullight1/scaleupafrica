@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
+import { authPathWithNext } from "@/lib/routes";
 import { ShieldAlert, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -36,7 +37,7 @@ const AdminGuard = ({
   }
 
   if (!user) {
-    return <Navigate to={`/auth?next=${encodeURIComponent(location.pathname)}`} replace />;
+    return <Navigate to={authPathWithNext(location)} replace />;
   }
 
   const allowed = require === "admin" ? isAdmin : isStaff;
