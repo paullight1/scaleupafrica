@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { readFundingCache, writeFundingCache, clearFundingCache, type FundingCacheEntry } from "@/lib/fundingCache";
+import { readFundingCache, writeFundingCache, clearFundingCache, CACHE_TTL_MS, type FundingCacheEntry } from "@/lib/fundingCache";
 
 const USER = "user-1";
 
@@ -37,6 +37,26 @@ describe("fundingCache", () => {
   it("returns null for corrupt JSON", () => {
     localStorage.setItem("sua:funding:v1:user-1", "{not json");
     expect(readFundingCache(USER)).toBeNull();
+  });
+
+  it("expires entries older than the TTL and clears the key (CACHE-TTL)", () => {
+    const stale = new Date(Date.now() - CACHE_TTL_MS - 60_000).toISOString();
+    localStorage.setItem(
+      "sua:funding:v1:user-1",
+      JSON.stringify({ ...entry, generatedAt: stale }),
+    );
+    expect(readFundingCache(USER)).toBeNull();
+    // The stale key is dropped, not just ignored.
+    expect(localStorage.getItem("sua:funding:v1:user-1")).toBeNull();
+  });
+
+  it("returns a fresh (within-TTL) entry", () => {
+    const fresh = new Date(Date.now() - 60_000).toISOString();
+    localStorage.setItem(
+      "sua:funding:v1:user-1",
+      JSON.stringify({ ...entry, generatedAt: fresh }),
+    );
+    expect(readFundingCache(USER)).not.toBeNull();
   });
 
   it("clear removes the entry", () => {

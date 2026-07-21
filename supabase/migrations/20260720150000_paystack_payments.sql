@@ -76,6 +76,12 @@ BEGIN
         -- renewal extends from the current expiry, not from now
         expires_at = GREATEST(COALESCE(expires_at, now()), now()) + INTERVAL '1 year'
     WHERE user_id = _row.user_id;
+  -- Access is only granted if the subscription row was actually updated. If it wasn't
+  -- (missing row), raise so the whole tx rolls back (incl. the payment->success flip):
+  -- the caller sees an error and retries; access is never claimed as granted-but-not.
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'grant_annual_access: no subscription row for user %', _row.user_id;
+  END IF;
   RETURN true;
 END; $$;
 

@@ -38,7 +38,7 @@ export function OpportunityRow({
             </Badge>
           )}
           {isNew && (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-ink-strong">
               New
             </span>
           )}
@@ -78,7 +78,7 @@ export function OpportunityRow({
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:opacity-50",
           saved
-            ? "bg-primary/10 text-primary"
+            ? "bg-primary/10 text-ink-strong"
             : "text-muted-foreground hover:bg-secondary hover:text-foreground",
         )}
       >

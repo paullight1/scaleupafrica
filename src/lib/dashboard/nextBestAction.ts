@@ -11,8 +11,14 @@ import type { CompletenessResult } from "./profileCompleteness";
 
 export interface NextBestActionInput {
   profile: Profile | null | undefined;
+  /**
+   * Tri-state so "couldn't confirm" ≠ "inactive" (TRUST-1). `true`/`false` are a
+   * confirmed read; `"unknown"` means the subscription query errored — never
+   * surface the paywall/upgrade action to a possibly-paying member on a flaky
+   * connection (mirrors the `!subQ.isError` guard for UpgradeBanner).
+   */
+  subscriptionActive: boolean | "unknown";
   completeness: CompletenessResult;
-  subscriptionActive: boolean;
   savedCount: number;
   feedNewCount: number;
 }
@@ -52,8 +58,9 @@ export function nextBestActions(input: NextBestActionInput): Action[] {
     }
   }
 
-  // 4. No active membership
-  if (!subscriptionActive) {
+  // 4. No active membership — only when the read is *confirmed* inactive.
+  // When "unknown" (query errored) we suppress this rather than risk paywalling a paying member.
+  if (subscriptionActive === false) {
     actions.push({
       key: "unlock-radar",
       title: "Unlock the full funding radar",

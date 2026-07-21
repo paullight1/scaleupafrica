@@ -77,7 +77,9 @@ export class ProfilesService {
 
   async getBySlug(slug: string): Promise<ProfileDetail> {
     const [row] = await this.db.select().from(profiles).where(eq(profiles.slug, slug)).limit(1);
-    if (!row || row.status === "hidden") {
+    // Only 'active' profiles are public — 'hidden' and 'flagged' (moderated) both 404,
+    // mirroring the directory list and get_profile_contact() (active-only).
+    if (!row || row.status !== "active") {
       throw new NotFoundException({
         error: { code: "NOT_FOUND", message: "Profile not found." },
       });

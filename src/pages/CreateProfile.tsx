@@ -148,7 +148,7 @@ const CreateProfile = () => {
   if (authLoading || !user) return null;
 
   return (
-    <main className="min-h-screen bg-secondary px-6 py-16">
+    <div className="min-h-screen bg-secondary px-6 py-16">
       <SEO title={isEditing ? "Edit your profile" : "Create your profile"} noindex />
       <div className="mx-auto max-w-3xl">
         <div className="rounded-xl border border-border bg-card p-8 shadow-medium">
@@ -287,7 +287,7 @@ const CreateProfile = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </div>
   );
 };
 

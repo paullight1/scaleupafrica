@@ -64,7 +64,10 @@ export function DashboardHome() {
   const actions = nextBestActions({
     profile,
     completeness,
-    subscriptionActive: active,
+    // Tri-state: when the subscription read errors we can't confirm membership,
+    // so pass "unknown" (mirrors the `!subQ.isError` guard for UpgradeBanner)
+    // instead of falsely treating a possibly-paying member as inactive (TRUST-1).
+    subscriptionActive: subQ.isError ? "unknown" : active,
     savedCount,
     feedNewCount: feedFailed ? 0 : countNewThisWeek(feed),
   });

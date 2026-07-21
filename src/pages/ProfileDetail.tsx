@@ -66,7 +66,7 @@ const ProfileDetail = () => {
   // ---- States: never NotFound-on-error ----
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-4xl px-6 py-10">
           <CardSkeleton media lines={2} className="mb-6" />
           <div className="grid gap-6 md:grid-cols-3">
@@ -76,13 +76,13 @@ const ProfileDetail = () => {
             <CardSkeleton lines={3} />
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (isError) {
     return (
-      <main className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-4xl px-6 py-16">
           <ErrorState
             title="Couldn't load this profile"
@@ -90,7 +90,7 @@ const ProfileDetail = () => {
             onRetry={() => refetch()}
           />
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -98,7 +98,7 @@ const ProfileDetail = () => {
   const hiddenToViewer = !!profile && profile.status !== "active" && !isOwner;
   if (!profile || hiddenToViewer) {
     return (
-      <main className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <SEO title="Profile not found" noindex />
         <div className="mx-auto max-w-4xl px-6 py-16">
           <EmptyState
@@ -108,7 +108,7 @@ const ProfileDetail = () => {
             action={{ label: "Back to the directory", to: "/directory" }}
           />
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -127,7 +127,7 @@ const ProfileDetail = () => {
   const hasLinks = !!(website || instagram || linkedin || twitter);
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <SEO
         title={`${profile.business_name} — ${profile.sector} in ${profile.country}`}
         description={seoDescription}
@@ -269,7 +269,7 @@ const ProfileDetail = () => {
           </aside>
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 

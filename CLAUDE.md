@@ -32,6 +32,21 @@ Vite + React 18 + TypeScript SPA with shadcn/ui (Radix + Tailwind) components, R
 - `/directory` — public searchable SME directory (reads `profiles`, no auth required)
 - `/directory/create` — create/update own profile (auth required; one profile per user, upsert keyed by `user_id`)
 - `/funding` — subscription-gated AI funding opportunities
+- `/resources`, `/resources/:slug` — public resource library (templates, playbooks, guides, ebooks) with gated downloads
+- `/blog`, `/blog/:slug` — public blog
+- `/about`, `/contact`, `/privacy`, `/terms` — marketing + legal pages
+- `/admin/*` — staff admin panel (dashboard, resources/blog/funding CMS, users, profile moderation, leads, newsletter, settings, audit). See **docs/ADMIN_PANEL.md**.
+
+### Admin panel & content platform
+
+RBAC lives in `user_roles` (never on `profiles`), checked via `has_role`/`is_admin`/`is_staff`
+`SECURITY DEFINER` functions. `/admin/*` is gated by `src/components/admin/AdminGuard.tsx`
+(`require="staff"` = admin+editor for the CMS, `require="admin"` for user/settings areas) and RLS
+enforces the real boundary. New tables (migration `20260720120000_admin_panel_foundation.sql`):
+`user_roles`, `resources`, `blog_posts`, `funding_opportunities`, `leads`,
+`newsletter_subscribers`, `analytics_events`, `site_settings`, `admin_audit_log`; plus admin RPCs
+(`admin_dashboard_stats`, `admin_timeseries`, `admin_list_users`) and storage buckets
+`content-media` / `resource-files`. Full guide: **docs/ADMIN_PANEL.md**.
 
 ### Data model (supabase/migrations/)
 
@@ -39,7 +54,10 @@ Vite + React 18 + TypeScript SPA with shadcn/ui (Radix + Tailwind) components, R
 - `subscriptions` — one row per user, auto-created on signup by the `on_auth_user_created` trigger with `has_access = false`. Access is flipped manually for now (Stripe planned). Users can only read their own row; only `service_role` can write.
 - Storage bucket `profile-media` — public read; users write only under a folder named after their own uid.
 
-"Active subscription" means `has_access = true` and `expires_at` null or in the future. This check is duplicated in three places — the `has_active_subscription()` SQL function, the `aggregate-funding` edge function, and `src/pages/Funding.tsx` — keep them consistent if the rule changes.
+"Active subscription" means `has_access = true` and `expires_at` null or in the future. The rule has exactly **two homes** (keep them in lockstep if it changes):
+
+- **Server / all trust boundaries** — the `has_active_subscription()` SQL function; server code (edge/NestJS) enforces access through it, never by re-deriving the rule.
+- **Frontend / all display logic** — `src/lib/subscription.ts` (`isSubscriptionActive` + the `useSubscription` hook, the only place the client reads `subscriptions`). Every UI surface (Funding, dashboard, billing) imports from here rather than reimplementing the check. Trust-critical: the read THROWS on error and surfaces as `status: "error"`, so a failed fetch never falls back to the paywall — a subscriber on a flaky connection is never told "members only".
 
 ### Funding flow
 

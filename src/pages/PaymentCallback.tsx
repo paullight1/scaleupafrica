@@ -67,7 +67,7 @@ export default function PaymentCallback() {
   };
 
   return (
-    <main className="flex min-h-[70vh] items-center justify-center bg-secondary px-6 py-16">
+    <div className="flex min-h-[70vh] items-center justify-center bg-secondary px-6 py-16">
       <SEO title="Payment status" noindex />
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-elevated">
         {state === "verifying" && (
@@ -152,7 +152,7 @@ export default function PaymentCallback() {
           </Panel>
         )}
       </div>
-    </main>
+    </div>
   );
 }
 

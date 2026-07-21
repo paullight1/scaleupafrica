@@ -3,8 +3,7 @@
  * See docs/plans/02-auth-flow.md §4.1 and §5.
  */
 
-// Plan 03 mounts the real /dashboard page. Until then a placeholder route
-// (App.tsx) redirects /dashboard → /directory. TODO(plan-03): remove placeholder.
+// Where authenticated users land — the real Dashboard (plan 03, mounted in App.tsx).
 export const DEFAULT_AUTHED_ROUTE = "/dashboard";
 export const POST_SIGNUP_ROUTE = "/dashboard";
 export const AUTH_ROUTE = "/auth";

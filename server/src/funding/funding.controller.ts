@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, HttpCode } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { FundingService } from "./funding.service";
-import { Public, CurrentUser } from "../auth/decorators";
+import { CurrentUser } from "../auth/decorators";
 import type { AuthUser } from "../auth/types";
 import { ZodBody } from "../common/zod-validation.pipe";
 import {
@@ -33,10 +33,9 @@ export class FundingController {
     return result ?? undefined; // 204-ish empty body when null
   }
 
-  /** Admin-curated published feed. */
-  @Public()
+  /** Admin-curated published feed (member-gated: active sub OR staff). */
   @Get("opportunities")
-  opportunities(): Promise<CuratedOpportunity[]> {
-    return this.service.curatedList();
+  opportunities(@CurrentUser() user: AuthUser): Promise<CuratedOpportunity[]> {
+    return this.service.curatedList(user.id);
   }
 }

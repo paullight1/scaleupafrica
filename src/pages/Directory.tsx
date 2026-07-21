@@ -113,7 +113,7 @@ const Directory = () => {
     : `${count.toLocaleString()} ${count === 1 ? "business" : "businesses"}`;
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <SEO
         title="SME Directory"
         description="A public, searchable directory of African founders and their businesses. Find suppliers, discover partners, and connect for cross-border trade."
@@ -218,7 +218,7 @@ const Directory = () => {
           </>
         )}
       </section>
-    </main>
+    </div>
   );
 };
 

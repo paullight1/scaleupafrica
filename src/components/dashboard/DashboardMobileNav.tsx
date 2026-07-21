@@ -26,7 +26,7 @@ export function DashboardMobileNav({ newCount = 0 }: { newCount?: number }) {
                   cn(
                     "relative flex min-h-[56px] flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-                    isActive ? "text-primary" : "text-muted-foreground",
+                    isActive ? "text-ink-strong" : "text-muted-foreground",
                   )
                 }
               >

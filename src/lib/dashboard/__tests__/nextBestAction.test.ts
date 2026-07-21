@@ -116,6 +116,26 @@ describe("nextBestActions priority", () => {
     expect(out).toHaveLength(1);
   });
 
+  it("membership unconfirmed (query errored) → unlock-radar is NOT emitted (TRUST-1)", () => {
+    const out = nextBestActions({
+      profile: profile(),
+      completeness: COMPLETE,
+      subscriptionActive: "unknown",
+      savedCount: 1,
+      feedNewCount: 0,
+    });
+    expect(out.some((a) => a.key === "unlock-radar")).toBe(false);
+    // ...even though a confirmed-inactive read WOULD surface it.
+    const inactive = nextBestActions({
+      profile: profile(),
+      completeness: COMPLETE,
+      subscriptionActive: false,
+      savedCount: 1,
+      feedNewCount: 0,
+    });
+    expect(inactive.some((a) => a.key === "unlock-radar")).toBe(true);
+  });
+
   it("singular wording for a single new opportunity", () => {
     const out = nextBestActions({
       profile: profile(),

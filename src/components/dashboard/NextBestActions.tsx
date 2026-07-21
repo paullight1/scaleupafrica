@@ -24,7 +24,7 @@ export function NextBestActions({ actions }: { actions: Action[] }) {
             >
               <span
                 aria-hidden="true"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-ink-strong"
               >
                 {i + 1}
               </span>

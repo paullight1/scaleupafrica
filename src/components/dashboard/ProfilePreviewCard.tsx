@@ -27,7 +27,7 @@ export function ProfilePreviewCard({ profile }: { profile: Profile }) {
               loading="lazy"
             />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 font-display text-xl font-semibold text-primary">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 font-display text-xl font-semibold text-ink-strong">
               {profile.business_name.charAt(0).toUpperCase()}
             </div>
           )}

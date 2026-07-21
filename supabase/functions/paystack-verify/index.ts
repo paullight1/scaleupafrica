@@ -67,7 +67,12 @@ Deno.serve(async (req) => {
       const decision = decideChargeGrant("charge.success", data, payment);
       if (decision.action === "grant") {
         const { error: rpcErr } = await admin.rpc("grant_annual_access", { _payment_id: payment.id });
-        if (rpcErr) console.error("paystack-verify: grant_annual_access failed", reference, rpcErr.message);
+        if (rpcErr) {
+          // Access was NOT flipped — report pending so the UI keeps polling and the
+          // webhook backstop can complete the grant. Never claim success on RPC error.
+          console.error("paystack-verify: grant_annual_access failed", reference, rpcErr.message);
+          return json({ status: "pending" }, 200);
+        }
       }
     }
 

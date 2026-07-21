@@ -10,8 +10,10 @@ import { and, eq, gt, desc, count, sql } from "drizzle-orm";
 import { DB, type Db } from "../db/client";
 import { fundingResults, fundingOpportunities } from "../db/schema";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
+import { RolesService } from "../auth/roles.service";
 import { AiGatewayService, GatewayError } from "./ai-gateway.service";
 import { ENV, type Env } from "../config/env";
+import type { AppRoleName } from "../auth/types";
 import {
   normalizeKeywords,
   parseOpportunities,
@@ -22,6 +24,8 @@ import {
 
 const RATE_LIMIT_PER_HOUR = 3;
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+/** Staff = admin || editor (mirrors SQL is_staff()); moderators are not members. */
+const STAFF_ROLES: AppRoleName[] = ["admin", "editor"];
 
 @Injectable()
 export class FundingService {
@@ -30,6 +34,7 @@ export class FundingService {
     @Inject(DB) private readonly db: Db,
     @Inject(ENV) private readonly env: Env,
     private readonly subs: SubscriptionsService,
+    private readonly roles: RolesService,
     private readonly ai: AiGatewayService,
   ) {}
 
@@ -42,6 +47,18 @@ export class FundingService {
         },
       });
     }
+  };
+
+  /** Curated-feed gate: an active subscription OR a staff role (admin/editor). */
+  private assertMemberOrStaff = async (userId: string): Promise<void> => {
+    if (await this.subs.isActiveForUser(userId)) return;
+    if (await this.roles.hasAny(userId, STAFF_ROLES)) return;
+    throw new ForbiddenException({
+      error: {
+        code: "SUBSCRIPTION_REQUIRED",
+        message: "Your membership isn't active right now. Please renew to view funding opportunities.",
+      },
+    });
   };
 
   /** POST /funding/search — absorbs the aggregate-funding edge function. */
@@ -154,8 +171,9 @@ export class FundingService {
     };
   }
 
-  /** GET /funding/opportunities — admin-curated published feed (public). */
-  async curatedList(): Promise<CuratedOpportunity[]> {
+  /** GET /funding/opportunities — admin-curated published feed (member/staff only). */
+  async curatedList(userId: string): Promise<CuratedOpportunity[]> {
+    await this.assertMemberOrStaff(userId);
     const rows = await this.db
       .select()
       .from(fundingOpportunities)

@@ -10,6 +10,7 @@ import {
 import {
   readFundingCache,
   writeFundingCache,
+  CACHE_TTL_MS,
   type FundingCacheEntry,
 } from "@/lib/fundingCache";
 import { useApiFor } from "@/lib/api/flags";
@@ -23,8 +24,6 @@ import { searchFunding, getLatestFunding, listCuratedFunding } from "@/lib/api/f
 // shared generated types file (3 sibling Wave-3 waves also depend on it).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const untyped = supabase as unknown as { from: (table: string) => any };
-
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // Errors

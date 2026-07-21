@@ -23,7 +23,7 @@ export function DashboardNav({ newCount = 0 }: { newCount?: number }) {
                   "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   isActive
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-primary/10 text-ink-strong font-semibold"
                     : "text-foreground hover:bg-secondary",
                 )
               }

@@ -11,7 +11,7 @@ import { ShieldAlert } from "lucide-react";
 
 function FundingShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <header className="bg-navy px-6 py-12 md:py-16">
         <div className="mx-auto max-w-5xl">
           <PageHeader
@@ -29,7 +29,7 @@ function FundingShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <section className="mx-auto max-w-5xl px-6 py-10 md:py-12">{children}</section>
-    </main>
+    </div>
   );
 }
 

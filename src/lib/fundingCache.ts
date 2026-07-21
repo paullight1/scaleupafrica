@@ -12,6 +12,14 @@ import { parseOpportunities, type Opportunity } from "@/lib/fundingSchema";
 
 const KEY_PREFIX = "sua:funding:v1:";
 
+/**
+ * Max age of a cached entry before it's treated as expired on read. Matches the
+ * 7-day DB TTL on funding_results; without this the initialData seed (staleTime:
+ * Infinity) would surface a stale entry indefinitely. Re-exported by
+ * `hooks/queries/funding.ts` as the single source of truth.
+ */
+export const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 export interface FundingCacheEntry {
   keywordsRaw: string;
   keywordsNormalized: string;
@@ -29,9 +37,16 @@ export function readFundingCache(userId: string): FundingCacheEntry | null {
     const raw = localStorage.getItem(keyFor(userId));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<FundingCacheEntry>;
+    if (!parsed.generatedAt || typeof parsed.keywordsRaw !== "string") return null;
+    // Expire entries past the DB TTL — otherwise the initialData seed (staleTime:
+    // Infinity) would surface a stale result forever. Drop the key and bail.
+    const generatedAtMs = Date.parse(parsed.generatedAt);
+    if (!Number.isFinite(generatedAtMs) || Date.now() - generatedAtMs > CACHE_TTL_MS) {
+      localStorage.removeItem(keyFor(userId));
+      return null;
+    }
     // Never trust storage: re-validate the payload through the schema.
     const opportunities = parseOpportunities(parsed.opportunities ?? []);
-    if (!parsed.generatedAt || typeof parsed.keywordsRaw !== "string") return null;
     return {
       keywordsRaw: parsed.keywordsRaw,
       keywordsNormalized: parsed.keywordsNormalized ?? "",

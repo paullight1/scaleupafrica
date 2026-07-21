@@ -5,7 +5,7 @@ import { SEO } from "@/components/common/SEO";
 
 const NotFound = () => {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-subtle px-6 py-24">
+    <div className="flex min-h-screen items-center justify-center bg-surface-subtle px-6 py-24">
       <SEO title="Page not found" noindex />
       <div className="flex max-w-md flex-col items-center text-center">
         <Illustration name="not-found" className="mb-8 h-36" />
@@ -20,7 +20,7 @@ const NotFound = () => {
           <Link to="/">Back to home</Link>
         </Button>
       </div>
-    </main>
+    </div>
   );
 };
 
