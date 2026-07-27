@@ -1,6 +1,6 @@
 # 05 — Funding Feature: caching/persistence, trust-critical error handling, AI validation, UX
 
-> Part of the ScaleUp Africa overhaul. **Read `docs/plans/00-FOUNDATION.md` first** — all tokens,
+> Part of the Cresciva overhaul. **Read `docs/plans/00-FOUNDATION.md` first** — all tokens,
 > primitives (`<ErrorState>`, `<EmptyState>`, `<CardSkeleton>`, `<PageHeader>`), and conventions
 > come from there and from plan `01-design-system-theme.md`.
 > Source audit: `IMPROVEMENTS.md` §2.1, §2.2, §3 items 5/6/15/17, §4 (pre-seed, expectations,

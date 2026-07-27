@@ -42,7 +42,7 @@ export function AppFooter() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
             <p className="font-display text-xl font-bold text-white">
-              ScaleUp Africa<span className="text-primary">.</span>
+              Cresciva<span className="text-primary">.</span>
             </p>
             <p className="mt-2 max-w-xs text-sm text-white/60">
               Visibility and funding intelligence for Pan-African SME founders. One credible
@@ -76,7 +76,7 @@ export function AppFooter() {
               <NewsletterSignup source="footer" variant="inline" className="max-w-sm" />
             </div>
             <p className="text-sm text-white/70">
-              © {new Date().getFullYear()} ScaleUp Africa
+              © {new Date().getFullYear()} Cresciva
             </p>
           </div>
         </div>

@@ -22,7 +22,7 @@ const EMDASH = "—";
 
 export function DashboardActivity() {
   useEffect(() => {
-    document.title = "Activity — ScaleUp Africa";
+    document.title = "Activity — Cresciva";
   }, []);
 
   const profileQ = useMyProfile();

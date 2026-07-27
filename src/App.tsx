@@ -24,31 +24,32 @@ const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const ProfileDetail = lazy(() => import("./pages/ProfileDetail"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 
-// Public content + marketing pages
-import Resources from "./pages/Resources";
-import ResourceDetail from "./pages/ResourceDetail";
-import Blog from "./pages/Blog";
-import BlogDetail from "./pages/BlogDetail";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
+// Public content + marketing pages (lazy — secondary routes, keep the mobile entry lean)
+const Resources = lazy(() => import("./pages/Resources"));
+const ResourceDetail = lazy(() => import("./pages/ResourceDetail"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogDetail = lazy(() => import("./pages/BlogDetail"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
-// Admin
+// Admin panel — staff-only; lazy so none of it ships in the public bundle.
+// AdminGuard/AdminLayout stay eager (small layout-route wrappers).
 import AdminGuard from "./components/admin/AdminGuard";
 import AdminLayout from "./components/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminProfiles from "./pages/admin/AdminProfiles";
-import AdminResources from "./pages/admin/AdminResources";
-import AdminResourceEdit from "./pages/admin/AdminResourceEdit";
-import AdminBlog from "./pages/admin/AdminBlog";
-import AdminBlogEdit from "./pages/admin/AdminBlogEdit";
-import AdminFunding from "./pages/admin/AdminFunding";
-import AdminLeads from "./pages/admin/AdminLeads";
-import AdminNewsletter from "./pages/admin/AdminNewsletter";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminAuditLog from "./pages/admin/AdminAuditLog";
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminProfiles = lazy(() => import("./pages/admin/AdminProfiles"));
+const AdminResources = lazy(() => import("./pages/admin/AdminResources"));
+const AdminResourceEdit = lazy(() => import("./pages/admin/AdminResourceEdit"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminBlogEdit = lazy(() => import("./pages/admin/AdminBlogEdit"));
+const AdminFunding = lazy(() => import("./pages/admin/AdminFunding"));
+const AdminLeads = lazy(() => import("./pages/admin/AdminLeads"));
+const AdminNewsletter = lazy(() => import("./pages/admin/AdminNewsletter"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
 
 const queryClient = new QueryClient();
 

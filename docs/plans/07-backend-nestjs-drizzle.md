@@ -53,7 +53,7 @@ Rationale: the repo is a flat Vite app synced with Lovable; converting to npm/pn
 paths, and CI muscle memory — high risk, zero user value. Instead:
 
 ```
-scaleupafrica/
+cresciva/
   src/                    # existing Vite app (untouched location)
   server/                 # NEW — NestJS app with its OWN package.json + lockfile
   shared/                 # NEW — zod contracts shared by both (see §5.2)

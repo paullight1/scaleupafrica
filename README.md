@@ -1,6 +1,6 @@
-# ScaleUp Africa
+# Cresciva
 
-ScaleUp Africa is a Pan-African SME platform: a public, searchable directory where founders
+Cresciva is a Pan-African SME platform: a public, searchable directory where founders
 publish one credible business profile, plus subscription-gated **funding intelligence** — AI-curated
 grants, accelerators, and fellowships relevant to African SMEs. Browsing the directory is free and
 open; the Funding Radar is available to members with an active subscription.

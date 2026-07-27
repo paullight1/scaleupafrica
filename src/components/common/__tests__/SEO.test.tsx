@@ -5,7 +5,7 @@ import { SEO } from "@/components/common/SEO";
 describe("SEO", () => {
   it("sets a suffixed document.title", () => {
     render(<SEO title="Directory" />);
-    expect(document.title).toBe("Directory — ScaleUp Africa");
+    expect(document.title).toBe("Directory — Cresciva");
   });
 
   it("upserts the description meta tag", () => {

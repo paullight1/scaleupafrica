@@ -13,7 +13,7 @@ const ROWS = [
   {
     key: "email_product_updates" as const,
     label: "Product updates",
-    hint: "Occasional news about new ScaleUp Africa features.",
+    hint: "Occasional news about new Cresciva features.",
   },
 ];
 

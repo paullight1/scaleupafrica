@@ -444,7 +444,7 @@ plus the `activity-empty` illustration beside the stat row (views "—").
 | **05 funding feature** | Shares `qk.fundingFeed` + `src/lib/api/funding.ts` + `isSubscriptionActive`; `/funding` remains the deep "radar" surface linked from pillar A. | No blocking either way. |
 | **06 payments (Paystack)** | `<UpgradeButton>` internals + `qk.mySubscription` invalidation after webhook-confirmed payment; billing management surface. | Interim concierge stub defined in §6.1 keeps the funnel honest and open. |
 | **07 backend NestJS+Drizzle** | Rewrites `src/lib/api/*` internals to call the API; mirrors §3 tables (`saved_opportunities`, `user_preferences`) in Drizzle schema; keeps RPC or replaces with an endpoint. | Seam contract in §2.1 — hook layer and pages unchanged. |
-| **08 branding/meta** | `<SEO>` per dashboard route (`Dashboard — ScaleUp Africa`, noindex for `/dashboard/*`). | Until then: `document.title` effect per page. |
+| **08 branding/meta** | `<SEO>` per dashboard route (`Dashboard — Cresciva`, noindex for `/dashboard/*`). | Until then: `document.title` effect per page. |
 
 ---
 

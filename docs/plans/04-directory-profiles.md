@@ -333,13 +333,13 @@ Layout (mobile-first, FOUNDATION theme):
   props `{ title, description, image?, url?, type? }` setting `document.title` +
   `meta[name=description]` + `og:title/og:description/og:image/og:url/og:type/twitter:card`
   via DOM upsert on mount/unmount — plan 08 then adopts it, no fork.
-- Profile page values: title `` `${business_name} — ${sector} in ${country} | ScaleUp Africa` ``,
+- Profile page values: title `` `${business_name} — ${sector} in ${country} | Cresciva` ``,
   description = `short_description` (fallback: first 160 chars of `long_description`),
   image = `logo_url ?? founder_photo_url ?? /og-banner.png` (plan 08 asset),
   `og:type = "profile"`, `og:url` = canonical.
 - **Honest limitation, decided handling:** this is a Vite SPA — WhatsApp/Facebook crawlers do
   not execute JS, so client-set OG tags are invisible to them; they see `index.html`'s static
-  tags. Interim: plan 08's site-wide OG banner means shares are at least ScaleUp-branded.
+  tags. Interim: plan 08's site-wide OG banner means shares are at least Cresciva-branded.
   Real per-profile previews are delivered by **plan 07's NestJS server fronting the SPA**: a
   middleware for `GET /directory/:slug` that (for all requests — no UA sniffing needed)
   injects the profile's `<title>`/OG tags into the served `index.html` using the same

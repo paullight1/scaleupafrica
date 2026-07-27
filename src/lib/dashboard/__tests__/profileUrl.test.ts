@@ -21,8 +21,8 @@ describe("publicProfilePath", () => {
 
 describe("publicProfileUrl", () => {
   it("prefixes the origin", () => {
-    expect(publicProfileUrl({ slug: "acme", id: "x" }, "https://scaleup.africa")).toBe(
-      "https://scaleup.africa/directory/acme",
+    expect(publicProfileUrl({ slug: "acme", id: "x" }, "https://cresciva.com")).toBe(
+      "https://cresciva.com/directory/acme",
     );
   });
 });

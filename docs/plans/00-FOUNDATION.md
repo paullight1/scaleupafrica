@@ -1,6 +1,6 @@
 # 00 — FOUNDATION (shared source of truth)
 
-**This file is the single source of truth for the ScaleUp Africa overhaul.** Every other plan
+**This file is the single source of truth for the Cresciva overhaul.** Every other plan
 (`01`–`08`) and every implementation agent MUST reference these tokens, conventions, and rules.
 Do not invent alternate colors, fonts, spacing, or file locations. If something is missing here,
 add it here first, then use it.
@@ -173,7 +173,7 @@ All primitives: keyboard-operable, `aria` correct, theme-aware (light/dark), mob
 - Optimize the hero photo: the existing `src/assets/hero-entrepreneurs.jpg` (253KB) → compress to
   ≤80KB, responsive `srcset`, or replace with an illustration + navy panel. Decorative → `alt=""`.
 - **OG/meta banner:** produce a 1200×630 social banner reflecting the new homepage (navy bg, orange
-  ScaleUp Africa wordmark, tagline). Store `public/og-banner.png` (or `.jpg`). See `08`.
+  Cresciva wordmark, tagline). Store `public/og-banner.png` (or `.jpg`). See `08`.
 
 ---
 

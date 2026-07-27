@@ -51,7 +51,7 @@ const AdminGuard = ({
           </div>
           <h1 className="mb-3 font-display text-2xl font-bold text-foreground">Access denied</h1>
           <p className="mb-6 text-muted-foreground">
-            This area is restricted to ScaleUp Africa staff. If you believe you should have access,
+            This area is restricted to Cresciva staff. If you believe you should have access,
             contact an administrator.
           </p>
           <Link to="/">

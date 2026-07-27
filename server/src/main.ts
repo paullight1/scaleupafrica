@@ -30,7 +30,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   await app.listen(env.PORT);
-  new Logger("Bootstrap").log(`ScaleUp Africa API on :${env.PORT} (prefix /api/v1)`);
+  new Logger("Bootstrap").log(`Cresciva API on :${env.PORT} (prefix /api/v1)`);
 }
 
 void bootstrap();

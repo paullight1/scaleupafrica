@@ -23,7 +23,7 @@ export function AuthShell({ children, illustration = "first-run" }: AuthShellPro
         }}
       >
         <p className="font-display text-2xl font-bold text-white">
-          ScaleUp Africa<span className="text-primary">.</span>
+          Cresciva<span className="text-primary">.</span>
         </p>
         <div className="max-w-md">
           <Illustration name={illustration} className="mb-8 h-44 w-auto text-white" />

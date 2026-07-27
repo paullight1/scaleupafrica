@@ -58,7 +58,7 @@ const Problem = () => {
         <p className="mx-auto mt-16 max-w-2xl text-center text-lg font-medium text-foreground">
           This is why we built{" "}
           <span className="font-bold text-ink-strong">
-            The ScaleUp Africa Collective
+            The Cresciva Collective
           </span>
           , the funding and growth infrastructure for serious African SMEs.
         </p>

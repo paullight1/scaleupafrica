@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ScaleUp Africa Design System — orange / white / dark navy (see docs/plans/00-FOUNDATION.md §1) */
+/* Cresciva Design System — orange / white / dark navy (see docs/plans/00-FOUNDATION.md §1) */
 
 @layer base {
   :root {

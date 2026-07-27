@@ -13,7 +13,7 @@ import { VisibilityCard } from "@/components/dashboard/VisibilityCard";
 
 export function DashboardProfile() {
   useEffect(() => {
-    document.title = "My profile — ScaleUp Africa";
+    document.title = "My profile — Cresciva";
   }, []);
 
   const [params, setParams] = useSearchParams();

@@ -31,17 +31,17 @@ export class OgController {
   @Get(":slug")
   @Header("Content-Type", "text/html; charset=utf-8")
   async render(@Param("slug") slug: string, @Res() res: Response): Promise<void> {
-    let title = "ScaleUp Africa";
+    let title = "Cresciva";
     let description = "Discover African SMEs and funding opportunities.";
     let image = "/og-banner.png";
     let canonical = `/directory/${encodeURIComponent(slug)}`;
 
     try {
       const p = await this.profiles.getBySlug(slug);
-      title = `${p.business_name} — ScaleUp Africa`;
+      title = `${p.business_name} — Cresciva`;
       description =
         p.short_description ??
-        `${p.business_name} is a ${p.sector} business in ${p.country} on ScaleUp Africa.`;
+        `${p.business_name} is a ${p.sector} business in ${p.country} on Cresciva.`;
       image = p.logo_url ?? p.founder_photo_url ?? image;
       canonical = `/directory/${p.slug}`;
     } catch {

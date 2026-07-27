@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <!--
-    ScaleUp Africa social banner (1200x630). Authored to Foundation §1 tokens:
+    Cresciva social banner (1200x630). Authored to Foundation §1 tokens:
       navy hero gradient #12263A -> #1B2A4A -> #0D1B2E, single orange accent #FF7A59.
     Rasterized to public/og-banner.png via scripts/generate-assets.sh (sips).
     NOTE: sips uses a system sans (Sora is not available to the rasterizer). For a
@@ -20,12 +20,18 @@
   <rect x="96" y="214" width="120" height="4" rx="2" fill="#FF7A59"/>
 
   <!-- wordmark -->
-  <text x="94" y="332" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#FFFFFF">ScaleUp</text>
-  <text x="438" y="332" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#FF7A59">Africa</text>
+  <!--
+    The accent period is a separate <text> because sips silently drops fill on <tspan>.
+    Its x is tuned to the width sips' substituted system sans gives "Cresciva" (ink ends
+    at x=416). A renderer with real Helvetica/Sora sets the wordmark wider, so the period
+    will sit too close there — use scripts/og-banner.html for a font-accurate render.
+  -->
+  <text x="94" y="332" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#FFFFFF">Cresciva</text>
+  <text x="421" y="332" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#FF7A59">.</text>
 
   <!-- tagline -->
   <text x="96" y="404" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="34" font-weight="500" fill="#CBD6E2">The Pan-African SME directory + real funding intelligence.</text>
 
   <!-- domain -->
-  <text x="96" y="556" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#8FA6BC">scaleupafrica.com</text>
+  <text x="96" y="556" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#8FA6BC">cresciva.com</text>
 </svg>

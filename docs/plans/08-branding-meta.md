@@ -99,7 +99,7 @@ Also checked, clean: `public/robots.txt`, `public/placeholder.svg` (generic gray
 placeholder, no Lovable mark — keep), `supabase/migrations/*`, `src/**` other than the files
 above, `.env` (points at a plain `https://<id>.supabase.co` project we control — relevant to §6).
 
-Pre-existing off-brand titles to fix while wiring `<SEO>` (they say "ScaleUp Africa
+Pre-existing off-brand titles to fix while wiring `<SEO>` (they say "Cresciva
 **Collective**", which is not the product name): `src/pages/Directory.tsx:31`,
 `src/pages/Funding.tsx:81`, `src/pages/CreateProfile.tsx:57`.
 
@@ -109,20 +109,20 @@ Pre-existing off-brand titles to fix while wiring `<SEO>` (they say "ScaleUp Afr
 
 **Canonical constants** (used here and in §8's `src/lib/seo.ts` — keep them identical):
 
-- `SITE_NAME` = `ScaleUp Africa`
-- `SITE_URL` = `https://scaleupafrica.com` — **TODO(owner): confirm production domain before
-  launch.** Single grep-able token `scaleupafrica.com` so it's a one-commit swap.
-- Default title: `ScaleUp Africa — Pan-African SME Directory & Funding Intelligence`
+- `SITE_NAME` = `Cresciva`
+- `SITE_URL` = `https://cresciva.com` — **TODO(owner): confirm production domain before
+  launch.** Single grep-able token `cresciva.com` so it's a one-commit swap.
+- Default title: `Cresciva — Pan-African SME Directory & Funding Intelligence`
 - Default description (homepage-derived, honest voice, ≤160 chars):
   `List your business on the Pan-African SME directory and find real, current funding opportunities — grants, accelerators, and fellowships curated for African founders.`
 
 Replace lines 6–19 of `index.html` with (removing both Lovable TODO comments):
 
 ```html
-<title>ScaleUp Africa — Pan-African SME Directory & Funding Intelligence</title>
+<title>Cresciva — Pan-African SME Directory & Funding Intelligence</title>
 <meta name="description" content="List your business on the Pan-African SME directory and find real, current funding opportunities — grants, accelerators, and fellowships curated for African founders." />
-<meta name="author" content="ScaleUp Africa" />
-<link rel="canonical" href="https://scaleupafrica.com/" />
+<meta name="author" content="Cresciva" />
+<link rel="canonical" href="https://cresciva.com/" />
 <meta name="theme-color" content="#1B2A4A" />
 
 <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -130,21 +130,21 @@ Replace lines 6–19 of `index.html` with (removing both Lovable TODO comments):
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 
-<meta property="og:site_name" content="ScaleUp Africa" />
-<meta property="og:title" content="ScaleUp Africa — Pan-African SME Directory & Funding Intelligence" />
+<meta property="og:site_name" content="Cresciva" />
+<meta property="og:title" content="Cresciva — Pan-African SME Directory & Funding Intelligence" />
 <meta property="og:description" content="List your business on the Pan-African SME directory and find real, current funding opportunities — grants, accelerators, and fellowships curated for African founders." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://scaleupafrica.com/" />
-<meta property="og:image" content="https://scaleupafrica.com/og-banner.png" />
+<meta property="og:url" content="https://cresciva.com/" />
+<meta property="og:image" content="https://cresciva.com/og-banner.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="ScaleUp Africa — Pan-African SME Directory and Funding Intelligence" />
+<meta property="og:image:alt" content="Cresciva — Pan-African SME Directory and Funding Intelligence" />
 <meta property="og:locale" content="en" />
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="ScaleUp Africa — Pan-African SME Directory & Funding Intelligence" />
+<meta name="twitter:title" content="Cresciva — Pan-African SME Directory & Funding Intelligence" />
 <meta name="twitter:description" content="List your business on the Pan-African SME directory and find real funding opportunities curated for African founders." />
-<meta name="twitter:image" content="https://scaleupafrica.com/og-banner.png" />
+<meta name="twitter:image" content="https://cresciva.com/og-banner.png" />
 ```
 
 Notes:
@@ -167,12 +167,12 @@ so it matches the new homepage the day plan 01 ships.
 **Design spec (locked to Foundation tokens):**
 - Canvas 1200×630. Background: the one allowed navy hero gradient —
   `linear-gradient(160deg, #12263A 0%, #1B2A4A 55%, #0D1B2E 100%)`.
-- Wordmark: `ScaleUp Africa` set in **Sora 700**, white `#FFFFFF`, with the word `Africa` (or a
+- Wordmark: `Cresciva` set in **Sora 700**, white `#FFFFFF`, with the word `Africa` (or a
   trailing period) in orange `#FF7A59` — single deliberate orange accent, matching the header
   wordmark plan 01/02 defines. ~88px, left-aligned, x=96, baseline ~300.
 - Tagline under it, Inter 500 ~34px, `#CBD6E2` (light border-gray, AA on navy):
   `The Pan-African SME directory + real funding intelligence.`
-- Bottom-left, small (~24px, `#8FA6BC`): `scaleupafrica.com` (swap with domain TODO).
+- Bottom-left, small (~24px, `#8FA6BC`): `cresciva.com` (swap with domain TODO).
 - One restrained graphic element max: a thin orange rule (4px, #FF7A59, width ~120px) above the
   wordmark, or a subtle upward-arrow glyph in `--navy-light`. **No** gradient text, sparkles,
   mockups, or photo (keeps it legible at WhatsApp thumbnail size and honest to the brand).
@@ -212,8 +212,8 @@ use it in both). Author once as `scripts/favicon.svg` (32×32 viewBox, text conv
 - `site.webmanifest`:
   ```json
   {
-    "name": "ScaleUp Africa",
-    "short_name": "ScaleUp",
+    "name": "Cresciva",
+    "short_name": "Cresciva",
     "description": "Pan-African SME directory and funding intelligence.",
     "start_url": "/",
     "display": "browser",
@@ -233,7 +233,7 @@ use it in both). Author once as `scripts/favicon.svg` (32×32 viewBox, text conv
 
 New structure (write real content, not lorem):
 
-1. `# ScaleUp Africa` — one-paragraph pitch: public Pan-African SME directory + subscription-
+1. `# Cresciva` — one-paragraph pitch: public Pan-African SME directory + subscription-
    gated AI-curated funding intelligence for African founders.
 2. **Stack** — Vite + React 18 + TypeScript, shadcn/ui (Radix + Tailwind), React Router v6,
    TanStack Query, Supabase (auth, Postgres + RLS, storage, edge functions), Vitest.
@@ -256,7 +256,7 @@ New structure (write real content, not lorem):
 ## 6. `package.json`, `vite.config.ts`, OAuth dependency decision
 
 ### 6a. Rename + easy removal
-- `package.json:2` → `"name": "scaleup-africa"` (also bump `"version": "0.1.0"` and add
+- `package.json:2` → `"name": "cresciva"` (also bump `"version": "0.1.0"` and add
   `"description": "Pan-African SME directory and funding intelligence."`).
 - Remove devDep `lovable-tagger` (`package.json:85`). It only powers Lovable's visual editor
   tagging in dev — zero value outside Lovable.
@@ -353,11 +353,11 @@ nothing on unmount (last-write-wins per route is correct for an SPA).
 **Files:**
 - `src/lib/seo.ts` — constants: `SITE_NAME`, `SITE_URL` (same TODO token as §2),
   `DEFAULT_DESCRIPTION`, `DEFAULT_OG_IMAGE = \`${SITE_URL}/og-banner.png\``, and
-  `buildTitle(page?: string)` → `page ? \`${page} | ScaleUp Africa\` : DEFAULT_TITLE`.
+  `buildTitle(page?: string)` → `page ? \`${page} | Cresciva\` : DEFAULT_TITLE`.
 - `src/components/common/SEO.tsx`:
   ```ts
   type SEOProps = {
-    title?: string;        // page part only; component appends " | ScaleUp Africa"
+    title?: string;        // page part only; component appends " | Cresciva"
     description?: string;  // defaults to DEFAULT_DESCRIPTION
     image?: string;        // absolute URL; defaults to DEFAULT_OG_IMAGE
     canonicalPath?: string;// e.g. "/directory"; sets <link rel=canonical> + og:url
@@ -379,7 +379,7 @@ nothing on unmount (last-write-wins per route is correct for an SPA).
 |---|---|
 | `/` `src/pages/Index.tsx` | no `title` (default full title), `canonicalPath="/"` |
 | `/auth` `src/pages/Auth.tsx` | `title="Sign in"`, `noindex` |
-| `/directory` `src/pages/Directory.tsx` | `title="SME Directory"`, description "Browse verified African SMEs..."; **delete `document.title` effect at line 31** ("ScaleUp Africa Collective" is wrong-brand) |
+| `/directory` `src/pages/Directory.tsx` | `title="SME Directory"`, description "Browse verified African SMEs..."; **delete `document.title` effect at line 31** ("Cresciva Collective" is wrong-brand) |
 | `/directory/create` `src/pages/CreateProfile.tsx` | `title="Create your profile"`, `noindex`; **delete line 57 effect** |
 | `/funding` `src/pages/Funding.tsx` | `title="Funding Opportunities"`, description "AI-curated grants, accelerators and fellowships..."; **delete line 81 effect** |
 | `/resources`, `/resources/:slug` | `title="Resources"` / resource title, `type="article"` on detail |
@@ -402,7 +402,7 @@ Disallow: /dashboard
 Disallow: /auth
 Disallow: /directory/create
 
-Sitemap: https://scaleupafrica.com/sitemap.xml
+Sitemap: https://cresciva.com/sitemap.xml
 ```
 (Robots `Disallow` is advisory crawl-control; the real protection is auth guards + `noindex`.)
 
@@ -470,12 +470,12 @@ theme automatically when tokens flip. If plan 01 ships an `<EmptyState variant="
 - [ ] Favicon set replaced (`favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192/512.png`,
       `site.webmanifest`) — Lovable heart gone.
 - [ ] `README.md` fully rewritten per §5; `.env.example` added with blank keys.
-- [ ] `package.json` name `scaleup-africa`; `lovable-tagger` and `@lovable.dev/cloud-auth-js`
+- [ ] `package.json` name `cresciva`; `lovable-tagger` and `@lovable.dev/cloud-auth-js`
       removed; `vite.config.ts` clean; Google OAuth works natively via
       `supabase.auth.signInWithOAuth` (verified manually before the removal commit merges).
 - [ ] `src/integrations/lovable/` deleted; `CLAUDE.md` + Foundation §4 file list updated.
 - [ ] `<SEO>` component + `src/lib/seo.ts` shipped with tests; every route in §8's table wired;
-      the three stale `"ScaleUp Africa Collective"` `document.title` effects removed.
+      the three stale `"Cresciva Collective"` `document.title` effects removed.
 - [ ] `robots.txt` rewritten with sitemap line; static `sitemap.xml` added.
 - [ ] NotFound: branded, `<SEO noindex>`, no `console.error`, `<Link>`-based routes to
       `/`, `/directory`, `/funding`.
@@ -497,7 +497,7 @@ theme automatically when tokens flip. If plan 01 ships an `<EmptyState variant="
        delete both Lovable TODO comments).
 8. [ ] Rewrite `public/robots.txt`; add `public/sitemap.xml` (§9).
 9. [ ] Rewrite `README.md` (§5); add `.env.example`.
-10. [ ] `package.json`: rename to `scaleup-africa`, add description/version.
+10. [ ] `package.json`: rename to `cresciva`, add description/version.
 11. [ ] Remove `lovable-tagger`; clean `vite.config.ts` (lines 4, 15); `npm run build` to verify.
 12. [ ] **Gate:** confirm Google provider enabled in Supabase dashboard + GCP OAuth client
         (§6b step 1). If not possible, stop here and ship steps 1–11; flag for human.

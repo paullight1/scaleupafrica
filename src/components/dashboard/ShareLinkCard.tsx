@@ -13,7 +13,7 @@ import type { Profile } from "@/lib/dashboard/types";
 export function ShareLinkCard({ profile }: { profile: Profile }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const url = publicProfileUrl(profile);
-  const message = `Check out ${profile.business_name} on ScaleUp Africa: ${url}`;
+  const message = `Check out ${profile.business_name} on Cresciva: ${url}`;
 
   async function copy() {
     try {

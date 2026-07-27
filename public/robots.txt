@@ -5,4 +5,4 @@ Disallow: /dashboard
 Disallow: /auth
 Disallow: /directory/create
 
-Sitemap: https://scaleupafrica.com/sitemap.xml
+Sitemap: https://cresciva.com/sitemap.xml

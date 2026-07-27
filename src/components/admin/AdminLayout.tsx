@@ -123,7 +123,7 @@ const AdminLayout = () => {
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <Link to="/admin" className="flex items-center gap-2 px-6 py-5">
           <span className="font-display text-lg font-bold text-sidebar-foreground">
-            ScaleUp <span className="text-primary">Admin</span>
+            Cresciva <span className="text-primary">Admin</span>
           </span>
         </Link>
         <div className="flex-1 overflow-hidden">
@@ -158,7 +158,7 @@ const AdminLayout = () => {
               <SheetContent side="left" className="w-64 border-sidebar-border bg-sidebar p-0">
                 <div className="px-6 py-5">
                   <span className="font-display text-lg font-bold text-sidebar-foreground">
-                    ScaleUp <span className="text-primary">Admin</span>
+                    Cresciva <span className="text-primary">Admin</span>
                   </span>
                 </div>
                 <SidebarContent onNavigate={() => setMobileOpen(false)} />

@@ -206,7 +206,7 @@ const Auth = () => {
     <>
       <SEO
         title={mode === "signin" ? "Sign in" : "Create your account"}
-        description="Sign in to ScaleUp Africa — one credible profile and real funding leads for African SME founders."
+        description="Sign in to Cresciva — one credible profile and real funding leads for African SME founders."
       />
       <AuthShell>
         <h1 className="mb-2 font-display text-3xl font-semibold text-ink-strong">

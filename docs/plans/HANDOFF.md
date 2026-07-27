@@ -1,4 +1,4 @@
-# HANDOFF — ScaleUp Africa overhaul
+# HANDOFF — Cresciva overhaul
 
 Status: **all code implemented and verified** across 5 waves. Root: `tsc` clean, `npm run build` ✓,
 **207 tests** pass. Server (`server/`): build ✓, **52 tests** pass. Zero Lovable branding remains

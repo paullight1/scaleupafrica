@@ -59,7 +59,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-navy">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="font-display text-xl font-bold text-white">
-          ScaleUp Africa<span className="text-primary">.</span>
+          Cresciva<span className="text-primary">.</span>
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">

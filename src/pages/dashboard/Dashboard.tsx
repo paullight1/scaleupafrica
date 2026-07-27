@@ -21,7 +21,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <SEO title="Dashboard" description="Your ScaleUp Africa dashboard." noindex />
+      <SEO title="Dashboard" description="Your Cresciva dashboard." noindex />
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
         <div className="md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-8">

@@ -12,7 +12,7 @@ African SME founders and young entrepreneurs. Context: mostly on mid/low-end And
 
 ## Product Purpose
 
-ScaleUp Africa is a public SME directory plus a subscription-gated, AI-curated funding-intelligence feed. Success looks like: founders complete a profile, return to check funding opportunities, and trust the results enough to pay for access.
+Cresciva is a public SME directory plus a subscription-gated, AI-curated funding-intelligence feed. Success looks like: founders complete a profile, return to check funding opportunities, and trust the results enough to pay for access.
 
 ## Brand Personality
 

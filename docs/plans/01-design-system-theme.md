@@ -55,7 +55,7 @@ reduced-motion and focus base rules added.
 @tailwind components;
 @tailwind utilities;
 
-/* ScaleUp Africa Design System — orange / white / dark navy (see docs/plans/00-FOUNDATION.md §1) */
+/* Cresciva Design System — orange / white / dark navy (see docs/plans/00-FOUNDATION.md §1) */
 
 @layer base {
   :root {
@@ -586,7 +586,7 @@ Backed by a registry `src/components/illustrations/index.ts` mapping names → R
 
 ```ts
 interface SEOProps {
-  title: string;            // rendered as `${title} — ScaleUp Africa`
+  title: string;            // rendered as `${title} — Cresciva`
   description?: string;
   ogImage?: string;         // absolute path, default "/og-banner.png" once 08 ships it
   noindex?: boolean;
@@ -706,7 +706,7 @@ New files (Vitest + Testing Library, jsdom):
 6. `src/components/common/__tests__/StatCard.test.tsx` — value/label/delta direction classes;
    `loading` renders skeleton, not value.
 7. `src/components/common/__tests__/SEO.test.tsx` — sets `document.title` to
-   `"X — ScaleUp Africa"`; upserts description meta.
+   `"X — Cresciva"`; upserts description meta.
 
 Manual QA checklist: light + dark screenshot pass of `/`, `/auth`, `/directory`, `/funding`,
 `/admin` (sidebar navy, orange active states); OS reduced-motion on → no animation anywhere;

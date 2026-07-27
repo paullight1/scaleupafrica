@@ -11,7 +11,7 @@ import { SignOutCard } from "@/components/dashboard/SignOutCard";
 
 export function DashboardBilling() {
   useEffect(() => {
-    document.title = "Account & billing — ScaleUp Africa";
+    document.title = "Account & billing — Cresciva";
   }, []);
 
   return (

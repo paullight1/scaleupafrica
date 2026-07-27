@@ -8,7 +8,7 @@ interface SEOProps {
   noindex?: boolean;
 }
 
-const SITE_NAME = "ScaleUp Africa";
+const SITE_NAME = "Cresciva";
 
 /** Upsert a <meta> tag keyed by name/property. */
 function upsertMeta(attr: "name" | "property", key: string, content: string) {

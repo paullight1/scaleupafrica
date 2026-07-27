@@ -1,4 +1,4 @@
-# ScaleUp Africa — UI / UX / Functionality Improvement Plan
+# Cresciva — UI / UX / Functionality Improvement Plan
 
 Review date: 2026-07-17 · Method: dual-assessment (design-director review + deterministic anti-pattern scan) · Design health score: **21/40** (Acceptable — significant improvements needed)
 

@@ -4,7 +4,7 @@ const disclaimerPoints = [
   {
     title: "We Are Not a Funding Organization",
     description:
-      "The ScaleUp Africa Collective is an educational and networking membership. We do not provide grants, loans, or direct funding of any kind.",
+      "The Cresciva Collective is an educational and networking membership. We do not provide grants, loans, or direct funding of any kind.",
   },
   {
     title: "No Guarantee of Grant Success",

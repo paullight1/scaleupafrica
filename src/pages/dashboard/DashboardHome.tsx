@@ -38,7 +38,7 @@ function greetingName(
 
 export function DashboardHome() {
   useEffect(() => {
-    document.title = "Funding home — ScaleUp Africa";
+    document.title = "Funding home — Cresciva";
   }, []);
 
   const { user } = useAuth();

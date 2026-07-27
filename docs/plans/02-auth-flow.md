@@ -169,7 +169,7 @@ Implementation notes:
   button: `variant="outline"` on white (visible here — the invisible-outline bug is a dark-bg
   problem, §4.7).
 - Inputs ≥44px tall, visible labels (keep `<Label>`), `autoComplete` kept as today.
-- `<SEO title="Sign in — ScaleUp Africa" />` (from plan 01/08; stub with `document.title` effect
+- `<SEO title="Sign in — Cresciva" />` (from plan 01/08; stub with `document.title` effect
   if not yet available).
 
 ### 4.5 `src/pages/ForgotPassword.tsx` — NEW (route `/auth/forgot`)
@@ -216,7 +216,7 @@ pages never pass auth state in.
 **Structure & look (FOUNDATION §1 tokens — solid, not transparent):**
 - `<header className="sticky top-0 z-50 bg-navy border-b border-white/10">` — solid navy always
   (no scroll-transparency logic; delete the `isScrolled` listener). White wordmark
-  `font-display font-bold` "ScaleUp Africa" + orange dot (`text-primary`). Height 64px
+  `font-display font-bold` "Cresciva" + orange dot (`text-primary`). Height 64px
   (`h-16`), container `max-w-7xl px-4 sm:px-6 lg:px-8`.
 - Desktop nav (`hidden lg:flex`): Directory, Funding, Resources, Blog, Pricing — **all
   `<Link>`** (fixes full-reload `<a href>` bug, IMPROVEMENTS §8). Pricing → `/#pricing` handled
@@ -277,7 +277,7 @@ Avatar dropdown (shadcn `dropdown-menu` + `avatar`, already in `src/components/u
   business, Pricing `/#pricing`), Resources (Resource Library, Blog), Company (About, Contact),
   **Legal (Privacy Policy → `/privacy`, Terms of Service → `/terms`)** — all real `<Link>`s to
   existing routes (kills IMPROVEMENTS #14 dead `href="#"` pattern permanently).
-- Bottom bar: "© {year} ScaleUp Africa" at `text-white/70` minimum (≥4.5:1 — not `/40`,
+- Bottom bar: "© {year} Cresciva" at `text-white/70` minimum (≥4.5:1 — not `/40`,
   IMPROVEMENTS §2.3). Links ≥44px touch targets (`py-2.5 inline-block`).
 - Props: none.
 

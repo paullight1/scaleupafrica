@@ -228,7 +228,7 @@ callback-page path (webhooks can lag or be missed):
    `send_otp` etc. for bank-transfer/USSD channels; failed covers `failed`/`abandoned`/`reversed`).
 
 **Secrets / env** (`supabase secrets set …`; document in `.env.example` — server side only, never
-`VITE_`-prefixed): `PAYSTACK_SECRET_KEY`, `APP_URL` (e.g. `https://scaleupafrica.com`). Use test
+`VITE_`-prefixed): `PAYSTACK_SECRET_KEY`, `APP_URL` (e.g. `https://cresciva.com`). Use test
 keys (`sk_test_…`) until launch checklist flips to live. The redirect flow means **no Paystack
 public key and no Paystack JS in the client bundle at all** — chosen deliberately over the inline
 popup: fewer bytes for 3G/low-end Android (Foundation §0), no third-party script, secret handling

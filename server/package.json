@@ -1,7 +1,7 @@
 {
-  "name": "scaleupafrica-api",
+  "name": "cresciva-api",
   "version": "0.1.0",
-  "description": "NestJS + Drizzle API in front of the ScaleUp Africa Supabase Postgres (Plan 07).",
+  "description": "NestJS + Drizzle API in front of the Cresciva Supabase Postgres (Plan 07).",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

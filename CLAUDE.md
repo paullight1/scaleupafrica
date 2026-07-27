@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ScaleUp Africa — a directory and funding-intelligence platform for African SMEs. Users create public business profiles, browse a searchable directory, and (with an active subscription) get AI-curated funding opportunities.
+Cresciva — a directory and funding-intelligence platform for African SMEs. Users create public business profiles, browse a searchable directory, and (with an active subscription) get AI-curated funding opportunities.
 
 ## Commands
 

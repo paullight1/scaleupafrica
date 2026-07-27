@@ -62,7 +62,7 @@ const FAQ = () => {
             Frequently Asked Questions
           </h2>
           <p className="text-muted-foreground">
-            Everything you need to know about The ScaleUp Africa Collective.
+            Everything you need to know about The Cresciva Collective.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ const FAQ = () => {
           <p className="text-muted-foreground">
             Still have questions?{" "}
             <a
-              href="mailto:hello@scaleupafricacollective.com"
+              href="mailto:hello@cresciva.com"
               className="font-semibold text-navy underline-offset-4 transition-colors hover:text-navy-light hover:underline"
             >
               Reach out to us

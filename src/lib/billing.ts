@@ -74,7 +74,7 @@ const WHATSAPP_CONCIERGE_NUMBER = "2340000000000";
 
 export function conciergeWhatsappUrl(email?: string): string {
   const message =
-    "Hi ScaleUp Africa — I'd like to pay for annual membership by bank transfer or mobile money." +
+    "Hi Cresciva — I'd like to pay for annual membership by bank transfer or mobile money." +
     (email ? ` My account email is ${email}.` : "");
   return `https://wa.me/${WHATSAPP_CONCIERGE_NUMBER}?text=${encodeURIComponent(message)}`;
 }

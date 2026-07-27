@@ -1,4 +1,4 @@
-# ScaleUp Africa API (NestJS + Drizzle)
+# Cresciva API (NestJS + Drizzle)
 
 NestJS API in front of the existing Supabase Postgres (Plan 07). It verifies Supabase
 JWTs, mirrors RLS rules in code, and owns server reads/writes for **profiles/directory,
