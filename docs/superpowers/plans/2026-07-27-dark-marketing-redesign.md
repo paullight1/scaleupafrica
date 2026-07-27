@@ -294,14 +294,17 @@ describe("design tokens", () => {
     expect(contrastRatio(fgValue, bgValue)).toBeGreaterThanOrEqual(floor);
   });
 
-  it("documents the pre-existing pressed-state shortfall", () => {
-    // Button uses `active:bg-primary-dark` with a navy label. This is 3.68:1 —
+  it("holds at least the large-text floor on the pressed state", () => {
+    // Button uses `active:bg-primary-dark` with a navy label — currently 3.68:1,
     // below AA for a 14px label. PRE-EXISTING on main, not introduced by the
     // palette change, and deliberately not fixed here (--primary-dark is
-    // consumed app-wide incl. AdminPanel). Tracked so it cannot get worse.
+    // consumed app-wide incl. AdminPanel).
+    //
+    // The floor is AA_LARGE so this cannot regress further, and so the test
+    // keeps passing if someone later raises it to full AA. Do NOT add an upper
+    // bound asserting it still fails — that would break the fix.
     const pressed = contrastRatio(token("primary-foreground"), token("primary-dark"));
     expect(pressed).toBeGreaterThanOrEqual(AA_LARGE);
-    expect(pressed).toBeLessThan(AA); // remove this line when it is fixed
   });
 });
 ```
@@ -1204,11 +1207,24 @@ describe("homepage content", () => {
     expect(SAMPLE_OPPORTUNITIES.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("ships no unverified partners or testimonials by default", () => {
-    // These MUST start empty. LogoWall/Testimonials render null on empty, so an
-    // unfilled content file cannot ship a fake logo wall or invented quotes.
-    expect(PARTNERS).toEqual([]);
-    expect(TESTIMONIALS).toEqual([]);
+  // These assert the INVARIANT, not the current emptiness: they are vacuously
+  // true while PARTNERS/TESTIMONIALS are empty and become real checks once the
+  // user fills them in. Do NOT replace these with `toEqual([])` — that would
+  // fail the moment real content is added.
+  it("gives every partner a name and a logo under /logos/", () => {
+    for (const partner of PARTNERS) {
+      expect(partner.name.trim()).not.toBe("");
+      expect(partner.logo).toMatch(/^\/logos\//);
+    }
+  });
+
+  it("gives every testimonial a quote, a name and a role", () => {
+    for (const item of TESTIMONIALS) {
+      expect(item.quote.trim()).not.toBe("");
+      expect(item.name.trim()).not.toBe("");
+      expect(item.role.trim()).not.toBe("");
+      if (item.avatar) expect(item.avatar).toMatch(/^\/testimonials\//);
+    }
   });
 });
 ```
@@ -1415,7 +1431,7 @@ touch Frontend/public/logos/.gitkeep Frontend/public/testimonials/.gitkeep
 - [ ] **Step 6: Run and confirm it passes**
 
 Run: `npx vitest run src/content/__tests__/content.test.ts --root Frontend`
-Expected: PASS — 8 tests.
+Expected: PASS — 9 tests.
 
 - [ ] **Step 7: Commit**
 
@@ -2101,10 +2117,19 @@ import Stats from "@/components/landing/Stats";
 import { STATS } from "@/content/homepage";
 
 describe("TrustStrip", () => {
-  it("renders nothing while PARTNERS is empty, so no fake logo wall ships", () => {
-    // PARTNERS ships empty by design; see content.test.ts.
-    const { container } = renderIn(<TrustStrip />);
+  // Both branches are exercised with injected fixtures, so these keep passing
+  // whether or not the real PARTNERS list has been filled in yet.
+  it("renders nothing when there are no partners", () => {
+    const { container } = renderIn(<TrustStrip items={[]} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("renders the trust line and logos when partners exist", () => {
+    renderIn(
+      <TrustStrip items={[{ name: "Acme", logo: "/logos/acme.svg" }]} line="Trusted widely" />,
+    );
+    expect(screen.getByText("Trusted widely")).toBeInTheDocument();
+    expect(screen.getByAltText("Acme")).toBeInTheDocument();
   });
 });
 
@@ -2129,22 +2154,29 @@ Expected: FAIL — cannot resolve `@/components/landing/TrustStrip`.
 Create `Frontend/src/components/landing/TrustStrip.tsx`:
 
 ```tsx
-import { Section, LogoWall } from "@shared/components/marketing";
+import { Section, LogoWall, type Partner } from "@shared/components/marketing";
 import { TRUST_LINE, PARTNERS } from "@/content/homepage";
 
+interface TrustStripProps {
+  /** Defaults to the real content. Overridable so both branches are testable
+   *  without mocking the content module. */
+  items?: Partner[];
+  line?: string;
+}
+
 /**
- * Partner/press logos. Renders nothing at all while PARTNERS is empty — a
+ * Partner/press logos. Renders nothing at all while there are no partners — a
  * missing logo wall is fine, a fabricated one is not.
  */
-const TrustStrip = () => {
-  if (PARTNERS.length === 0) return null;
+const TrustStrip = ({ items = PARTNERS, line = TRUST_LINE }: TrustStripProps = {}) => {
+  if (items.length === 0) return null;
 
   return (
     <Section className="py-14 md:py-16">
       <p className="text-center text-sm font-medium uppercase tracking-wider text-mk-ink-muted">
-        {TRUST_LINE}
+        {line}
       </p>
-      <LogoWall items={PARTNERS} className="mt-10" />
+      <LogoWall items={items} className="mt-10" />
     </Section>
   );
 };
@@ -2178,7 +2210,7 @@ export default Stats;
 - [ ] **Step 5: Run and confirm it passes**
 
 Run: `npx vitest run src/components/landing/__tests__/landing.test.tsx --root Frontend`
-Expected: PASS — 6 tests.
+Expected: PASS — 7 tests.
 
 - [ ] **Step 6: Commit**
 
@@ -2295,7 +2327,7 @@ Its import and usage in `Index.tsx` are removed in Task 16. If `npm test` report
 - [ ] **Step 5: Run and confirm it passes**
 
 Run: `npx vitest run src/components/landing/__tests__/landing.test.tsx --root Frontend`
-Expected: PASS — 7 tests.
+Expected: PASS — 8 tests.
 
 - [ ] **Step 6: Commit**
 
@@ -2545,7 +2577,7 @@ export default FundingPreview;
 - [ ] **Step 5: Run and confirm it passes**
 
 Run: `npx vitest run src/components/landing/__tests__/landing.test.tsx --root Frontend`
-Expected: PASS — 12 tests.
+Expected: PASS — 13 tests.
 
 - [ ] **Step 6: Commit**
 
@@ -2582,9 +2614,29 @@ Append to `Frontend/src/components/landing/__tests__/landing.test.tsx`:
 import Testimonials from "@/components/landing/Testimonials";
 
 describe("Testimonials", () => {
-  it("renders nothing while TESTIMONIALS is empty, so no quotes are invented", () => {
-    const { container } = renderIn(<Testimonials />);
+  // Injected fixtures again — these keep passing once real quotes are added.
+  it("renders nothing when there are no testimonials", () => {
+    const { container } = renderIn(<Testimonials items={[]} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("renders the quotes it is given", () => {
+    renderIn(
+      <Testimonials items={[{ quote: "Real change.", name: "Ada", role: "Founder, Kano" }]} />,
+    );
+    expect(screen.getByText(/Real change/)).toBeInTheDocument();
+    expect(screen.getByText("Ada")).toBeInTheDocument();
+  });
+
+  it("shows at most three", () => {
+    const many = [1, 2, 3, 4].map((n) => ({
+      quote: `Quote ${n}`,
+      name: `Name ${n}`,
+      role: "Founder",
+    }));
+    renderIn(<Testimonials items={many} />);
+    expect(screen.getByText(/Quote 3/)).toBeInTheDocument();
+    expect(screen.queryByText(/Quote 4/)).not.toBeInTheDocument();
   });
 });
 ```
@@ -2672,12 +2724,24 @@ Expected: FAIL — cannot resolve `@/components/landing/Testimonials` or `@/comp
 Create `Frontend/src/components/landing/Testimonials.tsx`:
 
 ```tsx
-import { Section, SectionHeading, TestimonialCard, Reveal } from "@shared/components/marketing";
+import {
+  Section,
+  SectionHeading,
+  TestimonialCard,
+  Reveal,
+  type Testimonial,
+} from "@shared/components/marketing";
 import { TESTIMONIALS } from "@/content/homepage";
 
+interface TestimonialsProps {
+  /** Defaults to the real content. Overridable so both branches are testable
+   *  without mocking the content module. */
+  items?: Testimonial[];
+}
+
 /** Renders nothing until real, permissioned quotes exist in homepage.ts. */
-const Testimonials = () => {
-  if (TESTIMONIALS.length === 0) return null;
+const Testimonials = ({ items = TESTIMONIALS }: TestimonialsProps = {}) => {
+  if (items.length === 0) return null;
 
   return (
     <Section tone="darker">
@@ -2687,7 +2751,7 @@ const Testimonials = () => {
       />
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">
-        {TESTIMONIALS.slice(0, 3).map((item, index) => (
+        {items.slice(0, 3).map((item, index) => (
           <Reveal key={item.name} delay={index * 0.08}>
             <TestimonialCard item={item} />
           </Reveal>
@@ -2757,7 +2821,7 @@ export default Insights;
 - [ ] **Step 5: Run and confirm they pass**
 
 Run: `npx vitest run src/components/landing/__tests__/ --root Frontend`
-Expected: PASS — 13 in `landing.test.tsx`, 4 in `Insights.test.tsx`.
+Expected: PASS — 16 in `landing.test.tsx`, 4 in `Insights.test.tsx`.
 
 - [ ] **Step 6: Commit**
 
@@ -2926,7 +2990,7 @@ export default Reassurance;
 - [ ] **Step 4: Run and confirm it passes**
 
 Run: `npx vitest run src/components/landing/__tests__/landing.test.tsx --root Frontend`
-Expected: PASS — 17 tests.
+Expected: PASS — 20 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -3146,7 +3210,7 @@ with:
 - [ ] **Step 6: Run and confirm it passes**
 
 Run: `npx vitest run src/components/landing/__tests__/landing.test.tsx --root Frontend`
-Expected: PASS — 19 tests.
+Expected: PASS — 22 tests.
 
 - [ ] **Step 7: Commit**
 
