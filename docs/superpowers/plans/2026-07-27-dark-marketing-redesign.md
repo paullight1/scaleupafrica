@@ -1,5 +1,9 @@
 # Dark-First Marketing Redesign — Implementation Plan
 
+> ⚠️ **SUPERSEDED on 2026-08-02. DO NOT IMPLEMENT.** Replaced by the plan accompanying
+> `docs/superpowers/specs/2026-08-02-illustration-first-landing-design.md`. Only Task 1 was ever
+> implemented (commit `2f33c55`); that work is retained. Kept as a record of the decision.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rebuild the Cresciva homepage as a dark-navy, orange-accented conversion page with fifteen sections, and move the disclaimer off the conversion path onto its own route.

@@ -1,7 +1,12 @@
 # Dark-first marketing redesign — Phase 0 + Phase 1
 
 **Date:** 2026-07-27
-**Status:** Approved design, ready for implementation planning
+**Status:** ⚠️ SUPERSEDED on 2026-08-02 by
+`2026-08-02-illustration-first-landing-design.md`, which chose a light-first,
+illustration-led homepage instead of this dark-first, screenshot-led one. Only Task 1 of the
+accompanying plan was implemented (commit `2f33c55` — the `#FF6B2C` orange, the hover-brightens
+rule, and the `--mk-*` tokens); that work is retained. Kept as a record of the decision — do not
+implement.
 **Scope:** Design system (Phase 0) + homepage and disclaimer (Phase 1)
 **Branch:** `overhaul/hubspot-theme-dashboard-backend`
 
