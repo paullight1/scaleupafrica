@@ -40,6 +40,15 @@ export default {
           subtle: "hsl(var(--surface-subtle))",
           muted: "hsl(var(--surface-muted))",
         },
+        // Marketing surfaces — dark landing bands. Declared once in
+        // index.css and NOT overridden in .dark: these are dark in both themes.
+        mk: {
+          canvas: "hsl(var(--mk-canvas))",
+          surface: "hsl(var(--mk-surface))",
+          raised: "hsl(var(--mk-raised))",
+          border: "hsl(var(--mk-border))",
+          "ink-muted": "hsl(var(--mk-ink-muted))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
