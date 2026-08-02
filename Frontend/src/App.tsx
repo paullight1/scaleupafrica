@@ -4,7 +4,7 @@ import { TooltipProvider } from "@shared/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@shared/hooks/useAuth";
 import { SiteLayout } from "@/components/common/SiteLayout";
 import { RequireAuth } from "@/components/common/RequireAuth";
@@ -15,8 +15,6 @@ import Auth from "./pages/Auth";
 import AuthForgot from "./pages/AuthForgot";
 import AuthReset from "./pages/AuthReset";
 import Directory from "./pages/Directory";
-import CreateProfile from "./pages/CreateProfile";
-import Funding from "./pages/Funding";
 import NotFound from "./pages/NotFound";
 
 // Wave-3 pages (lazy — split from the initial bundle for mobile)
@@ -33,6 +31,8 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const Disclaimer = lazy(() => import("./pages/Disclaimer"));
+const FAQPage = lazy(() => import("./pages/FAQ"));
 
 
 const queryClient = new QueryClient();
@@ -56,8 +56,14 @@ const App = () => (
               <Route path="/auth/reset" element={<AuthReset />} />
               <Route path="/directory" element={<Directory />} />
               <Route path="/directory/:slug" element={<ProfileDetail />} />
-              <Route path="/funding" element={<Funding />} />
               <Route path="/payment/callback" element={<PaymentCallback />} />
+
+              {/* Retired standalone routes — funding and profile editing now live
+                  inside the dashboard. Both were auth-gated already (/funding
+                  bounced anon users to /auth), so the redirect targets sit behind
+                  RequireAuth and the sign-in ?next= contract still applies. */}
+              <Route path="/funding" element={<Navigate to="/dashboard/funding" replace />} />
+              <Route path="/directory/create" element={<Navigate to="/dashboard/profile/edit" replace />} />
 
               {/* Public resource hub + blog */}
               <Route path="/resources" element={<Resources />} />
@@ -70,11 +76,13 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/faq" element={<FAQPage />} />
 
               {/* Authed area */}
               <Route element={<RequireAuth />}>
-                <Route path="/directory/create" element={<CreateProfile />} />
-                {/* Dashboard owns its own internal sub-routing (home/profile/billing/activity) */}
+                {/* Dashboard owns its own internal sub-routing
+                    (home/funding/profile/profile-edit/account) */}
                 <Route path="/dashboard/*" element={<Dashboard />} />
               </Route>
 

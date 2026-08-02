@@ -6,8 +6,8 @@ const footerNav: { heading: string; links: { label: string; to: string }[] }[] =
     heading: "Product",
     links: [
       { label: "Directory", to: "/directory" },
-      { label: "Funding", to: "/funding" },
-      { label: "List your business", to: "/directory/create" },
+      { label: "Funding", to: "/dashboard/funding" },
+      { label: "List your business", to: "/dashboard/profile/edit" },
       { label: "Pricing", to: "/#pricing" },
     ],
   },
@@ -16,6 +16,7 @@ const footerNav: { heading: string; links: { label: string; to: string }[] }[] =
     links: [
       { label: "Resource Library", to: "/resources" },
       { label: "Blog", to: "/blog" },
+      { label: "FAQ", to: "/faq" },
     ],
   },
   {
@@ -30,6 +31,7 @@ const footerNav: { heading: string; links: { label: string; to: string }[] }[] =
     links: [
       { label: "Privacy Policy", to: "/privacy" },
       { label: "Terms of Service", to: "/terms" },
+      { label: "Disclaimer", to: "/disclaimer" },
     ],
   },
 ];
