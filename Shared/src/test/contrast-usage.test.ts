@@ -34,7 +34,11 @@ function lightOffenders(line: string): string[] {
 
 const ALLOWLIST: Array<[string, string]> = [
   ["Shared/components/ui/radio-group.tsx", "stock shadcn radio indicator (non-text)"],
-  ["Frontend/components/landing/Hero.tsx", "on the dark bg-hero section"],
+  // Both gate the orange behind `tone === "dark"`, i.e. the --mk-* marketing
+  // bands. tokens.test.ts verifies orange there: 6.66:1 on --mk-canvas,
+  // 5.89:1 on --mk-surface. The light branch of each uses navy/primary-dark.
+  ["Shared/components/marketing/Eyebrow.tsx", "dark-tone branch only, on --mk-canvas"],
+  ["Shared/components/marketing/StatBand.tsx", "dark-tone branch only, on --mk-canvas"],
   ["Frontend/components/common/AppHeader.tsx", "brand logotype full-stop on dark header"],
   ["Frontend/components/common/AppFooter.tsx", "brand logotype full-stop on dark footer"],
   ["Frontend/components/common/AuthShell.tsx", "brand logotype full-stop"],

@@ -57,6 +57,7 @@ export const blogKeys = {
   all: ["blog"] as const,
   list: (f: BlogFilters) => ["blog", "list", f] as const,
   featured: ["blog", "featured"] as const,
+  latest: (limit: number) => ["blog", "latest", limit] as const,
   categories: ["blog", "categories"] as const,
   post: (slug: string) => ["blog", "post", slug] as const,
   related: (category: string | null, excludeId: string) =>
@@ -207,6 +208,24 @@ export function useRelatedPosts(
         .eq("status", "published")
         .eq("category", category as string)
         .neq("id", excludeId as string)
+        .order("published_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as BlogCardRow[];
+    },
+  });
+}
+
+/** The N most recent published posts — the homepage insights teaser. */
+export function useLatestPosts(limit = 3) {
+  return useQuery<BlogCardRow[]>({
+    queryKey: blogKeys.latest(limit),
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select(CARD_COLUMNS)
+        .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(limit);
       if (error) throw error;

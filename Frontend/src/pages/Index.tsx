@@ -3,18 +3,32 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { DEFAULT_AUTHED_ROUTE } from "@shared/lib/routes";
 import { SEO } from "@shared/components/common/SEO";
 import Hero from "@/components/landing/Hero";
+import ViewerBand from "@/components/landing/ViewerBand";
 import Problem from "@/components/landing/Problem";
-import Solution from "@/components/landing/Solution";
+import HowItWorks from "@/components/landing/HowItWorks";
+import DirectoryPreview from "@/components/landing/DirectoryPreview";
+import FundingPreview from "@/components/landing/FundingPreview";
 import Pricing from "@/components/landing/Pricing";
-import Disclaimer from "@/components/landing/Disclaimer";
+import Reassurance from "@/components/landing/Reassurance";
+import Insights from "@/components/landing/Insights";
 import FAQ from "@/components/landing/FAQ";
+import ClosingCTA from "@/components/landing/ClosingCTA";
 
+/**
+ * The twelve-section landing page.
+ *
+ * Tone alternates light / tinted down the page, with exactly one dark band at
+ * the end — it lands precisely because nothing before it was dark.
+ *
+ * Reassurance sits AFTER Pricing on purpose: it answers doubt at the decision
+ * point rather than manufacturing it beforehand.
+ */
 const Index = () => {
   const { user, loading } = useAuth();
   const [params] = useSearchParams();
 
   // Returning members land on their dashboard, not the marketing page.
-  // Escape hatch: /?home=1 keeps them on the landing page.
+  // Escape hatch: /?home=1 keeps them here — and the sections adapt to them.
   if (!loading && user && params.get("home") !== "1") {
     return <Navigate to={DEFAULT_AUTHED_ROUTE} replace />;
   }
@@ -26,17 +40,16 @@ const Index = () => {
         description="List your business on the Pan-African SME directory and find real, current funding opportunities — grants, accelerators, and fellowships curated for African founders."
       />
       <Hero />
-      <section id="problem">
-        <Problem />
-      </section>
-      <section id="solution">
-        <Solution />
-      </section>
-      <Disclaimer />
+      <ViewerBand />
+      <Problem />
+      <HowItWorks />
+      <DirectoryPreview />
+      <FundingPreview />
       <Pricing />
-      <section id="faq">
-        <FAQ />
-      </section>
+      <Reassurance />
+      <Insights />
+      <FAQ />
+      <ClosingCTA />
     </div>
   );
 };
