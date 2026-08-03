@@ -6,6 +6,7 @@ import { supabase } from "@shared/integrations/supabase/client";
 import { trackEvent } from "@shared/lib/analytics";
 import { Markdown } from "@shared/lib/markdown";
 import { SEO } from "@shared/components/common/SEO";
+import { articleLd, breadcrumbLd } from "@shared/lib/structuredData";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { CardSkeleton } from "@shared/components/common/LoadingState";
@@ -90,6 +91,22 @@ const BlogDetail = () => {
         title={post.seo_title || post.title}
         description={post.seo_description || post.excerpt || undefined}
         ogImage={post.cover_image_url || undefined}
+        canonical={`/blog/${post.slug}`}
+        jsonLd={[
+          articleLd({
+            headline: post.title,
+            description: post.seo_description || post.excerpt || undefined,
+            url: `/blog/${post.slug}`,
+            image: post.cover_image_url || undefined,
+            datePublished: post.published_at || undefined,
+            authorName: post.author_name || undefined,
+          }),
+          breadcrumbLd([
+            { name: "Home", url: "/" },
+            { name: "Blog", url: "/blog" },
+            { name: post.title, url: `/blog/${post.slug}` },
+          ]),
+        ]}
       />
 
       <article className="mx-auto max-w-3xl px-6 py-10">

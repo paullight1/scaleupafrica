@@ -5,6 +5,7 @@ import {
   AccordionTrigger,
 } from "@shared/components/ui/accordion";
 import { SEO } from "@shared/components/common/SEO";
+import { faqPageLd } from "@shared/lib/structuredData";
 import { PageHeader } from "@shared/components/common/PageHeader";
 import { FAQS } from "@/content/faqs";
 
@@ -14,6 +15,10 @@ const FAQPage = () => (
     <SEO
       title="Frequently Asked Questions"
       description="How the free Pan-African SME Directory, the Funding Radar, membership, payment and renewals work."
+      canonical="/faq"
+      // Every answer is rendered on this page — FAQ markup describing content
+      // that isn't on-page gets ignored, or flagged as spam.
+      jsonLd={faqPageLd(FAQS.map((f) => ({ question: f.question, answer: f.answer })))}
     />
 
     <section className="bg-navy px-6 py-16 md:py-20">

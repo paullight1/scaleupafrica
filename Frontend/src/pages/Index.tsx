@@ -2,6 +2,7 @@ import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
 import { DEFAULT_AUTHED_ROUTE } from "@shared/lib/routes";
 import { SEO } from "@shared/components/common/SEO";
+import { organizationLd } from "@shared/lib/structuredData";
 import Hero from "@/components/landing/Hero";
 import ViewerBand from "@/components/landing/ViewerBand";
 import Problem from "@/components/landing/Problem";
@@ -38,6 +39,10 @@ const Index = () => {
       <SEO
         title="Pan-African SME Directory & Funding Intelligence"
         description="List your business on the Pan-African SME directory and find real, current funding opportunities — grants, accelerators, and fellowships curated for African founders."
+        canonical="/"
+        // Organization only. The homepage's five FAQs are a subset of /faq —
+        // marking both up would compete for the same rich result.
+        jsonLd={organizationLd({ logo: "/icon-512.png" })}
       />
       <Hero />
       <ViewerBand />

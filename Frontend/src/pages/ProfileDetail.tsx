@@ -8,6 +8,7 @@ import {
   useOwnProfile,
 } from "@/hooks/queries/directory";
 import { SEO } from "@shared/components/common/SEO";
+import { breadcrumbLd, localBusinessLd } from "@shared/lib/structuredData";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { CardSkeleton } from "@shared/components/common/LoadingState";
@@ -132,6 +133,23 @@ const ProfileDetail = () => {
         title={`${profile.business_name} — ${profile.sector} in ${profile.country}`}
         description={seoDescription}
         ogImage={seoImage}
+        canonical={`/directory/${profile.slug}`}
+        jsonLd={[
+          localBusinessLd({
+            name: profile.business_name,
+            description: seoDescription,
+            url: `/directory/${profile.slug}`,
+            image: seoImage,
+            industry: profile.sector,
+            country: profile.country,
+            website: website ?? undefined,
+          }),
+          breadcrumbLd([
+            { name: "Home", url: "/" },
+            { name: "Directory", url: "/directory" },
+            { name: profile.business_name, url: `/directory/${profile.slug}` },
+          ]),
+        ]}
       />
 
       {/* Header band — navy panel */}
@@ -209,7 +227,7 @@ const ProfileDetail = () => {
             <div className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">This is your public page.</p>
               <Button asChild variant="outline" className="min-h-[44px]">
-                <Link to="/directory/create">
+                <Link to="/dashboard/profile/edit">
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Link>
               </Button>

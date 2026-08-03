@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { ErrorBoundary } from "@shared/components/common/ErrorBoundary";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { siteUrl } from "@shared/lib/crossApp";
@@ -110,6 +111,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 const AdminLayout = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useRole();
+  const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -176,8 +178,12 @@ const AdminLayout = () => {
           </div>
         </header>
 
+        {/* Keyed on the pathname so navigating to another admin page clears a
+            caught error — the sidebar stays usable while the panel shows. */}
         <main className="p-4 lg:p-8">
-          <Outlet />
+          <ErrorBoundary key={pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>
