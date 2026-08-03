@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { matchOpportunities } from "@/lib/dashboard/matchOpportunities";
+import { DASHBOARD_FUNDING, DASHBOARD_PROFILE_EDIT } from "@/lib/dashboard/routes";
 import type { FundingOpportunity, Profile } from "@/lib/dashboard/types";
 import { OpportunityRow } from "./OpportunityRow";
 import { useSavedMap } from "./useSavedMap";
@@ -31,10 +32,10 @@ export function MatchedOpportunities({ profile, feed }: MatchedOpportunitiesProp
           {heading}
         </h2>
         <Link
-          to="/funding"
+          to={DASHBOARD_FUNDING}
           className="inline-flex items-center gap-1 text-sm font-semibold text-navy hover:text-navy-light dark:text-primary"
         >
-          Full Funding Radar
+          All opportunities
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
@@ -44,7 +45,7 @@ export function MatchedOpportunities({ profile, feed }: MatchedOpportunitiesProp
           variant="firstRun"
           title="Match funding to your business"
           description="Create your profile and we'll match opportunities to your sector, country and keywords."
-          action={{ label: "Create your profile", to: "/directory/create" }}
+          action={{ label: "Create your profile", to: DASHBOARD_PROFILE_EDIT }}
         />
       ) : (
         <div className="space-y-3">

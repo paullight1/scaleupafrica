@@ -1,28 +1,26 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Bookmark, CalendarPlus, CreditCard, Target } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/ui/button";
-import { StatCard } from "@shared/components/common/StatCard";
-import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
-import { DashboardSkeleton } from "@shared/components/common/LoadingState";
+import { CardSkeleton } from "@shared/components/common/LoadingState";
 import {
   useFundingFeed,
+  useFundingTeaser,
   useMyProfile,
   useMySubscription,
   useSavedOpportunities,
 } from "@/hooks/queries/dashboard";
-import { matchOpportunities } from "@/lib/dashboard/matchOpportunities";
-import { countNewThisWeek } from "@/lib/dashboard/feed";
 import { computeCompleteness } from "@/lib/dashboard/profileCompleteness";
+import { onboardingState } from "@/lib/dashboard/onboarding";
 import { nextBestActions } from "@/lib/dashboard/nextBestAction";
+import { OnboardingCard } from "@/components/dashboard/OnboardingCard";
+import { ClosingSoonCard } from "@/components/dashboard/ClosingSoonCard";
 import { MatchedOpportunities } from "@/components/dashboard/MatchedOpportunities";
-import { SavedOpportunities } from "@/components/dashboard/SavedOpportunities";
-import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
-
-const EMDASH = "—";
+import { FundingTeaserPanel } from "@/components/dashboard/FundingTeaserPanel";
+import { DASHBOARD_FUNDING, DASHBOARD_PROFILE } from "@/lib/dashboard/routes";
 
 function greetingName(
   profile: { founder_name: string | null; business_name: string } | null,
@@ -36,56 +34,71 @@ function greetingName(
   );
 }
 
+/**
+ * Home — "what should I do right now?".
+ *
+ * Two shapes, one route. While the user still has activation steps left the
+ * page is led by the single next step; once those are done it becomes a digest —
+ * deadlines, matches, and a quiet line of numbers at the bottom.
+ *
+ * Two structural changes from the previous version worth knowing about:
+ *
+ * 1. NO PAGE-WIDE PENDING GATE. The old code blocked the whole page on
+ *    `profile || subscription || feed`, so the greeting and the checklist — both
+ *    of which need only the fast profile read — waited on the slowest call on
+ *    the page. Each block now resolves independently.
+ *
+ * 2. The four-card stat row is gone from the top. Counts nobody acts on had the
+ *    most valuable space on the page; they survive as one summary line.
+ */
 export function DashboardHome() {
   useEffect(() => {
-    document.title = "Funding home — Cresciva";
+    document.title = "Home — Cresciva";
   }, []);
 
   const { user } = useAuth();
   const profileQ = useMyProfile();
   const subQ = useMySubscription();
-  const feedQ = useFundingFeed();
   const savedQ = useSavedOpportunities();
-
-  const primaryPending = profileQ.isPending || subQ.isPending || feedQ.isPending;
-  if (primaryPending) return <DashboardSkeleton />;
+  const feedQ = useFundingFeed();
 
   const profile = profileQ.data ?? null;
   const subscription = subQ.data ?? null;
   const active = isSubscriptionActive(subscription);
+
+  // TRUST-1: a failed subscription read is "unknown", never "inactive". A paying
+  // member on a flaky connection must never be pushed at the upgrade path.
+  const membership: "loading" | "error" | "active" | "inactive" = subQ.isPending
+    ? "loading"
+    : subQ.isError
+      ? "error"
+      : active
+        ? "active"
+        : "inactive";
+
+  const teaserQ = useFundingTeaser(membership === "inactive");
+
   const feed = feedQ.data ?? [];
   const savedCount = savedQ.data?.length ?? 0;
-
-  const feedFailed = feedQ.isError;
-  const newThisWeek = feedFailed ? EMDASH : countNewThisWeek(feed);
-  const matchedCount = feedFailed || !profile ? EMDASH : matchOpportunities(profile, feed).length;
-
+  const onboarding = onboardingState(profile);
   const completeness = computeCompleteness(profile);
+
   const actions = nextBestActions({
     profile,
     completeness,
-    // Tri-state: when the subscription read errors we can't confirm membership,
-    // so pass "unknown" (mirrors the `!subQ.isError` guard for UpgradeBanner)
-    // instead of falsely treating a possibly-paying member as inactive (TRUST-1).
-    subscriptionActive: subQ.isError ? "unknown" : active,
+    subscriptionActive: membership === "error" ? "unknown" : active,
     savedCount,
-    feedNewCount: feedFailed ? 0 : countNewThisWeek(feed),
+    feedNewCount: 0,
   });
-  const hero = actions[0];
-
-  const membershipValue = active ? "Active" : subscription?.has_access ? "Expired" : "Free";
-  const membershipHint = active
-    ? subscription?.expires_at
-      ? `Renews ${new Date(subscription.expires_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`
-      : "No expiry set"
-    : "Upgrade for the full radar";
+  // While onboarding owns the top of the page a second competing "do this next"
+  // is just noise — the hero action belongs to the digest shape only.
+  const hero = onboarding.complete ? actions[0] : null;
 
   return (
     <div className="space-y-8">
-      {/* Greeting + hero action */}
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-strong md:text-3xl">
-          Welcome back, {greetingName(profile, user?.email)}.
+          {onboarding.complete ? "Welcome back" : "Welcome"}, {greetingName(profile, user?.email)}.
         </h1>
         {hero && (
           <div className="mt-4">
@@ -97,41 +110,69 @@ export function DashboardHome() {
         )}
       </div>
 
-      {/* Stat row */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="New this week" value={newThisWeek} icon={CalendarPlus} />
-        <StatCard label="Matched to you" value={matchedCount} icon={Target} />
-        <StatCard label="Saved" value={savedQ.isError ? EMDASH : savedCount} icon={Bookmark} />
-        <Link
-          to="/dashboard/billing"
-          className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <StatCard
-            label="Membership"
-            value={subQ.isError ? EMDASH : membershipValue}
-            hint={subQ.isError ? "Couldn't confirm — open account" : membershipHint}
-            icon={CreditCard}
-          />
-        </Link>
-      </div>
+      {/* Activation — shown only until genuinely finished, then gone for good. */}
+      {profileQ.isPending ? (
+        <CardSkeleton lines={4} />
+      ) : (
+        !onboarding.complete && <OnboardingCard state={onboarding} />
+      )}
 
-      {/* Matched / feed */}
-      {feedFailed ? (
-        <ErrorState title="Couldn't load opportunities" onRetry={() => feedQ.refetch()} />
-      ) : feed.length === 0 ? (
-        <EmptyState
-          variant="default"
-          illustration="empty-funding"
-          title="The curated feed is being prepared"
-          description="We're lining up fresh funding opportunities — check back soon."
-          secondaryAction={{ label: "Browse the directory", to: "/directory" }}
+      {/* Funding. Resolves independently of everything above. */}
+      {membership === "loading" ? (
+        <CardSkeleton lines={4} />
+      ) : membership === "error" ? (
+        <ErrorState
+          title="We couldn't confirm your membership"
+          message="This is a connection problem — your subscription is unaffected. Please retry."
+          onRetry={() => subQ.refetch()}
         />
+      ) : membership === "inactive" ? (
+        teaserQ.isPending ? (
+          <CardSkeleton lines={4} />
+        ) : teaserQ.isError || !teaserQ.data ? (
+          <ErrorState
+            title="Couldn't load this week's funding"
+            onRetry={() => teaserQ.refetch()}
+          />
+        ) : (
+          <FundingTeaserPanel teaser={teaserQ.data} />
+        )
+      ) : feedQ.isPending ? (
+        <CardSkeleton lines={4} />
+      ) : feedQ.isError ? (
+        <ErrorState title="Couldn't load opportunities" onRetry={() => feedQ.refetch()} />
       ) : (
         <>
+          <ClosingSoonCard feed={feed} />
           <MatchedOpportunities profile={profile} feed={feed} />
-          {!savedQ.isError && <SavedOpportunities />}
-          {!active && !subQ.isError && <UpgradeBanner />}
         </>
+      )}
+
+      {/* The numbers, demoted to one quiet line. Each links to the page where it
+          can actually be acted on. */}
+      {!profileQ.isPending && (
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border pt-6 text-sm text-muted-foreground">
+          <Link to={DASHBOARD_PROFILE} className="font-medium text-foreground hover:underline">
+            {profile?.view_count ?? 0} profile {profile?.view_count === 1 ? "view" : "views"}
+          </Link>
+          <span aria-hidden="true">·</span>
+          <Link to={DASHBOARD_FUNDING} className="font-medium text-foreground hover:underline">
+            {savedQ.isError ? "—" : savedCount} saved
+          </Link>
+          <span aria-hidden="true">·</span>
+          <Link to={DASHBOARD_PROFILE} className="font-medium text-foreground hover:underline">
+            {completeness.percent}% complete
+          </Link>
+          {onboarding.complete && (
+            <Link
+              to={DASHBOARD_FUNDING}
+              className="ml-auto inline-flex items-center gap-1 font-semibold text-navy hover:text-navy-light dark:text-primary"
+            >
+              Funding radar
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          )}
+        </p>
       )}
     </div>
   );

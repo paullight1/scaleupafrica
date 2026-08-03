@@ -1,18 +1,21 @@
 import type { MissingItem, Profile } from "./types";
+import { editProfileHref, type ProfileSection } from "./routes";
 
 /**
  * Deterministic profile-completeness score. Weights sum to 100 (see plan 03 §2.4).
  * A field counts when non-empty (trimmed). A null profile scores 0 with every
- * item missing. Each MissingItem deep-links into the create-profile form anchor.
+ * item missing.
+ *
+ * Each MissingItem carries the editor `section` that fixes it, so the UI can
+ * both group gaps under the right row and deep-link straight into that
+ * section's form — the gap and the fix are the same object.
  */
-
-const CREATE_PATH = "/directory/create";
 
 type Weight = {
   key: string;
   label: string;
   weight: number;
-  anchor: string;
+  section: ProfileSection;
   present: (p: Profile) => boolean;
 };
 
@@ -25,76 +28,82 @@ const WEIGHTS: Weight[] = [
     key: "basics",
     label: "Business name, country & sector",
     weight: 15,
-    anchor: "basics",
+    section: "identity",
     present: (p) => nonEmpty(p.business_name) && nonEmpty(p.country) && nonEmpty(p.sector),
   },
   {
     key: "short_description",
     label: "Add a short tagline",
     weight: 10,
-    anchor: "short-description",
+    section: "story",
     present: (p) => nonEmpty(p.short_description),
   },
   {
     key: "long_description",
     label: "Tell your story",
     weight: 15,
-    anchor: "long-description",
+    section: "story",
     present: (p) => nonEmpty(p.long_description),
   },
   {
     key: "logo_url",
     label: "Add a logo — profiles with logos get noticed",
     weight: 15,
-    anchor: "logo",
+    section: "identity",
     present: (p) => nonEmpty(p.logo_url),
   },
   {
     key: "founder_name",
     label: "Add the founder's name",
     weight: 5,
-    anchor: "founder",
+    section: "identity",
     present: (p) => nonEmpty(p.founder_name),
   },
   {
     key: "founder_photo_url",
     label: "Add a founder photo",
     weight: 10,
-    anchor: "founder-photo",
+    section: "identity",
     present: (p) => nonEmpty(p.founder_photo_url),
   },
   {
     key: "website",
     label: "Add your website",
     weight: 10,
-    anchor: "website",
+    section: "contact",
     present: (p) => nonEmpty(p.website),
   },
   {
     key: "contact",
     label: "Add a contact method (email, phone or WhatsApp)",
     weight: 10,
-    anchor: "contact",
+    section: "contact",
     present: (p) => nonEmpty(p.email) || nonEmpty(p.phone) || nonEmpty(p.whatsapp),
   },
   {
     key: "social",
     label: "Link a social profile",
     weight: 5,
-    anchor: "social",
+    section: "contact",
     present: (p) => nonEmpty(p.instagram) || nonEmpty(p.linkedin) || nonEmpty(p.twitter),
   },
   {
     key: "keywords",
     label: "Add keywords so funders can find you",
     weight: 5,
-    anchor: "keywords",
+    section: "matching",
     present: (p) => Array.isArray(p.keywords) && p.keywords.filter((k) => nonEmpty(k)).length >= 3,
   },
 ];
 
 function toMissing(w: Weight): MissingItem {
-  return { key: w.key, label: w.label, weight: w.weight, href: `${CREATE_PATH}#${w.anchor}` };
+  return {
+    key: w.key,
+    label: w.label,
+    weight: w.weight,
+    section: w.section,
+    href: editProfileHref(w.section),
+  };
 }
 
 export interface CompletenessResult {

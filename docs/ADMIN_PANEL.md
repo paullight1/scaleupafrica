@@ -6,7 +6,7 @@ data model, access control, routes, content workflows, and how to extend the sys
 
 > Status: admin panel is the Phase-2 layer described in `docs/plans/07-backend-nestjs-drizzle.md`.
 > It runs entirely on the **Supabase client + admin RPCs** (RLS-enforced). The NestJS API does
-> not own admin endpoints yet; when it does, only the `queryFn` bodies in `src/hooks/queries/admin*`
+> not own admin endpoints yet; when it does, only the `queryFn` bodies in `AdminPanel/src/hooks/queries/admin*`
 > change — the UI stays the same.
 
 ---
@@ -56,7 +56,7 @@ SQL helpers (in `supabase/migrations/20260720120000_admin_panel_foundation.sql`)
 - `is_admin(uuid) → bool`  (= `has_role(_, 'admin')`)
 - `is_staff(uuid) → bool`  (= admin OR editor — the CMS boundary)
 
-**Frontend guard:** `src/components/admin/AdminGuard.tsx` gates `/admin/*`. `require="staff"`
+**Frontend guard:** `AdminPanel/src/components/AdminGuard.tsx` gates `/admin/*`. `require="staff"`
 (default) allows admins + editors into the CMS; `require="admin"` locks Users/Profiles/Leads/
 Newsletter/Settings/Audit to admins. The guard is **UX only** — the real boundary is RLS. Never
 rely on the guard for security.
@@ -82,7 +82,7 @@ An admin cannot remove their **own** admin role from the UI (guard against locko
 
 ## 3. Data model
 
-All DDL lives in `supabase/migrations/` (the **only** owner of schema — Drizzle in `server/` mirrors
+All DDL lives in `supabase/migrations/` (the **only** owner of schema — Drizzle in `Backend/` mirrors
 it but never authors DDL). The admin foundation migration is
 `20260720120000_admin_panel_foundation.sql`.
 
@@ -116,7 +116,7 @@ it but never authors DDL). The admin foundation migration is
 - `content-media` — cover images for resources/blog.
 - `resource-files` — downloadable PDFs/assets.
 
-Uploads go through `src/components/admin/FileUpload.tsx`, which writes to the bucket and returns
+Uploads go through `AdminPanel/src/components/FileUpload.tsx`, which writes to the bucket and returns
 the public URL, file name and size.
 
 ---
@@ -139,29 +139,48 @@ Public, best-effort counters (any visitor may call): `increment_resource_metric(
 
 ## 5. Frontend structure
 
+The admin panel is its **own Vite app**, built and deployed separately from the public site. It
+shares the design system, auth and Supabase client with `Frontend/` through the `Shared/`
+workspace — see the repository layout table in `CLAUDE.md`.
+
 ```
-src/
-  components/admin/
-    AdminGuard.tsx        # route gate (staff | admin)
-    AdminLayout.tsx       # sidebar + topbar shell; renders <Outlet/>
-    FileUpload.tsx        # staff uploader → content-media / resource-files
-  pages/admin/
-    AdminDashboard.tsx    AdminResources.tsx   AdminResourceEdit.tsx
-    AdminBlog.tsx         AdminBlogEdit.tsx     AdminFunding.tsx
-    AdminProfiles.tsx     AdminUsers.tsx        AdminLeads.tsx
-    AdminNewsletter.tsx   AdminSettings.tsx     AdminAuditLog.tsx
-  hooks/
-    useRole.tsx
-    queries/adminDashboard.ts  queries/adminUsers.ts  queries/adminResources.ts
-    queries/adminBlog.ts       queries/adminOps.ts
-  lib/
-    analytics.ts          # trackEvent(), slugify()
-    audit.ts              # logAdminAction()
-    markdown.tsx          # dependency-free Markdown renderer for CMS content
+AdminPanel/
+  index.html              # noindex/nofollow; assets under /admin/
+  vite.config.ts          # base: "/admin/", dev server on :8081
+  src/
+    App.tsx               # router — routes keep their full /admin/… paths
+    main.tsx              # entry; pulls @shared/styles/index.css
+    components/
+      AdminGuard.tsx      # route gate (staff | admin)
+      AdminLayout.tsx     # sidebar + topbar shell; renders <Outlet/>
+      FileUpload.tsx      # staff uploader → content-media / resource-files
+    pages/
+      AdminDashboard.tsx    AdminResources.tsx   AdminResourceEdit.tsx
+      AdminBlog.tsx         AdminBlogEdit.tsx     AdminFunding.tsx
+      AdminProfiles.tsx     AdminUsers.tsx        AdminLeads.tsx
+      AdminNewsletter.tsx   AdminSettings.tsx     AdminAuditLog.tsx
+    hooks/queries/
+      adminDashboard.ts  adminUsers.ts  adminResources.ts
+      adminBlog.ts       adminOps.ts
 ```
 
-Routes are registered in `src/App.tsx` under a `/admin` layout route wrapped by `AdminGuard` +
-`AdminLayout`; admin-only sub-areas are wrapped again with `AdminGuard require="admin"`.
+Consumed from `Shared/` via `@shared/*`:
+
+```
+Shared/src/
+  hooks/useRole.tsx       useAuth.tsx
+  lib/analytics.ts        # trackEvent(), slugify()
+  lib/audit.ts            # logAdminAction()
+  lib/markdown.tsx        # dependency-free Markdown renderer for CMS content
+  lib/crossApp.tsx        # siteUrl() / <CrossAppRedirect> — leaving for the public app
+  components/ui/          components/common/
+```
+
+Routes are registered in `AdminPanel/src/App.tsx` under a `/admin` layout route wrapped by
+`AdminGuard` + `AdminLayout`; admin-only sub-areas are wrapped again with `AdminGuard require="admin"`.
+Routes deliberately keep the `/admin` prefix rather than using a router `basename`, so every
+in-panel link reads the same as its URL. Anything outside `/admin` belongs to the public app and is
+handed off with a real document navigation, not a react-router link.
 
 ### Conventions the admin UI follows
 
@@ -220,13 +239,13 @@ To add a new admin module:
 
 1. **Schema:** add a table in a new `supabase/migrations/<timestamp>_*.sql` with RLS
    (`is_staff`/`is_admin`) and, if needed, an `updated_at` trigger. Mirror it in
-   `server/src/db/schema.ts`.
-2. **Types:** after applying the migration, regenerate `src/integrations/supabase/types.ts`
+   `Backend/src/db/schema.ts`.
+2. **Types:** after applying the migration, regenerate `Shared/src/integrations/supabase/types.ts`
    (`supabase gen types typescript …`). Until then, use the repo cast convention
    `const db = supabase as unknown as SupabaseClient;`.
-3. **Page:** add `src/pages/admin/AdminX.tsx` (return content only — `AdminLayout` provides chrome),
-   plus a hooks file in `src/hooks/queries/`.
-4. **Nav + route:** add a `NavItem` to `NAV` in `AdminLayout.tsx` and a `<Route>` in `App.tsx`
+3. **Page:** add `AdminPanel/src/pages/AdminX.tsx` (return content only — `AdminLayout` provides chrome),
+   plus a hooks file in `AdminPanel/src/hooks/queries/`.
+4. **Nav + route:** add a `NavItem` to `NAV` in `AdminLayout.tsx` and a `<Route>` in `AdminPanel/src/App.tsx`
    (wrap in `AdminGuard require="admin"` if admin-only).
 5. **Audit:** call `logAdminAction(...)` on every mutation.
 
@@ -239,7 +258,25 @@ To add a new admin module:
 - Confirm the `content-media` and `resource-files` storage buckets exist and are public-read.
 - Ensure at least one admin exists (seed or Users page).
 - Regenerate `types.ts` from the live schema to drop the temporary casts.
-- `npm run build`, `npm run lint`, `npm test` must pass.
+- `npm run build`, `npm run lint`, `npm test` must pass (all from the repo root).
+- Serve `AdminPanel/dist/` at `/admin/` with an SPA fallback to `/admin/index.html`. On a separate
+  host, serve it at that host's root and set `VITE_SITE_URL` in `AdminPanel/.env` (and
+  `VITE_ADMIN_URL` in `Frontend/.env`, so the site's "Admin" links point at the other host).
+
+### Cross-app origins
+
+Frontend and AdminPanel are separate bundles with separate routers. Every link between them —
+the site's "Admin" links, and the panel's bounce to sign-in — goes through
+`Shared/src/lib/crossApp.tsx` (`siteUrl` / `adminUrl` / `isAdminPath`) and is a real document
+navigation. A react-router `<Link to="/admin">` from the public site just misses its route table.
+
+Same-origin deploys need no configuration. Local dev does, because the apps are on two ports:
+`Frontend/.env.development` sets `VITE_ADMIN_URL=http://localhost:8081` and
+`AdminPanel/.env.development` sets `VITE_SITE_URL=http://localhost:8080`. Delete either and the
+corresponding link resolves against the wrong server — which is what produces
+`The server is configured with a public base URL of /admin/ — did you mean to visit
+/admin/auth?next=%2Fadmin%2F instead?`. Both dev servers must be running
+(`npm run dev` and `npm run dev:admin`).
 
 ---
 

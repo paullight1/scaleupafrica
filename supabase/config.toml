@@ -11,3 +11,15 @@ verify_jwt = true
 
 [functions.paystack-webhook]
 verify_jwt = false
+
+# Transactional email (Resend). Both are called by SIGNED-OUT visitors — the
+# contact form, the newsletter box, the gated-resource form, and the
+# List-Unsubscribe link in every bulk email — so neither can require a JWT.
+# send-email defends itself with strict validation, a honeypot, and a per-IP
+# throttle over public.email_events; email-unsubscribe is authorised by the
+# HMAC in its token.
+[functions.send-email]
+verify_jwt = false
+
+[functions.email-unsubscribe]
+verify_jwt = false

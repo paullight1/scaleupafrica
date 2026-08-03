@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react";
 import { supabase } from "@shared/integrations/supabase/client";
+import { requestResourceDownload } from "@/lib/email";
 import { trackEvent } from "@shared/lib/analytics";
 import { Markdown } from "@shared/lib/markdown";
 import { SEO } from "@shared/components/common/SEO";
@@ -59,6 +60,7 @@ const ResourceDetail = () => {
   const [company, setCompany] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
+  const honeypot = useRef<HTMLInputElement>(null);
 
   // Fire the view event + increment once per resource.
   const viewedRef = useRef<string | null>(null);
@@ -155,35 +157,40 @@ const ResourceDetail = () => {
       return;
     }
     setSubmitting(true);
-    try {
-      const { error } = await supabase.from("leads").insert({
-        email: trimmedEmail,
-        name: name.trim() || null,
-        company: company.trim() || null,
-        source: "resource_download",
-        resource_id: resource.id,
-        metadata: { resource_title: resource.title },
-      });
-      if (error) throw error;
+    // The edge function captures the lead and emails the file. It resolves the
+    // download URL from the database itself, so the link in the inbox can never
+    // be steered by whatever the client claims the resource is.
+    const result = await requestResourceDownload({
+      email: trimmedEmail,
+      name: name.trim() || undefined,
+      company: company.trim() || undefined,
+      resourceId: resource.id,
+      hp: honeypot.current?.value ?? "",
+    });
+    setSubmitting(false);
 
-      setUnlocked(true);
-      incrementDownload(resource.id);
-      void trackEvent("lead_submit", {
-        entityType: "resource",
-        entityId: resource.id,
-        metadata: { resource_title: resource.title, source: "resource_download" },
-      });
-      void trackEvent("resource_download", {
-        entityType: "resource",
-        entityId: resource.id,
-        metadata: { resource_title: resource.title, gated: true },
-      });
-      toast.success("Your download is ready.");
-    } catch {
-      toast.error("Couldn't submit right now. Please try again.");
-    } finally {
-      setSubmitting(false);
+    if (!result.ok) {
+      toast.error(
+        result.error.code === "RATE_LIMITED"
+          ? "Too many requests just now. Please try again in a little while."
+          : "Couldn't submit right now. Please try again.",
+      );
+      return;
     }
+
+    setUnlocked(true);
+    incrementDownload(resource.id);
+    void trackEvent("lead_submit", {
+      entityType: "resource",
+      entityId: resource.id,
+      metadata: { resource_title: resource.title, source: "resource_download" },
+    });
+    void trackEvent("resource_download", {
+      entityType: "resource",
+      entityId: resource.id,
+      metadata: { resource_title: resource.title, gated: true },
+    });
+    toast.success("Your download is ready — we've emailed you a copy too.");
   };
 
   const related = relatedQuery.data ?? [];
@@ -295,6 +302,16 @@ const ResourceDetail = () => {
                   </Button>
                 ) : (
                   <form onSubmit={handleLeadSubmit} className="space-y-3" noValidate>
+                    {/* Honeypot — hidden from humans and assistive tech. */}
+                    <input
+                      ref={honeypot}
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      className="absolute left-[-9999px] h-px w-px opacity-0"
+                    />
                     <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Lock className="h-3.5 w-3.5" aria-hidden />
                       Tell us where to send it.

@@ -89,7 +89,7 @@ export default function PaymentCallback() {
           >
             <div className="mt-6 flex flex-col gap-3">
               <Button asChild size="lg">
-                <Link to="/funding">Open the Funding Radar</Link>
+                <Link to="/dashboard/funding">Open the Funding Radar</Link>
               </Button>
               <Button asChild variant="outline">
                 <Link to={BILLING_ROUTE}>View membership</Link>
@@ -123,7 +123,7 @@ export default function PaymentCallback() {
           >
             <div className="mt-6 flex flex-col gap-3">
               <Button asChild size="lg">
-                <Link to="/funding">Try again</Link>
+                <Link to="/dashboard/funding">Try again</Link>
               </Button>
               <Button asChild variant="navyOutline">
                 <a href={conciergeWhatsappUrl()} target="_blank" rel="noopener noreferrer">
@@ -146,7 +146,7 @@ export default function PaymentCallback() {
                 <Link to={BILLING_ROUTE}>Go to billing</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to="/funding">Back to Funding</Link>
+                <Link to="/dashboard/funding">Back to Funding</Link>
               </Button>
             </div>
           </Panel>

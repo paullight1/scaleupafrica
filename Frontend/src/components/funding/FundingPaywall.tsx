@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { Checkbox } from "@shared/components/ui/checkbox";
 import { Lock, AlertTriangle, ShieldAlert } from "lucide-react";
-import { OpportunityCard } from "@/components/funding/OpportunityCard";
-import { SAMPLE_OPPS } from "@/components/funding/sampleData";
 // SIBLING CONTRACT (Plan 06 / payments): usePaystackCheckout() returns
 //   { startCheckout: (opts?: { next?: string }) => void; isPending: boolean }
 // This module is owned by Plan 06 and may not exist yet during Wave 3 — tsc will
@@ -18,16 +16,20 @@ interface FundingPaywallProps {
 
 /**
  * Shown when the subscription status is "inactive" (never on a fetch ERROR — that
- * renders ErrorState instead, IMPROVEMENTS §2.1). Keeps the fraud-warning +
- * acknowledgement flow, and shows clearly-labelled Example cards (this replaces the
- * old `?preview=1` bypass honestly).
+ * renders ErrorState instead, IMPROVEMENTS §2.1). Owns the fraud-warning +
+ * acknowledgement gate before checkout.
+ *
+ * The "example opportunities" cards that used to sit at the bottom are gone:
+ * <FundingTeaserPanel> now renders three REAL currently-open opportunities
+ * directly above this on /dashboard/funding, and invented examples next to
+ * genuine listings read as padding at best and as bait at worst.
  */
 export function FundingPaywall({ userEmail }: FundingPaywallProps) {
   const [acknowledged, setAcknowledged] = useState(false);
   const { startCheckout, isPending } = usePaystackCheckout();
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl">
       <div className="rounded-xl border border-border bg-card p-8 shadow-elevated md:p-10">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-navy text-white">
           <Lock className="h-8 w-8" aria-hidden="true" />
@@ -76,7 +78,7 @@ export function FundingPaywall({ userEmail }: FundingPaywallProps) {
           <Button
             size="lg"
             disabled={!acknowledged || isPending}
-            onClick={() => startCheckout({ next: "/funding" })}
+            onClick={() => startCheckout({ next: "/dashboard/funding" })}
           >
             {isPending ? "Starting checkout…" : "See membership"}
           </Button>
@@ -84,17 +86,6 @@ export function FundingPaywall({ userEmail }: FundingPaywallProps) {
         {userEmail && (
           <p className="mt-6 text-center text-xs text-muted-foreground">Signed in as {userEmail}</p>
         )}
-      </div>
-
-      <div className="mt-10">
-        <p className="mb-4 text-center text-sm font-semibold text-muted-foreground">
-          A preview of what members see — these are example opportunities, not live results.
-        </p>
-        <div className="grid gap-6">
-          {SAMPLE_OPPS.map((o) => (
-            <OpportunityCard key={`${o.title}|${o.funder}`} opportunity={o} open={false} onToggle={() => {}} sample />
-          ))}
-        </div>
       </div>
     </div>
   );

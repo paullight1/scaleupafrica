@@ -75,7 +75,7 @@ export function usePaystackCheckout() {
   const [isPending, setIsPending] = useState(false);
 
   const startCheckout = useCallback(
-    async ({ plan_code = "annual", currency, next = "/funding" }: CheckoutParams = { currency: undefined }) => {
+    async ({ plan_code = "annual", currency, next = "/dashboard/funding" }: CheckoutParams = { currency: undefined }) => {
       if (!user) {
         navigate(`/auth?next=${encodeURIComponent(next)}`);
         return;

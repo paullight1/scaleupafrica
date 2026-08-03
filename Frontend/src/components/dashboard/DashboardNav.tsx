@@ -12,7 +12,7 @@ export function DashboardNav({ newCount = 0 }: { newCount?: number }) {
       <nav aria-label="Dashboard sections" className="sticky top-24 space-y-1">
         {DASHBOARD_NAV.map((item) => {
           const Icon = item.icon;
-          const showDot = item.end && newCount > 0;
+          const showDot = !!item.badge && newCount > 0;
           return (
             <NavLink
               key={item.to}

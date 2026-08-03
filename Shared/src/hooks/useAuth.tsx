@@ -5,6 +5,16 @@ import { runSignOutCleanup } from "@shared/hooks/signOutCleanup";
 
 type SignUpResult = { error: AuthError | null; confirmationRequired: boolean };
 
+/**
+ * Profile fields captured during signup and stored on `auth.users.raw_user_meta_data`.
+ * They are a convenience for pre-filling the directory profile form — never a
+ * trust boundary, because the user controls every value in this object.
+ */
+export type SignUpMetadata = {
+  full_name?: string;
+  business_name?: string;
+};
+
 type AuthContextValue = {
   user: User | null;
   session: Session | null;
@@ -14,7 +24,7 @@ type AuthContextValue = {
   signUp: (
     email: string,
     password: string,
-    opts?: { emailRedirectTo?: string }
+    opts?: { emailRedirectTo?: string; metadata?: SignUpMetadata }
   ) => Promise<SignUpResult>;
   /** Native Supabase Google OAuth. Redirects the browser back to `${origin}/auth?next=…`. */
   signInWithGoogle: (next: string) => Promise<{ error: Error | null }>;
@@ -77,10 +87,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp: AuthContextValue["signUp"] = async (email, password, opts) => {
+    // Drop blank metadata rather than writing empty strings into user_metadata —
+    // downstream pre-fill treats "missing" and "" differently.
+    const metadata = Object.fromEntries(
+      Object.entries(opts?.metadata ?? {}).filter(([, v]) => !!v && v.trim() !== "")
+    );
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: opts?.emailRedirectTo },
+      options: {
+        emailRedirectTo: opts?.emailRedirectTo,
+        ...(Object.keys(metadata).length ? { data: metadata } : {}),
+      },
     });
     if (error) return { error, confirmationRequired: false };
 
@@ -104,8 +123,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const redirectTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: {
+        redirectTo,
+        queryParams: {
+          // Without this Google silently reuses the only signed-in account, so
+          // anyone on a shared device can never pick a different one.
+          prompt: "select_account",
+        },
+      },
     });
+    // NOTE: supabase-js builds the /authorize URL locally and navigates to it —
+    // it does not fetch it — so a provider that is enabled but misconfigured
+    // (no client secret) cannot surface here. GoTrue answers that navigation
+    // with a raw 400 JSON body instead. The only fix is configuring the
+    // provider; see docs/AUTH.md § "Google sign-in".
     return { error };
   };
 

@@ -226,7 +226,7 @@ const About = () => {
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link to="/directory/create">
+              <Link to="/dashboard/profile/edit">
                 Create your profile
                 <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>

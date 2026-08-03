@@ -64,8 +64,8 @@ export function defaultCurrency(): Currency {
   }
 }
 
-/** Where upgrade / renew CTAs point (Plan 03 dashboard billing sub-route). */
-export const BILLING_ROUTE = "/dashboard/billing";
+/** Where upgrade / renew CTAs point — the Membership section of the account page. */
+export const BILLING_ROUTE = "/dashboard/account#billing";
 
 // --- Concierge (bank transfer / mobile money) --------------------------------
 // TODO(HANDOFF): replace with the real staffed WhatsApp business number before launch.

@@ -20,7 +20,7 @@ interface CheckoutButtonProps extends Omit<ButtonProps, "onClick"> {
 export function CheckoutButton({
   currency,
   planCode = "annual",
-  next = "/funding",
+  next = "/dashboard/funding",
   children,
   size = "lg",
   variant = "default",

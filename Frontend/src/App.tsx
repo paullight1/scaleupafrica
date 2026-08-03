@@ -12,6 +12,7 @@ import { ScrollToTop } from "@shared/components/common/ScrollToTop";
 import { LoadingState } from "@shared/components/common/LoadingState";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthSignUp from "./pages/AuthSignUp";
 import AuthForgot from "./pages/AuthForgot";
 import AuthReset from "./pages/AuthReset";
 import Directory from "./pages/Directory";
@@ -52,6 +53,7 @@ const App = () => (
             <Route element={<SiteLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/signup" element={<AuthSignUp />} />
               <Route path="/auth/forgot" element={<AuthForgot />} />
               <Route path="/auth/reset" element={<AuthReset />} />
               <Route path="/directory" element={<Directory />} />

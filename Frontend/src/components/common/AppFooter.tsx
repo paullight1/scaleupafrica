@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { adminUrl } from "@shared/lib/crossApp";
 
 const footerNav: { heading: string; links: { label: string; to: string }[] }[] = [
   {
@@ -77,8 +78,14 @@ export function AppFooter() {
               <p className="mb-2 text-sm font-semibold text-white">Stay in the loop</p>
               <NewsletterSignup source="footer" variant="inline" className="max-w-sm" />
             </div>
-            <p className="text-sm text-white/70">
-              © {new Date().getFullYear()} Cresciva
+            <p className="flex items-center gap-3 text-sm text-white/70">
+              <span>© {new Date().getFullYear()} Cresciva</span>
+              <span aria-hidden="true" className="text-white/30">·</span>
+              {/* Always visible: /admin is the other bundle (real document nav),
+                  and AdminGuard + RLS — not this link's visibility — gate access. */}
+              <a href={adminUrl()} className="transition-colors hover:text-white">
+                Admin
+              </a>
             </p>
           </div>
         </div>

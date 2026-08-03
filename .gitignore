@@ -11,6 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
+.vite
+
+# Server-side secrets. Frontend/.env and AdminPanel/.env hold only publishable
+# Supabase keys and stay tracked; anything below is a real secret.
+supabase/.env
+Backend/.env
+.env.local
 
 # Editor directories and files
 .vscode/*

@@ -8,11 +8,12 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { UserMenu } from "@/components/common/UserMenu";
 import { authPathWithNext, DEFAULT_AUTHED_ROUTE } from "@shared/lib/routes";
+import { adminUrl } from "@shared/lib/crossApp";
 import { mapAuthError } from "@/lib/authErrors";
 
 const navLinks = [
   { label: "Directory", to: "/directory" },
-  { label: "Funding", to: "/funding" },
+  { label: "Funding", to: "/dashboard/funding" },
   { label: "Resources", to: "/resources" },
   { label: "Blog", to: "/blog" },
   { label: "Pricing", to: "/#pricing" },
@@ -76,11 +77,13 @@ export function AppHeader() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {isStaff && (
-            <Button asChild variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white">
-              <Link to="/admin">
-                <ShieldCheck className="mr-1 h-4 w-4" /> Admin
-              </Link>
-            </Button>
+            // Real document navigation — /admin is the other bundle, not a route here.
+            <a
+              href={adminUrl()}
+              className="flex items-center gap-1 text-sm font-medium text-white/80 transition-colors hover:text-white"
+            >
+              <ShieldCheck className="h-4 w-4" /> Admin
+            </a>
           )}
 
           {loading ? (
@@ -100,7 +103,7 @@ export function AppHeader() {
                 <Link to={signInHref}>Sign in</Link>
               </Button>
               <Button asChild variant="default" size="sm">
-                <Link to="/auth?mode=signup&next=/directory/create">Get started</Link>
+                <Link to="/auth/signup?next=/dashboard/profile/edit">Get started</Link>
               </Button>
             </>
           )}
@@ -139,12 +142,12 @@ export function AppHeader() {
               ))}
 
               {isStaff && (
-                <Link
-                  to="/admin"
+                <a
+                  href={adminUrl()}
                   className="flex items-center gap-2 border-b border-white/10 py-3 text-white/80 hover:text-white"
                 >
                   <ShieldCheck className="h-4 w-4" /> Admin panel
-                </Link>
+                </a>
               )}
 
               <div className="mt-4 flex flex-col gap-3">
@@ -159,13 +162,13 @@ export function AppHeader() {
                       </Link>
                     )}
                     <Link
-                      to="/directory/create"
+                      to="/dashboard/profile/edit"
                       className="flex items-center gap-2 py-2.5 text-white/90 hover:text-white"
                     >
                       <UserRound className="h-4 w-4" /> My profile
                     </Link>
                     <Link
-                      to="/funding"
+                      to="/dashboard/funding"
                       className="flex items-center gap-2 py-2.5 text-white/90 hover:text-white"
                     >
                       <Compass className="h-4 w-4" /> Funding
@@ -189,7 +192,7 @@ export function AppHeader() {
                       <Link to={signInHref}>Sign in</Link>
                     </Button>
                     <Button asChild variant="default" className="w-full">
-                      <Link to="/auth?mode=signup&next=/directory/create">Get started</Link>
+                      <Link to="/auth/signup?next=/dashboard/profile/edit">Get started</Link>
                     </Button>
                   </>
                 )}

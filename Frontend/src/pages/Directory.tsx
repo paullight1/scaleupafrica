@@ -20,8 +20,8 @@ import { CardSkeleton } from "@shared/components/common/LoadingState";
 const Directory = () => {
   const { user } = useAuth();
   const createHref = user
-    ? "/directory/create"
-    : authPathWithNext({ pathname: "/directory/create", search: "" });
+    ? "/dashboard/profile/edit"
+    : authPathWithNext({ pathname: "/dashboard/profile/edit", search: "" });
 
   const [searchParams, setSearchParams] = useSearchParams();
   const country = searchParams.get("country");

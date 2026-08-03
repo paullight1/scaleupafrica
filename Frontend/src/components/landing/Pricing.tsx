@@ -71,7 +71,7 @@ const Pricing = () => {
             </CheckoutButton>
           ) : (
             <Button asChild variant="default" size="lg" className="mb-4 w-full">
-              <Link to="/auth?next=/funding">
+              <Link to="/auth/signup?next=/funding">
                 Join the Collective
                 <ArrowRight className="h-4 w-4" />
               </Link>

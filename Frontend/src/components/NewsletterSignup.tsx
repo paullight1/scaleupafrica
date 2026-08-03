@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { supabase } from "@shared/integrations/supabase/client";
+import { useRef, useState } from "react";
+import { subscribeToNewsletter } from "@/lib/email";
 import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ const NewsletterSignup = ({ source = "site", className = "", variant = "inline" 
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const honeypot = useRef<HTMLInputElement>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,20 +29,24 @@ const NewsletterSignup = ({ source = "site", className = "", variant = "inline" 
       return;
     }
     setBusy(true);
-    try {
-      const { error } = await supabase
-        .from("newsletter_subscribers")
-        .upsert({ email: value, source }, { onConflict: "email", ignoreDuplicates: true });
-      if (error) throw error;
-      setDone(true);
-      setEmail("");
-      void trackEvent("newsletter_signup", { metadata: { source } });
-      toast.success("You're subscribed. Welcome aboard!");
-    } catch {
-      toast.error("Could not subscribe. Please try again.");
-    } finally {
-      setBusy(false);
+    // The edge function records the subscriber AND sends the welcome email; a
+    // repeat signup is a no-op there, so re-submitting never double-mails anyone.
+    const result = await subscribeToNewsletter(value, source, honeypot.current?.value ?? "");
+    setBusy(false);
+
+    if (!result.ok) {
+      toast.error(
+        result.error.code === "RATE_LIMITED"
+          ? "Too many attempts just now. Please try again in a little while."
+          : "Could not subscribe. Please try again.",
+      );
+      return;
     }
+
+    setDone(true);
+    setEmail("");
+    void trackEvent("newsletter_signup", { metadata: { source } });
+    toast.success("You're subscribed. Check your inbox.");
   };
 
   if (done) {
@@ -60,6 +65,16 @@ const NewsletterSignup = ({ source = "site", className = "", variant = "inline" 
         variant === "card" ? "max-w-md" : ""
       } ${className}`}
     >
+      {/* Honeypot — hidden from humans and assistive tech; bots fill it and get dropped. */}
+      <input
+        ref={honeypot}
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute left-[-9999px] h-px w-px opacity-0"
+      />
       <div className="relative flex-1">
         <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input

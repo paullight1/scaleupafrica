@@ -37,7 +37,7 @@ describe("AppHeader", () => {
     const getStarted = screen.getByRole("link", { name: "Get started" });
     expect(getStarted).toHaveAttribute(
       "href",
-      "/auth?mode=signup&next=/directory/create"
+      "/auth/signup?next=/dashboard/profile/edit"
     );
   });
 

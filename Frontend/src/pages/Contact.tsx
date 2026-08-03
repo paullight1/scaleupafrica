@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail, MessageCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@shared/integrations/supabase/client";
+import { submitContact } from "@/lib/email";
 import { trackEvent } from "@shared/lib/analytics";
 import { SEO } from "@shared/components/common/SEO";
 import { PageHeader } from "@shared/components/common/PageHeader";
@@ -62,6 +62,8 @@ const channels = [
 
 const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
+  // Honeypot: hidden from humans and assistive tech, irresistible to naive bots.
+  const honeypot = useRef<HTMLInputElement>(null);
 
   const form = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
@@ -69,17 +71,28 @@ const Contact = () => {
   });
 
   const onSubmit = async (values: ContactValues) => {
-    const { error } = await supabase.from("leads").insert({
+    const result = await submitContact({
       name: values.name,
       email: values.email,
-      company: values.company || null,
+      company: values.company || undefined,
       message: values.message,
-      source: "contact",
-      metadata: {},
+      hp: honeypot.current?.value ?? "",
     });
 
-    if (error) {
-      toast.error("Something went wrong sending your message. Please try again.");
+    if (!result.ok) {
+      // The server re-validates; surface its per-field messages on the inputs
+      // rather than burying them all in one toast.
+      const fields = result.error.fields;
+      if (fields) {
+        for (const [name, message] of Object.entries(fields)) {
+          if (name in values) form.setError(name as keyof ContactValues, { message });
+        }
+      }
+      toast.error(
+        result.error.code === "RATE_LIMITED"
+          ? "You've sent a few messages already. Please try again a little later."
+          : "Something went wrong sending your message. Please try again.",
+      );
       return;
     }
 
@@ -141,6 +154,17 @@ const Contact = () => {
 
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-5">
+                    {/* Honeypot — never shown, never announced, never focusable. */}
+                    <input
+                      ref={honeypot}
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      className="absolute left-[-9999px] h-px w-px opacity-0"
+                    />
+
                     <FormField
                       control={form.control}
                       name="name"
@@ -284,7 +308,7 @@ const Contact = () => {
                 </li>
                 <li>
                   <Link
-                    to="/funding"
+                    to="/dashboard/funding"
                     className="text-primary-dark underline-offset-4 hover:underline"
                   >
                     The Funding Radar

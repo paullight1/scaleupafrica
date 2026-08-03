@@ -16,7 +16,7 @@ export function DashboardMobileNav({ newCount = 0 }: { newCount?: number }) {
       <ul className="mx-auto flex max-w-lg items-stretch justify-around">
         {DASHBOARD_NAV.map((item) => {
           const Icon = item.icon;
-          const showDot = item.end && newCount > 0;
+          const showDot = !!item.badge && newCount > 0;
           return (
             <li key={item.to} className="flex-1">
               <NavLink

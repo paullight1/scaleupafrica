@@ -11,6 +11,7 @@
 //  - Returns 200 for handled/duplicate/ignored/poison events; 401 only for bad signatures.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { decideChargeGrant, verifyPaystackSignature } from "../_shared/paystack.ts";
+import { sendPaymentReceipt } from "../_shared/email/receipt.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -96,6 +97,11 @@ Deno.serve(async (req) => {
       console.error("paystack-webhook: grant_annual_access failed", reference, rpcErr.message);
       return new Response("", { status: 500 });
     }
+
+    // Receipt is best-effort and idempotent (`receipt:<paymentId>`), so a retried
+    // delivery or a racing paystack-verify still yields exactly one email. Never
+    // let it change the ack status — a mail failure must not trigger a retry loop.
+    await sendPaymentReceipt(admin as never, payment.id, Deno.env.toObject());
   }
 
   await admin.from("payment_webhook_events").update({ processed: true }).eq("id", inserted.id);

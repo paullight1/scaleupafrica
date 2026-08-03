@@ -1,4 +1,5 @@
 import type { Tables } from "@shared/integrations/supabase/types";
+import type { ProfileSection } from "./routes";
 
 /**
  * Domain type aliases for the dashboard. Sourced from the generated Supabase
@@ -10,6 +11,25 @@ import type { Tables } from "@shared/integrations/supabase/types";
  */
 export type Profile = Tables<"profiles">;
 export type FundingOpportunity = Tables<"funding_opportunities">;
+
+/**
+ * What a signed-in NON-member may see of the feed — the exact column set the
+ * `funding_teaser` RPC returns (20260802120000). Deliberately missing `url`,
+ * `summary`, `eligibility`, `amount` and `details`: those are the membership.
+ */
+export interface TeaserOpportunity {
+  id: string;
+  title: string;
+  funder: string;
+  type: string | null;
+  deadline: string | null;
+}
+
+export interface FundingTeaser {
+  items: TeaserOpportunity[];
+  /** Total published rows, so the UI can say "+18 more" truthfully. */
+  totalPublished: number;
+}
 
 export type Subscription = Pick<
   Tables<"subscriptions">,
@@ -36,11 +56,13 @@ export interface UserPreferences {
   updated_at: string;
 }
 
-/** A missing profile field, deep-linkable into the create-profile form. */
+/** A missing profile field, deep-linkable into the profile editor. */
 export interface MissingItem {
   key: string;
   label: string;
   weight: number;
+  /** The editor section that fixes this gap. */
+  section: ProfileSection;
   href: string;
 }
 

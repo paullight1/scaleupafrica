@@ -94,6 +94,10 @@ describe("computeCompleteness", () => {
   it("missing items are sorted by weight desc and deep-link into the form", () => {
     const r = computeCompleteness(makeProfile({ business_name: "Acme", country: "GH", sector: "Ag" }));
     expect(r.missing[0].weight).toBeGreaterThanOrEqual(r.missing[1].weight);
-    expect(r.missing.every((m) => m.href.startsWith("/directory/create#"))).toBe(true);
+    // Every gap must deep-link into the editor section that fixes it — the gap
+    // and its remedy are the same object (see MissingItem.section).
+    expect(
+      r.missing.every((m) => m.href === `/dashboard/profile/edit?section=${m.section}`),
+    ).toBe(true);
   });
 });

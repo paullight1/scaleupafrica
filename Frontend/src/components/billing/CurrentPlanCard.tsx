@@ -122,7 +122,7 @@ export function CurrentPlanCard() {
             <CurrencyToggle value={currency} onChange={setCurrency} />
           </div>
           <div className="mt-4">
-            <CheckoutButton currency={currency} next="/dashboard/billing" className="w-full sm:w-auto">
+            <CheckoutButton currency={currency} next="/dashboard/account#billing" className="w-full sm:w-auto">
               {renewLabel}
             </CheckoutButton>
           </div>

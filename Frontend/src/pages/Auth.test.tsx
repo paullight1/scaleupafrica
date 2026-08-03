@@ -1,19 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import Auth from "@/pages/Auth";
 
 const mocks = vi.hoisted(() => ({
   signIn: vi.fn(),
   signUp: vi.fn(),
   signInWithGoogle: vi.fn(),
+  signInWithOtp: vi.fn(),
+  verifyEmailOtp: vi.fn(),
   resendConfirmation: vi.fn(),
+  signOut: vi.fn(),
 }));
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }));
 
 vi.mock("sonner", () => ({ toast: toastMock }));
 vi.mock("@shared/hooks/useAuth", () => ({
   useAuth: () => ({ user: null, loading: false, ...mocks }),
+}));
+vi.mock("@shared/hooks/useMfa", () => ({
+  useMfa: () => ({ challengeRequired: false, loading: false }),
 }));
 
 function LocationProbe() {
@@ -25,7 +31,10 @@ function renderAuth(entry: string) {
   return render(
     <MemoryRouter initialEntries={[entry]}>
       <LocationProbe />
-      <Auth />
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/signup" element={<div>signup wizard</div>} />
+      </Routes>
     </MemoryRouter>
   );
 }
@@ -40,26 +49,6 @@ describe("Auth page", () => {
     vi.clearAllMocks();
   });
 
-  it("shows 'Confirm your email' (and no success toast) when signup needs confirmation", async () => {
-    mocks.signUp.mockResolvedValue({ error: null, confirmationRequired: true });
-    renderAuth("/auth?mode=signup");
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-
-    expect(await screen.findByText("Confirm your email")).toBeInTheDocument();
-    expect(toastMock.success).not.toHaveBeenCalled();
-  });
-
-  it("toasts 'Account created.' when a session is returned (confirmation off)", async () => {
-    mocks.signUp.mockResolvedValue({ error: null, confirmationRequired: false });
-    renderAuth("/auth?mode=signup");
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-
-    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Account created."));
-    expect(screen.queryByText("Confirm your email")).not.toBeInTheDocument();
-  });
-
   it("renders a friendly invalid_credentials error inside role=alert", async () => {
     mocks.signIn.mockResolvedValue({ error: { code: "invalid_credentials" } });
     renderAuth("/auth");
@@ -72,26 +61,79 @@ describe("Auth page", () => {
     );
   });
 
-  it("shows the 'already exists' copy for a duplicate signup", async () => {
-    mocks.signUp.mockResolvedValue({
-      error: { code: "user_already_exists" },
-      confirmationRequired: false,
-    });
-    renderAuth("/auth?mode=signup");
-    fillForm();
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+  it("does not enforce the signup minimum length on an existing password", async () => {
+    mocks.signIn.mockResolvedValue({ error: null });
+    renderAuth("/auth");
+    // 6 characters — valid under the old policy, so sign-in must still try.
+    fillForm("founder@example.com", "old123");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("An account with this email already exists.");
+    expect(mocks.signIn).toHaveBeenCalledWith("founder@example.com", "old123");
   });
 
-  it("opens signup mode via ?mode=signup and preserves next when toggling", () => {
+  it("forwards the legacy ?mode=signup entry point to /auth/signup, keeping next", () => {
     renderAuth("/auth?mode=signup&next=%2Ffunding");
-    expect(screen.getByRole("heading", { name: "Create your account" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
-    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(screen.getByText("signup wizard")).toBeInTheDocument();
+    expect(screen.getByTestId("loc").textContent).toContain("/auth/signup");
     expect(screen.getByTestId("loc").textContent).toContain("next=%2Ffunding");
-    expect(screen.getByTestId("loc").textContent).not.toContain("mode=signup");
+  });
+
+  it("links to the signup wizard, preserving next", () => {
+    renderAuth("/auth?next=%2Ffunding");
+    expect(screen.getByRole("link", { name: "Create an account" })).toHaveAttribute(
+      "href",
+      "/auth/signup?next=%2Ffunding"
+    );
+  });
+
+  describe("provider callback failures", () => {
+    const original = window.location;
+
+    afterEach(() => {
+      Object.defineProperty(window, "location", { value: original, writable: true });
+    });
+
+    function stubLocation(search: string, hash: string) {
+      Object.defineProperty(window, "location", {
+        value: { ...original, pathname: "/auth", search, hash },
+        writable: true,
+      });
+      vi.spyOn(window.history, "replaceState").mockImplementation(() => {});
+    }
+
+    it("surfaces an OAuth error carried on the query string", async () => {
+      stubLocation("?error=access_denied&error_code=access_denied", "");
+      renderAuth("/auth");
+
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent("Sign-in cancelled");
+    });
+
+    it("surfaces an error carried on the hash fragment", async () => {
+      stubLocation("", "#error=access_denied&error_code=otp_expired");
+      renderAuth("/auth");
+
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent("Link expired");
+    });
+
+    it("explains a misconfigured provider without leaking the raw message", async () => {
+      stubLocation("?error_code=validation_failed", "");
+      renderAuth("/auth");
+
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent("That sign-in method is unavailable");
+      expect(alert).not.toHaveTextContent("OAuth secret");
+    });
+
+    it("scrubs the error params from the URL so a refresh doesn't repeat them", async () => {
+      stubLocation("?error_code=access_denied&next=%2Ffunding", "");
+      renderAuth("/auth");
+
+      await screen.findByRole("alert");
+      const [, , url] = vi.mocked(window.history.replaceState).mock.calls[0];
+      expect(url).toBe("/auth?next=%2Ffunding");
+    });
   });
 });

@@ -10,8 +10,10 @@
     <!-- Staff tooling: never index, never follow. -->
     <meta name="robots" content="noindex, nofollow" />
 
-    <link rel="icon" href="/admin/favicon.ico" sizes="48x48" />
-    <link rel="icon" type="image/svg+xml" href="/admin/favicon.svg" />
+    <!-- Rooted, WITHOUT the /admin prefix: Vite prepends `base` ("/admin/") to
+         these itself, so hardcoding it here yields /admin/admin/favicon.ico. -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
 
   <body>

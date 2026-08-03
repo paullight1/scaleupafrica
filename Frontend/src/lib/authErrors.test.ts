@@ -22,7 +22,7 @@ describe("mapAuthError", () => {
 
   it("maps weak_password", () => {
     expect(mapAuthError({ code: "weak_password" }).message).toBe(
-      "Please choose a longer password (at least 6 characters)."
+      "Please choose a longer password (at least 8 characters)."
     );
   });
 

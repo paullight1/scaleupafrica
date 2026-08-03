@@ -6,6 +6,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { chargeMatchesPayment, decideChargeGrant, mapPaystackStatus, paystackFetch } from "../_shared/paystack.ts";
+import { sendPaymentReceipt } from "../_shared/email/receipt.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -73,6 +74,10 @@ Deno.serve(async (req) => {
           console.error("paystack-verify: grant_annual_access failed", reference, rpcErr.message);
           return json({ status: "pending" }, 200);
         }
+
+        // Shares the `receipt:<paymentId>` idempotency key with paystack-webhook,
+        // so whichever path settles first is the only one that mails the customer.
+        await sendPaymentReceipt(admin as never, payment.id, Deno.env.toObject());
       }
     }
 

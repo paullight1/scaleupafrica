@@ -13,6 +13,7 @@ import { getMySubscription } from "@/lib/api/subscriptions";
 import { listCuratedFunding } from "@/lib/api/funding";
 import type {
   FundingOpportunity,
+  FundingTeaser,
   Profile,
   SavedOpportunityWithFunding,
   Subscription,
@@ -42,6 +43,7 @@ export const qk = {
   myProfile: (uid: string) => ["profile", "me", uid] as const,
   mySubscription: (uid: string) => ["subscription", "me", uid] as const,
   fundingFeed: () => ["funding", "feed"] as const,
+  fundingTeaser: () => ["funding", "teaser"] as const,
   savedOpps: (uid: string) => ["funding", "saved", uid] as const,
   myPreferences: (uid: string) => ["preferences", "me", uid] as const,
 };
@@ -174,6 +176,58 @@ export function useFundingFeed(): UseQueryResult<FundingOpportunity[]> {
         .limit(100);
       if (error) throw error;
       return (data ?? []) as FundingOpportunity[];
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Funding teaser (signed-in NON-members)
+// ---------------------------------------------------------------------------
+/**
+ * RLS hides every `funding_opportunities` row from a non-member, so the feed
+ * query above returns an empty array for them — which used to render as "the
+ * curated feed is being prepared", i.e. we told prospects the product was
+ * broken instead of paid. This reads the `funding_teaser` RPC
+ * (20260802120000) instead: a few real rows with the advertising columns only.
+ *
+ * Pass `enabled: false` for members — they get the real feed and must never pay
+ * for a redundant round-trip. The RPC is not in the generated types (it post-
+ * dates the last regeneration), hence the narrow cast.
+ */
+export function useFundingTeaser(enabled: boolean): UseQueryResult<FundingTeaser> {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.fundingTeaser(),
+    enabled: enabled && !!user,
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<FundingTeaser> => {
+      const rpc = (supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+      }).rpc;
+      const { data, error } = await rpc("funding_teaser", { _limit: 3 });
+      if (error) throw error;
+
+      const rows = (data ?? []) as Array<{
+        id: string;
+        title: string;
+        funder: string;
+        type: string | null;
+        deadline: string | null;
+        total_published: number | string;
+      }>;
+
+      return {
+        items: rows.map((r) => ({
+          id: r.id,
+          title: r.title,
+          funder: r.funder,
+          type: r.type,
+          deadline: r.deadline,
+        })),
+        // Postgres BIGINT arrives as a string over PostgREST. Coerce once, here,
+        // so no consumer ever renders "18" + 1 === "181".
+        totalPublished: rows.length ? Number(rows[0].total_published) : 0,
+      };
     },
   });
 }

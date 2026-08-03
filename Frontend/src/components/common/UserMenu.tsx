@@ -5,6 +5,7 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { mapAuthError } from "@/lib/authErrors";
 import { DEFAULT_AUTHED_ROUTE } from "@shared/lib/routes";
+import { adminUrl } from "@shared/lib/crossApp";
 import { Avatar, AvatarFallback, AvatarImage } from "@shared/components/ui/avatar";
 import {
   DropdownMenu,
@@ -78,20 +79,21 @@ export function UserMenu() {
         )}
         {/* TODO(plan-04): retarget to /directory/:slug once public profiles ship. */}
         <DropdownMenuItem asChild>
-          <Link to="/directory/create">
+          <Link to="/dashboard/profile/edit">
             <UserRound className="mr-2 h-4 w-4" /> My profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/funding">
+          <Link to="/dashboard/funding">
             <Compass className="mr-2 h-4 w-4" /> Funding
           </Link>
         </DropdownMenuItem>
         {isStaff && (
           <DropdownMenuItem asChild>
-            <Link to="/admin">
+            {/* Real document navigation — /admin is the other bundle, not a route here. */}
+            <a href={adminUrl()}>
               <ShieldCheck className="mr-2 h-4 w-4" /> Admin panel
-            </Link>
+            </a>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />

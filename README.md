@@ -11,7 +11,7 @@ open; the Funding Radar is available to members with an active subscription.
   React Router v6, TanStack Query, Framer Motion.
 - **Backend (current):** [Supabase](https://supabase.com) — auth, Postgres with Row-Level Security,
   storage, and edge functions (Deno).
-- **API server (in progress):** a NestJS + Drizzle service under `server/` is being introduced —
+- **API server (in progress):** a NestJS + Drizzle service under `Backend/` is being introduced —
   see `docs/plans/07` for scope and migration status.
 - **Testing:** Vitest + Testing Library (jsdom).
 
@@ -19,40 +19,62 @@ open; the Funding Radar is available to members with an active subscription.
 
 **Prerequisites:** Node.js 20+ (bun also supported).
 
+This is an npm workspaces monorepo — always run commands from the repo root.
+
 ```sh
-# 1. Install dependencies
-npm install          # or: bun install
+# 1. Install every workspace
+npm install
 
-# 2. Configure environment
-cp .env.example .env # then fill in your Supabase project values
+# 2. Configure environment (per web app)
+cp Frontend/.env.example Frontend/.env      # then fill in your Supabase project values
+cp AdminPanel/.env.example AdminPanel/.env
 
-# 3. Start the dev server
-npm run dev          # http://localhost:8080
+# 3. Start whichever app you're working on
+npm run dev          # public site   http://localhost:8080
+npm run dev:admin    # admin panel   http://localhost:8081/admin/
+npm run dev:api      # NestJS API    http://localhost:3001
 ```
 
 ## Scripts
 
-| Script              | Description                                  |
-| ------------------- | -------------------------------------------- |
-| `npm run dev`       | Start the Vite dev server on port 8080       |
-| `npm run build`     | Production build to `dist/`                  |
-| `npm run build:dev` | Build with development mode settings         |
-| `npm run lint`      | Run ESLint                                   |
-| `npm run preview`   | Preview the production build locally         |
-| `npm test`          | Run the Vitest suite once                    |
-| `npm run test:watch`| Run Vitest in watch mode                     |
+Run these from the repo root:
 
-Run a single test file with `npx vitest run <path/to/file.test.ts>`.
+| Script                | Description                                             |
+| --------------------- | ------------------------------------------------------- |
+| `npm run dev`         | Public site dev server on port 8080                     |
+| `npm run dev:admin`   | Admin panel dev server on port 8081                     |
+| `npm run dev:api`     | NestJS API dev server on port 3001                      |
+| `npm run build`       | Production build of both web apps                       |
+| `npm run build:web`   | Build the public site only → `Frontend/dist/`           |
+| `npm run build:admin` | Build the admin panel only → `AdminPanel/dist/`         |
+| `npm run build:api`   | Build the API → `Backend/dist/`                         |
+| `npm run lint`        | ESLint across both web apps                             |
+| `npm test`            | Run every workspace's tests once                        |
+| `npm run assets`      | Regenerate branding assets from their SVG sources       |
+
+Target one workspace with `--workspace`, e.g. `npm run test --workspace Shared`, or a single file
+with `npm test --workspace Frontend -- src/lib/url.test.ts`.
 
 ## Environment
 
-Frontend variables (all prefixed `VITE_`, safe to expose to the client):
+Web-app variables (all prefixed `VITE_`, safe to expose to the client). Both `Frontend/.env` and
+`AdminPanel/.env` need the Supabase trio:
 
-| Variable                        | Description                              |
-| ------------------------------- | ---------------------------------------- |
-| `VITE_SUPABASE_URL`             | Supabase project URL                     |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/publishable key            |
-| `VITE_SUPABASE_PROJECT_ID`      | Supabase project ref/ID                  |
+| Variable                        | Description                                              |
+| ------------------------------- | -------------------------------------------------------- |
+| `VITE_SUPABASE_URL`             | Supabase project URL                                     |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/publishable key                            |
+| `VITE_SUPABASE_PROJECT_ID`      | Supabase project ref/ID                                  |
+| `VITE_SITE_URL`                 | AdminPanel only — public site origin                      |
+| `VITE_ADMIN_URL`                | Frontend only — admin panel origin                        |
+
+The last two are **cross-app origins**. The two apps have separate routers, so links between them
+are real document navigations; each app has to know where the other is served. In production they
+share one host (site at `/`, panel at `/admin/`), so both stay unset and the links are rooted paths.
+In dev they are two Vite servers on two ports, so both are set in the committed `.env.development`
+files — Vite loads those for `vite dev` only, never for a build, so `localhost` can't leak into a
+deploy. Without them the panel bounces anonymous users to `:8081/auth` and its own dev server
+(base `/admin/`) answers *"did you mean to visit /admin/auth?"*.
 
 Edge-function secrets (set on the Supabase function, never in the client bundle): the
 `aggregate-funding` function reads an AI-gateway API key from its environment to curate funding
@@ -61,37 +83,58 @@ opportunities. See `supabase/functions/aggregate-funding/`.
 ## Project structure
 
 ```
-src/
-  pages/                 route components (directory, funding, auth, dashboard, admin, marketing)
-  components/
-    ui/                  shadcn/ui primitives
-    common/              shared app primitives (SEO, layouts, states, header/footer)
-    landing/             marketing landing sections
-  integrations/supabase/ Supabase client + generated types
-  hooks/ lib/            auth, queries, helpers
-supabase/
-  migrations/            SQL schema + RLS policies
-  functions/             Deno edge functions
+Frontend/                public site (Vite SPA, port 8080)
+  src/pages/             directory, funding, auth, dashboard, resources, blog, marketing
+  src/components/        landing, directory, funding, dashboard, billing, blog sections
+  src/lib/ src/hooks/    app-specific queries, schemas and helpers
+  public/                favicon set, og-banner, robots.txt, sitemap
+
+AdminPanel/              staff admin panel (Vite SPA, port 8081, built under /admin/)
+  src/pages/             dashboard, resources/blog/funding CMS, users, leads, newsletter, audit
+  src/components/        AdminGuard, AdminLayout, FileUpload
+  src/hooks/queries/     admin data hooks
+
+Shared/                  imported by both apps as @shared/* — never the reverse
+  src/components/ui/     shadcn/ui primitives
+  src/components/common/ cross-app primitives (SEO, states, PageHeader, StatCard)
+  src/hooks/             useAuth, useRole, sign-out cleanup registry
+  src/integrations/      Supabase client + generated types
+  src/lib/               utils, analytics, audit, routes, cross-app navigation
+  src/styles/index.css   design tokens
+  tailwind.preset.ts     the design system as a Tailwind preset
+  contracts/             zod API contracts (also imported by Backend)
+  src/test/              design-system guards that sweep all three apps
+
+Backend/                 NestJS + Drizzle API (port 3001)
+supabase/migrations/     SQL schema + RLS policies
+supabase/functions/      Deno edge functions
 scripts/                 branding asset sources + generation (og-banner, favicon)
 docs/plans/              implementation plans
 ```
 
 ## Deploy
 
-The app is a static SPA. Build and host the output on any static host:
+Both web apps are static SPAs.
 
 ```sh
-npm run build            # outputs dist/
+npm run build            # Frontend/dist/ and AdminPanel/dist/
 ```
 
-Host `dist/` on Vercel, Netlify, or Cloudflare Pages with an SPA fallback to `index.html` (so
-client-side routes resolve). Apply database changes with `supabase db push`, and deploy edge
-functions with `supabase functions deploy aggregate-funding`.
+Host on Vercel, Netlify, or Cloudflare Pages:
+
+- Serve `Frontend/dist/` at the site root, with an SPA fallback to `/index.html`.
+- Serve `AdminPanel/dist/` at `/admin/`, with an SPA fallback to `/admin/index.html`. The panel is
+  built with Vite `base: "/admin/"`, so its assets already resolve under that prefix. To host it on
+  a separate domain instead, serve it at that host's root and set `VITE_SITE_URL` in
+  `AdminPanel/.env` so "back to site" and the sign-in redirect point at the public app.
+
+Apply database changes with `supabase db push`, and deploy edge functions with
+`supabase functions deploy aggregate-funding`.
 
 To regenerate branding assets (favicon set + social banner) from their SVG sources:
 
 ```sh
-bash scripts/generate-assets.sh
+npm run assets
 ```
 
 ## License & contact
