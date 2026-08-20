@@ -7,7 +7,6 @@ import { HealthModule } from "./health/health.module";
 import { ProfilesModule } from "./profiles/profiles.module";
 import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
 import { FundingModule } from "./funding/funding.module";
-import { WebhooksModule } from "./webhooks/webhooks.module";
 import { OgModule } from "./directory/og.module";
 import { AllExceptionsFilter } from "./common/http-exception.filter";
 
@@ -21,7 +20,6 @@ import { AllExceptionsFilter } from "./common/http-exception.filter";
     ProfilesModule,
     SubscriptionsModule,
     FundingModule,
-    WebhooksModule,
     OgModule,
   ],
   providers: [
