@@ -21,8 +21,10 @@
     "assemble": "node scripts/assemble-dist.mjs",
     "build:admin": "npm run build --workspace AdminPanel",
     "build:api": "npm run build --workspace Backend",
-    "lint": "npm run lint --workspace Frontend && npm run lint --workspace AdminPanel",
+    "lint": "npm run lint --workspace Frontend && npm run lint --workspace AdminPanel && npm run lint --workspace Backend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run build:api",
     "assets": "bash scripts/generate-assets.sh"
   },
   "devDependencies": {
