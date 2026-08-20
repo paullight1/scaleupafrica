@@ -1,22 +1,21 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-
-/** Keep in step with Shared/src/lib/siteMeta.ts and scripts/generate-sitemap.mjs. */
-const DEFAULT_SITE_ORIGIN = "https://cresciva.vercel.app";
+import { DEFAULT_SITE_ORIGIN, normalizeSiteOrigin } from "../config/site-origin.js";
 
 /**
- * Substitutes %SITE_ORIGIN% in index.html.
+ * Substitutes %SITE_ORIGIN% in index.html using the same default-origin contract
+ * as runtime metadata and sitemap/robots generation.
  *
  * The static tags in index.html are the ones that matter for link previews:
  * Facebook, LinkedIn, Slack and X do not execute JavaScript, so they never see
  * anything <SEO> writes at runtime. They have to be absolute and correct at
- * build time, which means the origin can't be a hardcoded literal in the HTML.
+ * build time.
  */
 const siteOrigin = (mode: string) => {
-  const origin = (
-    loadEnv(mode, path.resolve(__dirname), "VITE_").VITE_SITE_ORIGIN ?? DEFAULT_SITE_ORIGIN
-  ).replace(/\/+$/, "");
+  const origin = normalizeSiteOrigin(
+    loadEnv(mode, path.resolve(__dirname), "VITE_").VITE_SITE_ORIGIN ?? DEFAULT_SITE_ORIGIN,
+  );
   return {
     name: "html-site-origin",
     transformIndexHtml: {
