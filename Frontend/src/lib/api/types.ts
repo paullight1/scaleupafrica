@@ -1,6 +1,6 @@
 /**
- * Frontend view of the shared API contracts. TYPE-ONLY re-export so the Vite bundle
- * never pulls the server's zod runtime — the single source of truth lives in
- * shared/contracts/ (also runtime-imported by the NestJS API). See FOUNDATION §8.3.
+ * Frontend view of the shared API contracts. TYPE-ONLY re-export so the Vite
+ * bundle does not pull the server's zod runtime. The single source of truth
+ * lives in Shared/contracts/ and is also consumed by the NestJS API.
  */
-export type * from "../../../shared/contracts";
+export type * from "../../../../Shared/contracts";
