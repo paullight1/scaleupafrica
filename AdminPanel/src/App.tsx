@@ -23,6 +23,7 @@ const AdminBlogEdit = lazy(() => import("./pages/AdminBlogEdit"));
 const AdminFunding = lazy(() => import("./pages/AdminFunding"));
 const AdminLeads = lazy(() => import("./pages/AdminLeads"));
 const AdminNewsletter = lazy(() => import("./pages/AdminNewsletter"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 
@@ -89,6 +90,14 @@ const App = () => (
                   element={
                     <AdminGuard require="admin">
                       <AdminNewsletter />
+                    </AdminGuard>
+                  }
+                />
+                <Route
+                  path="payments"
+                  element={
+                    <AdminGuard require="admin">
+                      <AdminPayments />
                     </AdminGuard>
                   }
                 />
