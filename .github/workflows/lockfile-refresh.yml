@@ -1,0 +1,36 @@
+name: Lockfile refresh
+
+on:
+  push:
+    branches: [docs/cresciva-production-readiness]
+    paths: [.github/lockfile-refresh]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.repository == 'paullight1/scaleupafrica'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cresciva-production-readiness
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Refresh lockfile only
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit deterministic lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "Lockfile already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(deps): refresh lockfile for security updates"
+          git push origin HEAD:docs/cresciva-production-readiness
