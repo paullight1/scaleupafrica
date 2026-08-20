@@ -1,13 +1,14 @@
 // bachs-verify — POST, user JWT required.
 //
-// The browser receives only a Bachs checkout_id on the success redirect. This
-// endpoint retrieves the checkout from Bachs, resolves its Cresciva reference,
-// verifies ownership/amount/currency, and uses the same atomic grant routine as
-// the webhook. Redirect state itself is never trusted as proof of payment.
+// The callback carries Cresciva's random internal payment reference, not proof of
+// payment. We load the caller-owned ledger row, recover the provider checkout_id
+// persisted at initialization, retrieve Bachs server-side, and revalidate exact
+// settlement before the same atomic grant routine used by the webhook.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   bachsFetch,
+  crescivaReferenceFromCheckout,
   decideBachsGrant,
   isBachsTerminalSuccess,
   resolveBachsBaseUrl,
@@ -49,34 +50,15 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: "Please sign in to continue.", code: "UNAUTHORIZED" }, 401);
 
     const body = await req.json().catch(() => ({}));
-    const checkoutId = typeof body.checkout_id === "string" ? body.checkout_id.trim() : "";
-    if (!/^chk_[A-Za-z0-9_-]{4,120}$/.test(checkoutId)) {
-      return json({ error: "Missing or invalid checkout ID.", code: "MISSING_CHECKOUT" }, 400);
-    }
-
-    const checkoutResult = await bachsFetch<BachsCheckout>(
-      `/v1/checkout-sessions/${encodeURIComponent(checkoutId)}`,
-      BACHS_SECRET_KEY,
-      bachsBaseUrl,
-      { method: "GET", signal: AbortSignal.timeout(20_000) },
-    );
-
-    if (!checkoutResult.ok || !checkoutResult.json?.checkout_id) {
-      console.warn("bachs-verify: checkout not ready", checkoutId, checkoutResult.status);
-      return json({ status: "pending" satisfies VerifyStatus }, 200);
-    }
-
-    const checkout = checkoutResult.json;
-    const reference = checkout.reference?.trim() ?? "";
-    if (!reference) {
-      console.error("bachs-verify: checkout missing Cresciva reference", checkoutId);
-      return json({ status: "pending" satisfies VerifyStatus }, 200);
+    const reference = typeof body.reference === "string" ? body.reference.trim() : "";
+    if (!/^crv_[A-Za-z0-9-]{8,120}$/.test(reference)) {
+      return json({ error: "Missing or invalid payment reference.", code: "MISSING_REFERENCE" }, 400);
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
     const { data: payment, error: paymentReadError } = await admin
       .from("payments")
-      .select("id, amount, currency, status, user_id")
+      .select("id, amount, currency, status, user_id, gateway_response")
       .eq("provider", "bachs")
       .eq("reference", reference)
       .maybeSingle();
@@ -85,18 +67,37 @@ Deno.serve(async (req) => {
       return json({ status: "pending" satisfies VerifyStatus }, 200);
     }
     if (!payment) return json({ error: "Payment not found.", code: "NOT_FOUND" }, 404);
-    if (payment.user_id !== user.id) {
-      return json({ error: "Forbidden.", code: "FORBIDDEN" }, 403);
-    }
-
+    if (payment.user_id !== user.id) return json({ error: "Forbidden.", code: "FORBIDDEN" }, 403);
     if (payment.status === "success") {
       return json({ status: "success" satisfies VerifyStatus }, 200);
     }
 
-    const providerStatus = mapCheckoutStatus(checkout);
-    if (providerStatus === "pending") {
+    const checkoutId = objectString(payment.gateway_response, "checkout_id");
+    if (!checkoutId || !/^chk_[A-Za-z0-9_-]{4,120}$/.test(checkoutId)) {
+      console.error("bachs-verify: ledger missing checkout linkage", reference);
       return json({ status: "pending" satisfies VerifyStatus }, 200);
     }
+
+    const checkoutResult = await bachsFetch<BachsCheckout>(
+      `/v1/checkout-sessions/${encodeURIComponent(checkoutId)}`,
+      BACHS_SECRET_KEY,
+      bachsBaseUrl,
+      { method: "GET", signal: AbortSignal.timeout(20_000) },
+    );
+    if (!checkoutResult.ok || !checkoutResult.json?.checkout_id) {
+      console.warn("bachs-verify: checkout not ready", checkoutId, checkoutResult.status);
+      return json({ status: "pending" satisfies VerifyStatus }, 200);
+    }
+
+    const checkout = checkoutResult.json;
+    const providerReference = crescivaReferenceFromCheckout(checkout);
+    if (providerReference && providerReference !== reference) {
+      console.error("bachs-verify: provider metadata reference mismatch", checkoutId);
+      return json({ status: "failed" satisfies VerifyStatus, code: "MISMATCH" }, 200);
+    }
+
+    const providerStatus = mapCheckoutStatus(checkout);
+    if (providerStatus === "pending") return json({ status: "pending" satisfies VerifyStatus }, 200);
 
     const safeSummary = safeBachsCheckoutSummary(checkout);
 
@@ -122,15 +123,13 @@ Deno.serve(async (req) => {
       console.error("bachs-verify: amount/currency mismatch", reference);
       return json({ status: "failed" satisfies VerifyStatus, code: "MISMATCH" }, 200);
     }
-    if (decision.action === "ignore") {
-      return json({ status: "pending" satisfies VerifyStatus }, 200);
-    }
+    if (decision.action === "ignore") return json({ status: "pending" satisfies VerifyStatus }, 200);
 
     const { error: summaryWriteError } = await admin
       .from("payments")
       .update({
         channel: checkout.payment_method ?? null,
-        gateway_response: safeSummary,
+        gateway_response: { ...safeSummary, checkout_id: checkoutId },
         paid_at: checkout.completed_at ?? new Date().toISOString(),
       })
       .eq("id", payment.id);
@@ -160,10 +159,7 @@ Deno.serve(async (req) => {
 function mapCheckoutStatus(checkout: BachsCheckout): VerifyStatus {
   const paymentStatus = String(checkout.payment_status ?? "").toLowerCase();
   const checkoutStatus = String(checkout.status ?? "").toLowerCase();
-
-  if (paymentStatus === "succeeded" && isBachsTerminalSuccess(checkout.charge?.status)) {
-    return "success";
-  }
+  if (paymentStatus === "succeeded" && isBachsTerminalSuccess(checkout.charge?.status)) return "success";
   if (
     paymentStatus === "failed" ||
     paymentStatus === "canceled" ||
@@ -174,6 +170,12 @@ function mapCheckoutStatus(checkout: BachsCheckout): VerifyStatus {
     return "failed";
   }
   return "pending";
+}
+
+function objectString(value: unknown, key: string): string | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = (value as Record<string, unknown>)[key];
+  return typeof candidate === "string" && candidate.trim() ? candidate.trim() : null;
 }
 
 function json(data: unknown, status = 200) {
