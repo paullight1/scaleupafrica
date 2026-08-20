@@ -4,7 +4,7 @@ import {
   decideBachsGrant,
   type BachsCheckout,
   type CrescivaPaymentLite,
-} from "../../supabase/functions/_shared/bachs.ts";
+} from "../../supabase/functions/_shared/bachs";
 
 const payment: CrescivaPaymentLite = {
   amount: 20_000,
