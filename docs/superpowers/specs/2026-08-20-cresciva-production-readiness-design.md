@@ -7,218 +7,202 @@
 
 ## 1. Purpose
 
-Cresciva is no longer an early Lovable prototype. The current repository is a four-workspace npm monorepo (`Frontend`, `AdminPanel`, `Shared`, `Backend`) with Supabase Auth/Postgres/Storage/Edge Functions, a NestJS + Drizzle API path, Paystack payments, member-gated funding intelligence, an SME directory, content/admin tooling, transactional email, route-level code splitting, SEO infrastructure, and a substantial automated test suite.
+Cresciva is no longer an early generated prototype. The repository is a four-workspace npm monorepo (`Frontend`, `AdminPanel`, `Shared`, `Backend`) with Supabase Auth/Postgres/Storage/Edge Functions, a NestJS + Drizzle API path, Bachs payments, member-gated funding intelligence, an SME directory, content/admin tooling, transactional email, route-level code splitting, SEO infrastructure, and a substantial automated-test surface.
 
-The remaining work is therefore not another feature-build wave. It is a **launch-hardening program** whose purpose is to prove that the existing product can safely accept users, personal/business data, payments, and AI workload under real production failure conditions.
+The remaining work is a **launch-hardening program** whose purpose is to prove that the existing product can safely accept users, business data, payments, and AI workload under real production failure conditions.
 
-This design supersedes any production-readiness assumptions based on the July 2026 `IMPROVEMENTS.md`. That document remains useful as historical context, but many of its former P0/P1 findings have already been implemented.
+This design supersedes July-era production-readiness assumptions. Historical `IMPROVEMENTS.md` material may remain as archive but must not be treated as the current P0/P1 list.
 
-## 2. Current-State Baseline
+## 2. Current-state baseline
 
 ### 2.1 Rebrand
 
-The product source is Cresciva even though the GitHub repository is still named `scaleupafrica`.
+The application source is Cresciva even though the GitHub repository remains named `scaleupafrica`.
 
-Current evidence:
+Current evidence includes Cresciva package names, README, metadata, brand assets, admin identity and shared SEO identity. Remaining naming work is operational: repository/project aliases, external OAuth/email/payment branding, public support identity and any future owned custom domain.
 
-- Root package name is `cresciva`.
-- Frontend package is `@cresciva/frontend`.
-- Backend package is `cresciva-api`.
-- README is headed `# Cresciva`.
-- Frontend static metadata, OpenGraph metadata, favicon sources, and shared `SITE_NAME` use Cresciva.
-- `Shared/src/lib/siteMeta.ts` centrally owns `SITE_NAME`, `SITE_ORIGIN`, and OG defaults for runtime metadata.
+### 2.2 Existing product capabilities
 
-Remaining naming work is operational rather than a missing application rebrand: repository name, deployment/project aliases, canonical production origin, external OAuth/email/payment branding, and support/legal identity must all agree before launch.
-
-### 2.2 Product capabilities already implemented
-
-The launch plan must preserve, verify, and harden these existing capabilities rather than rebuild them:
+The launch program preserves and hardens these capabilities rather than rebuilding them:
 
 - Email/password auth plus forgot/reset routes.
 - Auth-aware global layout and private dashboard.
-- Public directory with server/database search, facets, infinite pagination, profile slugs, public profile detail pages, and contact-visibility controls.
-- Paystack initialization, callback verification, webhook settlement, payment audit records, annual-access grant RPC, receipt email, and billing UI.
-- Funding Radar subscription checks, seven-day per-user cache, three uncached searches/hour, 60-second model timeout, schema validation, sanitization, and persisted results.
-- Public content, legal routes, contact/newsletter/resource email flows, and admin CMS.
+- Public directory with database search, facets, pagination, profile slugs/detail pages and contact visibility controls.
+- Bachs annual-entitlement checkout, callback verification, signed webhook settlement, internal payment ledger, atomic annual-access grant RPC, receipt email and billing UI.
+- Funding Radar subscription checks, seven-day cache, uncached-search rate limit, timeout, schema validation, sanitization and persisted results.
+- Public content/legal routes, contact/newsletter/resource email flows and admin CMS.
 - NestJS + Drizzle backend with shared contracts and per-domain cutover capability.
-- SEO canonical/OG infrastructure, generated sitemap, route-level lazy loading, reduced-motion support, and common loading/error states.
+- SEO/canonical/OG infrastructure, generated sitemap, route-level lazy loading, reduced-motion support and common loading/error states.
 
 ### 2.3 Confirmed launch risks
 
-#### P0 — payment webhook acknowledgement correctness
+#### P0 — external payment certification is still required
 
-`supabase/functions/paystack-webhook/index.ts` currently treats `insErr || !inserted` as a duplicate and returns HTTP 200. Only PostgreSQL unique violation `23505` is a legitimate duplicate. A database outage, permission failure, schema mismatch, or other insert failure must return 5xx so Paystack retries the delivery.
+The repository-side Bachs path is hardened, but production cannot be called payment-certified until the real Bachs sandbox/live products, signing secret and Cresciva Supabase deployment are exercised end to end.
 
-Invalid-signature webhook traffic is also parsed and stored without an explicit request-body size cap. Rejected traffic should store minimal metadata only and should never become an unbounded storage path.
+The important invariants are now:
+
+- Bachs Checkout Sessions are product-based.
+- Cresciva uses one-time annual products only, never recurring Bachs products.
+- Browser cannot choose product price directly.
+- Callback uses Cresciva's internal payment reference only as a lookup key.
+- Signed `collection.succeeded` is fulfillment authority.
+- Provider amount/currency are revalidated against Cresciva's canonical ledger before access is granted.
+- Duplicate event rows with `processed=false` resume settlement; they are not blindly acknowledged.
 
 #### P0/P1 — release safety
 
-`main` is unprotected. The current HEAD has no GitHub status checks and no GitHub Actions workflow. Root `build` builds the two web workspaces but not `Backend`; root `lint` also excludes `Backend`. A production deployment can therefore be green while backend code is broken.
+The production-readiness branch adds a root `npm run verify` contract and GitHub Actions workflow, but `main` remains externally reported as unprotected and a successful required CI status has not yet been observed. A real PR run plus branch protection are mandatory before production release.
 
 #### P1 — production environment proof
 
-Repository code contains the required migrations/functions/configuration, but the connected Supabase account available to this review does not expose the Cresciva project ref (`dwyglydswegyvjowzdot`). The live deployment state of migrations, function versions, OAuth configuration, Paystack secrets/webhook URL, email secrets, backups, and production redirects cannot be assumed from source control.
-
-Production readiness requires an evidence-based environment inventory and smoke test.
+Repository code identifies the intended Supabase project ref (`dwyglydswegyvjowzdot`), but the connected Supabase account available to this session does not expose it. The connected Vercel team also exposes zero projects. Therefore migration state, deployed Edge Function versions, OAuth configuration, Bachs secrets/products/webhook endpoint, email identity and production rollback cannot be inferred from source control.
 
 #### P1 — funding provenance/freshness
 
-The deep-search path is now bounded and validated, but the model is still asked to recall 15–25 “real, verifiable” opportunities without a retrieval/source-verification step. Production trust requires a source-backed opportunity pipeline with provenance, freshness, verification state, and admin review. AI should rank, summarize, and personalize verified source records rather than act as the source of truth.
+Deep Search is bounded and validated, but verified funding still needs source-backed provenance, freshness and review rather than treating model memory as authoritative current data.
 
-#### P1 — canonical origin consistency
+#### P1 — production identity consistency
 
-`https://cresciva.vercel.app` is currently the fallback production origin in multiple build/runtime consumers. The fallback is deliberately safer than `window.location.origin`, but the literal is repeated. Before launch there must be one canonical origin contract, and every crawler-visible URL, Paystack callback, email link, sitemap, robots file, OAuth redirect, and API CORS rule must derive from the same production identity.
+The repeated origin literal has been replaced by a single `config/site-origin.js` contract consumed by runtime metadata, Vite static metadata and sitemap/robots generation. The remaining risk is external deployment alignment: `APP_URL`, OAuth redirects, email links, CORS and actual Vercel domains must match the chosen production identity.
 
 #### P1/P2 — type-safety ratchet
 
-Both the frontend and backend TypeScript configs still have `strict: false` and `noImplicitAny: false`. The latest dashboard commit narrows one `any` escape hatch correctly, but production hardening should continue as a staged ratchet so strictness rises without turning the launch program into an unrelated rewrite.
+Strict TypeScript is not globally enabled yet. Production hardening should continue as a staged ratchet rather than forcing a launch-delaying rewrite. The Phase 2 gate nonetheless typechecks every workspace.
 
 #### P2 — operational/legal closure
 
-The README still records unresolved license and support-contact ownership items. The application has legal routes, but launch readiness requires real company/support details, tested data-rights workflows, payment support/reconciliation procedures, and incident/support ownership.
+License, public support/contact ownership, data-rights procedures, payment support cadence and incident ownership still require operational closure before launch.
 
-## 3. Production Architecture
+## 3. Production architecture
 
 ### 3.1 Frontend and admin
 
-- `Frontend` remains the public/member SPA.
-- `AdminPanel` remains the staff application served under `/admin/` in the current Vercel assembly model.
-- `Shared` remains the only cross-app UI/contracts layer; neither app may import from the other.
-- `Frontend/dist` remains the assembled deploy artifact and contains the admin build at `/admin/`.
-- Production routing must be smoke-tested for direct deep links, not just homepage navigation.
+- `Frontend` is the public/member SPA.
+- `AdminPanel` is served under `/admin/` in the assembled deployment artifact.
+- `Shared` remains the cross-app UI/contracts layer; neither app imports from the other.
+- `Frontend/dist` is the assembled web deployment artifact and contains the admin build at `/admin/`.
+- Production routing must be smoke-tested for direct deep links, not only homepage navigation.
 
 ### 3.2 Data and authorization
 
-Supabase remains the authoritative production datastore until a deliberate backend-domain cutover is completed.
+Supabase remains the authoritative datastore until a deliberate backend-domain cutover is completed.
 
-- RLS and column grants are mandatory for every exposed table.
-- `SECURITY DEFINER` routines must explicitly authorize the caller or be service-role-only and must revoke default PUBLIC execution.
-- Payment writes, entitlement writes, role changes, and other privileged mutations remain server-controlled.
-- Every production migration is tracked in source, applied in timestamp order, verified against live schema, and followed by generated client types where relevant.
+- RLS and explicit grants remain mandatory for exposed tables.
+- `SECURITY DEFINER` routines explicitly authorize callers or remain service-role-only and revoke unsafe PUBLIC execution.
+- Payment writes, entitlement writes, role changes and other privileged mutations remain server-controlled.
+- Production migrations must match repository history and generated client types where applicable.
 
-### 3.3 Payments
+### 3.3 Payments — Bachs
 
-Paystack remains the payment provider for launch.
+Cresciva uses Bachs for hosted payment collection while Cresciva remains the entitlement system of record.
 
-The authoritative payment state machine is:
+Authoritative internal payment states remain:
 
 `initialized -> success | failed | abandoned`
 
 Settlement invariants:
 
-1. Client never controls amount.
-2. Payment reference is generated server-side.
-3. Callback verification verifies ownership plus amount/currency.
-4. Webhook verifies HMAC over the raw body before parsing actionable data.
-5. Only one database routine grants membership access.
-6. Duplicate webhook delivery is acknowledged only when duplicate identity is proven.
-7. Infrastructure failures return 5xx to preserve provider retry semantics.
-8. Every successful transaction is reconcilable from Paystack reference to payment row, subscription row, webhook event, and receipt event.
+1. Client never controls charge amount or arbitrary Bachs product ID.
+2. Canonical annual prices live in Cresciva server code/ledger.
+3. `BACHS_ANNUAL_PRODUCT_NGN` and `BACHS_ANNUAL_PRODUCT_USD` identify preconfigured **one-time** Bachs products whose prices must equal those canonical amounts.
+4. Payment reference is generated server-side as `crv_<uuid>`.
+5. Bachs return URL contains the internal reference; it is never payment proof.
+6. Callback verification requires caller ownership, resolves the stored `checkout_id`, retrieves Bachs server-side, and revalidates settlement/amount/currency.
+7. Webhook verifies HMAC-SHA256 over `${timestamp}.${raw_body}` before actionable parsing and rejects stale delivery.
+8. `collection.succeeded` is the settlement/fulfillment event; `checkout.completed` is audit-only.
+9. Duplicate event identity is based on Bachs event ID; unprocessed duplicate events resume work.
+10. Infrastructure failures return 5xx so Bachs can retry.
+11. Only `grant_annual_access(_payment_id)` grants paid membership access.
+12. Every successful transaction is reconcilable from Bachs checkout/event to payment row, subscription row and receipt state.
+
+Bachs environment rules:
+
+- sandbox: `https://sandbox-api.bachs.io` + `sk_sandbox_…`;
+- live: `https://api.bachs.io` + `sk_live_…`;
+- key/base URL environment mismatch is rejected;
+- annual membership products have no billing cycle, preserving Cresciva's no-auto-renew model.
 
 ### 3.4 Funding intelligence
 
 Two lanes are supported:
 
-**Verified Feed** — source-backed, refreshed on a schedule, reviewable in admin, deduplicated, and suitable for ranking/personalization.
+**Verified Feed** — source-backed, refreshed, reviewable in admin, deduplicated and suitable for ranking/personalization.
 
-**Deep Search** — member-triggered AI enrichment with existing subscription, cache, rate-limit, timeout, and schema controls. Deep Search must progressively consume verified/retrieved source material rather than rely on model memory alone.
+**Deep Search** — member-triggered AI enrichment with existing subscription, cache, rate-limit, timeout and schema controls. Deep Search should progressively consume retrieved/verified sources rather than model memory alone.
 
-Every opportunity that is shown as “verified” must carry:
-
-- canonical source URL;
-- source/funder identity;
-- source retrieval timestamp;
-- opening/deadline data with explicit confidence/state;
-- verification timestamp and verification actor/process;
-- status (`open`, `upcoming`, `closed`, `unknown`);
-- last checked timestamp.
+Every opportunity shown as verified must eventually carry canonical source URL, funder identity, retrieval timestamp, opening/deadline state, verification timestamp/process, status and last-checked timestamp.
 
 ### 3.5 Backend cutover
 
-The NestJS API is not automatically required for launch simply because it exists. Cresciva must choose domain-by-domain based on evidence.
+The NestJS API is not automatically required for launch simply because it exists. Any domain enabled through API cutover must have build/typecheck/lint/test, production hosting, health, CORS, pooling, secrets, rate limits, logs and rollback evidence. Payment fulfillment remains single-homed in Supabase Edge Functions during the current hardening program to avoid competing authoritative processors.
 
-For any domain enabled through the API cutover flag:
-
-- backend build, typecheck, lint, and tests become mandatory CI gates;
-- production hosting, health check, CORS, connection pooling, secrets, rate limits, logs, and rollback path must be verified;
-- frontend can revert that domain to the direct Supabase path without a destructive database migration.
-
-If no backend domain is enabled at launch, the backend still participates in CI so the repository cannot silently decay.
-
-## 4. Quality Gates
-
-No phase is complete because code was written. Each phase requires evidence.
+## 4. Quality gates
 
 ### Gate A — deterministic repository verification
 
-From a clean clone with Node.js 20+ and the committed `package-lock.json`:
+Authoritative command:
 
 ```bash
 npm ci
-npm run lint
-npm run test
-npm run build
-npm run lint --workspace Backend
-npm run typecheck --workspace Backend
-npm run build:api
+npm run verify
 ```
 
-The CI phase will consolidate these into stable root scripts so the same gate is used locally and in GitHub Actions.
+`npm run verify` expands to lint, workspace typechecks, workspace tests, assembled Frontend/Admin build and Backend production build. GitHub Actions additionally Deno-checks active Supabase Edge Function entry points and asserts expected artifacts.
 
-### Gate B — payment certification
+### Gate B — Bachs payment certification
 
-Required test classes:
+Required classes:
 
-- duplicate webhook;
-- non-duplicate database insert failure;
-- invalid signature;
-- malformed JSON;
-- oversized body;
-- missing payment;
-- amount mismatch;
-- currency mismatch;
-- duplicate callback/webhook race;
+- valid product-based checkout creation;
+- wrong/missing product configuration;
+- duplicate webhook event;
+- event inserted but processing incomplete;
+- non-duplicate DB failure;
+- invalid/stale signature;
+- malformed/oversized body;
+- amount/currency mismatch;
+- `collection.underpaid`;
+- callback/webhook race;
 - entitlement RPC failure;
 - receipt failure;
-- Paystack temporary outage;
-- successful callback and webhook settlement;
-- reconciliation after partial failure.
+- Bachs temporary outage/retry;
+- successful settlement;
+- reconciliation after partial failure;
+- deliberately recurring product configuration rejected as launch setup.
 
 ### Gate C — security/data certification
 
-- Supabase security advisors reviewed with no unresolved critical/high issue accepted silently.
-- Performance advisors reviewed for launch-critical query paths.
-- RLS/column-grant tests cover anonymous, authenticated-owner, authenticated-other-user, staff/admin, and service-role boundaries.
-- Restore procedure is rehearsed against a non-production copy or documented recovery environment.
-- Secrets are absent from git and are scoped per environment.
+- Supabase security/performance advisors reviewed with no silently accepted critical/high issue.
+- RLS/grant tests cover anonymous, owner, other authenticated user, staff/admin and service-role boundaries.
+- Restore procedure rehearsed against safe non-production data/environment.
+- Secrets absent from git and scoped per environment.
 
 ### Gate D — product acceptance
 
-Critical journeys must work on mobile and desktop:
+Critical journeys on mobile and desktop include:
 
-1. anonymous landing -> sign up -> confirm/login -> dashboard;
+1. landing -> signup/login -> dashboard;
 2. create/edit profile -> public profile -> contact reveal;
 3. directory search/filter/pagination;
-4. subscribe -> Paystack -> callback -> entitlement -> Funding Radar;
+4. annual membership -> Bachs hosted checkout -> reference callback/webhook -> entitlement -> Funding Radar;
 5. member funding feed/deep search -> save opportunity;
 6. forgot/reset password;
 7. contact/newsletter/resource delivery;
-8. admin auth -> content/funding/payment-support workflows;
+8. admin auth -> content/funding/payment reconciliation;
 9. account/sign-out/data-rights flows;
-10. direct deep-link refreshes for public, dashboard, callback, and `/admin/*` routes.
+10. direct deep-link refreshes for public, dashboard, callback and `/admin/*` routes.
 
 ### Gate E — launch operations
 
-- production dashboards and alerts exist before traffic;
-- rollback owner and rollback procedure are documented;
-- payment reconciliation cadence is documented;
-- incident severity and escalation rules are documented;
-- support channel and public support contact are real;
-- launch-day smoke checklist is executable by someone other than the implementer.
+- production dashboards/alerts before traffic;
+- rollback owner/procedure;
+- payment reconciliation cadence;
+- incident severity/escalation;
+- real public support channel;
+- launch-day smoke checklist executable by someone other than the implementer.
 
-## 5. Phase Model
-
-The launch-hardening program is divided into ten independently verifiable implementation phases plus a master roadmap:
+## 5. Phase model
 
 1. Payment Reliability & Ledger Integrity
 2. CI, Release Governance & Branch Protection
@@ -231,46 +215,46 @@ The launch-hardening program is divided into ten independently verifiable implem
 9. Legal, Privacy, Support & Operational Trust
 10. Launch Certification, Disaster Recovery & Go/No-Go
 
-These phases are intentionally different from `docs/plans/00`–`08`: those documents describe the product build. The new files describe the evidence and hardening needed to ship the already-built product.
+These phases differ from historical `docs/plans/00`–`08`: those describe product build; these describe hardening/evidence required to ship it.
 
-## 6. Dependency Order
+## 6. Dependency order
 
-- Phase 1 and Phase 2 start immediately and are P0/P1.
-- Phase 3 starts after Phase 2 establishes reproducible checks, but its inventory can be gathered in parallel.
-- Phase 4 depends on Phase 3 having a verified production Supabase target.
-- Phase 5 depends on Phase 4 data/security invariants.
-- Phase 6 depends on Phase 2 CI and Phase 3 environment inventory.
-- Phase 7 can run in parallel with Phases 4–6 after CI exists.
-- Phase 8 depends on the final deployment topology from Phases 3 and 6.
-- Phase 9 can run in parallel after Phase 3 establishes real domains/contact channels.
-- Phase 10 starts only when Phases 1–9 have passed their release gates or have an explicitly documented non-blocking exception approved by the product owner.
+- Phases 1 and 2 are immediate P0/P1 work.
+- Phase 3 inventory can proceed beside Phase 2, but live certification depends on correct cloud access.
+- Phase 4 requires the real Supabase target.
+- Phase 5 depends on data/security invariants.
+- Phase 6 depends on CI plus environment inventory.
+- Phase 7 can run in parallel after CI exists.
+- Phase 8 follows the final deployment topology.
+- Phase 9 can proceed once real production identity/contact channels are selected.
+- Phase 10 starts only after prior release gates are PASS or an explicitly approved non-P0 exception exists.
 
-## 7. Launch Severity Policy
+## 7. Launch severity policy
 
 - **P0:** can lose money, grant/revoke paid access incorrectly, expose sensitive data, or allow an unverified deployment to ship. Blocks launch.
 - **P1:** materially damages trust, correctness, security, recoverability, or core funnel reliability. Blocks public paid launch.
-- **P2:** materially improves scale, maintainability, accessibility, or operations but can be accepted temporarily with an explicit owner and mitigation.
-- **P3:** polish or optimization that does not materially change launch risk.
+- **P2:** material scale/maintainability/accessibility/operations work that may be accepted temporarily with explicit owner/mitigation.
+- **P3:** polish/optimization without material launch risk.
 
-No P0 may be waived. Any P1 waiver must be explicit, time-bounded, and recorded in the launch decision log.
+No P0 may be waived. P1 waivers must be explicit, time-bounded and recorded.
 
-## 8. Definition of Production Ready
+## 8. Definition of production ready
 
-Cresciva is production-ready when all of the following are true:
+Cresciva is production-ready only when:
 
-- Payment retry/idempotency behavior is correct under database and provider failures.
+- Bachs retry/idempotency/entitlement behavior is proven against the real sandbox/live configuration.
 - `main` cannot bypass required verification checks.
-- The deployed frontend/admin/backend topology and all Supabase Edge Functions are known, versioned, and smoke-tested.
-- Production domains, callback URLs, canonical URLs, email URLs, OAuth redirects, CORS origins, and sitemap/robots identity agree.
-- Supabase security/data advisors and RLS tests have no unresolved launch-blocking findings.
-- Funding opportunities presented as verified have inspectable source provenance and freshness.
-- Enabled backend domains have production health/rollback/monitoring evidence.
-- Mobile/desktop critical journeys pass automated and manual acceptance.
-- Error, payment, AI-cost, email, and availability signals are observable with actionable alerts.
-- Terms/privacy/support/company identity are real and user data/payment support procedures are operational.
-- Backup restore and rollback are rehearsed.
-- The final launch checklist is signed off with an explicit GO decision.
+- Frontend/admin/backend topology and Supabase Edge Functions are known, versioned and smoke-tested.
+- Production domains, callback/return URLs, canonical URLs, email URLs, OAuth redirects, CORS and sitemap/robots agree.
+- Supabase security/data advisors and RLS tests have no unresolved launch blockers.
+- Verified funding records have inspectable provenance/freshness.
+- Enabled backend domains have health/rollback/monitoring evidence.
+- Mobile/desktop critical journeys pass.
+- Error, payment, AI-cost, email and availability signals are observable with alerts.
+- Terms/privacy/support/company identity and payment/data-support procedures are operational.
+- Backup restore and deployment rollback are rehearsed.
+- Final launch checklist records an explicit GO.
 
-## 9. Out of Scope
+## 9. Out of scope
 
-The launch program does not redesign Cresciva from scratch, migrate away from Supabase without a proven need, replace Paystack, create unrelated new product features, or force a full TypeScript-strict rewrite before launch. Improvements are limited to work that increases correctness, security, reliability, trust, observability, performance, or launch operability.
+The launch program does not redesign Cresciva from scratch, force migration away from Supabase, introduce automatic recurring membership, create unrelated product features, or require a full strict-TypeScript rewrite before launch. Improvements are limited to correctness, security, reliability, trust, observability, performance and launch operability.
