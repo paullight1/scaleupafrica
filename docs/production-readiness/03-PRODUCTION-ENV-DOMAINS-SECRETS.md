@@ -1,90 +1,76 @@
 # Production Environment, Domains & Secrets Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** use the Superpowers executing-plans and verification-before-completion workflows for further environment changes.
 
 **Goal:** Prove that Cresciva's live environment matches the repository architecture and that every domain, callback, redirect, Edge Function, secret and deploy target points at the intended production identity.
 
-**Architecture:** Treat source control and cloud configuration as two halves of one release. Build a non-secret environment inventory, centralize the production-origin contract, verify Vercel/Supabase/Paystack/OAuth/email settings against that contract, and record smoke-test evidence before launch.
+**Architecture:** Source control and cloud configuration are two halves of one release. The repository owns a non-secret environment contract and one public-origin source; external launch certification proves Supabase, Vercel, Bachs, OAuth and email actually match it.
 
-**Tech Stack:** Vercel, Supabase, Paystack, Google OAuth, Resend/email configuration, Vite, React, NestJS.
+**Tech Stack:** Vercel, Supabase, Bachs, Google OAuth, Resend, Vite, React, NestJS.
 
-**Spec:** `docs/superpowers/specs/2026-08-20-cresciva-production-readiness-design.md`
+## Global constraints
 
-## Global Constraints
-
-- Never commit secret values.
-- The repository currently identifies the Supabase project ref as `dwyglydswegyvjowzdot`; verify live ownership/access before making changes.
-- One official production web origin must drive canonical links, sitemap/robots, Paystack callback URL, OAuth redirects, transactional-email links and API CORS.
-- `https://cresciva.vercel.app` may remain the canonical host only if it is intentionally the public production identity; otherwise the chosen custom domain becomes authoritative everywhere.
-- Preview deployments must not claim themselves as canonical.
-- Production configuration is not considered complete until a live smoke test proves it.
+- [x] Secret values are excluded from source/evidence.
+- [x] Repository identifies intended Supabase project as `dwyglydswegyvjowzdot`.
+- [x] One public-origin contract drives canonical links, static metadata, sitemap/robots and the Bachs `APP_URL` rule.
+- [x] Current default public origin is `https://cresciva.vercel.app` until an owned production domain is intentionally selected.
+- [x] `cresciva.com` is **not** assumed/used; public research shows that hostname belongs to an unrelated organization.
+- [ ] Preview deployments must be verified not to claim themselves canonical/indexable contrary to policy.
+- [ ] Production configuration is not complete until live smoke tests pass.
 
 ---
 
-### Task 1: Create the non-secret production environment inventory
+## Task 1 — Non-secret environment inventory
 
 **Files:**
-- Create: `docs/production-readiness/evidence/environment-inventory.md`
-- Modify: `README.md`
+- `docs/production-readiness/evidence/environment-inventory.md`
+- `README.md`
 
-**Interfaces:**
-- Evidence document lists identifiers and presence/status only, never secret values.
+- [x] Product identity recorded as Cresciva.
+- [x] Declared public origin recorded.
+- [x] Admin path recorded as `/admin/` on the same production artifact.
+- [x] Supabase project ref recorded.
+- [x] Bachs is recorded as payment provider and annual membership is one-time/non-recurring.
+- [x] Optional NestJS API cutover is recorded.
+- [x] Repository rename decision is recorded: defer until after launch certification.
+- [ ] Actual Vercel project ID/domain mapping is externally unverified.
+- [ ] Supabase project region/live ownership is externally unverified.
+- [ ] Production OAuth/email/provider states are externally unverified.
 
-- [ ] **Step 1: Record public deployment topology**
-
-Record:
-
-- public web production URL;
-- admin production URL/path;
-- Vercel project name/id and production branch;
-- Supabase project ref and region;
-- whether NestJS Backend is deployed and its base URL;
-- which `VITE_API_DOMAINS` are enabled in production;
-- Paystack mode (`test` or `live`);
-- email provider sending domain/status;
-- Google OAuth enabled/disabled state.
-
-- [ ] **Step 2: Record required environment variable presence by target**
-
-Use a table with `present`, `missing`, or `not-used` only.
-
-Frontend production:
+### Required Frontend/Admin public variables
 
 ```text
 VITE_SUPABASE_URL
 VITE_SUPABASE_PUBLISHABLE_KEY
 VITE_SUPABASE_PROJECT_ID
-VITE_SITE_ORIGIN
-VITE_ADMIN_URL
+VITE_SITE_ORIGIN          # Frontend optional override
+VITE_ADMIN_URL            # Frontend when admin is separate origin
+VITE_SITE_URL             # AdminPanel when site is separate origin
 VITE_API_URL
 VITE_API_DOMAINS
 ```
 
-Admin production:
-
-```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_PUBLISHABLE_KEY
-VITE_SUPABASE_PROJECT_ID
-VITE_SITE_URL
-```
-
-Supabase Edge Function environment:
+### Required Supabase Edge Function secret/config contract
 
 ```text
 SUPABASE_URL
 SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
-PAYSTACK_SECRET_KEY
-APP_URL
-LOVABLE_API_KEY
+BACHS_SECRET_KEY
+BACHS_BASE_URL
+BACHS_WEBHOOK_SIGNING_SECRET
+BACHS_ORGANIZATION_ID        # recommended merchant pin
+BACHS_ANNUAL_PRODUCT_NGN     # one-time product, exact canonical NGN annual price
+BACHS_ANNUAL_PRODUCT_USD     # one-time product, exact canonical USD annual price
+APP_URL                      # official Cresciva origin for this environment
+LOVABLE_API_KEY              # current funding gateway until later funding phase replaces it
 RESEND_API_KEY
 EMAIL_FROM
 EMAIL_TEAM_INBOX
 EMAIL_TOKEN_SECRET
 ```
 
-Backend production when deployed:
+### Backend when deployed
 
 ```text
 NODE_ENV
@@ -92,162 +78,153 @@ PORT
 DATABASE_URL
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
-SUPABASE_JWT_SECRET or verified JWKS configuration
+SUPABASE_JWT_SECRET or verified JWKS path
 CORS_ORIGINS
-PAYSTACK_SECRET_KEY
-AI gateway/model configuration used by the deployed Backend
+BACHS_SECRET_KEY
+BACHS_BASE_URL
+BACHS_WEBHOOK_SIGNING_SECRET
+BACHS_ORGANIZATION_ID
+AI_GATEWAY_URL
+AI_GATEWAY_KEY
+AI_MODEL
 ```
 
-- [ ] **Step 3: Update README operational section**
+Payment fulfillment remains intentionally single-homed in Supabase Edge Functions during these launch-hardening phases.
 
-Replace obsolete owner placeholders once real support/license decisions exist. Keep the README descriptive; detailed live identifiers remain in the evidence file.
-
-### Task 2: Centralize the production-origin contract
+## Task 2 — Single public-origin contract
 
 **Files:**
-- Modify: `Shared/src/lib/siteMeta.ts`
-- Modify: `Frontend/vite.config.ts`
-- Modify: `scripts/generate-sitemap.mjs`
-- Create: `scripts/site-origin.mjs` or another single build-time source that can be consumed by the sitemap/Vite build without importing browser-only `import.meta.env` code
-- Modify tests under `Shared/src/test/` or create a focused metadata contract test
+- `config/site-origin.js`
+- `Shared/src/lib/siteMeta.ts`
+- `Frontend/vite.config.ts`
+- `scripts/generate-sitemap.mjs`
+- `Shared/src/test/site-origin-contract.test.ts`
 
-**Interfaces:**
-- Browser/runtime and build-time consumers resolve the same default production origin.
-- `VITE_SITE_ORIGIN` remains the deployment override.
+- [x] Default production-origin literal lives in one build-safe config module.
+- [x] Runtime SEO metadata imports the contract.
+- [x] Vite static HTML transform imports the contract.
+- [x] Sitemap/robots generator imports the contract.
+- [x] Contract test rejects drift/duplicate literal use in those consumers.
+- [x] `VITE_SITE_ORIGIN` remains deployment override.
+- [x] `APP_URL` is documented to equal the official public origin for the relevant Bachs environment.
+- [ ] Generated production HTML/sitemap/robots still require fresh CI/build evidence from Phase 2.
 
-- [ ] **Step 1: Write a failing consistency test**
+## Task 3 — Certify live Supabase schema and Edge Functions
 
-The test must fail if HTML metadata, shared runtime metadata and sitemap generation use different origins for a production build.
+Connected Supabase scope in this chat currently exposes only:
 
-- [ ] **Step 2: Move the default literal to one build-safe module/config contract**
+- `turnpay` (`gkpueopmdlqlfbvrzuqh`)
+- `edutu.ai` (`sioxocmrjmdevsdlzjns`)
 
-Do not maintain the same URL literal independently in three files.
+It does not expose Cresciva project `dwyglydswegyvjowzdot`, so no substitute project may be used.
 
-- [ ] **Step 3: Verify preview behavior**
+Once authorized access exists:
 
-Build with a preview-specific `VITE_SITE_ORIGIN` only when that preview is intentionally indexable. Default preview deployments should remain non-canonical/non-indexed according to the deployment policy.
+- [ ] compare repository migration history with production;
+- [ ] inspect Supabase security/performance advisors;
+- [ ] verify deployed versions/JWT configuration for:
+  - `bachs-init`
+  - `bachs-verify`
+  - `bachs-webhook`
+  - `payment-reconciliation`
+  - `aggregate-funding`
+  - `send-email`
+  - `email-unsubscribe`
+- [ ] unauthenticated calls to JWT-protected payment/funding functions are rejected;
+- [ ] invalid Bachs signature is rejected;
+- [ ] non-member funding call is denied;
+- [ ] paid staging member gets controlled successful access.
 
-- [ ] **Step 4: Verify generated files**
+## Task 4 — Certify Bachs environment and merchant configuration
 
-```bash
-npm run sitemap
-npm run build:web
-```
+Current repository contract:
 
-Inspect `Frontend/dist/index.html`, sitemap and robots output and confirm they use the intended production origin.
+- sandbox: `https://sandbox-api.bachs.io` + `sk_sandbox_…`;
+- live: `https://api.bachs.io` + `sk_live_…`;
+- key environment and base URL must agree;
+- checkout is product-based;
+- membership products are one-time products with **no billing cycle**;
+- settlement/callback money is revalidated against the internal Cresciva price ledger;
+- fulfillment authority is signed `collection.succeeded`.
 
-### Task 3: Certify Supabase live schema and Edge Functions
+Required external checks:
 
-**Files:**
-- Update: `docs/production-readiness/evidence/environment-inventory.md`
-- Source of truth: `supabase/migrations/`, `supabase/functions/`, `supabase/config.toml`
-
-- [ ] **Step 1: Establish authorized access to project ref `dwyglydswegyvjowzdot`**
-
-If the current Supabase connector/account cannot see that project, use the project's authorized dashboard/CLI connection. Do not silently substitute another Supabase project.
-
-- [ ] **Step 2: Compare migration history**
-
-Run:
-
-```bash
-supabase migration list
-```
-
-Every repository migration required by current code must be present in the production history. Investigate divergence rather than blindly reapplying SQL.
-
-- [ ] **Step 3: Verify deployed Edge Functions**
-
-At minimum verify current versions/status of:
+- [ ] Bachs sandbox key present in staging only.
+- [ ] `BACHS_ANNUAL_PRODUCT_NGN` points to one-time product with exact Cresciva NGN annual price.
+- [ ] `BACHS_ANNUAL_PRODUCT_USD` points to one-time product with exact Cresciva USD annual price.
+- [ ] Live product IDs are separately verified before key swap/go-live.
+- [ ] Webhook endpoint is exactly:
 
 ```text
-aggregate-funding
-paystack-init
-paystack-verify
-paystack-webhook
-send-email
-email-unsubscribe
+https://dwyglydswegyvjowzdot.supabase.co/functions/v1/bachs-webhook
 ```
 
-Confirm JWT settings match `supabase/config.toml`.
+- [ ] Webhook subscribes to at least:
 
-- [ ] **Step 4: Smoke endpoints with safe test identities**
+```text
+collection.succeeded
+collection.failed
+collection.underpaid
+checkout.expired
+checkout.completed   # audit only, never fulfillment
+```
 
-- unauthenticated request to JWT-protected payment/funding functions -> rejected;
-- invalid Paystack signature -> 401;
-- contact/newsletter invalid input -> 400/appropriate rejection;
-- valid authenticated funding request without subscription -> 403;
-- valid paid test member -> Funding endpoint succeeds or returns a controlled upstream failure, never an authorization bypass.
+- [ ] Bachs signing secret matches the configured endpoint.
+- [ ] Optional `BACHS_ORGANIZATION_ID` matches the intended merchant organization.
+- [ ] `APP_URL` equals the staging/live Cresciva origin being certified.
+- [ ] Bachs return URL generated by `bachs-init` is `<APP_URL>/payment/callback?reference=<crv_…>`.
+- [ ] Callback verifies server-side via the internal reference; no redirect alone can grant access.
 
-### Task 4: Certify Paystack external configuration
+## Task 5 — OAuth and email identity
 
-**Files:**
-- Update: `docs/production-readiness/evidence/environment-inventory.md`
+Once Cresciva Supabase/Vercel provider scopes are available:
 
-- [ ] **Step 1: Verify mode and secret alignment**
+- [ ] Supabase Auth Site URL equals official Cresciva origin.
+- [ ] Google authorized origins/redirects include production auth/reset flow.
+- [ ] obsolete ScaleUp Africa/temporary preview origins are removed when no longer needed.
+- [ ] contact acknowledgement works.
+- [ ] newsletter welcome/unsubscribe works.
+- [ ] payment receipt works.
+- [ ] From/Reply-To/support identity is Cresciva.
+- [ ] links in email use official origin.
+- [ ] SPF/DKIM/DMARC status is verified for chosen sending domain.
 
-The deployed `PAYSTACK_SECRET_KEY` mode must match the Paystack dashboard/webhook environment being tested. Test and live references must not be mixed.
+## Task 6 — Vercel production topology and rollback
 
-- [ ] **Step 2: Verify webhook URL**
+Connected Vercel team in this chat currently lists zero projects. That does not prove Cresciva is undeployed; it means this connection cannot inspect the intended project.
 
-The Paystack webhook must point exactly at the production `paystack-webhook` Edge Function.
+Once correct Vercel scope is available:
 
-- [ ] **Step 3: Verify callback URL source**
+- [ ] identify Cresciva project ID/name;
+- [ ] confirm production branch/promotion rule;
+- [ ] confirm `VITE_SITE_ORIGIN`/other public env values;
+- [ ] confirm preview builds use preview-safe settings;
+- [ ] confirm ordinary previews do not receive Bachs live secrets/products;
+- [ ] verify `/admin/*` rewrite serves AdminPanel rather than public SPA;
+- [ ] exercise rollback/promotion to a known-good deployment.
 
-`APP_URL` must equal the official production web origin so `paystack-init` creates a callback under `/payment/callback` on the correct host.
+## Task 7 — Repository/deployment naming
 
-- [ ] **Step 4: Verify accepted currencies/channels**
+**Decision:** keep repository as `paullight1/scaleupafrica` through launch certification; consider rename to `paullight1/cresciva` afterwards.
 
-The UI/server price list must advertise only Paystack currencies/channels enabled for the merchant account. Exercise both supported and rejected currency paths.
+Before any rename:
 
-### Task 5: Certify OAuth and email identity
+- [ ] inventory Vercel Git integration;
+- [ ] local remotes;
+- [ ] documentation/badges;
+- [ ] GitHub Actions/rulesets/webhooks;
+- [ ] verify redirects and deploy linkage after rename.
 
-**Files:**
-- Update: `docs/production-readiness/evidence/environment-inventory.md`
-- Update docs if needed: `docs/AUTH.md`, `docs/EMAIL.md`
+## Phase 3 release state
 
-- [ ] **Step 1: Verify Google OAuth redirects**
+Repository environment/origin contract: **implemented**.
 
-Authorized origins/redirects must include the official production host and actual auth callback/reset flows used by Supabase. Remove obsolete old-brand domains once no longer required for migration.
+External proof still required:
 
-- [ ] **Step 2: Verify Supabase Auth URL Configuration**
+1. authorized Cresciva Supabase project access and deployment comparison;
+2. Bachs sandbox/live products, secrets and webhook configuration;
+3. actual Vercel project/domain/env inventory and rollback proof;
+4. OAuth/email production identity smoke tests;
+5. live end-to-end smoke tests.
 
-`Site URL` and permitted redirects must not point at an obsolete ScaleUp Africa or temporary preview host.
-
-- [ ] **Step 3: Verify email sending identity**
-
-Send test contact acknowledgement, newsletter welcome/unsubscribe and payment receipt. Confirm From/Reply-To/support identity is Cresciva and links use the official production origin.
-
-- [ ] **Step 4: Verify SPF/DKIM/DMARC status for the sending domain**
-
-Record pass/fail/status, not DNS secrets.
-
-### Task 6: Decide repository/deployment naming cleanup
-
-**Files:**
-- Update: `docs/production-readiness/evidence/environment-inventory.md`
-
-- [ ] **Step 1: Record whether `paullight1/scaleupafrica` will be renamed to `paullight1/cresciva` before or after launch**
-
-This is not a functional blocker if URLs/CI integrations survive GitHub redirects, but the decision must be explicit because repository identity already caused discovery confusion.
-
-- [ ] **Step 2: If renaming before launch, inventory integrations first**
-
-Check Vercel Git integration, deployment badges, local remotes, webhook URLs, documentation references and automation rules. Rename only after this list is known.
-
-- [ ] **Step 3: Verify post-rename redirects and CI/deployment linkage**
-
-No integration may silently stop receiving pushes.
-
-## Phase 3 Definition of Done
-
-- Official production web origin is explicitly recorded.
-- All production URLs/callbacks/redirects/CORS/email links agree with it.
-- Origin fallback is single-source rather than triplicated.
-- Cresciva production Supabase project is positively identified and migration/function state is verified.
-- Paystack webhook/callback configuration is proven.
-- Google OAuth and email identity are proven.
-- No secret values are committed.
-- Repository/deployment naming decision is recorded.
-- Live smoke tests pass.
-- Evidence ends with `PHASE 3 RELEASE GATE: PASS`.
+`PHASE 3 RELEASE GATE: BLOCKED_EXTERNAL`
