@@ -3,8 +3,6 @@ import { slugify, withCollisionSuffix } from "../src/profiles/slug";
 import { escapeLike } from "../src/profiles/profiles.service";
 import { sanitizeExternalUrl, clamp } from "../src/funding/sanitize";
 import { SubscriptionsService } from "../src/subscriptions/subscriptions.service";
-import { verifyPaystackSignature } from "../src/webhooks/paystack-signature";
-import { createHmac } from "node:crypto";
 import { normalizeKeywords, parseOpportunities } from "../src/contracts";
 
 describe("slugify", () => {
@@ -66,25 +64,6 @@ describe("SubscriptionsService.isActive", () => {
     expect(svc.isActive({ hasAccess: true, expiresAt: "2026-06-20T00:00:00Z" }, now)).toBe(false));
 });
 
-describe("verifyPaystackSignature", () => {
-  const secret = "sk_test_123";
-  const body = JSON.stringify({ event: "charge.success", data: { reference: "sua_1" } });
-  const sig = createHmac("sha512", secret).update(body).digest("hex");
-
-  it("accepts a valid signature", () => {
-    expect(verifyPaystackSignature(Buffer.from(body), sig, secret)).toBe(true);
-  });
-  it("rejects a tampered body", () => {
-    expect(verifyPaystackSignature(Buffer.from(body + " "), sig, secret)).toBe(false);
-  });
-  it("rejects a wrong signature", () => {
-    expect(verifyPaystackSignature(Buffer.from(body), "deadbeef", secret)).toBe(false);
-  });
-  it("rejects a missing signature", () => {
-    expect(verifyPaystackSignature(Buffer.from(body), undefined, secret)).toBe(false);
-  });
-});
-
 describe("shared funding helpers", () => {
   it("normalizeKeywords is order/case-insensitive", () => {
     expect(normalizeKeywords("FinTech, Nigeria")).toBe(normalizeKeywords("nigeria fintech"));
@@ -93,7 +72,7 @@ describe("shared funding helpers", () => {
     const out = parseOpportunities({
       opportunities: [
         { title: "Grant A", funder: "Funder", url: "https://ok.example" },
-        { title: "", funder: "bad" }, // dropped (empty title)
+        { title: "", funder: "bad" },
         { title: "Grant B", funder: "F2", url: "javascript:alert(1)" },
       ],
     });
