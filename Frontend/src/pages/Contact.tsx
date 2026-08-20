@@ -67,11 +67,14 @@ export default function Contact() {
   return (
     <>
       <SEO title="Contact" description="Get in touch with the Cresciva team." />
-      <PageHeader
-        eyebrow="Contact"
-        title="Talk to the Cresciva team"
-        description="Questions about membership, your business profile, partnerships, or funding intelligence? Send us a message."
-      />
+      <div className="px-6 pt-12 md:pt-16">
+        <div className="mx-auto max-w-6xl">
+          <PageHeader
+            title="Talk to the Cresciva team"
+            subtitle="Questions about membership, your business profile, partnerships, or funding intelligence? Send us a message."
+          />
+        </div>
+      </div>
 
       <section className="bg-secondary px-6 py-16 md:py-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
