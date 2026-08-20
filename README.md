@@ -7,7 +7,7 @@ Cresciva is a Pan-African SME platform: a public, searchable directory where fou
 - **Frontend:** Vite + React 18 + TypeScript, shadcn/ui (Radix + Tailwind CSS), React Router, TanStack Query, Framer Motion.
 - **Admin:** a separate Vite/React app assembled under `/admin/` in the production artifact.
 - **Backend today:** Supabase Auth, Postgres/RLS, Storage and Deno Edge Functions.
-- **Payments:** Bachs hosted checkout, Bachs signed webhooks, and a Cresciva-owned payment/entitlement ledger. Membership is a one-time annual purchase and does not auto-renew.
+- **Payments:** Bachs product-based hosted checkout, signed webhooks, and a Cresciva-owned payment/entitlement ledger. Membership is a one-time annual purchase and does not auto-renew.
 - **API server:** NestJS + Drizzle under `Backend/`, introduced behind domain-by-domain cutover flags.
 - **Testing:** Vitest + Testing Library; GitHub Actions also typechecks Supabase Edge Functions with Deno.
 
@@ -36,7 +36,7 @@ The repository-wide release contract is:
 npm run verify
 ```
 
-It runs linting, TypeScript checks, all workspace tests, the assembled Frontend/Admin production build, and the Backend production build. CI runs the same contract and additionally Deno-checks the deployed Edge Function entry points.
+It runs linting, TypeScript checks, all workspace tests, the assembled Frontend/Admin production build, and the Backend production build. CI runs the same contract and additionally Deno-checks the active Edge Function entry points.
 
 Useful commands:
 
@@ -87,7 +87,7 @@ VITE_API_URL                # when NestJS domains are enabled
 VITE_API_DOMAINS            # comma-separated cutover domains
 ```
 
-### Supabase Edge Function secrets
+### Supabase Edge Function secrets/config
 
 Never commit these values:
 
@@ -99,7 +99,9 @@ BACHS_SECRET_KEY
 BACHS_BASE_URL
 BACHS_WEBHOOK_SIGNING_SECRET
 BACHS_ORGANIZATION_ID       # recommended provider/account pin
-APP_URL                     # official Cresciva web origin used for checkout callbacks
+BACHS_ANNUAL_PRODUCT_NGN    # one-time product, exact Cresciva NGN annual price
+BACHS_ANNUAL_PRODUCT_USD    # one-time product, exact Cresciva USD annual price
+APP_URL                     # official Cresciva web origin used for checkout return/cancel URLs
 LOVABLE_API_KEY             # current funding AI gateway key
 RESEND_API_KEY
 EMAIL_FROM
@@ -113,6 +115,8 @@ Bachs environments must not be mixed:
 - live API: `https://api.bachs.io` with an `sk_live_…` key
 
 The code rejects a Bachs key/base-URL environment mismatch.
+
+`BACHS_ANNUAL_PRODUCT_NGN` and `BACHS_ANNUAL_PRODUCT_USD` must each point to a **one-time Bachs product with no billing cycle**. Their configured prices must exactly match Cresciva's canonical annual prices. Sandbox/live product IDs may differ and must be deployed with the matching Bachs key environment.
 
 ### NestJS Backend (when deployed)
 
@@ -152,12 +156,14 @@ docs/production-readiness launch-hardening plans and evidence
 ## Payment flow
 
 1. A signed-in user selects the annual plan/currency.
-2. `bachs-init` resolves the amount from the server-owned price list, creates the internal `payments` row, then creates a Bachs hosted checkout using a stable idempotency key.
-3. The browser redirects to Bachs.
-4. Bachs redirects back with a `checkout_id`; `bachs-verify` re-fetches provider state and never trusts the redirect itself as payment proof.
-5. `bachs-webhook` is the authoritative asynchronous settlement path. `collection.succeeded` may grant access only after server-side checkout retrieval and exact ledger validation.
-6. `grant_annual_access(_payment_id)` is the only path that changes paid membership access.
-7. `/admin/payments` exposes read-only reconciliation of provider settlement, ledger status, entitlement state, webhook processing and receipt delivery.
+2. `bachs-init` resolves the canonical Cresciva annual amount and selects the configured one-time Bachs product for that currency.
+3. Cresciva creates the internal `payments` row first, then creates a Bachs hosted checkout with `product_cart`, `billing_currency`, a stable idempotency key, and metadata containing the internal reference.
+4. The browser redirects to Bachs.
+5. Bachs returns to `<APP_URL>/payment/callback?reference=<crv_…>`. The reference is only a lookup key; the redirect is not payment proof.
+6. The callback posts `{ reference }` to `bachs-verify`. The server loads the caller-owned payment row, recovers its persisted Bachs `checkout_id`, retrieves Bachs state and revalidates settlement/amount/currency.
+7. `bachs-webhook` is the authoritative asynchronous settlement path. `collection.succeeded` may grant access only after server-side checkout retrieval and exact ledger validation; `checkout.completed` cannot grant access.
+8. `grant_annual_access(_payment_id)` is the only path that changes paid membership access.
+9. `/admin/payments` exposes read-only reconciliation of provider settlement, ledger status, entitlement state, webhook processing and receipt delivery.
 
 ## Deployment
 
