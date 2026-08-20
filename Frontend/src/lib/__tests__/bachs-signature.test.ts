@@ -112,6 +112,15 @@ describe("Bachs settlement decision", () => {
     expect(decideBachsGrant(checkout, payment)).toEqual({ action: "grant" });
   });
 
+  it("accepts Bachs ACCEPTED as an alternative terminal charge success", () => {
+    expect(
+      decideBachsGrant(
+        { ...checkout, charge: { ...checkout.charge!, status: "accepted" } },
+        payment,
+      ),
+    ).toEqual({ action: "grant" });
+  });
+
   it("rejects amount or currency mismatch", () => {
     expect(decideBachsGrant({ ...checkout, amount: "199.00" }, payment)).toEqual({
       action: "mismatch",
