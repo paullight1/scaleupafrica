@@ -12,7 +12,7 @@ This file records identifiers and verification state only. **No secret values be
 | Item | Repository contract | External verification |
 | --- | --- | --- |
 | Product | Cresciva | Source verified |
-| Public origin | `https://cresciva.vercel.app` | Declared in `config/site-origin.js`; live Vercel project not visible to connected Vercel account |
+| Public origin | `https://cresciva.vercel.app` | Single-source repository contract; actual Vercel project not visible to connected Vercel account |
 | Admin | same origin, `/admin/` | Source/build routing verified; live deployment not independently verified |
 | Production Git branch | `main` | Repository default branch verified |
 | Supabase project ref | `dwyglydswegyvjowzdot` | Repository + publishable frontend config agree; connected Supabase account cannot see this project |
@@ -25,7 +25,7 @@ This file records identifiers and verification state only. **No secret values be
 
 **Decision: defer repository rename until after production launch certification.**
 
-Reason: renaming is not a product blocker, while doing it before Vercel/GitHub automation is fully visible creates unnecessary integration risk. If renamed later, inventory Vercel Git linkage, local remotes, badges, webhooks and automations first; GitHub redirects should then be verified after the rename.
+Reason: renaming is not a product blocker, while doing it before Vercel/GitHub automation is fully visible creates unnecessary integration risk. If renamed later, inventory Vercel Git linkage, local remotes, badges, webhooks and automations first; verify redirects/integrations afterwards.
 
 ## 2. Public-origin contract
 
@@ -60,7 +60,7 @@ These variables are allowed in web builds because they are intentionally publish
 
 Tracked `Frontend/.env` and `AdminPanel/.env` contain only the Supabase publishable configuration. Server-side secrets are excluded by `.gitignore` and CI includes a history secret scan.
 
-## 4. Supabase Edge Function secret contract
+## 4. Supabase Edge Function secret/config contract
 
 Required/potential variables; **presence cannot be verified with the currently connected Supabase account** because it does not expose project `dwyglydswegyvjowzdot`.
 
@@ -73,12 +73,18 @@ Required/potential variables; **presence cannot be verified with the currently c
 | `BACHS_BASE_URL` | sandbox/live origin selection | unverified live |
 | `BACHS_WEBHOOK_SIGNING_SECRET` | webhook HMAC | unverified live |
 | `BACHS_ORGANIZATION_ID` | optional account pin | unverified live |
-| `APP_URL` | Bachs callback origin | unverified live |
+| `BACHS_ANNUAL_PRODUCT_NGN` | one-time NGN annual membership product | unverified live |
+| `BACHS_ANNUAL_PRODUCT_USD` | one-time USD annual membership product | unverified live |
+| `APP_URL` | Bachs return/cancel origin | unverified live |
 | `LOVABLE_API_KEY` | current funding AI gateway | unverified live |
 | `RESEND_API_KEY` | email | unverified live |
 | `EMAIL_FROM` | email identity | unverified live |
 | `EMAIL_TEAM_INBOX` | internal notifications | unverified live |
 | `EMAIL_TOKEN_SECRET` | unsubscribe token signing | unverified live |
+
+### Bachs product requirements
+
+Both configured Bachs product IDs must reference **one-time products with no billing cycle**. Their configured prices must exactly match Cresciva's canonical annual prices for NGN and USD respectively. Sandbox/live product IDs may differ and must be paired with the corresponding Bachs key environment.
 
 ## 5. Active Supabase function contract
 
@@ -93,7 +99,7 @@ Repository `supabase/config.toml` currently declares:
 | `send-email` | disabled; function owns public-form validation/throttle |
 | `email-unsubscribe` | disabled; token-authenticated |
 
-`aggregate-funding` uses normal authenticated-user validation in its function body and remains part of CI Deno checks.
+`aggregate-funding` remains part of CI Deno checks and performs its own authenticated/member checks.
 
 Legacy Paystack function code/config has been removed from the production-readiness branch.
 
@@ -103,11 +109,15 @@ Repository implementation follows the current Bachs public integration contract:
 
 - sandbox base URL: `https://sandbox-api.bachs.io` with `sk_sandbox_…` key;
 - live base URL: `https://api.bachs.io` with `sk_live_…` key;
-- amounts cross the provider boundary as decimal strings;
-- POST checkout creation uses `Idempotency-Key`;
+- checkout sessions are product-based (`product_cart` + `billing_currency`);
+- membership product is one-time/non-recurring;
+- provider money values are decimal strings; Cresciva retains integer subunits internally;
+- POST checkout creation uses a stable `Idempotency-Key`;
+- return URL contains Cresciva's internal `reference`;
+- Bachs checkout metadata also carries `cresciva_reference` as a server-side correlation backstop;
 - webhook verification uses timestamp + exact raw body with HMAC-SHA256;
-- fulfillment authority is `collection.succeeded`, not a browser redirect and not `checkout.completed`;
-- the internal Cresciva ledger revalidates amount/currency before `grant_annual_access`.
+- fulfillment authority is `collection.succeeded`, not browser redirect and not `checkout.completed`;
+- internal ledger revalidates exact amount/currency before `grant_annual_access`.
 
 ### Required Bachs dashboard configuration (not connected here)
 
@@ -127,9 +137,15 @@ checkout.expired
 checkout.completed   # audit only; never fulfillment
 ```
 
-Callback is produced by `bachs-init` from `APP_URL` and includes Bachs' `{CHECKOUT_ID}` placeholder.
+Bachs checkout return URL is generated by `bachs-init` as:
 
-Status: **merchant/dashboard configuration unverified**.
+```text
+<APP_URL>/payment/callback?reference=<crv_...>
+```
+
+The callback posts that reference to `bachs-verify`. Verification recovers the linked provider `checkout_id` from Cresciva's ledger and re-fetches Bachs server-side; the redirect itself is never fulfillment authority.
+
+Status: **merchant/dashboard/product configuration unverified**.
 
 ## 7. Supabase connector evidence
 
@@ -145,7 +161,7 @@ Consequences:
 - migration history cannot be compared to production from this connector;
 - Edge Function deployment/version cannot be verified or changed safely;
 - production advisors cannot be run against Cresciva;
-- Bachs/Resend/Auth secrets cannot be checked.
+- Bachs/Resend/Auth secrets or product IDs cannot be checked.
 
 Do not substitute either visible project for Cresciva.
 
@@ -161,7 +177,7 @@ Current project listing from that team: **0 projects**.
 
 Consequences:
 
-- the Cresciva Vercel project ID/domain mapping is not available through this connection;
+- Cresciva Vercel project ID/domain mapping is not available through this connection;
 - preview/prod environment values cannot be independently inspected here;
 - production deployment/rollback cannot be exercised here.
 
@@ -169,7 +185,7 @@ This does not prove Cresciva is undeployed; it proves only that the connected Ve
 
 ## 9. GitHub CI and branch governance
 
-Repository implementation now contains `.github/workflows/ci.yml` with:
+Repository implementation contains `.github/workflows/ci.yml` with:
 
 - `npm ci`;
 - root `npm run verify` (lint → typecheck → tests → Frontend/Admin build → Backend build);
@@ -178,16 +194,16 @@ Repository implementation now contains `.github/workflows/ci.yml` with:
 - visible non-blocking production dependency audit;
 - blocking Gitleaks history scan.
 
-The GitHub connector's combined-status endpoint currently exposes no status records for the branch commits, so a real successful Actions run has **not been independently observed from this session**.
+A fresh real Actions run is required for pass evidence; the local ChatGPT container cannot clone from GitHub because external DNS is unavailable.
 
-`main` was re-read on 2026-08-20 and currently reports:
+`main` was re-read on 2026-08-20 and reports:
 
 ```text
 protected: false
 required status checks: off
 ```
 
-The connected GitHub action surface available here has no branch-protection/ruleset write action. Enabling required checks therefore remains an external repository-settings action.
+The connected GitHub action surface available here does not expose a branch-protection/ruleset write action.
 
 ### Required `main` rules once the first CI check is visible
 
@@ -205,35 +221,43 @@ Source code contains Google OAuth/reset support and transactional email flows, b
 Before launch, externally verify:
 
 - Supabase Auth Site URL == official Cresciva production origin;
-- Google authorized origins/redirects include the official Cresciva host and reset callback;
+- Google authorized origins/redirects include official Cresciva host and reset callback;
 - no obsolete ScaleUp Africa host remains in auth configuration;
 - Resend sending identity is Cresciva;
-- contact acknowledgement, newsletter welcome/unsubscribe and payment receipt links use the official origin;
-- SPF/DKIM/DMARC are valid for the chosen sending domain.
+- contact acknowledgement, newsletter welcome/unsubscribe and payment receipt links use official origin;
+- SPF/DKIM/DMARC are valid for chosen sending domain.
 
 ## 11. Gate status
 
+### Phase 1 — Bachs payment reliability
+
+Repository implementation: **implemented; final repository proof depends on Phase 2 CI**.
+
+External proof required: sandbox/live Bachs products/secrets plus deployment access to Cresciva Supabase.
+
+`PHASE 1 RELEASE GATE: BLOCKED_EXTERNAL`
+
 ### Phase 2 — CI / release governance
 
-Repository implementation: **PASS**
+Repository implementation: **implemented**.
 
-External proof still required:
+External proof required:
 
 - observe one successful GitHub Actions `verify` run;
-- enable and prove `main` branch protection/ruleset;
+- enable/prove `main` branch protection/ruleset;
 - independently verify preview → production promotion and rollback on the actual Vercel project.
 
 `PHASE 2 RELEASE GATE: BLOCKED_EXTERNAL`
 
 ### Phase 3 — production environment / domains / secrets
 
-Repository implementation: **PASS**
+Repository implementation: **implemented**.
 
-External proof still required:
+External proof required:
 
 - authorized access to Supabase project `dwyglydswegyvjowzdot`;
 - migration and Edge Function deployment comparison;
-- Bachs sandbox/live dashboard + webhook/secret alignment;
+- Bachs sandbox/live dashboard, products, webhook and secret alignment;
 - actual Vercel project/domain/env inventory;
 - live OAuth/email identity smoke tests.
 
