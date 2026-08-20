@@ -1,7 +1,7 @@
 // =============================================================================
 // Frontend Bachs hosted-checkout client.
 //
-// No Bachs secret or public SDK is shipped to the browser. The client only asks
+// No Bachs secret or SDK is shipped to the browser. The client only asks
 // authenticated Supabase Edge Functions to create/retrieve provider state and
 // redirects to the hosted checkout URL returned by bachs-init.
 // =============================================================================
@@ -51,11 +51,15 @@ export async function initCheckout(params: {
   return data ?? {};
 }
 
-/** Callback-page verification backstop. Never throws to the UI. */
-export async function verifyPayment(checkoutId: string): Promise<VerifyStatus> {
+/**
+ * Callback-page verification backstop. The browser sends only Cresciva's random
+ * internal payment reference; the edge function resolves the linked Bachs
+ * checkout server-side before deciding whether access can be granted.
+ */
+export async function verifyPayment(reference: string): Promise<VerifyStatus> {
   const { data, error } = await supabase.functions.invoke<{ status?: VerifyStatus }>(
     "bachs-verify",
-    { body: { checkout_id: checkoutId } },
+    { body: { reference } },
   );
   if (error || !data?.status) return "pending";
   return data.status;
