@@ -12,6 +12,11 @@ verify_jwt = true
 [functions.bachs-webhook]
 verify_jwt = false
 
+# Admin-only payment reconciliation. JWT is required at the edge and the
+# function performs an explicit administrator-role check before service-role reads.
+[functions.payment-reconciliation]
+verify_jwt = true
+
 # Transactional email (Resend). Both are called by SIGNED-OUT visitors — the
 # contact form, the newsletter box, the gated-resource form, and the
 # List-Unsubscribe link in every bulk email — so neither can require a JWT.
