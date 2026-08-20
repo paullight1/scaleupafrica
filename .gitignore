@@ -15,6 +15,8 @@ dist-ssr
 
 # Server-side secrets. Frontend/.env and AdminPanel/.env hold only publishable
 # Supabase keys and stay tracked; anything below is a real secret.
+/.env
+.env.*.local
 supabase/.env
 Backend/.env
 .env.local
