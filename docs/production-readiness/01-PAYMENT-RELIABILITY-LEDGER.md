@@ -1,182 +1,192 @@
 # Payment Reliability & Ledger Integrity Implementation Plan — Bachs
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** use the Superpowers executing-plans/TDD workflow for further payment changes.
 
-**Goal:** Migrate Cresciva’s annual membership checkout from Paystack to Bachs and make every settlement retry-safe, idempotent, reconcilable, bounded against hostile input, and incapable of silently losing a paid-access grant.
+**Goal:** Run Cresciva annual-membership checkout on Bachs while keeping settlement retry-safe, idempotent, reconcilable, bounded against hostile input, and incapable of silently losing a paid-access grant.
 
-**Architecture:** Keep Cresciva’s existing internal `payments` ledger and atomic `grant_annual_access(_payment_id)` entitlement routine. Bachs is the hosted payment processor, not the system of record for membership access. Use Bachs one-time hosted checkout with raw `pricing`; keep money internally as integer subunits and convert to Bachs decimal strings only at the provider boundary. Treat signed `collection.succeeded` webhooks as the fulfillment source of truth and use callback verification only as a user-facing backstop.
+**Architecture:** Cresciva owns pricing expectations, the `payments` ledger, and entitlement state. Bachs provides product-based hosted checkout and signed settlement events. Each supported settlement currency maps to a preconfigured **one-time Bachs product** whose configured price must equal Cresciva's canonical annual price. Bachs is never trusted to grant membership directly: final provider amount/currency is revalidated against the internal payment row and only `grant_annual_access(_payment_id)` can change paid access.
 
-**Tech Stack:** Supabase Edge Functions (Deno), Supabase Postgres/RLS, Bachs hosted Checkout/API/webhooks, TypeScript, Vitest, Resend receipt subsystem.
+**Tech Stack:** Supabase Edge Functions (Deno), Supabase Postgres/RLS, Bachs Checkout/API/webhooks, TypeScript, Vitest, Resend.
 
 **Spec:** `docs/superpowers/specs/2026-08-20-cresciva-production-readiness-design.md`
 
-## Bachs contract used by this phase
+## Current Bachs contract
 
-- Sandbox base URL: `https://sandbox-api.bachs.io`; production: `https://api.bachs.io`.
-- Bachs money values are decimal strings at currency precision. Never send minor units to Bachs.
-- `POST /v1/checkout-sessions` accepts product-less raw `pricing`, returns `checkout_id` + `checkout_url`, and appends `?checkout_id=<id>` to `success_url`.
-- `reference` is Cresciva-controlled, unique per Bachs organization, and is echoed back unchanged on checkout retrieval.
-- `Idempotency-Key` is supported on POST requests and must be stable across retries of the same checkout initialization.
-- Fulfillment signal: `collection.succeeded`. `checkout.completed` explicitly does not prove payment.
-- Webhook signature: HMAC-SHA256 of `${timestamp}.${raw_body}` with headers `X-Bachs-Timestamp` and `X-Bachs-Signature`; stale timestamps are rejected with a 300-second tolerance.
-- Webhook delivery is at-least-once. Deduplicate by the top-level Bachs event `id`.
-- Current Cresciva membership remains a one-time one-year entitlement. Do not silently convert it into an auto-renewing Bachs subscription.
+- Sandbox: `https://sandbox-api.bachs.io` with `sk_sandbox_…` keys.
+- Production: `https://api.bachs.io` with `sk_live_…` keys.
+- Checkout Session creation is product-based using `product_cart` + `billing_currency`.
+- Cresciva uses one-time products only. A Bachs product used for membership must have **no `billing_cycle`**.
+- Required product env mapping:
+  - `BACHS_ANNUAL_PRODUCT_NGN`
+  - `BACHS_ANNUAL_PRODUCT_USD`
+- Bachs money values are decimal strings at currency precision; Cresciva keeps integer subunits internally.
+- `Idempotency-Key` is stable across retries of the same checkout initialization.
+- `return_url` carries Cresciva's random internal `reference`; the browser redirect is not payment proof.
+- Checkout metadata also carries `cresciva_reference` as a server-side correlation backstop.
+- Fulfillment signal is `collection.succeeded`. `checkout.completed` explicitly does not prove collection.
+- Webhook authenticity is timestamped HMAC-SHA256 over `${timestamp}.${raw_body}` using `X-Bachs-Timestamp` + `X-Bachs-Signature`.
+- Webhook delivery is at-least-once; top-level Bachs event `id` is the idempotency key.
+- Cresciva membership remains a one-time one-year entitlement and does not auto-renew.
 
 ## Global constraints
 
-- Client never supplies or overrides a charge amount.
-- `BACHS_SECRET_KEY` and `BACHS_WEBHOOK_SIGNING_SECRET` remain server-only.
-- Bachs API host is allowlisted to sandbox/live official hosts only.
-- Only `grant_annual_access(_payment_id)` may grant paid access.
-- Provider callback/redirect never grants access by itself.
-- Every successful provider result must match Cresciva’s stored reference, amount, currency and owning user before access is granted.
-- Only PostgreSQL `23505` on the webhook-event uniqueness key is acknowledged as a duplicate; other persistence failures return 5xx.
-- Invalid-signature traffic never stores an unbounded raw payload.
-- Payment logs committed to git must not contain API keys, signing secrets, customer PII or full gateway payloads.
+- [x] Browser cannot supply or override a charge amount.
+- [x] `BACHS_SECRET_KEY` and `BACHS_WEBHOOK_SIGNING_SECRET` are server-only.
+- [x] Bachs API host is restricted to official sandbox/live origins and key environment must match origin.
+- [x] Only `grant_annual_access(_payment_id)` may grant paid access.
+- [x] Redirect/callback state never grants access by itself.
+- [x] Successful provider state must match Cresciva amount/currency before access is granted.
+- [x] Only PostgreSQL `23505` is classified as a duplicate event insert; other persistence failures are retryable.
+- [x] Invalid-signature traffic never stores unbounded hostile raw payloads.
+- [x] Payment audit data stored by Cresciva is bounded and omits provider secrets/customer payloads.
 
 ---
 
-### Task 1: Add tested Bachs security/payment primitives
+## Task 1 — Bachs security/payment primitives
 
 **Files:**
-- Create: `supabase/functions/_shared/bachs.ts`
-- Create: `Frontend/src/lib/__tests__/bachs-signature.test.ts`
+- `supabase/functions/_shared/bachs.ts`
+- `supabase/functions/_shared/requestBody.ts`
+- `Frontend/src/lib/__tests__/bachs-signature.test.ts`
+- `Frontend/src/lib/__tests__/request-body.test.ts`
+- `Backend/test/bachs-decision.spec.ts`
 
-**Interfaces:**
-- `subunitsToDecimal(amount, currency): string`
-- `decimalToSubunits(value, currency): number | null`
-- `verifyBachsSignature(rawBody, timestampHeader, signatureHeader, secret, nowSeconds?, toleranceSeconds?): Promise<boolean>`
-- `classifyWebhookInsertError(error): "duplicate" | "retry" | "none"`
-- `decideBachsGrant(checkout, payment): { action: "grant" | "already" | "mismatch" | "ignore" }`
-- `bachsFetch(path, secretKey, baseUrl, init): Promise<BachsResult>`
+- [x] Exact integer-subunit ↔ decimal-string conversion.
+- [x] Sandbox/live base-URL and key matching.
+- [x] HMAC-SHA256 webhook verification with a 300-second freshness window.
+- [x] Timing-safe signature comparison.
+- [x] `23505` duplicate-vs-retry classification.
+- [x] `SUCCEEDED` and alternative terminal `ACCEPTED` settlement handling.
+- [x] Product ID validation/mapping per currency.
+- [x] Cresciva reference recovery from checkout metadata with legacy provider-reference fallback.
+- [x] 256 KiB streaming webhook-body limit.
 
-- [x] Write a failing test first for amount conversion, stale/tampered signatures, duplicate classification and grant decisions.
-- [x] Confirm the test fails because the Bachs helper does not yet exist.
-- [ ] Implement the minimal pure helper and run the tests green.
-
-### Task 2: Implement Bachs checkout initialization
-
-**Files:**
-- Create: `supabase/functions/bachs-init/index.ts`
-- Modify: `supabase/config.toml`
-- Modify: `supabase/functions/_shared/billing.ts`
-
-**Required flow:**
-1. Require authenticated Supabase user with email.
-2. Validate `{ plan_code, currency }` against canonical server pricing.
-3. Reject accidental double-purchase when membership has >30 days remaining.
-4. Create Cresciva payment row with `provider='bachs'`, `reference='crv_<uuid>'`, integer subunit amount and `initialized` status.
-5. Convert the internal integer amount to Bachs decimal format without floating-point arithmetic.
-6. POST `/v1/checkout-sessions` with raw `pricing`, customer email, `success_url`, `cancel_url`, `reference`, minimal metadata, and an `Idempotency-Key` derived from the internal payment reference.
-7. Persist only a safe provider summary in `gateway_response` (`checkout_id`, status, expiry); do not store checkout credentials/secrets.
-8. Return `{ checkout_url, checkout_id, reference }` to the browser.
-9. If checkout creation fails, mark the internal payment failed and return a typed error.
-
-### Task 3: Implement signed Bachs webhook settlement
+## Task 2 — Product-based Bachs checkout initialization
 
 **Files:**
-- Create: `supabase/functions/bachs-webhook/index.ts`
-- Create: `supabase/functions/_shared/requestBody.ts`
-- Create: request-body tests in the existing frontend/shared test harness
-- Modify: `supabase/config.toml`
+- `supabase/functions/bachs-init/index.ts`
+- `supabase/functions/_shared/billing.ts`
+- `supabase/config.toml`
 
-**Required behavior:**
-- `verify_jwt=false` because Bachs is server-to-server.
-- Enforce max raw body **256 KiB** before JSON parsing.
-- Verify `X-Bachs-Timestamp` + `X-Bachs-Signature` over the exact raw body with 300-second tolerance.
-- Invalid signatures return `401` and store only bounded metadata, never the attacker-controlled raw payload.
-- Parse the top-level Bachs event envelope only after signature verification.
-- Deduplicate using Bachs event `id`. Reuse the existing event-log uniqueness mechanism by storing the Bachs event ID in the event-log reference/idempotency slot until a dedicated provider event-id column is introduced.
-- `23505` duplicate -> `200`.
-- Any other event-log persistence failure -> `500` so Bachs retries.
-- `checkout.completed` is audit-only and must never grant access.
-- `collection.succeeded` retrieves the authoritative checkout session by `checkout_id`, resolves its Cresciva `reference`, checks `payment_status='succeeded'`, checks the charge status, amount and currency, then invokes `grant_annual_access`.
-- `collection.failed`, `collection.underpaid`, and `checkout.expired` never grant access and update the internal payment state when a Cresciva reference can be resolved.
-- Every critical database write checks `error`; settlement state persistence failures return `5xx`.
-- Receipt sending remains best-effort/idempotent and does not change the payment acknowledgement status.
+Required flow and state:
 
-### Task 4: Implement callback verification and migrate the frontend
+1. [x] Require authenticated Supabase user with email.
+2. [x] Validate `{ plan_code, currency }` against canonical server pricing.
+3. [x] Select the configured one-time Bachs product for the requested currency.
+4. [x] Reject accidental double-purchase while >30 days of active membership remain.
+5. [x] Create internal `payments` row first with `provider='bachs'`, `reference='crv_<uuid>'`, canonical integer amount and `initialized` status.
+6. [x] POST `/v1/checkout-sessions` with `product_cart`, `billing_currency`, customer, return/cancel URLs and minimal metadata.
+7. [x] Use stable `Idempotency-Key` derived from the Cresciva payment reference.
+8. [x] Persist only safe checkout linkage/summary (`checkout_id`, provider status, expiry, product ID).
+9. [x] Redirect return URL contains Cresciva's `reference`, not a trusted payment-success flag.
+10. [x] Provider/API failure marks the internal attempt failed where persistence succeeds and returns a typed error.
 
-**Files:**
-- Create: `supabase/functions/bachs-verify/index.ts`
-- Create: `Frontend/src/lib/bachs.ts`
-- Modify: `Frontend/src/components/billing/CheckoutButton.tsx`
-- Modify: `Frontend/src/pages/PaymentCallback.tsx`
-- Modify: `Frontend/src/lib/billing.ts`
-- Modify any remaining active Paystack imports/copy found during implementation.
+### Required external product setup
 
-**Required behavior:**
-- Callback reads `checkout_id`, not Paystack `reference`/`trxref`.
-- Browser calls `bachs-verify` with that checkout ID.
-- Verification retrieves checkout from Bachs, then uses the returned Cresciva `reference` to find the internal payment.
-- User can verify only their own payment.
-- Success requires Bachs `payment_status='succeeded'`, successful charge state and exact amount/currency match before `grant_annual_access`.
-- Pending/processing returns `pending`; failed/canceled/expired returns `failed`.
-- Database or grant failures return `pending`, never a false success.
-- UI copy says Bachs, not Paystack.
-- `CheckoutButton` defaults to `Pay with Bachs`.
+Before sandbox/live certification, create or identify two Bachs **one-time** products:
 
-### Task 5: Provider-neutral ledger/reconciliation hardening
+| Environment variable | Required product price | Billing cycle |
+| --- | ---: | --- |
+| `BACHS_ANNUAL_PRODUCT_NGN` | must equal `PLANS.annual.prices.NGN` | none |
+| `BACHS_ANNUAL_PRODUCT_USD` | must equal `PLANS.annual.prices.USD` | none |
+
+The sandbox and live environments may have different product IDs; deploy the IDs appropriate to that Bachs environment.
+
+## Task 3 — Signed webhook settlement
 
 **Files:**
-- Reuse existing `payments`, `payment_webhook_events`, `subscriptions`, `email_events` structures where possible.
-- If a new schema field is genuinely required, create the migration with `supabase migration new ...` in a connected/local environment; do not invent a migration timestamp in this connector-only session.
-- Add/update admin reconciliation surface and `docs/production-readiness/evidence/payment-certification.md`.
+- `supabase/functions/bachs-webhook/index.ts`
+- `supabase/functions/_shared/requestBody.ts`
+- `supabase/config.toml`
 
-**Minimum discrepancy states:**
-- `paid_no_access`
-- `access_no_paid_payment`
-- `success_no_processed_event`
-- `receipt_failed`
+- [x] `verify_jwt=false`; Bachs authenticates with signed raw-body webhook.
+- [x] Reject body >256 KiB before JSON parse.
+- [x] Verify timestamp/signature before actionable parsing.
+- [x] Reject stale, missing or invalid signature.
+- [x] Optional `BACHS_ORGANIZATION_ID` pins deliveries to the expected merchant organization.
+- [x] Deduplicate by Bachs event ID using the existing webhook-event uniqueness seam.
+- [x] Processed duplicate -> 200.
+- [x] Duplicate with `processed=false` -> resume processing instead of falsely acknowledging.
+- [x] Non-duplicate database/infrastructure failure -> 5xx.
+- [x] `checkout.completed` -> audit only, no grant.
+- [x] `collection.succeeded` -> retrieve checkout, resolve Cresciva reference, validate ledger and grant atomically.
+- [x] `collection.failed`, `collection.underpaid`, `checkout.expired` -> never grant.
+- [x] Every critical settlement write inspects errors.
+- [x] Receipt delivery remains best-effort/idempotent and cannot reverse payment success.
 
-No admin “fix” may directly flip `subscriptions.has_access`; remediation must re-run a verified grant/reconciliation path.
+## Task 4 — Callback verification and frontend migration
 
-### Task 6: Certify Bachs sandbox behavior end-to-end
+**Files:**
+- `supabase/functions/bachs-verify/index.ts`
+- `Frontend/src/lib/bachs.ts`
+- `Frontend/src/components/billing/CheckoutButton.tsx`
+- `Frontend/src/pages/PaymentCallback.tsx`
+- `Frontend/src/lib/billing.ts`
 
-**External prerequisites:**
-- Bachs sandbox secret key.
-- Bachs webhook signing secret.
-- Access to Cresciva’s actual Supabase project (`dwyglydswegyvjowzdot`) or a safe branch/staging project.
+- [x] Active checkout UI uses Bachs only.
+- [x] Bachs return URL carries `?reference=<crv_…>`.
+- [x] Callback page reads Cresciva `reference`.
+- [x] Browser posts `{ reference }` to `bachs-verify`.
+- [x] Verification loads only a caller-owned Bachs payment row.
+- [x] Verification recovers the server-persisted `checkout_id` from the ledger and retrieves Bachs server-side.
+- [x] Provider metadata reference is compared to the callback/internal reference when present.
+- [x] Exact amount/currency and terminal settlement status are revalidated before grant.
+- [x] Database/provider/grant failures cannot return a false success.
+- [x] User-facing payment copy references Bachs/Cresciva rather than Paystack.
+- [x] Legacy Paystack frontend, helper, Edge Functions and dormant NestJS webhook path are removed.
 
-**Failure matrix:**
-1. normal card success;
-2. bank-transfer/mobile-money pending then success where supported;
-3. duplicate event ID;
-4. malformed JSON after valid signature;
-5. invalid signature;
-6. stale timestamp;
-7. oversized body;
-8. artificial event-log insert failure -> webhook 5xx;
-9. amount mismatch -> no access;
-10. currency mismatch -> no access;
-11. grant RPC failure -> no false success;
-12. callback/webhook race -> exactly one annual extension;
-13. retry after temporary database/provider failure -> eventual correct access;
-14. `checkout.completed` without successful collection -> no access;
-15. `collection.underpaid` -> no access.
+## Task 5 — Provider-neutral reconciliation
 
-`payment-certification.md` ends with exactly one of:
+**Files:**
+- `supabase/functions/payment-reconciliation/index.ts`
+- `supabase/functions/_shared/paymentReconciliation.ts`
+- `AdminPanel/src/hooks/queries/paymentReconciliation.ts`
+- `AdminPanel/src/pages/AdminPayments.tsx`
+- admin navigation/router
+- `docs/production-readiness/evidence/payment-certification.md`
 
-```text
-PHASE 1 RELEASE GATE: PASS
-```
+- [x] Reconciliation endpoint requires JWT plus explicit administrator role.
+- [x] Admin surface is read-only.
+- [x] `paid_no_access` is visible.
+- [x] `access_no_paid_payment` is visible.
+- [x] `success_no_processed_event` is visible.
+- [x] Receipt `failed` / `skipped` states are visible.
+- [x] No reconciliation control can directly set `subscriptions.has_access`.
 
-or
+## Task 6 — Bachs sandbox certification
 
-```text
-PHASE 1 RELEASE GATE: FAIL — external sandbox/deployment evidence incomplete
-```
+**External prerequisites not available through the current connected apps:**
 
-## Phase 1 Definition of Done
+- Bachs sandbox key and webhook signing secret.
+- Bachs sandbox product IDs for NGN/USD.
+- Access to Cresciva Supabase project `dwyglydswegyvjowzdot` or a safe staging branch.
+- Reachable staging `APP_URL`.
 
-- Active Cresciva checkout path uses Bachs, not Paystack.
-- Server-resolved amount is converted to Bachs decimal format only at the provider boundary.
-- Bachs checkout initialization uses stable idempotency keys.
-- Signed webhook timestamp/HMAC is verified over the exact raw body.
-- Webhook event ID drives dedupe.
-- Only `collection.succeeded` plus server-side revalidation can grant access.
-- Callback is a verification/backstop path, not the authority.
-- Non-duplicate persistence failures return 5xx.
-- Webhook body is bounded to 256 KiB.
-- Existing one-year entitlement semantics are preserved.
-- Bachs sandbox failure matrix is recorded before the phase is marked PASS.
+Required failure matrix:
+
+1. successful hosted checkout -> exactly one annual extension;
+2. callback before webhook -> pending/server-verified state, never redirect trust;
+3. duplicate `collection.succeeded` -> one grant;
+4. retry after event insert but before grant -> resumes exactly once;
+5. malformed event -> rejected;
+6. invalid signature -> 401;
+7. stale timestamp -> rejected;
+8. oversized body -> 413;
+9. artificial event-log failure -> 5xx;
+10. amount mismatch -> no access;
+11. currency mismatch -> no access;
+12. `collection.underpaid` -> no access;
+13. grant RPC failure -> no false success;
+14. receipt failure -> membership remains granted;
+15. reconciliation after success -> healthy ledger/access/event state;
+16. recurring Bachs product accidentally configured -> sandbox certification fails; product must be one-time.
+
+## Phase 1 release state
+
+Repository implementation gate: **PASS pending repository CI evidence from Phase 2**.
+
+External Bachs/Supabase sandbox deployment gate: **BLOCKED_EXTERNAL** until the above merchant/project credentials and staging environment are connected.
+
+The phase must not be called production-certified until the sandbox matrix is executed against the actual configured Bachs products.
+
+`PHASE 1 RELEASE GATE: BLOCKED_EXTERNAL`
