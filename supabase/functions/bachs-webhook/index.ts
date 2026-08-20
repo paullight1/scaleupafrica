@@ -8,6 +8,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   bachsFetch,
   classifyWebhookInsertError,
+  crescivaReferenceFromCheckout,
   decideBachsGrant,
   resolveBachsBaseUrl,
   safeBachsCheckoutSummary,
@@ -57,8 +58,6 @@ Deno.serve(async (req) => {
   );
 
   if (!signatureValid) {
-    // Never persist attacker-controlled JSON after signature failure. Only a
-    // bounded traffic summary is useful for incident/abuse analysis.
     try {
       await admin.from("payment_webhook_events").insert({
         provider: "bachs",
@@ -74,7 +73,7 @@ Deno.serve(async (req) => {
         processed: false,
       });
     } catch {
-      // Invalid requests are rejected regardless of audit availability.
+      // Rejection must not depend on audit storage availability.
     }
     return new Response("", { status: 401 });
   }
@@ -87,9 +86,8 @@ Deno.serve(async (req) => {
     return new Response("", { status: 401 });
   }
 
-  // Use the Bachs event ID in the existing event-log reference slot. The table's
-  // UNIQUE(provider,event_type,reference) therefore becomes event-ID idempotency
-  // for Bachs without requiring a risky schema migration during this phase.
+  // Bachs event ID is the idempotency key. The existing unique tuple therefore
+  // deduplicates an at-least-once delivery without a risky launch-time schema change.
   const auditPayload = safeEventSummary(event);
   const { data: inserted, error: insertError } = await admin
     .from("payment_webhook_events")
@@ -123,9 +121,6 @@ Deno.serve(async (req) => {
       return new Response("", { status: 500 });
     }
     if (existing.processed) return jsonOk("duplicate");
-
-    // Previous delivery inserted the event but did not finish processing. Resume
-    // instead of falsely acknowledging it as handled.
     eventRow = existing as { id: string; processed: boolean };
   } else if (insertOutcome === "retry" || !eventRow) {
     console.error(
@@ -139,8 +134,8 @@ Deno.serve(async (req) => {
 
   try {
     if (event.type === "checkout.completed") {
-      // Bachs explicitly says checkout.completed can fire whether or not payment
-      // was collected. Audit it, but NEVER grant access from this event.
+      // Current Bachs docs explicitly say this can fire whether or not payment
+      // was collected. Audit it; never fulfill from it.
       return await markProcessed(admin, eventRow.id, "ignored");
     }
 
@@ -150,9 +145,7 @@ Deno.serve(async (req) => {
       "collection.underpaid",
       "checkout.expired",
     ]);
-    if (!actionable.has(event.type)) {
-      return await markProcessed(admin, eventRow.id, "ignored");
-    }
+    if (!actionable.has(event.type)) return await markProcessed(admin, eventRow.id, "ignored");
 
     const checkoutId = getString(event.data, "checkout_id");
     if (!checkoutId) {
@@ -172,9 +165,9 @@ Deno.serve(async (req) => {
     }
 
     const checkout = checkoutResult.json;
-    const reference = checkout.reference?.trim() ?? "";
+    const reference = crescivaReferenceFromCheckout(checkout);
     if (!reference) {
-      console.error("bachs-webhook: checkout has no Cresciva reference", event.id, checkoutId);
+      console.error("bachs-webhook: checkout has no Cresciva metadata reference", event.id, checkoutId);
       return new Response("", { status: 500 });
     }
 
@@ -194,7 +187,7 @@ Deno.serve(async (req) => {
     if (event.type === "collection.failed" || event.type === "collection.underpaid") {
       const { error: updateError } = await admin
         .from("payments")
-        .update({ status: "failed", gateway_response: safeSummary })
+        .update({ status: "failed", gateway_response: { ...safeSummary, checkout_id: checkoutId } })
         .eq("id", payment.id);
       if (updateError) {
         console.error("bachs-webhook: failed-payment persistence error", reference, updateError.message);
@@ -204,11 +197,10 @@ Deno.serve(async (req) => {
     }
 
     if (event.type === "checkout.expired") {
-      // Do not overwrite a payment already settled by a racing collection event.
       if (payment.status !== "success") {
         const { error: updateError } = await admin
           .from("payments")
-          .update({ status: "abandoned", gateway_response: safeSummary })
+          .update({ status: "abandoned", gateway_response: { ...safeSummary, checkout_id: checkoutId } })
           .eq("id", payment.id);
         if (updateError) {
           console.error("bachs-webhook: expiry persistence error", reference, updateError.message);
@@ -218,8 +210,8 @@ Deno.serve(async (req) => {
       return await markProcessed(admin, eventRow.id, "expired");
     }
 
-    // collection.succeeded — authoritative fulfillment event, but still re-fetch
-    // and revalidate the checkout server-side before granting access.
+    // collection.succeeded — authoritative fulfillment event, but provider state
+    // is still re-fetched and cross-checked against the Cresciva ledger.
     const decision = decideBachsGrant(checkout, payment);
     if (decision.action === "ignore" || decision.action === "mismatch") {
       console.error("bachs-webhook: successful collection rejected", reference, decision.action);
@@ -230,7 +222,7 @@ Deno.serve(async (req) => {
       .from("payments")
       .update({
         channel: checkout.payment_method ?? null,
-        gateway_response: safeSummary,
+        gateway_response: { ...safeSummary, checkout_id: checkoutId },
         paid_at: checkout.completed_at ?? new Date().toISOString(),
       })
       .eq("id", payment.id);
@@ -247,9 +239,6 @@ Deno.serve(async (req) => {
         console.error("bachs-webhook: grant_annual_access failed", reference, grantError.message);
         return new Response("", { status: 500 });
       }
-
-      // Courtesy only. This helper never throws and shares an idempotency key
-      // with the callback verification path.
       await sendPaymentReceipt(admin as never, payment.id, Deno.env.toObject());
     }
 
