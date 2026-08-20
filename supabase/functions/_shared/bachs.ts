@@ -179,9 +179,15 @@ export function classifyWebhookInsertError(
   return error.code === "23505" ? "duplicate" : "retry";
 }
 
+/** Bachs uses ACCEPTED as an alternative terminal success state on some rails. */
+export function isBachsTerminalSuccess(status: unknown): boolean {
+  const normalized = String(status ?? "").toLowerCase();
+  return normalized === "succeeded" || normalized === "accepted";
+}
+
 /**
  * Decide whether a retrieved Bachs checkout can grant the stored Cresciva
- * payment. The provider result must be settled AND amount/currency must match.
+ * payment. The checkout must be settled and amount/currency must match exactly.
  */
 export function decideBachsGrant(
   checkout: BachsCheckout,
@@ -191,7 +197,7 @@ export function decideBachsGrant(
   if (String(checkout.payment_status ?? "").toLowerCase() !== "succeeded") {
     return { action: "ignore" };
   }
-  if (String(checkout.charge?.status ?? "").toLowerCase() !== "succeeded") {
+  if (!isBachsTerminalSuccess(checkout.charge?.status)) {
     return { action: "ignore" };
   }
   if (!checkoutMatchesPayment(checkout, payment)) {
