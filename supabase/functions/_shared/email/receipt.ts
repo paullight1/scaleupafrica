@@ -1,14 +1,13 @@
 // =============================================================================
-// Payment receipt — shared by paystack-webhook and paystack-verify.
+// Payment receipt — shared by the authoritative payment webhook and the
+// callback verification backstop.
 //
-// Both functions can complete the same grant (the webhook is the settlement
-// path; verify is the callback-page backstop), so BOTH call this. The
-// `receipt:<paymentId>` idempotency key is what makes that safe: Resend collapses
-// identical keys for 24h, so the customer gets exactly one receipt no matter
-// which path won the race — or whether Paystack retried the webhook.
+// Both paths can complete the same atomic grant, so both call this helper. The
+// `receipt:<paymentId>` idempotency key makes that safe: the customer gets at
+// most one receipt when webhook/callback race or the provider retries delivery.
 //
 // Never throws. A receipt is a courtesy; it must not be able to fail a payment
-// grant or push a webhook into a retry loop.
+// grant or push a provider webhook into a retry loop.
 // =============================================================================
 
 import { loadEmailConfig } from "./config.ts";
@@ -40,7 +39,7 @@ export async function sendPaymentReceipt(
 ): Promise<void> {
   try {
     const config = loadEmailConfig(env);
-    if (!config.apiKey) return; // not configured — dispatch would only log a skip
+    if (!config.apiKey) return;
 
     const { data: payment } = await admin
       .from("payments")
@@ -90,7 +89,6 @@ export async function sendPaymentReceipt(
       { config, log },
     );
   } catch (e) {
-    // Swallow everything: a receipt failure must never affect the grant path.
     console.error("[email] payment receipt failed", e instanceof Error ? e.message : e);
   }
 }
