@@ -3,6 +3,10 @@ import { z } from "zod";
 /**
  * Zod-validated process.env -> typed Config. Crash fast on missing/invalid values
  * at boot (plan 07 §2.4). NONE of these ever appear in a VITE_-prefixed var.
+ *
+ * Payment settlement currently runs in Supabase Edge Functions. The optional
+ * Bachs fields live here so the NestJS cutover in Phase 6 can use the same
+ * provider without carrying a dormant Paystack secret or endpoint forward.
  */
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
@@ -18,7 +22,12 @@ const EnvSchema = z.object({
   AI_GATEWAY_KEY: z.string().optional(),
   AI_MODEL: z.string().default("google/gemini-2.5-pro"),
 
-  PAYSTACK_SECRET_KEY: z.string().optional(),
+  BACHS_SECRET_KEY: z.string().optional(),
+  BACHS_BASE_URL: z
+    .enum(["https://sandbox-api.bachs.io", "https://api.bachs.io"])
+    .optional(),
+  BACHS_WEBHOOK_SIGNING_SECRET: z.string().optional(),
+  BACHS_ORGANIZATION_ID: z.string().optional(),
 
   CORS_ORIGINS: z.string().default("http://localhost:8080"),
 });
