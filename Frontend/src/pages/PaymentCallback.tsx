@@ -13,26 +13,27 @@ const MAX_POLLS = 6;
 const POLL_INTERVAL = 10_000;
 
 /**
- * Bachs redirects successful hosted checkouts to this route with `checkout_id`.
- * The browser does not trust that redirect as proof of payment: it asks the
- * authenticated bachs-verify function to retrieve and revalidate provider state.
+ * Bachs returns to this route with Cresciva's random payment `reference` that was
+ * embedded into return_url at checkout creation. The reference is only a lookup
+ * key — the browser redirect is never proof of payment. bachs-verify retrieves
+ * the linked Bachs checkout server-side and revalidates settlement.
  */
 export default function PaymentCallback() {
   const [params] = useSearchParams();
-  const checkoutId = params.get("checkout_id") ?? "";
+  const reference = params.get("reference") ?? "";
   const queryClient = useQueryClient();
 
-  const [state, setState] = useState<UiState>(checkoutId ? "verifying" : "missing");
+  const [state, setState] = useState<UiState>(reference ? "verifying" : "missing");
   const pollsRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runVerify = useCallback(async () => {
-    if (!checkoutId) {
+    if (!reference) {
       setState("missing");
       return;
     }
 
-    const status: VerifyStatus = await verifyPayment(checkoutId);
+    const status: VerifyStatus = await verifyPayment(reference);
     if (status === "success") {
       setState("success");
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
@@ -53,7 +54,7 @@ export default function PaymentCallback() {
     } else {
       setState("pending");
     }
-  }, [checkoutId, queryClient]);
+  }, [reference, queryClient]);
 
   useEffect(() => {
     runVerify();
@@ -140,8 +141,8 @@ export default function PaymentCallback() {
           <Panel
             icon={<XCircle className="h-8 w-8" />}
             tone="destructive"
-            title="No checkout to confirm"
-            body="We couldn't find a Bachs checkout ID in this link. Open your billing page to check your membership or start checkout again."
+            title="No payment to confirm"
+            body="We couldn't find a Cresciva payment reference in this link. Open your billing page to check your membership or start checkout again."
           >
             <div className="mt-6 flex flex-col gap-3">
               <Button asChild size="lg">
