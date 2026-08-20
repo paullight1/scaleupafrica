@@ -22,7 +22,9 @@ jobs:
           node-version: 22
           cache: npm
       - name: Refresh lockfile only
-        run: npm install --package-lock-only --ignore-scripts
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm update nanoid --package-lock-only --ignore-scripts
       - name: Commit deterministic lockfile
         run: |
           if git diff --quiet -- package-lock.json; then
