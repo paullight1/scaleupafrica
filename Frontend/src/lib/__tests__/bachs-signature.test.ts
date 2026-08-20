@@ -2,8 +2,10 @@ import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   classifyWebhookInsertError,
+  crescivaReferenceFromCheckout,
   decimalToSubunits,
   decideBachsGrant,
+  resolveBachsProductId,
   subunitsToDecimal,
   verifyBachsSignature,
   type BachsCheckout,
@@ -37,6 +39,34 @@ describe("Bachs amount boundary", () => {
     expect(decimalToSubunits("200", "USD")).toBe(20_000);
     expect(decimalToSubunits("2.999", "USD")).toBeNull();
     expect(decimalToSubunits("NaN", "USD")).toBeNull();
+  });
+});
+
+describe("Bachs product checkout configuration", () => {
+  it("selects the configured one-time product for the charge currency", () => {
+    expect(
+      resolveBachsProductId("NGN", { NGN: "prod_cresciva_ngn", USD: "prod_cresciva_usd" }),
+    ).toBe("prod_cresciva_ngn");
+    expect(
+      resolveBachsProductId("USD", { NGN: "prod_cresciva_ngn", USD: "prod_cresciva_usd" }),
+    ).toBe("prod_cresciva_usd");
+  });
+
+  it("rejects missing or malformed product IDs", () => {
+    expect(resolveBachsProductId("USD", { NGN: "prod_ngn", USD: "" })).toBeNull();
+    expect(resolveBachsProductId("NGN", { NGN: "price_not_product", USD: "prod_usd" })).toBeNull();
+  });
+
+  it("recovers Cresciva reference from checkout metadata without trusting redirects", () => {
+    expect(
+      crescivaReferenceFromCheckout({
+        checkout_id: "chk_1",
+        metadata: { cresciva_reference: "crv_123" },
+      }),
+    ).toBe("crv_123");
+    expect(
+      crescivaReferenceFromCheckout({ checkout_id: "chk_1", reference: "crv_legacy" }),
+    ).toBe("crv_legacy");
   });
 });
 
@@ -97,7 +127,7 @@ describe("Bachs settlement decision", () => {
     payment_status: "succeeded",
     amount: "200.00",
     currency: "USD",
-    reference: "crv_payment_1",
+    metadata: { cresciva_reference: "crv_payment_1" },
     charge: {
       payment_id: "pay_cresciva_1",
       status: "succeeded",
