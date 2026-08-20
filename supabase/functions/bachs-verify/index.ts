@@ -9,6 +9,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   bachsFetch,
   decideBachsGrant,
+  isBachsTerminalSuccess,
   resolveBachsBaseUrl,
   safeBachsCheckoutSummary,
   type BachsCheckout,
@@ -60,9 +61,6 @@ Deno.serve(async (req) => {
       { method: "GET", signal: AbortSignal.timeout(20_000) },
     );
 
-    // A callback can arrive before provider state converges or during a temporary
-    // provider outage. Pending is safer than a false failure; the UI polls and the
-    // webhook remains the authoritative fulfillment path.
     if (!checkoutResult.ok || !checkoutResult.json?.checkout_id) {
       console.warn("bachs-verify: checkout not ready", checkoutId, checkoutResult.status);
       return json({ status: "pending" satisfies VerifyStatus }, 200);
@@ -162,9 +160,10 @@ Deno.serve(async (req) => {
 function mapCheckoutStatus(checkout: BachsCheckout): VerifyStatus {
   const paymentStatus = String(checkout.payment_status ?? "").toLowerCase();
   const checkoutStatus = String(checkout.status ?? "").toLowerCase();
-  const chargeStatus = String(checkout.charge?.status ?? "").toLowerCase();
 
-  if (paymentStatus === "succeeded" && chargeStatus === "succeeded") return "success";
+  if (paymentStatus === "succeeded" && isBachsTerminalSuccess(checkout.charge?.status)) {
+    return "success";
+  }
   if (
     paymentStatus === "failed" ||
     paymentStatus === "canceled" ||
