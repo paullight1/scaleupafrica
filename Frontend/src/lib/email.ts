@@ -2,18 +2,9 @@
 // Frontend email/capture client — the ONLY way the browser submits a contact
 // message, a newsletter signup, or a gated-resource request.
 //
-// These three flows used to insert into `leads` / `newsletter_subscribers`
-// straight from the browser. They now go through the `send-email` edge function,
-// which owns the row write AND the notification. That means:
-//   - the team is always told about a lead that was captured (one code path),
-//   - the file URL for a gated download is resolved server-side from the DB
-//     rather than trusted from the client,
-//   - validation, honeypot and per-IP throttling happen somewhere a visitor
-//     cannot bypass by opening devtools.
-//
-// Supabase wraps a non-2xx as FunctionsHttpError whose `.context` is the raw
-// Response, so `readError` digs the typed body out of it — same shape as
-// lib/paystack.ts.
+// These flows go through the send-email Edge Function, which owns the row write,
+// notification, validation, honeypot and abuse throttle. The browser never gets
+// to choose an arbitrary resource file URL or bypass server validation.
 // =============================================================================
 import { supabase } from "@shared/integrations/supabase/client";
 
@@ -24,8 +15,13 @@ export interface CaptureError {
   fields?: Record<string, string>;
 }
 
+/**
+ * Both branches declare `error` so callers can inspect it without a property-
+ * existence failure when this repository is compiled with strictNullChecks off.
+ * `ok` remains the discriminant; success can never carry a real error value.
+ */
 export type CaptureResult<T = Record<string, never>> =
-  | ({ ok: true } & T)
+  | ({ ok: true; error?: never } & T)
   | { ok: false; error: CaptureError };
 
 interface ServerError {
@@ -62,8 +58,6 @@ async function invoke<T>(body: Record<string, unknown>): Promise<CaptureResult<T
     if (error) return { ok: false, error: await readError(error) };
     return { ok: true, ...((data ?? {}) as T) };
   } catch (e) {
-    // Network-level failure (offline, DNS, CORS) — invoke() throws rather than
-    // returning an error, so the caller still gets a typed result either way.
     return { ok: false, error: await readError(e) };
   }
 }
@@ -100,9 +94,8 @@ export interface ResourceRequest {
 }
 
 /**
- * Gated resource form → captures the lead and emails the download.
- * Echoes back the server-resolved `fileUrl` so the page can unlock the download
- * immediately instead of making the visitor wait on their inbox.
+ * Gated resource form → captures the lead and emails the download. The server
+ * resolves the file URL from the database and echoes it back only after capture.
  */
 export function requestResourceDownload(
   values: ResourceRequest,
