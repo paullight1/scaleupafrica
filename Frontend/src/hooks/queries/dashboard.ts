@@ -32,8 +32,26 @@ import type {
  * are unknown to the typed client, so we access them through this narrow escape
  * hatch. Everything else stays fully typed.
  */
+type UntypedResult = { data: unknown; error: { message: string } | null };
+
+/**
+ * Minimal stand-in for the PostgREST query builder: every method returns another
+ * builder, and awaiting one yields `{ data, error }`. `data` is `unknown`, so each
+ * call site still has to assert the row shape it expects — which is the point, and
+ * what a plain `any` would have quietly skipped.
+ */
+interface UntypedQuery extends PromiseLike<UntypedResult> {
+  select(columns?: string): UntypedQuery;
+  insert(values: Record<string, unknown>): UntypedQuery;
+  upsert(values: Record<string, unknown>, options?: { onConflict?: string }): UntypedQuery;
+  delete(): UntypedQuery;
+  eq(column: string, value: unknown): UntypedQuery;
+  order(column: string, options?: { ascending?: boolean }): UntypedQuery;
+  maybeSingle(): UntypedQuery;
+}
+
 const untypedDb = supabase as unknown as {
-  from: (table: string) => any;
+  from: (table: string) => UntypedQuery;
 };
 
 // ---------------------------------------------------------------------------
