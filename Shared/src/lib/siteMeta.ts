@@ -1,3 +1,5 @@
+import { DEFAULT_SITE_ORIGIN, normalizeSiteOrigin } from "../../../config/site-origin.js";
+
 /**
  * Canonical identity of the public site — the single source of truth for every
  * absolute URL that leaves the app: <link rel="canonical">, og:url, og:image,
@@ -8,16 +10,14 @@
  * the live origin makes a Vercel preview deploy (and localhost) declare itself
  * canonical and hand crawlers an og:image URL that dies with the preview.
  *
- * Override per-environment with `VITE_SITE_ORIGIN`; the default is the current
- * production host. Build-time consumers outside the bundle (the sitemap and
- * robots.txt generator, the index.html transform) read the same variable and
- * fall back to the same literal — keep them in step if this changes.
+ * `config/site-origin.js` owns the default literal. Deployments may override it
+ * with VITE_SITE_ORIGIN; Node/build consumers import the same contract.
  */
 export const SITE_NAME = "Cresciva";
 
-export const SITE_ORIGIN = (
-  import.meta.env.VITE_SITE_ORIGIN ?? "https://cresciva.vercel.app"
-).replace(/\/+$/, "");
+export const SITE_ORIGIN = normalizeSiteOrigin(
+  import.meta.env.VITE_SITE_ORIGIN ?? DEFAULT_SITE_ORIGIN,
+);
 
 /**
  * Social share image — a screenshot of the live landing hero, 1200×630.
