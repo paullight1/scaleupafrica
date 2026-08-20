@@ -17,6 +17,7 @@
     "build": "npm run sitemap && npm run build --workspace Frontend && npm run build --workspace AdminPanel && npm run assemble",
     "build:web": "npm run sitemap && npm run build --workspace Frontend",
     "sitemap": "node scripts/generate-sitemap.mjs",
+    "og": "node scripts/generate-og-screenshot.mjs",
     "assemble": "node scripts/assemble-dist.mjs",
     "build:admin": "npm run build --workspace AdminPanel",
     "build:api": "npm run build --workspace Backend",
