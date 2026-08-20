@@ -1,16 +1,17 @@
 // bachs-init — POST, user JWT required (verify_jwt=true in supabase/config.toml).
 //
-// Cresciva remains the price authority. The browser sends only { plan_code,
-// currency }; the server resolves integer subunits, converts to Bachs decimal
-// format at the provider boundary, creates the internal payment ledger row,
-// then creates a Bachs hosted checkout with a stable Idempotency-Key.
+// Bachs' current checkout contract is product-based. Cresciva owns the expected
+// annual price in its ledger and selects a preconfigured one-time Bachs product
+// per settlement currency. The Bachs product must be configured to the same price;
+// settlement still cannot grant access unless provider amount/currency match the
+// server-created Cresciva payment row exactly.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { isCurrency, isPlanCode, resolvePlanAmount } from "../_shared/billing.ts";
 import {
   bachsFetch,
   resolveBachsBaseUrl,
-  subunitsToDecimal,
+  resolveBachsProductId,
 } from "../_shared/bachs.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -18,6 +19,8 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BACHS_SECRET_KEY = Deno.env.get("BACHS_SECRET_KEY") ?? "";
 const BACHS_BASE_URL_CONFIG = Deno.env.get("BACHS_BASE_URL");
+const BACHS_ANNUAL_PRODUCT_NGN = Deno.env.get("BACHS_ANNUAL_PRODUCT_NGN") ?? "";
+const BACHS_ANNUAL_PRODUCT_USD = Deno.env.get("BACHS_ANNUAL_PRODUCT_USD") ?? "";
 const APP_URL_CONFIG = Deno.env.get("APP_URL") ?? "";
 
 interface BachsCheckoutCreateResponse {
@@ -26,7 +29,6 @@ interface BachsCheckoutCreateResponse {
   status?: string;
   expires_at?: string;
   created_at?: string;
-  reference?: string | null;
   detail?: string;
   error_code?: string;
 }
@@ -67,13 +69,17 @@ Deno.serve(async (req) => {
     }
 
     const amount = resolvePlanAmount(planCode, currency);
-    if (amount == null) {
-      return json({ error: "Invalid plan or currency.", code: "INVALID_PLAN" }, 400);
+    const productId = resolveBachsProductId(currency, {
+      NGN: BACHS_ANNUAL_PRODUCT_NGN,
+      USD: BACHS_ANNUAL_PRODUCT_USD,
+    });
+    if (amount == null || !productId) {
+      console.error("bachs-init: missing/invalid product configuration", currency);
+      return json({ error: "Payments are not configured for this currency.", code: "NOT_CONFIGURED" }, 500);
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Prevent an accidental second annual purchase while substantial access remains.
     const { data: subscription, error: subErr } = await admin
       .from("subscriptions")
       .select("has_access, expires_at")
@@ -117,20 +123,20 @@ Deno.serve(async (req) => {
       return json({ error: "Could not start payment. Please try again.", code: "DB_ERROR" }, 500);
     }
 
+    // Current Bachs checkout sessions are product-based. The internal reference is
+    // in both the return URL and metadata, so callback verification does not depend
+    // on Bachs injecting a query parameter into our URL.
     const providerPayload = {
-      pricing: {
-        currency,
-        amount: subunitsToDecimal(amount, currency),
-      },
-      customer: { email: user.email },
-      success_url: `${appUrl}/payment/callback`,
+      product_cart: [{ product_id: productId, quantity: 1 }],
+      billing_currency: currency,
+      return_url: `${appUrl}/payment/callback?reference=${encodeURIComponent(reference)}`,
       cancel_url: `${appUrl}/dashboard/account#billing`,
-      reference,
+      customer: { email: user.email },
       metadata: {
+        cresciva_reference: reference,
         internal_payment_id: payment.id,
         plan_code: planCode,
       },
-      expires_in_minutes: 60,
     };
 
     const idempotencyKey = `checkout_${reference}`;
@@ -142,12 +148,7 @@ Deno.serve(async (req) => {
     );
 
     const checkout = providerResult.json;
-    if (
-      !providerResult.ok ||
-      !checkout.checkout_id ||
-      !checkout.checkout_url ||
-      checkout.reference !== reference
-    ) {
+    if (!providerResult.ok || !checkout.checkout_id || !checkout.checkout_url) {
       const { error: failUpdateError } = await admin
         .from("payments")
         .update({
@@ -156,6 +157,7 @@ Deno.serve(async (req) => {
             provider: "bachs",
             status: providerResult.status,
             error_code: checkout.error_code ?? null,
+            product_id: productId,
           },
         })
         .eq("id", payment.id);
@@ -185,14 +187,12 @@ Deno.serve(async (req) => {
           checkout_id: checkout.checkout_id,
           status: checkout.status ?? "open",
           expires_at: checkout.expires_at ?? null,
+          product_id: productId,
         },
       })
       .eq("id", payment.id);
 
     if (summaryError) {
-      // The checkout exists at Bachs, but Cresciva could not persist the linkage
-      // summary. Do not redirect blindly; support/reconciliation can recover it
-      // from the internal reference already sent to Bachs.
       console.error("bachs-init: checkout summary write failed", reference, summaryError.message);
       return json({ error: "Could not finalize checkout. Please try again.", code: "DB_ERROR" }, 500);
     }
@@ -236,9 +236,6 @@ async function createCheckoutWithRetry(
           signal: AbortSignal.timeout(20_000),
         },
       );
-      // Non-5xx is definitive. Bachs does not cache non-2xx idempotency results,
-      // but validation/auth/rate-limit responses should be returned to Cresciva
-      // rather than retried blindly inside one request.
       if (last.status < 500) return last;
     } catch (error) {
       console.warn(
@@ -247,10 +244,8 @@ async function createCheckoutWithRetry(
         error instanceof Error ? error.message : String(error),
       );
     }
-
     if (attempt < 2) await sleep(250 * 2 ** attempt);
   }
-
   return last;
 }
 
