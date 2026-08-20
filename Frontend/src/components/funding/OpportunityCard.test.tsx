@@ -19,7 +19,8 @@ function MultiHarness({ opps }: { opps: Opportunity[] }) {
   const toggle = (k: string) =>
     setOpen((prev) => {
       const next = new Set(prev);
-      next.has(k) ? next.delete(k) : next.add(k);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
       return next;
     });
   return (

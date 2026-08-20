@@ -27,13 +27,16 @@ export function FundingWorkspace() {
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
   const [showDeepSearch, setShowDeepSearch] = useState(false);
 
-  const items = feed.data ?? [];
+  // `feed.data ?? []` inline would be a fresh array every render, so the memo
+  // below would re-filter on every render — exactly what it exists to avoid.
+  const items = useMemo(() => feed.data ?? [], [feed.data]);
   const filtered = useMemo(() => items.filter((i) => matches(i, filter)), [items, filter]);
 
   const toggle = (key: string) =>
     setOpenKeys((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
 
