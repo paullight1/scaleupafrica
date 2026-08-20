@@ -1,11 +1,24 @@
 import { useEffect } from "react";
 import type { JsonLd } from "@shared/lib/structuredData";
+import {
+  SITE_NAME,
+  DEFAULT_OG_IMAGE,
+  OG_IMAGE_WIDTH,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_ALT,
+  absoluteUrl,
+} from "@shared/lib/siteMeta";
 
 interface SEOProps {
   title: string;
   description?: string;
-  /** Absolute path; defaults to the social banner once plan 08 ships it. */
+  /**
+   * Site-relative path or absolute URL; resolved against SITE_ORIGIN before it
+   * is written to og:image. Defaults to the landing-hero social banner.
+   */
   ogImage?: string;
+  /** Alt text for the share image. Only set this alongside a custom `ogImage`. */
+  ogImageAlt?: string;
   noindex?: boolean;
   /** Site-relative path for <link rel="canonical">; defaults to the current path. */
   canonical?: string;
@@ -13,7 +26,6 @@ interface SEOProps {
   jsonLd?: JsonLd | JsonLd[];
 }
 
-const SITE_NAME = "Cresciva";
 /** Marks the nodes this component owns, so a route change can clear them. */
 const OWNED = "data-seo-jsonld";
 
@@ -52,7 +64,8 @@ function upsertCanonical(href: string) {
 export function SEO({
   title,
   description,
-  ogImage = "/og-banner.png",
+  ogImage = DEFAULT_OG_IMAGE,
+  ogImageAlt,
   noindex = false,
   canonical,
   jsonLd,
@@ -74,20 +87,34 @@ export function SEO({
     upsertMeta("name", "twitter:card", "summary_large_image");
 
     if (ogImage) {
-      upsertMeta("property", "og:image", ogImage);
-      upsertMeta("name", "twitter:image", ogImage);
+      // MUST be absolute — Facebook, LinkedIn, Slack and X all reject a
+      // relative og:image outright and render a preview with no picture.
+      const imageHref = absoluteUrl(ogImage);
+      upsertMeta("property", "og:image", imageHref);
+      upsertMeta("name", "twitter:image", imageHref);
+      const alt = ogImageAlt ?? (ogImage === DEFAULT_OG_IMAGE ? OG_IMAGE_ALT : undefined);
+      if (alt) {
+        upsertMeta("property", "og:image:alt", alt);
+        upsertMeta("name", "twitter:image:alt", alt);
+      }
+      if (ogImage === DEFAULT_OG_IMAGE) {
+        // Dimensions let a crawler lay out the card before it fetches the file.
+        upsertMeta("property", "og:image:width", OG_IMAGE_WIDTH);
+        upsertMeta("property", "og:image:height", OG_IMAGE_HEIGHT);
+      }
     }
 
     upsertMeta("name", "robots", noindex ? "noindex, nofollow" : "index, follow");
 
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
     const path = canonical ?? (typeof window !== "undefined" ? window.location.pathname : "/");
-    // Canonical URLs are deliberately query-free: /directory?industry=agri is
-    // the same document as /directory as far as indexing goes.
-    const canonicalHref = /^https?:\/\//i.test(path) ? path : `${origin}${path}`;
+    // Resolved against SITE_ORIGIN, never window.location.origin — otherwise a
+    // preview deploy names itself canonical. Canonical URLs are also
+    // deliberately query-free: /directory?industry=agri is the same document as
+    // /directory as far as indexing goes.
+    const canonicalHref = absoluteUrl(path);
     upsertCanonical(canonicalHref);
     upsertMeta("property", "og:url", canonicalHref);
-  }, [title, description, ogImage, noindex, canonical]);
+  }, [title, description, ogImage, ogImageAlt, noindex, canonical]);
 
   // Serialised separately so an inline object literal in a page's JSX doesn't
   // re-run the effect on every render.

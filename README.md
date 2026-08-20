@@ -43,6 +43,7 @@ Run these from the repo root:
 | --------------------- | ------------------------------------------------------- |
 | `npm run dev`         | Public site dev server on port 8080                     |
 | `npm run dev:admin`   | Admin panel dev server on port 8081                     |
+| `npm run og`          | Rescreenshot the landing hero into `og-banner.png`      |
 | `npm run dev:api`     | NestJS API dev server on port 3001                      |
 | `npm run build`       | Production build of both web apps                       |
 | `npm run build:web`   | Build the public site only → `Frontend/dist/`           |
@@ -67,8 +68,16 @@ Web-app variables (all prefixed `VITE_`, safe to expose to the client). Both `Fr
 | `VITE_SUPABASE_PROJECT_ID`      | Supabase project ref/ID                                  |
 | `VITE_SITE_URL`                 | AdminPanel only — public site origin                      |
 | `VITE_ADMIN_URL`                | Frontend only — admin panel origin                        |
+| `VITE_SITE_ORIGIN`              | Frontend only — public origin used in canonical/og:* URLs |
 
-The last two are **cross-app origins**. The two apps have separate routers, so links between them
+`VITE_SITE_ORIGIN` is the public origin stamped into `<link rel="canonical">`, `og:url` and
+`og:image` — set it to the production host. It defaults to `https://cresciva.vercel.app`; the same
+default is repeated in `Shared/src/lib/siteMeta.ts`, `Frontend/vite.config.ts` and
+`scripts/generate-sitemap.mjs`, so change all three together. It deliberately does **not** fall back
+to `window.location.origin`: that made every preview deploy declare itself canonical and hand
+crawlers share images that die with the preview.
+
+`VITE_SITE_URL` and `VITE_ADMIN_URL` are **cross-app origins**. The two apps have separate routers, so links between them
 are real document navigations; each app has to know where the other is served. In production they
 share one host (site at `/`, panel at `/admin/`), so both stay unset and the links are rooted paths.
 In dev they are two Vite servers on two ports, so both are set in the committed `.env.development`
@@ -108,7 +117,7 @@ Shared/                  imported by both apps as @shared/* — never the revers
 Backend/                 NestJS + Drizzle API (port 3001)
 supabase/migrations/     SQL schema + RLS policies
 supabase/functions/      Deno edge functions
-scripts/                 branding asset sources + generation (og-banner, favicon)
+scripts/                 favicon sources, og screenshot, sitemap/robots generation
 docs/plans/              implementation plans
 ```
 
@@ -131,11 +140,21 @@ Host on Vercel, Netlify, or Cloudflare Pages:
 Apply database changes with `supabase db push`, and deploy edge functions with
 `supabase functions deploy aggregate-funding`.
 
-To regenerate branding assets (favicon set + social banner) from their SVG sources:
+To regenerate the favicon set from its SVG sources:
 
 ```sh
 npm run assets
 ```
+
+The social share image is separate — it's a real screenshot of the live landing hero, not a
+hand-drawn card, so it can't drift from the product:
+
+```sh
+npm run og            # starts the dev server, captures it, writes Frontend/public/og-banner.png
+npm run og -- <url>   # capture an already-running server instead
+```
+
+Rerun it whenever the hero changes, and commit the PNG.
 
 ## License & contact
 
