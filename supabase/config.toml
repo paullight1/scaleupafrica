@@ -1,15 +1,15 @@
 project_id = "dwyglydswegyvjowzdot"
 
-# Paystack payment functions (Plan 06).
-# init/verify require the caller's Supabase JWT (default); the webhook must NOT,
-# because Paystack sends no JWT — its authenticity is proven by the HMAC signature.
-[functions.paystack-init]
+# Bachs payment functions (production-readiness Phase 1).
+# init/verify require the caller's Supabase JWT. The webhook does not receive a
+# Supabase JWT; it authenticates Bachs with timestamped HMAC-SHA256 over raw body.
+[functions.bachs-init]
 verify_jwt = true
 
-[functions.paystack-verify]
+[functions.bachs-verify]
 verify_jwt = true
 
-[functions.paystack-webhook]
+[functions.bachs-webhook]
 verify_jwt = false
 
 # Transactional email (Resend). Both are called by SIGNED-OUT visitors — the
