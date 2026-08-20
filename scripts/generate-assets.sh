@@ -5,22 +5,16 @@
 # `sips` (ImageIO) to rasterize SVG -> PNG, and a tiny Node wrapper to pack PNGs into
 # a favicon.ico (PNG-in-ICO, accepted by all modern browsers).
 #
-# sips falls back to a system sans (Sora/Inter are not available to the rasterizer).
-# For a Sora-accurate og-banner, render scripts/og-banner.html with Playwright:
-#   npx playwright screenshot --viewport-size=1200,630 scripts/og-banner.html Frontend/public/og-banner.png
+# The icon sources are pure geometry (no <text>), so `sips` having no access to
+# Sora/Inter no longer matters -- what it rasterizes is what browsers draw.
+#
+# NOT handled here: og-banner.png. That is a screenshot of the live landing hero,
+# taken by `npm run og` (scripts/generate-og-screenshot.mjs). Do not regenerate it
+# from an SVG -- the hand-drawn card silently drifted from the real page.
 #
 # Usage:  bash scripts/generate-assets.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
-
-echo "og-banner.png (1200x630)"
-sips -s format png scripts/og-banner.svg --out Frontend/public/og-banner.png >/dev/null
-# Shrink the 24-bit gradient PNG (~600KB) to a dithered 256-colour PNG (~110KB) if PIL is present.
-python3 - <<'PY' || echo "  (PIL not found; keeping full-size PNG)"
-from PIL import Image
-im = Image.open('Frontend/public/og-banner.png').convert('RGB')
-im.quantize(colors=256, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG).save('Frontend/public/og-banner.png', optimize=True)
-PY
 
 echo "favicon.svg (copy source)"
 cp scripts/favicon.svg Frontend/public/favicon.svg
@@ -42,4 +36,4 @@ echo "admin panel favicons"
 cp Frontend/public/favicon.svg AdminPanel/public/favicon.svg
 cp Frontend/public/favicon.ico AdminPanel/public/favicon.ico
 
-echo "done."
+echo "done.  (og-banner.png is separate: npm run og)"

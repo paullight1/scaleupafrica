@@ -1,5 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
-  <!-- Apple touch icon: solid orange (no transparency; iOS composites transparency onto black). iOS rounds corners itself. -->
-  <rect width="180" height="180" fill="#FF7A59"/>
-  <text x="90" y="130" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="126" font-weight="700" fill="#FFFFFF">C</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 512 512">
+  <!--
+    Apple touch icon: solid orange, square (iOS composites transparency onto
+    black and rounds the corners itself, so no rx here).
+
+    Same 512 viewBox and the same arc geometry as scripts/favicon.svg — keep the
+    two paths identical so the home-screen icon and the tab icon are one mark.
+  -->
+  <rect width="512" height="512" fill="#FF7A59"/>
+  <path d="M 340.31 162.36 A 126 126 0 1 0 340.31 349.64"
+        fill="none" stroke="#FFFFFF" stroke-width="68" stroke-linecap="round"/>
 </svg>

@@ -1,5 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <!-- Cresciva mark: orange rounded square, white "C". Theme tokens: primary #FF7A59, navy #1B2A4A. -->
+  <!--
+    Cresciva mark: orange rounded square, white "C". Theme tokens: primary #FF7A59, navy #1B2A4A.
+
+    The C is a stroked arc, NOT a <text> element. A text-based mark renders with
+    whatever the rasterizer or the viewer's OS resolves "Helvetica Neue" to, so
+    it shifted shape between the .ico, the PNGs and the browser's live SVG
+    favicon — and fell back to a default serif where none of those fonts exist.
+    Geometry is identical everywhere.
+  -->
   <rect width="512" height="512" rx="112" fill="#FF7A59"/>
-  <text x="256" y="368" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="360" font-weight="700" fill="#FFFFFF">C</text>
+  <path d="M 340.31 162.36 A 126 126 0 1 0 340.31 349.64"
+        fill="none" stroke="#FFFFFF" stroke-width="68" stroke-linecap="round"/>
 </svg>
