@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { trackEvent } from "@shared/lib/analytics";
 import {
   useSaveOpportunity,
   useSavedOpportunities,
@@ -20,10 +21,22 @@ export function useSavedMap() {
     return m;
   }, [saved.data]);
 
-  function toggle(opportunityId: string) {
+  function toggle(opportunityId: string, metadata: Record<string, unknown> = {}) {
     const savedId = savedMap.get(opportunityId);
-    if (savedId) unsave.mutate(savedId);
-    else save.mutate(opportunityId);
+    if (savedId) {
+      unsave.mutate(savedId);
+      return;
+    }
+
+    save.mutate(opportunityId, {
+      onSuccess: () => {
+        void trackEvent("recommendation_save", {
+          entityType: "funding_opportunity",
+          entityId: opportunityId,
+          metadata,
+        });
+      },
+    });
   }
 
   return {
