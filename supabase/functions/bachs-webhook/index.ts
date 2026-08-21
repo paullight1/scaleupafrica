@@ -86,8 +86,6 @@ Deno.serve(async (req) => {
     return new Response("", { status: 401 });
   }
 
-  // Bachs event ID is the idempotency key. The existing unique tuple therefore
-  // deduplicates an at-least-once delivery without a risky launch-time schema change.
   const auditPayload = safeEventSummary(event);
   const { data: inserted, error: insertError } = await admin
     .from("payment_webhook_events")
@@ -134,8 +132,6 @@ Deno.serve(async (req) => {
 
   try {
     if (event.type === "checkout.completed") {
-      // Current Bachs docs explicitly say this can fire whether or not payment
-      // was collected. Audit it; never fulfill from it.
       return await markProcessed(admin, eventRow.id, "ignored");
     }
 
@@ -210,8 +206,6 @@ Deno.serve(async (req) => {
       return await markProcessed(admin, eventRow.id, "expired");
     }
 
-    // collection.succeeded — authoritative fulfillment event, but provider state
-    // is still re-fetched and cross-checked against the Cresciva ledger.
     const decision = decideBachsGrant(checkout, payment);
     if (decision.action === "ignore" || decision.action === "mismatch") {
       console.error("bachs-webhook: successful collection rejected", reference, decision.action);
@@ -267,16 +261,28 @@ async function markProcessed(
 
 function safeParseEvent(raw: string): BachsWebhookEvent | null {
   try {
-    const value = JSON.parse(raw) as Partial<BachsWebhookEvent>;
-    if (!value || typeof value !== "object") return null;
-    if (typeof value.id !== "string" || !value.id.startsWith("evt_")) return null;
-    if (typeof value.type !== "string" || !value.type) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const value = parsed as Record<string, unknown>;
+    const id = value["id"];
+    const type = value["type"];
+    const createdAt = value["created_at"];
+    const organizationId = value["organization_id"];
+    const rawData = value["data"];
+
+    if (typeof id !== "string" || !id.startsWith("evt_")) return null;
+    if (typeof type !== "string" || !type) return null;
+
+    const data = rawData && typeof rawData === "object" && !Array.isArray(rawData)
+      ? rawData as Record<string, unknown>
+      : {};
+
     return {
-      id: value.id,
-      type: value.type,
-      created_at: typeof value.created_at === "string" ? value.created_at : null,
-      organization_id: typeof value.organization_id === "string" ? value.organization_id : null,
-      data: value.data && typeof value.data === "object" ? value.data : {},
+      id,
+      type,
+      created_at: typeof createdAt === "string" ? createdAt : null,
+      organization_id: typeof organizationId === "string" ? organizationId : null,
+      data,
     };
   } catch {
     return null;
