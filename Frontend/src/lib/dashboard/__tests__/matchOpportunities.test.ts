@@ -1,6 +1,13 @@
-import { describe, it, expect } from "vitest";
-import { matchOpportunities, scoreOpportunity } from "../matchOpportunities";
+import { describe, expect, it } from "vitest";
+import {
+  matchOpportunities,
+  recommendFundingOpportunity,
+  recommendFundingOpportunities,
+  scoreOpportunity,
+} from "../matchOpportunities";
 import type { FundingOpportunity, Profile } from "../types";
+
+const NOW = new Date("2026-08-21T12:00:00Z");
 
 function profile(over: Partial<Profile> = {}): Profile {
   return {
@@ -9,8 +16,8 @@ function profile(over: Partial<Profile> = {}): Profile {
     business_name: "Acme",
     country: "Nigeria",
     sector: "AgriTech & Food",
-    short_description: null,
-    long_description: null,
+    short_description: "AI for smallholder farmers",
+    long_description: "Food security and climate resilience for African agriculture",
     logo_url: null,
     founder_name: null,
     founder_photo_url: null,
@@ -21,7 +28,7 @@ function profile(over: Partial<Profile> = {}): Profile {
     instagram: null,
     linkedin: null,
     twitter: null,
-    keywords: ["agriculture", "seed", "export"],
+    keywords: ["agriculture", "climate", "export"],
     status: "active",
     featured: false,
     view_count: 0,
@@ -34,83 +41,95 @@ function profile(over: Partial<Profile> = {}): Profile {
 function opp(over: Partial<FundingOpportunity> = {}): FundingOpportunity {
   return {
     id: "o1",
-    title: "Grant",
+    title: "Climate agriculture grant",
     funder: "Fund",
     type: "grant",
-    summary: null,
+    summary: "Funding for agritech and food-security companies",
     amount: null,
     opens: null,
     deadline: null,
-    eligibility: null,
-    url: null,
-    tags: [],
-    country_focus: [],
+    eligibility: "African agritech businesses",
+    url: "https://example.org/program",
+    tags: ["agriculture", "climate"],
+    country_focus: ["Nigeria"],
     status: "published",
     featured: false,
+    details: {},
+    source: "manual",
+    batch_id: null,
+    last_verified_at: "2026-08-20T00:00:00Z",
+    verified_by: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     ...over,
   } as FundingOpportunity;
 }
 
-describe("scoreOpportunity", () => {
-  it("+3 for a direct country match", () => {
-    expect(scoreOpportunity(profile(), opp({ country_focus: ["Nigeria"] }))).toBeGreaterThanOrEqual(3);
+describe("dashboard recommendation adapter", () => {
+  it("returns a bounded 0-100 score for a direct country match", () => {
+    const score = scoreOpportunity(profile(), opp());
+    expect(score).toBeGreaterThan(50);
+    expect(score).toBeLessThanOrEqual(100);
   });
 
-  it("+3 when country_focus is empty (open to all)", () => {
-    expect(scoreOpportunity(profile(), opp({ country_focus: [] }))).toBeGreaterThanOrEqual(3);
+  it("exposes deterministic match reasons and confidence", () => {
+    const result = recommendFundingOpportunity(profile(), opp(), NOW);
+    expect(result.eligibilityStatus).toBe("eligible");
+    expect(result.reasons.join(" ")).toMatch(/Nigeria/i);
+    expect(result.reasons.join(" ")).toMatch(/AgriTech/i);
+    expect(result.confidenceScore).toBeGreaterThan(70);
   });
 
-  it("+3 for pan-African focus regardless of country", () => {
-    const s = scoreOpportunity(profile({ country: "Kenya" }), opp({ country_focus: ["Africa"] }));
-    expect(s).toBeGreaterThanOrEqual(3);
+  it("hard-excludes explicit country mismatch", () => {
+    const p = profile({ country: "Kenya" });
+    const o = opp({ country_focus: ["Nigeria", "Ghana"] });
+    const result = recommendFundingOpportunity(p, o, NOW);
+    expect(result.eligibilityStatus).toBe("ineligible");
+    expect(result.matchScore).toBe(0);
+    expect(matchOpportunities(p, [o])).toEqual([]);
   });
 
-  it("no country points when focus excludes the country", () => {
-    // country mismatch, no tag/sector match, not featured → 0
-    expect(scoreOpportunity(profile({ keywords: [], sector: "Retail" }), opp({ country_focus: ["Ghana"], tags: ["fintech"] }))).toBe(0);
-  });
-
-  it("keyword∩tags overlap caps at +6", () => {
-    const p = profile({ country: "Kenya", keywords: ["a", "b", "c", "d"], sector: "Zzz" });
-    const o = opp({ country_focus: ["Ghana"], tags: ["a", "b", "c", "d"] });
-    // 4 overlaps ×2 = 8, capped 6; no country, no sector, no featured
-    expect(scoreOpportunity(p, o)).toBe(6);
-  });
-
-  it("+2 for sector word overlap with tags/title/summary", () => {
-    const p = profile({ country: "Kenya", keywords: [], sector: "Fintech" });
-    const o = opp({ country_focus: ["Ghana"], tags: [], title: "Fintech accelerator" });
-    expect(scoreOpportunity(p, o)).toBe(2);
-  });
-
-  it("+1 for featured", () => {
-    const p = profile({ country: "Kenya", keywords: [], sector: "Zzz" });
-    const o = opp({ country_focus: ["Ghana"], featured: true });
-    expect(scoreOpportunity(p, o)).toBe(1);
+  it("accepts pan-African geography", () => {
+    const result = recommendFundingOpportunity(
+      profile({ country: "Kenya" }),
+      opp({ country_focus: ["Africa"] }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("eligible");
+    expect(result.matchScore).toBeGreaterThan(0);
   });
 });
 
-describe("matchOpportunities", () => {
-  it("excludes zero-score opportunities", () => {
-    const p = profile({ country: "Kenya", keywords: [], sector: "Zzz" });
-    const o = opp({ country_focus: ["Ghana"], tags: ["fintech"] });
-    expect(matchOpportunities(p, [o])).toHaveLength(0);
+describe("recommendFundingOpportunities", () => {
+  it("null profile returns an empty recommendation set", () => {
+    expect(recommendFundingOpportunities(null, [opp()], NOW)).toEqual([]);
   });
 
-  it("null profile → empty", () => {
-    expect(matchOpportunities(null, [opp()])).toEqual([]);
+  it("ranks a strong sector/keyword match above a generic eligible program", () => {
+    const strong = opp({ id: "strong" });
+    const generic = opp({
+      id: "generic",
+      title: "General SME award",
+      summary: "A broad opportunity for established businesses",
+      tags: ["business"],
+      eligibility: "African SMEs",
+    });
+    const ranked = recommendFundingOpportunities(profile(), [generic, strong], NOW);
+    expect(ranked.map((x) => x.opportunity.id)).toEqual(["strong", "generic"]);
+    expect(ranked[0].matchScore).toBeGreaterThan(ranked[1].matchScore);
   });
 
-  it("sorts by score desc, tiebreak created_at desc", () => {
-    const p = profile();
-    const high = opp({ id: "high", country_focus: ["Nigeria"], tags: ["agriculture", "seed"] });
-    const lowA = opp({ id: "lowA", country_focus: ["Nigeria"], created_at: "2026-02-01T00:00:00Z" });
-    const lowB = opp({ id: "lowB", country_focus: ["Nigeria"], created_at: "2026-03-01T00:00:00Z" });
-    const out = matchOpportunities(p, [lowA, high, lowB]);
-    expect(out[0].id).toBe("high");
-    // lowB is newer than lowA → comes first on tie
-    expect(out.map((o) => o.id).slice(1)).toEqual(["lowB", "lowA"]);
+  it("preserves the legacy plain-row adapter order", () => {
+    const strong = opp({ id: "strong" });
+    const generic = opp({
+      id: "generic",
+      title: "General SME award",
+      summary: "A broad opportunity",
+      tags: [],
+    });
+    expect(matchOpportunities(profile(), [generic, strong]).map((o) => o.id)).toEqual([
+      "strong",
+      "generic",
+    ]);
   });
 });
