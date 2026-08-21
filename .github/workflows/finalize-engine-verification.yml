@@ -1,0 +1,59 @@
+name: Finalize engine verification
+
+on:
+  push:
+    branches: [docs/cresciva-production-readiness]
+    paths: [.github/workflows/finalize-engine-verification.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.repository == 'paullight1/scaleupafrica'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cresciva-production-readiness
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Verify all workspaces and production builds
+        run: npm run verify
+      - name: Verify all active Edge Functions
+        run: |
+          deno check supabase/functions/bachs-init/index.ts
+          deno check supabase/functions/bachs-verify/index.ts
+          deno check supabase/functions/bachs-webhook/index.ts
+          deno check supabase/functions/payment-reconciliation/index.ts
+          deno check supabase/functions/aggregate-funding/index.ts
+          deno check supabase/functions/send-email/index.ts
+          deno check supabase/functions/email-unsubscribe/index.ts
+      - name: Verify production artifacts
+        run: |
+          test -f Frontend/dist/index.html
+          test -f Frontend/dist/admin/index.html
+          test -f Backend/dist/Backend/src/main.js
+      - name: Remove temporary verification workflows
+        run: |
+          rm -f .github/workflows/workspace-diagnostics.yml
+          rm -f .github/workflows/finalize-engine-verification.yml
+      - name: Commit cleanup only after all gates pass
+        run: |
+          if git diff --quiet; then
+            echo "No cleanup required"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "ci: remove temporary engine diagnostics"
+          git push origin HEAD:docs/cresciva-production-readiness
