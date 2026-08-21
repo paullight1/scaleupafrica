@@ -79,6 +79,13 @@ describe("recommendOpportunity", () => {
     expect(result.missingInformation.join(" ")).toMatch(/country/i);
   });
 
+  it("does not award geography points when opportunity geography is unknown", () => {
+    const explicit = recommendOpportunity(profile(), opportunity(), NOW);
+    const ambiguous = recommendOpportunity(profile(), opportunity({ countryFocus: [] }), NOW);
+    expect(ambiguous.eligibilityStatus).toBe("possibly_eligible");
+    expect(ambiguous.matchScore).toBeLessThan(explicit.matchScore);
+  });
+
   it("scores a relevant sector/keyword opportunity above an unrelated one", () => {
     const relevant = recommendOpportunity(profile(), opportunity(), NOW);
     const unrelated = recommendOpportunity(
