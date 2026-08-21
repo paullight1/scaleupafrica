@@ -15,6 +15,12 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const MAX_PAYMENTS = 50;
 const MAX_EVENTS = 250;
 
+type ActiveSubscriptionRow = {
+  user_id: unknown;
+  has_access: unknown;
+  expires_at: unknown;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -145,11 +151,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const activeSubs = (activeSubsResult.data ?? []).map((sub) => ({
-      user_id: String(sub.user_id),
-      has_access: Boolean(sub.has_access),
-      expires_at: typeof sub.expires_at === "string" ? sub.expires_at : null,
-    }));
+    const activeSubs = ((activeSubsResult.data ?? []) as ActiveSubscriptionRow[]).map(
+      (sub: ActiveSubscriptionRow): ReconciliationSubscription => ({
+        user_id: String(sub.user_id),
+        has_access: Boolean(sub.has_access),
+        expires_at: typeof sub.expires_at === "string" ? sub.expires_at : null,
+      }),
+    );
     const activeUserIds = activeSubs.map((s) => s.user_id);
     const successfulPaymentUsers = new Set<string>();
     if (activeUserIds.length > 0) {
