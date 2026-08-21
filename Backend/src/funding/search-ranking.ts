@@ -20,6 +20,15 @@ const STOP_WORDS = new Set([
   "with",
 ]);
 
+const TRACKING_QUERY_KEYS = new Set([
+  "fbclid",
+  "gclid",
+  "mc_cid",
+  "mc_eid",
+  "ref",
+  "referrer",
+]);
+
 function normalize(value: unknown): string {
   return String(value ?? "")
     .normalize("NFKD")
@@ -120,10 +129,17 @@ function canonicalUrl(raw: string | null | undefined): string | null {
     const url = new URL(raw);
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     url.hash = "";
-    url.search = "";
     url.hostname = url.hostname.toLowerCase();
     url.pathname = url.pathname.replace(/\/+$/, "") || "/";
-    return url.toString().replace(/\/$/, "");
+    for (const key of Array.from(url.searchParams.keys())) {
+      const normalized = key.toLowerCase();
+      if (normalized.startsWith("utm_") || TRACKING_QUERY_KEYS.has(normalized)) {
+        url.searchParams.delete(key);
+      }
+    }
+    url.searchParams.sort();
+    const rendered = url.toString();
+    return url.pathname === "/" && !url.search ? rendered.replace(/\/$/, "") : rendered;
   } catch {
     return null;
   }
