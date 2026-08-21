@@ -91,8 +91,8 @@ function normalizeCountry(value: unknown): string {
   return normalizeText(value);
 }
 
-function addDomainAliases(tokens: Set<string>): Set<string> {
-  const out = new Set(tokens);
+function addDomainAliases(values: Set<string>): Set<string> {
+  const out = new Set(values);
   if (out.has("agritech")) {
     out.add("agriculture");
     out.add("agricultural");
@@ -234,7 +234,6 @@ function eligibility(
 
 function confidenceScore(opportunity: RecommendationOpportunity, now: Date): number {
   let score = 10;
-
   if (opportunity.url) score += 20;
   if ((opportunity.countryFocus ?? []).length > 0) score += 15;
   if (
@@ -293,8 +292,11 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
   const possible = { value: 0 };
   const oppTokens = opportunityTokens(opportunity);
 
+  // Geography contributes only when the opportunity itself declares enough
+  // geography to evaluate. Unknown geography must not receive full match points.
   const profileCountry = normalizeCountry(profile.country);
-  if (profileCountry) {
+  const focus = (opportunity.countryFocus ?? []).map(normalizeCountry).filter(Boolean);
+  if (profileCountry && focus.length > 0 && (panAfrican(focus) || focus.includes(profileCountry))) {
     addScoredDimension(gained, possible, 30, 1);
   }
 
@@ -384,7 +386,9 @@ export function rankRecommendations<T extends RecommendationOpportunity>(
       if (b.result.confidenceScore !== a.result.confidenceScore) {
         return b.result.confidenceScore - a.result.confidenceScore;
       }
-      const featuredDiff = Number(Boolean(b.result.opportunity.featured)) - Number(Boolean(a.result.opportunity.featured));
+      const featuredDiff =
+        Number(Boolean(b.result.opportunity.featured)) -
+        Number(Boolean(a.result.opportunity.featured));
       return featuredDiff || a.index - b.index;
     })
     .map(({ result }) => result);
