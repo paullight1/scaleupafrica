@@ -15,11 +15,34 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const MAX_PAYMENTS = 50;
 const MAX_EVENTS = 250;
 
+type PaymentRow = {
+  id: unknown;
+  user_id: unknown;
+  provider: unknown;
+  reference: unknown;
+  status: unknown;
+  amount: unknown;
+  currency: unknown;
+  paid_at: string | null;
+  created_at: string | null;
+  gateway_response: unknown;
+};
+
+type WebhookEventRow = {
+  provider: unknown;
+  event_type: unknown;
+  processed: unknown;
+  payload: unknown;
+  created_at: unknown;
+};
+
 type ActiveSubscriptionRow = {
   user_id: unknown;
   has_access: unknown;
   expires_at: unknown;
 };
+
+type PaidUserRow = { user_id: unknown };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -76,8 +99,8 @@ Deno.serve(async (req) => {
       return json({ error: "unavailable" }, 500);
     }
 
-    const payments = paymentsResult.data ?? [];
-    const userIds = [...new Set(payments.map((p) => String(p.user_id)))];
+    const payments = (paymentsResult.data ?? []) as PaymentRow[];
+    const userIds = [...new Set(payments.map((payment: PaymentRow) => String(payment.user_id)))];
     const subscriptionsByUser = new Map<string, ReconciliationSubscription>();
 
     if (userIds.length > 0) {
@@ -89,7 +112,7 @@ Deno.serve(async (req) => {
         console.error("payment-reconciliation: subscription query failed", error.message);
         return json({ error: "unavailable" }, 500);
       }
-      for (const sub of subs ?? []) {
+      for (const sub of (subs ?? []) as ActiveSubscriptionRow[]) {
         subscriptionsByUser.set(String(sub.user_id), {
           user_id: String(sub.user_id),
           has_access: Boolean(sub.has_access),
@@ -99,14 +122,14 @@ Deno.serve(async (req) => {
     }
 
     const processedCheckoutIds = new Set<string>();
-    for (const event of webhookResult.data ?? []) {
+    for (const event of (webhookResult.data ?? []) as WebhookEventRow[]) {
       if (event.provider !== "bachs" || !event.processed) continue;
       const checkoutId = objectString(event.payload, "checkout_id");
       if (checkoutId) processedCheckoutIds.add(checkoutId);
     }
 
     const emailCache = new Map<string, string | null>();
-    const rows = [] as Array<Record<string, unknown>>;
+    const rows: Array<Record<string, unknown>> = [];
 
     for (const payment of payments) {
       const userId = String(payment.user_id);
@@ -151,15 +174,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const activeSubs = ((activeSubsResult.data ?? []) as ActiveSubscriptionRow[]).map(
-      (sub: ActiveSubscriptionRow): ReconciliationSubscription => ({
-        user_id: String(sub.user_id),
-        has_access: Boolean(sub.has_access),
-        expires_at: typeof sub.expires_at === "string" ? sub.expires_at : null,
-      }),
-    );
-    const activeUserIds = activeSubs.map((s) => s.user_id);
+    const activeSubs: ReconciliationSubscription[] = (
+      (activeSubsResult.data ?? []) as ActiveSubscriptionRow[]
+    ).map((sub: ActiveSubscriptionRow): ReconciliationSubscription => ({
+      user_id: String(sub.user_id),
+      has_access: Boolean(sub.has_access),
+      expires_at: typeof sub.expires_at === "string" ? sub.expires_at : null,
+    }));
+    const activeUserIds = activeSubs.map((sub: ReconciliationSubscription) => sub.user_id);
     const successfulPaymentUsers = new Set<string>();
+
     if (activeUserIds.length > 0) {
       const { data: paidRows, error } = await admin
         .from("payments")
@@ -170,18 +194,20 @@ Deno.serve(async (req) => {
         console.error("payment-reconciliation: successful payment query failed", error.message);
         return json({ error: "unavailable" }, 500);
       }
-      for (const row of paidRows ?? []) successfulPaymentUsers.add(String(row.user_id));
+      for (const row of (paidRows ?? []) as PaidUserRow[]) {
+        successfulPaymentUsers.add(String(row.user_id));
+      }
     }
 
     const accessDiscrepancies = activeSubs
-      .map((sub) => ({
+      .map((sub: ReconciliationSubscription) => ({
         user_id: sub.user_id,
         expires_at: sub.expires_at,
         issues: reconcileActiveSubscription(sub, successfulPaymentUsers.has(sub.user_id)),
       }))
-      .filter((row) => row.issues.length > 0);
+      .filter((row: { issues: string[] }) => row.issues.length > 0);
 
-    const unhealthyPayments = rows.filter((row) => row.healthy === false).length;
+    const unhealthyPayments = rows.filter((row: Record<string, unknown>) => row.healthy === false).length;
     return json({
       generated_at: new Date().toISOString(),
       summary: {
