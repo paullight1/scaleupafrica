@@ -2,18 +2,31 @@ import { useId } from "react";
 import { Button } from "@shared/components/ui/button";
 import type { Opportunity } from "@/lib/fundingSchema";
 import {
-  ExternalLink, Calendar, ChevronDown, ChevronUp, Info, Target, Users, Lightbulb, Plane, ShieldAlert, ShieldCheck,
+  ExternalLink,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Target,
+  Users,
+  Lightbulb,
+  Plane,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
-  /** Controlled by the parent (a Set of open keys) so many cards stay open at once. */
+  opportunityId?: string;
   open: boolean;
   onToggle: () => void;
-  /** Renders a neutral "Example" badge for paywall preview cards. */
   sample?: boolean;
-  /** Feed items show "Last verified {date}". */
   lastVerifiedAt?: string | null;
+  verificationStatus?: "verified" | "stale" | "unverified";
+  matchScore?: number;
+  confidenceScore?: number;
+  matchReasons?: string[];
 }
 
 function formatDate(iso: string): string {
@@ -22,15 +35,45 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function OpportunityCard({ opportunity: o, open, onToggle, sample, lastVerifiedAt }: OpportunityCardProps) {
+export function OpportunityCard({
+  opportunity: o,
+  open,
+  onToggle,
+  sample,
+  lastVerifiedAt,
+  verificationStatus,
+  matchScore,
+  confidenceScore,
+  matchReasons = [],
+}: OpportunityCardProps) {
   const detailsId = useId();
-  const verified = lastVerifiedAt ? formatDate(lastVerifiedAt) : "";
+  const checked = lastVerifiedAt ? formatDate(lastVerifiedAt) : "";
 
   return (
     <article className="rounded-xl border border-border bg-card p-6 shadow-soft transition-colors hover:border-primary/40">
       <div className="mb-3 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="mb-1 flex flex-wrap items-center gap-2">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            {typeof matchScore === "number" && (
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary-dark">
+                {matchScore}% match
+              </span>
+            )}
+            {verificationStatus === "verified" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success-strong">
+                <ShieldCheck className="h-3 w-3" aria-hidden="true" /> Verified source
+              </span>
+            )}
+            {verificationStatus === "stale" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                <ShieldAlert className="h-3 w-3" aria-hidden="true" /> Source needs recheck
+              </span>
+            )}
+            {verificationStatus === "unverified" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
+                <Sparkles className="h-3 w-3" aria-hidden="true" /> Unverified
+              </span>
+            )}
             {sample && (
               <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                 Example
@@ -56,6 +99,20 @@ export function OpportunityCard({ opportunity: o, open, onToggle, sample, lastVe
           </span>
         )}
       </div>
+
+      {matchReasons.length > 0 && (
+        <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-primary-dark">Why it matches</p>
+          <ul className="space-y-1 text-sm text-foreground/80">
+            {matchReasons.slice(0, 3).map((reason) => (
+              <li key={reason} className="flex gap-2">
+                <span aria-hidden="true">✓</span>
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {o.summary && <p className="mb-4 text-sm text-foreground/80">{o.summary}</p>}
 
@@ -83,13 +140,14 @@ export function OpportunityCard({ opportunity: o, open, onToggle, sample, lastVe
         </div>
       )}
 
-      {verified && (
-        <p className="mb-4 inline-flex items-center gap-1.5 text-xs text-success-strong">
-          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Last verified {verified}
+      {checked && (
+        <p className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Checked {checked}
+          {typeof confidenceScore === "number" && confidenceScore < 60 ? " · low source confidence" : ""}
         </p>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="outline" size="sm" onClick={onToggle} aria-expanded={open} aria-controls={detailsId}>
           {open ? (
             <><ChevronUp className="mr-1 h-4 w-4" aria-hidden="true" /> Show less</>
@@ -97,6 +155,13 @@ export function OpportunityCard({ opportunity: o, open, onToggle, sample, lastVe
             <><ChevronDown className="mr-1 h-4 w-4" aria-hidden="true" /> Learn more</>
           )}
         </Button>
+        {o.url && (
+          <Button asChild variant="default" size="sm">
+            <a href={o.url} target="_blank" rel="noopener noreferrer nofollow">
+              Official source <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" />
+            </a>
+          </Button>
+        )}
       </div>
 
       {open && (
@@ -170,14 +235,6 @@ export function OpportunityCard({ opportunity: o, open, onToggle, sample, lastVe
               receive a grant — legitimate funders do not charge applicants.
             </span>
           </div>
-
-          {o.url && (
-            <Button asChild variant="default" size="sm">
-              <a href={o.url} target="_blank" rel="noopener noreferrer">
-                Visit funder site <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" />
-              </a>
-            </Button>
-          )}
         </div>
       )}
     </article>
