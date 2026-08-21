@@ -1,15 +1,16 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SITE_ORIGIN, normalizeSiteOrigin } from "../../../config/site-origin.js";
 
-const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
+// Workspace tests execute with Shared/ as cwd. Avoid import.meta.url here because
+// Vitest may represent transformed modules with a non-file URL in CI.
+const ROOT = resolve(process.cwd(), "..");
 
 describe("Cresciva production origin contract", () => {
   it("normalizes overrides to scheme + host only", () => {
     expect(normalizeSiteOrigin(`${DEFAULT_SITE_ORIGIN}/`)).toBe(DEFAULT_SITE_ORIGIN);
-    expect(normalizeSiteOrigin("https://preview.example.com/")) .toBe("https://preview.example.com");
+    expect(normalizeSiteOrigin("https://preview.example.com/")).toBe("https://preview.example.com");
   });
 
   it("rejects paths, query strings, fragments, and insecure remote origins", () => {
