@@ -11,14 +11,21 @@ import {
   useFundingProfile,
   type FeedItem,
 } from "@/hooks/queries/funding";
-import { rankRecommendations } from "@/lib/funding/recommendationEngine";
+import {
+  rankRecommendations,
+  type RecommendationResult,
+} from "@/lib/funding/recommendationEngine";
 import { Telescope } from "lucide-react";
 
 function matches(item: FeedItem, q: string): boolean {
   if (!q) return true;
-  const hay = [item.title, item.funder, item.summary, ...item.tags].join(" ").toLowerCase();
+  const hay = [item.title ?? "", item.funder ?? "", item.summary ?? "", ...(item.tags ?? [])]
+    .join(" ")
+    .toLowerCase();
   return hay.includes(q.toLowerCase());
 }
+
+type FeedRecommendation = RecommendationResult<FeedItem>;
 
 /**
  * Active-member view. PRIMARY: the shared verified feed ranked to the member's
@@ -36,8 +43,29 @@ export function FundingWorkspace() {
   const items = useMemo(() => feed.data ?? [], [feed.data]);
   const profile = profileQuery.data ?? null;
 
-  const recommendations = useMemo(() => {
+  const recommendations = useMemo<FeedRecommendation[]>(() => {
     if (!profile) return [];
+
+    // The parsed Opportunity type remains permissive because this repository's
+    // tsconfig is not yet fully strict. The ranking domain is intentionally
+    // stricter, so normalize at this one boundary instead of weakening the engine.
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const candidates = items.map((item) => ({
+      id: item.id,
+      title: item.title ?? "",
+      funder: item.funder ?? "",
+      type: item.type ?? null,
+      summary: item.summary ?? "",
+      eligibility: item.eligibility ?? "",
+      url: item.url ?? null,
+      deadline: item.deadline ?? "",
+      tags: item.tags ?? [],
+      countryFocus: item.countryFocus,
+      featured: item.featured,
+      lastVerifiedAt: item.lastVerifiedAt,
+      details: item.details,
+    }));
+
     return rankRecommendations(
       {
         country: profile.country,
@@ -46,8 +74,11 @@ export function FundingWorkspace() {
         shortDescription: profile.short_description,
         longDescription: profile.long_description,
       },
-      items,
-    );
+      candidates,
+    ).flatMap((result) => {
+      const original = result.opportunity.id ? itemById.get(result.opportunity.id) : undefined;
+      return original ? [{ ...result, opportunity: original }] : [];
+    });
   }, [items, profile]);
 
   const recommendationById = useMemo(
@@ -55,7 +86,7 @@ export function FundingWorkspace() {
     [recommendations],
   );
 
-  const rankedItems = useMemo(() => {
+  const rankedItems = useMemo<FeedItem[]>(() => {
     if (recommendations.length === 0) return items;
     const matchedIds = new Set(recommendations.map((recommendation) => recommendation.opportunity.id));
     return [
