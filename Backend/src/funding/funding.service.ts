@@ -1,14 +1,18 @@
 import {
-  Injectable,
-  Inject,
   ForbiddenException,
   HttpException,
   HttpStatus,
+  Inject,
+  Injectable,
   Logger,
 } from "@nestjs/common";
-import { and, eq, gt, desc, count, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { DB, type Db } from "../db/client";
-import { fundingResults, fundingOpportunities } from "../db/schema";
+import {
+  fundingOpportunities,
+  fundingResults,
+  type FundingOpportunityRow,
+} from "../db/schema";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { RolesService } from "../auth/roles.service";
 import { AiGatewayService, GatewayError } from "./ai-gateway.service";
@@ -17,15 +21,26 @@ import type { AppRoleName } from "../auth/types";
 import {
   normalizeKeywords,
   parseOpportunities,
-  type FundingSearchResult,
   type CuratedOpportunity,
+  type FundingSearchResult,
   type Opportunity,
 } from "../contracts";
+import {
+  dedupeFundingSearchResults,
+  fundingSearchReasons,
+  rankFundingSearch,
+  type SearchableFundingOpportunity,
+} from "./search-ranking";
 
 const RATE_LIMIT_PER_HOUR = 3;
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-/** Staff = admin || editor (mirrors SQL is_staff()); moderators are not members. */
+const VERIFIED_RESULT_TARGET = 5;
+const VERIFIED_SCAN_LIMIT = 100;
 const STAFF_ROLES: AppRoleName[] = ["admin", "editor"];
+
+interface RankedCuratedCandidate extends SearchableFundingOpportunity {
+  opportunity: Opportunity;
+}
 
 @Injectable()
 export class FundingService {
@@ -49,7 +64,6 @@ export class FundingService {
     }
   };
 
-  /** Curated-feed gate: an active subscription OR a staff role (admin/editor). */
   private assertMemberOrStaff = async (userId: string): Promise<void> => {
     if (await this.subs.isActiveForUser(userId)) return;
     if (await this.roles.hasAny(userId, STAFF_ROLES)) return;
@@ -61,7 +75,11 @@ export class FundingService {
     });
   };
 
-  /** POST /funding/search — absorbs the aggregate-funding edge function. */
+  /**
+   * POST /funding/search — verified-first search with AI only as long-tail fallback.
+   * Curated-only results do not touch funding_results because that table is also
+   * the current AI quota ledger; cheap verified search must not consume AI quota.
+   */
   async search(userId: string, rawKeywords: string): Promise<FundingSearchResult> {
     await this.assertActive(userId);
 
@@ -69,7 +87,6 @@ export class FundingService {
     const keywordsNormalized = normalizeKeywords(keywordsRaw);
     const now = new Date();
 
-    // Cache hit => return immediately (no model call, no bill).
     const [cached] = await this.db
       .select({ opportunities: fundingResults.opportunities, createdAt: fundingResults.createdAt })
       .from(fundingResults)
@@ -90,34 +107,76 @@ export class FundingService {
       };
     }
 
-    // Rate limit — cache hits above never reach this, so repeats are always free.
+    const curatedRows = await this.db
+      .select()
+      .from(fundingOpportunities)
+      .where(eq(fundingOpportunities.status, "published"))
+      .orderBy(desc(fundingOpportunities.featured), desc(fundingOpportunities.lastVerifiedAt))
+      .limit(VERIFIED_SCAN_LIMIT);
+
+    const candidates = curatedRows
+      .map((row) => toSearchCandidate(row, keywordsRaw, now))
+      .filter((candidate): candidate is RankedCuratedCandidate => candidate !== null);
+    const verifiedOpportunities = rankFundingSearch(keywordsRaw, candidates, 12).map(
+      (candidate) => candidate.opportunity,
+    );
+
+    if (verifiedOpportunities.length >= VERIFIED_RESULT_TARGET) {
+      return {
+        opportunities: verifiedOpportunities,
+        cached: false,
+        generatedAt: now.toISOString(),
+        keywordsRaw,
+      };
+    }
+
     const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const [{ n }] = await this.db
       .select({ n: count() })
       .from(fundingResults)
       .where(and(eq(fundingResults.userId, userId), gt(fundingResults.createdAt, hourAgo)));
     if (Number(n) >= RATE_LIMIT_PER_HOUR) {
+      if (verifiedOpportunities.length > 0) {
+        return {
+          opportunities: verifiedOpportunities,
+          cached: false,
+          generatedAt: now.toISOString(),
+          keywordsRaw,
+        };
+      }
       throw new HttpException(
         {
           error: {
             code: "RATE_LIMITED",
             message:
-              "You've run several searches recently. Please try again in about an hour — your previous results are saved.",
+              "You've run several AI-assisted searches recently. Please try again in about an hour — your previous results are saved.",
           },
         },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 
-    // Gateway call -> validated/sanitized opportunities.
-    let opportunities: Opportunity[];
+    let aiOpportunities: Opportunity[];
     try {
-      opportunities = await this.ai.curate(keywordsRaw);
+      aiOpportunities = await this.ai.curate(keywordsRaw);
     } catch (e) {
+      if (verifiedOpportunities.length > 0) {
+        this.logger.warn("AI funding discovery failed; returning verified matches only");
+        return {
+          opportunities: verifiedOpportunities,
+          cached: false,
+          generatedAt: now.toISOString(),
+          keywordsRaw,
+        };
+      }
       throw mapGatewayError(e);
     }
 
-    // Opportunistic cleanup + cache upsert (7-day TTL, matches funding_results default).
+    const opportunities = dedupeFundingSearchResults(
+      verifiedOpportunities,
+      aiOpportunities,
+    ).slice(0, 15);
+
     await this.db
       .delete(fundingResults)
       .where(and(eq(fundingResults.userId, userId), sql`${fundingResults.expiresAt} < ${now}`))
@@ -149,7 +208,6 @@ export class FundingService {
     return { opportunities, cached: false, generatedAt: generatedAt.toISOString(), keywordsRaw };
   }
 
-  /** GET /funding/latest — most recent unexpired cached result (or null). */
   async latest(userId: string): Promise<FundingSearchResult | null> {
     await this.assertActive(userId);
     const [row] = await this.db
@@ -171,7 +229,6 @@ export class FundingService {
     };
   }
 
-  /** GET /funding/opportunities — admin-curated published feed (member/staff only). */
   async curatedList(userId: string): Promise<CuratedOpportunity[]> {
     await this.assertMemberOrStaff(userId);
     const rows = await this.db
@@ -201,6 +258,71 @@ export class FundingService {
   }
 }
 
+function toSearchCandidate(
+  row: FundingOpportunityRow,
+  query: string,
+  now: Date,
+): RankedCuratedCandidate | null {
+  const lastVerifiedAt = row.lastVerifiedAt ? iso(row.lastVerifiedAt) : null;
+  const countryFocus = row.countryFocus ?? [];
+  const details = row.details && typeof row.details === "object"
+    ? row.details as Record<string, unknown>
+    : {};
+
+  let opportunity: Opportunity;
+  try {
+    const [parsed] = parseOpportunities([{
+      ...details,
+      title: row.title,
+      funder: row.funder,
+      type: row.type ?? undefined,
+      summary: row.summary ?? "",
+      amount: row.amount ?? "",
+      opens: row.opens ?? "",
+      deadline: row.deadline ?? "",
+      eligibility: row.eligibility ?? "",
+      url: row.url ?? "",
+      tags: row.tags ?? [],
+      discovery_source: "verified_feed",
+      verification_status: verificationStatus(lastVerifiedAt, now),
+      source_checked_at: lastVerifiedAt ?? undefined,
+    }]);
+    if (!parsed) return null;
+    opportunity = parsed;
+  } catch {
+    return null;
+  }
+
+  const searchable: SearchableFundingOpportunity = {
+    title: opportunity.title,
+    funder: opportunity.funder,
+    type: opportunity.type,
+    summary: opportunity.summary,
+    eligibility: opportunity.eligibility,
+    tags: opportunity.tags,
+    countryFocus,
+    url: opportunity.url,
+  };
+
+  opportunity = {
+    ...opportunity,
+    match_reasons: fundingSearchReasons(query, searchable),
+  };
+
+  return { ...searchable, opportunity };
+}
+
+function verificationStatus(
+  lastVerifiedAt: string | null,
+  now: Date,
+): "verified" | "stale" | "unverified" {
+  if (!lastVerifiedAt) return "unverified";
+  const checked = new Date(lastVerifiedAt).getTime();
+  if (Number.isNaN(checked)) return "unverified";
+  const ageDays = Math.max(0, (now.getTime() - checked) / 86_400_000);
+  return ageDays <= 7 ? "verified" : "stale";
+}
+
 function iso(v: Date | string | null): string {
   if (!v) return "";
   return v instanceof Date ? v.toISOString() : new Date(v).toISOString();
@@ -211,7 +333,7 @@ function mapGatewayError(e: unknown): HttpException {
   switch (code) {
     case "rate_limited":
       return new HttpException(
-        { error: { code: "RATE_LIMITED", message: "The AI service is busy. Please try again shortly." } },
+        { error: { code: "RATE_LIMITED", message: "The AI discovery service is busy. Please try again shortly." } },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     case "timeout":
