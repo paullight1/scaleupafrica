@@ -115,4 +115,19 @@ describe("OpportunityCard", () => {
     expect(screen.getByText(/source needs recheck/i)).toBeInTheDocument();
     expect(screen.queryByText(/^Verified source$/i)).toBeNull();
   });
+
+  it("labels AI-assisted results as unverified discovery even when they have a URL", () => {
+    const [ai] = parseOpportunities([
+      {
+        title: "AI Candidate",
+        funder: "Possible Funder",
+        url: "https://possible.example",
+        discovery_source: "ai_assisted",
+        verification_status: "unverified",
+      },
+    ]);
+    render(<OpportunityCard opportunity={ai} open={false} onToggle={() => {}} />);
+    expect(screen.getByText(/AI discovery · unverified/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^Verified source$/i)).toBeNull();
+  });
 });
