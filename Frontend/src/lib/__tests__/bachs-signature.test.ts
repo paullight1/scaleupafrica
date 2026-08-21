@@ -61,12 +61,12 @@ describe("Bachs product checkout configuration", () => {
     expect(
       crescivaReferenceFromCheckout({
         checkout_id: "chk_1",
-        metadata: { cresciva_reference: "crv_123" },
+        metadata: { cresciva_reference: "crv_12345678" },
       }),
-    ).toBe("crv_123");
+    ).toBe("crv_12345678");
     expect(
-      crescivaReferenceFromCheckout({ checkout_id: "chk_1", reference: "crv_legacy" }),
-    ).toBe("crv_legacy");
+      crescivaReferenceFromCheckout({ checkout_id: "chk_1", reference: "crv_legacy12" }),
+    ).toBe("crv_legacy12");
   });
 });
 
