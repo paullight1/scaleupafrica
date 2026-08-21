@@ -3,6 +3,7 @@ import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
+import { trackEvent } from "@shared/lib/analytics";
 import { OpportunityCard } from "@/components/funding/OpportunityCard";
 import { OpportunityCardSkeletonList } from "@/components/funding/OpportunityCardSkeleton";
 import {
@@ -33,6 +34,19 @@ function keyOf(o: Opportunity) {
   return `${o.title}|${o.funder}`;
 }
 
+/**
+ * Older cached searches predate trust metadata and were AI-generated. Treat them
+ * conservatively as AI-assisted rather than letting missing metadata look neutral.
+ */
+function withConservativeTrust(opportunity: Opportunity): Opportunity {
+  if (opportunity.discovery_source) return opportunity;
+  return {
+    ...opportunity,
+    discovery_source: "ai_assisted",
+    verification_status: "unverified",
+  };
+}
+
 export function FundingSearch() {
   const inputId = useId();
   const [keywords, setKeywords] = useState("");
@@ -45,8 +59,8 @@ export function FundingSearch() {
   const { data: result } = useFundingResult();
   const generate = useGenerateFunding();
   const lastKeywords = useRef("");
+  const lastTrackedGeneration = useRef("");
 
-  // Progress ticker so we can switch copy at 45s.
   useEffect(() => {
     if (!generate.isPending) {
       setElapsed(0);
@@ -58,7 +72,7 @@ export function FundingSearch() {
   }, [generate.isPending]);
 
   const runSearch = (raw: string) => {
-    if (generate.isPending) return; // double-submit guard (UI side)
+    if (generate.isPending) return;
     lastKeywords.current = raw;
     setOpenKeys(new Set());
     generate.mutate(raw);
@@ -72,7 +86,28 @@ export function FundingSearch() {
       return next;
     });
 
-  const opps = result?.opportunities ?? [];
+  const opps = useMemo(
+    () => (result?.opportunities ?? []).map(withConservativeTrust),
+    [result?.opportunities],
+  );
+  const verifiedCount = opps.filter((o) => o.discovery_source === "verified_feed").length;
+  const aiCount = opps.filter((o) => o.discovery_source === "ai_assisted").length;
+
+  useEffect(() => {
+    if (!generate.isSuccess || !result?.generatedAt) return;
+    if (lastTrackedGeneration.current === result.generatedAt) return;
+    lastTrackedGeneration.current = result.generatedAt;
+    void trackEvent("funding_search", {
+      entityType: "funding_search",
+      metadata: {
+        result_count: opps.length,
+        verified_count: verifiedCount,
+        ai_count: aiCount,
+        cached: result.cached,
+      },
+    });
+  }, [aiCount, generate.isSuccess, opps.length, result?.cached, result?.generatedAt, verifiedCount]);
+
   const errorMessage =
     generate.error instanceof FundingError
       ? generate.error.message
@@ -84,7 +119,7 @@ export function FundingSearch() {
     <div className="space-y-8">
       <div>
         <label htmlFor={inputId} className="mb-2 block text-sm font-semibold text-ink-strong">
-          Describe your business or the funding you're looking for
+          What kind of opportunity are you looking for?
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Input
@@ -92,13 +127,13 @@ export function FundingSearch() {
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && runSearch(keywords)}
-            placeholder="e.g. agritech Nigeria climate grant fellowship"
+            placeholder="e.g. climate grant for Nigerian agritech expansion"
             maxLength={200}
             className="h-12"
           />
           <Button size="lg" onClick={() => runSearch(keywords)} disabled={generate.isPending}>
             {generate.isPending ? (
-              "Curating…"
+              "Searching…"
             ) : (
               <>
                 <Search className="mr-2 h-4 w-4" aria-hidden="true" /> Find opportunities
@@ -107,7 +142,7 @@ export function FundingSearch() {
           </Button>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2" aria-label="Suggested keywords">
+        <div className="mt-3 flex flex-wrap gap-2" aria-label="Suggested searches">
           {chips.map((chip) => (
             <button
               key={chip}
@@ -121,23 +156,26 @@ export function FundingSearch() {
         </div>
       </div>
 
-      {/* Progress + live status */}
       <div aria-live="polite" className="min-h-[1.25rem] text-sm text-muted-foreground">
         {generate.isPending ? (
           elapsed >= 45 ? (
-            <span>Still working — thanks for your patience.</span>
+            <span>Still searching — verified matches will be shown even if AI discovery takes longer.</span>
           ) : (
             <span>
-              <strong className="text-ink-strong">This takes about a minute</strong> — we're checking dozens of
-              funders.
+              <strong className="text-ink-strong">Matching your request</strong> against Cresciva's funding intelligence…
             </span>
           )
         ) : opps.length > 0 && !generate.isError ? (
-          <span>{opps.length} opportunities found.</span>
+          <span>
+            {opps.length} opportunities found
+            {verifiedCount > 0 || aiCount > 0
+              ? ` · ${verifiedCount} verified · ${aiCount} AI ${aiCount === 1 ? "discovery" : "discoveries"}`
+              : ""}
+            .
+          </span>
         ) : null}
       </div>
 
-      {/* Results area */}
       {generate.isPending ? (
         <OpportunityCardSkeletonList count={3} />
       ) : generate.isError ? (
@@ -150,7 +188,10 @@ export function FundingSearch() {
         <div className="space-y-4">
           {result?.generatedAt && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-              <span>Results saved {relativeTime(result.generatedAt)} · cached for 7 days</span>
+              <span>
+                Results prepared {relativeTime(result.generatedAt)}
+                {result.cached ? " · saved result" : ""}
+              </span>
               <Button variant="outline" size="sm" onClick={() => runSearch(keywords || result.keywordsRaw)}>
                 Search again
               </Button>
@@ -159,21 +200,31 @@ export function FundingSearch() {
           <div className="grid gap-6">
             {opps.map((o) => {
               const k = keyOf(o);
-              return <OpportunityCard key={k} opportunity={o} open={openKeys.has(k)} onToggle={() => toggle(k)} />;
+              return (
+                <OpportunityCard
+                  key={k}
+                  opportunity={o}
+                  open={openKeys.has(k)}
+                  onToggle={() => toggle(k)}
+                  lastVerifiedAt={o.source_checked_at}
+                  verificationStatus={o.verification_status}
+                  matchReasons={o.match_reasons}
+                />
+              );
             })}
           </div>
         </div>
       ) : result ? (
         <EmptyState
           variant="search"
-          title="No matches for those keywords"
-          description="Try broader terms, or tap one of the suggestions above."
+          title="No reliable matches for that search"
+          description="Try broader terms or one of the suggestions above. Cresciva will not pad the list with uncertain opportunities."
         />
       ) : (
         <EmptyState
           variant="search"
-          title="Search for funding"
-          description="Enter keywords or tap a suggestion, then press Find opportunities to generate a curated list."
+          title="Explore funding opportunities"
+          description="Enter a request or tap a suggestion. Cresciva searches verified opportunities first and uses AI only for long-tail discovery."
         />
       )}
     </div>
