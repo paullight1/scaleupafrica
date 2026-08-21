@@ -64,7 +64,13 @@ export function MatchedOpportunities({ profile, feed }: MatchedOpportunitiesProp
                     key={o.id}
                     opportunity={o}
                     saved={savedMap.has(o.id)}
-                    onToggleSave={() => toggle(o.id)}
+                    onToggleSave={() =>
+                      toggle(o.id, {
+                        match_score: recommendation.matchScore,
+                        confidence_score: recommendation.confidenceScore,
+                        eligibility_status: recommendation.eligibilityStatus,
+                      })
+                    }
                     savePending={pending}
                     matchScore={recommendation.matchScore}
                     confidenceScore={recommendation.confidenceScore}
@@ -77,7 +83,7 @@ export function MatchedOpportunities({ profile, feed }: MatchedOpportunitiesProp
                   key={o.id}
                   opportunity={o}
                   saved={savedMap.has(o.id)}
-                  onToggleSave={() => toggle(o.id)}
+                  onToggleSave={() => toggle(o.id, { source: "newest_feed" })}
                   savePending={pending}
                 />
               ))}
