@@ -4,13 +4,13 @@
 
 **Goal:** Ensure no Cresciva change can reach `main` or production without deterministic validation of Frontend, AdminPanel, Shared, Backend, Supabase Edge Functions, tests, types and production assembly.
 
-**Architecture:** One root verification contract runs in GitHub Actions. Vercel deployment success is downstream of—not a substitute for—the repository quality gate. Production secrets are never injected into baseline CI. Branch protection becomes mandatory once the first real CI check is observed.
+**Architecture:** One root verification contract runs in GitHub Actions. Vercel deployment success is downstream of—not a substitute for—the repository quality gate. Production secrets are never injected into baseline CI. Branch protection becomes mandatory once the first real all-green CI check is observed.
 
-**Tech Stack:** npm workspaces, GitHub Actions, TypeScript, ESLint, Vitest, Vite, NestJS, Deno, Vercel.
+**Tech Stack:** npm workspaces, GitHub Actions, Node 22+, TypeScript, ESLint, Vitest, Vite, NestJS, Deno, Vercel.
 
 ## Global constraints
 
-- [x] Node.js runtime floor remains Node 20+.
+- [x] Node.js runtime floor is Node 22+; current Supabase packages require it.
 - [x] `package-lock.json` is the canonical dependency lockfile.
 - [x] CI installs with `npm ci`.
 - [x] Backend lint/typecheck/test/build participate even when API cutover is disabled.
@@ -39,23 +39,32 @@ npm run verify
 - [x] Frontend has explicit typecheck.
 - [x] AdminPanel has explicit typecheck.
 - [x] Shared has explicit typecheck.
-- [x] Backend already exposes lint/typecheck/test/build.
+- [x] Backend exposes lint/typecheck/test/build.
 - [x] Root lint covers Frontend + AdminPanel + Backend.
 - [x] Root typecheck runs all workspace typechecks where present.
 - [x] Root tests run every workspace test suite.
 - [x] Root build assembles Frontend and AdminPanel.
 - [x] Root `build:api` independently proves Backend production compilation.
 - [x] Root `verify` composes all repository gates.
-- [ ] Fresh clean-install execution evidence is still required from GitHub Actions because this ChatGPT container cannot resolve `github.com` to clone/run the repository locally.
+- [x] Real GitHub Actions execution has proven the workspace gate on the production-readiness branch, including the recommendation/search engine test suites and production builds.
+
+Observed engine-workspace evidence includes:
+
+```text
+Frontend: 312 tests passed
+Shared:    85 tests passed
+Admin:     23 tests passed
+Backend:   67 tests passed
+```
 
 ## Task 2 — GitHub Actions CI
 
 **File:** `.github/workflows/ci.yml`
 
 - [x] Workflow triggers for pull requests and pushes.
-- [x] `permissions: contents: read` baseline.
+- [x] Read-only baseline permissions, with only the read permission needed by Gitleaks PR enumeration.
 - [x] Concurrency cancels stale runs.
-- [x] Node 20 setup with npm cache.
+- [x] Node 22 setup with npm cache.
 - [x] Deno setup.
 - [x] `npm ci`.
 - [x] `npm run verify`.
@@ -67,23 +76,24 @@ npm run verify
   - `aggregate-funding`
   - `send-email`
   - `email-unsubscribe`
-- [x] Artifact assertions for public SPA, admin SPA and Backend entrypoint.
-- [ ] A real workflow run must complete successfully before the CI gate is called PASS.
+- [x] A focused branch-head diagnostic has proven all seven active Edge Function entry points pass `deno check` after the Edge typing fixes.
+- [x] Artifact assertions are configured for public SPA, admin SPA and Backend entrypoint.
+- [ ] The final normal PR workflow on the exact documentation-reconciled deliverable head must be fully green before the repository CI gate is called PASS.
 
-Expected required job/status is the GitHub Actions `CI / verify` job (use the exact status GitHub exposes after the PR run).
+Expected required job/status is the GitHub Actions `CI / verify` job (use the exact status GitHub exposes after the final PR run).
 
 ## Task 3 — Dependency and secret checks
 
 - [x] Production dependency audit runs visibly with `npm audit --omit=dev --audit-level=high`.
-- [x] Dependency audit is non-blocking evidence rather than an automatic destructive upgrade path.
-- [x] Gitleaks scans full git history in a read-only job.
+- [x] The earlier high-severity Drizzle and Nanoid findings were remediated and the current high-severity audit job is green.
+- [x] Gitleaks scans full git history and is green on the engine branch.
 - [x] Root `.env`, `.env.local`, environment-local variants, `Backend/.env` and `supabase/.env` are ignored.
 - [x] Tracked Frontend/Admin `.env` files contain only intentionally browser-public Supabase configuration.
 - [x] No CI step receives Bachs live keys, Bachs product IDs, Supabase service-role keys or Resend production secrets.
 
 ## Task 4 — Protect `main`
 
-Current external evidence as of 2026-08-20:
+Current external evidence:
 
 ```text
 main protected: false
@@ -92,7 +102,7 @@ required status checks: off
 
 The available GitHub connector can read this state but does not expose a branch-protection/ruleset mutation action.
 
-Required settings after the first successful CI run exists:
+Required settings after the final successful CI run exists:
 
 - [ ] require pull request before merge;
 - [ ] require the exact CI verification status;
@@ -112,7 +122,7 @@ Repository production rule:
 - PR/feature branch -> CI + preview deployment only.
 - Protected `main` after required CI -> production-eligible.
 
-External Vercel proof is currently unavailable because the Vercel connector's visible team lists zero projects. This does **not** prove Cresciva has no Vercel deployment; it means the connected scope cannot inspect it.
+External Vercel proof is currently unavailable because the connected Vercel scope did not expose the Cresciva project. This does **not** prove Cresciva has no Vercel deployment; it means the connected scope cannot inspect it.
 
 Before the release gate becomes PASS:
 
@@ -125,11 +135,11 @@ Before the release gate becomes PASS:
 
 ## Phase 2 release state
 
-Repository CI implementation: **implemented**.
+Repository CI implementation: **implemented and actively evidenced**.
 
-Fresh evidence still required:
+Remaining release evidence:
 
-1. a real GitHub Actions PR run with `CI / verify` green;
+1. final normal PR CI green on the exact deliverable head;
 2. `main` branch protection requiring that check;
 3. Vercel preview/production/rollback verification on the actual project.
 
