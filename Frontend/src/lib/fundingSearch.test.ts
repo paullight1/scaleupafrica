@@ -85,12 +85,18 @@ describe("rankFundingSearch", () => {
 });
 
 describe("dedupeFundingSearchResults", () => {
-  it("keeps the verified record when AI returns the same URL", () => {
+  it("keeps the verified record when AI differs only by tracking parameters", () => {
     const verified = [{ ...base, title: "Verified title", url: "https://example.org/program?utm_source=x" }];
     const ai = [{ ...base, title: "AI title", url: "https://example.org/program" }];
     const out = dedupeFundingSearchResults(verified, ai);
     expect(out).toHaveLength(1);
     expect(out[0].title).toBe("Verified title");
+  });
+
+  it("does not collapse meaningful query parameters used to identify different programs", () => {
+    const a = [{ ...base, title: "Program A", url: "https://example.org/apply?program=a" }];
+    const b = [{ ...base, title: "Program B", url: "https://example.org/apply?program=b" }];
+    expect(dedupeFundingSearchResults(a, b)).toHaveLength(2);
   });
 
   it("falls back to title+funder identity when URLs are missing", () => {
