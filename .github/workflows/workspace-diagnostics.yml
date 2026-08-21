@@ -1,0 +1,52 @@
+name: Workspace diagnostics
+
+on:
+  pull_request:
+  push:
+    branches: [docs/cresciva-production-readiness]
+
+permissions:
+  contents: read
+
+jobs:
+  workspace-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cresciva-production-readiness
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Diagnose repository gates
+        shell: bash
+        run: |
+          set +e
+          status=0
+          commands=(
+            "npm run lint"
+            "npm run typecheck"
+            "npm run test"
+            "npm run build"
+            "npm run build:api"
+          )
+          for cmd in "${commands[@]}"; do
+            echo "=== $cmd ==="
+            logfile="$(mktemp)"
+            bash -lc "$cmd" >"$logfile" 2>&1
+            code=$?
+            echo "exit=$code"
+            if [ "$code" -ne 0 ]; then
+              echo "--- failure tail ---"
+              tail -n 140 "$logfile"
+              status=1
+            else
+              echo "PASS"
+            fi
+            rm -f "$logfile"
+          done
+          exit "$status"
