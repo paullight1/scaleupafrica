@@ -1,0 +1,34 @@
+name: Cleanup engine verification
+
+on:
+  push:
+    branches: [docs/cresciva-production-readiness]
+    paths: [.github/workflows/cleanup-engine-verification.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.repository == 'paullight1/scaleupafrica'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cresciva-production-readiness
+      - name: Remove temporary verification files
+        run: |
+          test -f .diagnostics/workspace-gate/ALL_PASS
+          rm -f .github/workflows/workspace-diagnostics.yml
+          rm -f .github/workflows/finalize-engine-verification.yml
+          rm -f .github/workflows/workspace-probe.yml
+          rm -f .github/workflows/cleanup-engine-verification.yml
+          rm -rf .diagnostics/workspace-gate
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "ci: remove temporary engine verification tooling"
+          git push origin HEAD:docs/cresciva-production-readiness
