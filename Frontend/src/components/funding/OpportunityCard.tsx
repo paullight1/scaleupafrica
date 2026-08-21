@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { Button } from "@shared/components/ui/button";
+import { trackEvent } from "@shared/lib/analytics";
 import type { Opportunity } from "@/lib/fundingSchema";
 import {
   ExternalLink,
@@ -37,6 +38,7 @@ function formatDate(iso: string): string {
 
 export function OpportunityCard({
   opportunity: o,
+  opportunityId,
   open,
   onToggle,
   sample,
@@ -48,6 +50,35 @@ export function OpportunityCard({
 }: OpportunityCardProps) {
   const detailsId = useId();
   const checked = lastVerifiedAt ? formatDate(lastVerifiedAt) : "";
+  const aiDiscovery = o.discovery_source === "ai_assisted";
+  const resolvedVerification = o.verification_status ?? verificationStatus;
+
+  const handleToggle = () => {
+    if (!open && typeof matchScore === "number") {
+      void trackEvent("recommendation_open", {
+        entityType: "funding_opportunity",
+        entityId: opportunityId,
+        metadata: {
+          match_score: matchScore,
+          confidence_score: confidenceScore ?? null,
+          verification_status: resolvedVerification ?? null,
+        },
+      });
+    }
+    onToggle();
+  };
+
+  const trackSourceClick = () => {
+    void trackEvent("opportunity_source_click", {
+      entityType: "funding_opportunity",
+      entityId: opportunityId,
+      metadata: {
+        discovery_source: o.discovery_source ?? "verified_feed",
+        verification_status: resolvedVerification ?? null,
+        match_score: matchScore ?? null,
+      },
+    });
+  };
 
   return (
     <article className="rounded-xl border border-border bg-card p-6 shadow-soft transition-colors hover:border-primary/40">
@@ -59,21 +90,23 @@ export function OpportunityCard({
                 {matchScore}% match
               </span>
             )}
-            {verificationStatus === "verified" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success-strong">
+            {aiDiscovery ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
+                <Sparkles className="h-3 w-3" aria-hidden="true" /> AI discovery · unverified
+              </span>
+            ) : resolvedVerification === "verified" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-success-strong">
                 <ShieldCheck className="h-3 w-3" aria-hidden="true" /> Verified source
               </span>
-            )}
-            {verificationStatus === "stale" && (
+            ) : resolvedVerification === "stale" ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-foreground">
                 <ShieldAlert className="h-3 w-3" aria-hidden="true" /> Source needs recheck
               </span>
-            )}
-            {verificationStatus === "unverified" && (
+            ) : resolvedVerification === "unverified" ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                 <Sparkles className="h-3 w-3" aria-hidden="true" /> Unverified
               </span>
-            )}
+            ) : null}
             {sample && (
               <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
                 Example
@@ -148,7 +181,7 @@ export function OpportunityCard({
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="outline" size="sm" onClick={onToggle} aria-expanded={open} aria-controls={detailsId}>
+        <Button variant="outline" size="sm" onClick={handleToggle} aria-expanded={open} aria-controls={detailsId}>
           {open ? (
             <><ChevronUp className="mr-1 h-4 w-4" aria-hidden="true" /> Show less</>
           ) : (
@@ -157,7 +190,12 @@ export function OpportunityCard({
         </Button>
         {o.url && (
           <Button asChild variant="default" size="sm">
-            <a href={o.url} target="_blank" rel="noopener noreferrer nofollow">
+            <a
+              href={o.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              onClick={trackSourceClick}
+            >
               Official source <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" />
             </a>
           </Button>
