@@ -23,9 +23,6 @@ import { searchFunding, getLatestFunding, listCuratedFunding } from "@/lib/api/f
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const untyped = supabase as unknown as { from: (table: string) => any };
 
-// ---------------------------------------------------------------------------
-// Errors
-// ---------------------------------------------------------------------------
 export type FundingErrorCode =
   | "rate_limited"
   | "subscription_required"
@@ -45,18 +42,12 @@ export class FundingError extends Error {
 
 function apiCodeToFundingCode(code: string): FundingErrorCode {
   switch (code) {
-    case "SUBSCRIPTION_REQUIRED":
-      return "subscription_required";
-    case "RATE_LIMITED":
-      return "rate_limited";
-    case "TIMEOUT":
-      return "timeout";
-    case "UPSTREAM_ERROR":
-      return "invalid_ai_output";
-    case "UNAUTHENTICATED":
-      return "unauthorized";
-    default:
-      return "unknown";
+    case "SUBSCRIPTION_REQUIRED": return "subscription_required";
+    case "RATE_LIMITED": return "rate_limited";
+    case "TIMEOUT": return "timeout";
+    case "UPSTREAM_ERROR": return "invalid_ai_output";
+    case "UNAUTHENTICATED": return "unauthorized";
+    default: return "unknown";
   }
 }
 
@@ -77,9 +68,6 @@ export function fundingErrorMessage(code: FundingErrorCode): string {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Deep-search result (per-user cache)
-// ---------------------------------------------------------------------------
 export interface FundingResult {
   opportunities: Opportunity[];
   keywordsRaw: string;
@@ -95,15 +83,9 @@ export function useFundingResult() {
   const { user } = useAuth();
   const userId = user?.id;
   const viaApi = useApiFor("funding");
-
   const seed = userId ? readFundingCache(userId) : null;
   const initialData: FundingResult | undefined = seed
-    ? {
-        opportunities: seed.opportunities,
-        keywordsRaw: seed.keywordsRaw,
-        generatedAt: seed.generatedAt,
-        cached: true,
-      }
+    ? { opportunities: seed.opportunities, keywordsRaw: seed.keywordsRaw, generatedAt: seed.generatedAt, cached: true }
     : undefined;
 
   return useQuery<FundingResult | null>({
@@ -143,9 +125,6 @@ export function useFundingResult() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Generate (verified-first / AI fallback) — cached & rate-limited server-side
-// ---------------------------------------------------------------------------
 interface GenerateResponse {
   opportunities?: unknown;
   cached?: boolean;
@@ -168,7 +147,6 @@ export function useGenerateFunding() {
       inFlight.current = true;
       try {
         const keywords = rawKeywords.trim() || "African SMEs";
-
         if (viaApi) {
           try {
             const res = await searchFunding(keywords);
@@ -208,10 +186,8 @@ export function useGenerateFunding() {
           setTimeout(() => reject(new FundingError("timeout")), CLIENT_TIMEOUT_MS),
         );
         const data = await Promise.race([invoke, timeout]);
-
-        const opportunities = parseOpportunities(data.opportunities ?? []);
         return {
-          opportunities,
+          opportunities: parseOpportunities(data.opportunities ?? []),
           keywordsRaw: keywords,
           generatedAt: data.generated_at ?? new Date().toISOString(),
           cached: !!data.cached,
@@ -234,9 +210,6 @@ export function useGenerateFunding() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Shared verified feed (primary experience)
-// ---------------------------------------------------------------------------
 export type FeedVerificationStatus = "verified" | "stale" | "unverified";
 
 export interface FeedItem extends Opportunity {
@@ -259,6 +232,43 @@ export function verificationStatusFromDate(
   return ageDays <= 7 ? "verified" : "stale";
 }
 
+function curatedVerificationStatus(
+  lastVerifiedAt: string | null | undefined,
+  programUrl: string | null | undefined,
+  now = new Date(),
+): FeedVerificationStatus {
+  if (!programUrl) return "unverified";
+  return verificationStatusFromDate(lastVerifiedAt, now);
+}
+
+function authoritativeFeedItem(
+  op: Opportunity,
+  input: {
+    id: string;
+    lastVerifiedAt: string | null;
+    featured: boolean;
+    countryFocus: string[];
+    details: Record<string, unknown>;
+  },
+): FeedItem {
+  const verificationStatus = curatedVerificationStatus(input.lastVerifiedAt, op.url);
+  return {
+    ...op,
+    // These values come from controlled funding_opportunities columns and always
+    // override same-named keys that may exist inside free-form details JSON.
+    discovery_source: "verified_feed",
+    verification_status: verificationStatus,
+    source_checked_at: input.lastVerifiedAt ?? undefined,
+    match_reasons: [],
+    id: input.id,
+    lastVerifiedAt: input.lastVerifiedAt,
+    featured: input.featured,
+    countryFocus: input.countryFocus,
+    details: input.details,
+    verificationStatus,
+  };
+}
+
 export function useFundingFeed() {
   const { user } = useAuth();
   const viaApi = useApiFor("funding");
@@ -272,10 +282,8 @@ export function useFundingFeed() {
         const rows = await listCuratedFunding();
         const out: FeedItem[] = [];
         for (const row of rows) {
-          const details = (
-            row.details && typeof row.details === "object" ? row.details : {}
-          ) as Record<string, unknown>;
-          const merged = {
+          const details = (row.details && typeof row.details === "object" ? row.details : {}) as Record<string, unknown>;
+          const [op] = parseOpportunities([{
             ...details,
             title: row.title,
             funder: row.funder,
@@ -287,29 +295,22 @@ export function useFundingFeed() {
             eligibility: row.eligibility ?? "",
             url: row.url ?? "",
             tags: Array.isArray(row.tags) ? row.tags : [],
-          };
-          const [op] = parseOpportunities([merged]);
-          const lastVerifiedAt = row.lastVerifiedAt ?? null;
-          if (op) {
-            out.push({
-              ...op,
-              id: row.id,
-              lastVerifiedAt,
-              featured: !!row.featured,
-              countryFocus: Array.isArray(row.countryFocus) ? row.countryFocus : [],
-              details,
-              verificationStatus: verificationStatusFromDate(lastVerifiedAt),
-            });
-          }
+          }]);
+          if (!op) continue;
+          out.push(authoritativeFeedItem(op, {
+            id: row.id,
+            lastVerifiedAt: row.lastVerifiedAt ?? null,
+            featured: !!row.featured,
+            countryFocus: Array.isArray(row.countryFocus) ? row.countryFocus : [],
+            details,
+          }));
         }
         return out;
       }
 
       const { data, error } = await untyped
         .from("funding_opportunities")
-        .select(
-          "id, title, funder, type, summary, amount, opens, deadline, eligibility, url, tags, country_focus, details, featured, last_verified_at",
-        )
+        .select("id, title, funder, type, summary, amount, opens, deadline, eligibility, url, tags, country_focus, details, featured, last_verified_at")
         .eq("status", "published")
         .order("featured", { ascending: false })
         .order("last_verified_at", { ascending: false, nullsFirst: false });
@@ -318,10 +319,8 @@ export function useFundingFeed() {
       const rows = Array.isArray(data) ? data : [];
       const out: FeedItem[] = [];
       for (const row of rows) {
-        const details = (
-          row.details && typeof row.details === "object" ? row.details : {}
-        ) as Record<string, unknown>;
-        const merged = {
+        const details = (row.details && typeof row.details === "object" ? row.details : {}) as Record<string, unknown>;
+        const [op] = parseOpportunities([{
           ...details,
           title: row.title,
           funder: row.funder,
@@ -333,29 +332,21 @@ export function useFundingFeed() {
           eligibility: row.eligibility ?? "",
           url: row.url ?? "",
           tags: Array.isArray(row.tags) ? row.tags : [],
-        };
-        const [op] = parseOpportunities([merged]);
-        const lastVerifiedAt = row.last_verified_at ?? null;
-        if (op) {
-          out.push({
-            ...op,
-            id: row.id,
-            lastVerifiedAt,
-            featured: !!row.featured,
-            countryFocus: Array.isArray(row.country_focus) ? row.country_focus : [],
-            details,
-            verificationStatus: verificationStatusFromDate(lastVerifiedAt),
-          });
-        }
+        }]);
+        if (!op) continue;
+        out.push(authoritativeFeedItem(op, {
+          id: row.id,
+          lastVerifiedAt: row.last_verified_at ?? null,
+          featured: !!row.featured,
+          countryFocus: Array.isArray(row.country_focus) ? row.country_focus : [],
+          details,
+        }));
       }
       return out;
     },
   });
 }
 
-// ---------------------------------------------------------------------------
-// Own profile — recommendation inputs + keyword suggestions
-// ---------------------------------------------------------------------------
 export interface FundingProfile {
   business_name: string | null;
   sector: string | null;
@@ -368,7 +359,6 @@ export interface FundingProfile {
 export function useFundingProfile() {
   const { user } = useAuth();
   const userId = user?.id;
-
   return useQuery<FundingProfile | null>({
     queryKey: ["funding", "profile", userId],
     enabled: !!userId,
@@ -387,12 +377,7 @@ export function useFundingProfile() {
 }
 
 export function buildKeywordChips(profile: FundingProfile | null | undefined): string[] {
-  const fallback = [
-    "agriculture Nigeria",
-    "women-led fintech",
-    "climate grant Africa",
-    "tech fellowship",
-  ];
+  const fallback = ["agriculture Nigeria", "women-led fintech", "climate grant Africa", "tech fellowship"];
   if (!profile) return fallback;
   const { sector, country, keywords } = profile;
   const chips: string[] = [];
