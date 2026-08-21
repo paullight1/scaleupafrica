@@ -17,11 +17,9 @@ import { useApiFor } from "@/lib/api/flags";
 import { ApiError } from "@/lib/api/client";
 import { searchFunding, getLatestFunding, listCuratedFunding } from "@/lib/api/funding";
 
-// funding_results and the new funding_opportunities columns (details, source,
-// last_verified_at) are added by 20260720140000_funding_feed_cache.sql. types.ts
-// is regenerated against the DB post-migration (a human step, HANDOFF). Until then
-// we read them through an untyped view so tsc stays green WITHOUT hand-editing the
-// shared generated types file (3 sibling Wave-3 waves also depend on it).
+// funding_results and the newer funding_opportunities columns are not yet fully
+// represented by the generated Supabase client type. Keep the escape hatch local
+// to this query module until the production project is available for regeneration.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const untyped = supabase as unknown as { from: (table: string) => any };
 
@@ -45,7 +43,6 @@ export class FundingError extends Error {
   }
 }
 
-/** Map a NestJS API error code onto the funding UI's error vocabulary. */
 function apiCodeToFundingCode(code: string): FundingErrorCode {
   switch (code) {
     case "SUBSCRIPTION_REQUIRED":
@@ -81,7 +78,7 @@ export function fundingErrorMessage(code: FundingErrorCode): string {
 }
 
 // ---------------------------------------------------------------------------
-// Deep-search result (per-user AI cache)
+// Deep-search result (per-user cache)
 // ---------------------------------------------------------------------------
 export interface FundingResult {
   opportunities: Opportunity[];
@@ -94,7 +91,6 @@ export function fundingResultKey(userId: string | undefined) {
   return ["funding", "result", userId] as const;
 }
 
-/** Most-recent unexpired funding_results row; seeded instantly from localStorage. */
 export function useFundingResult() {
   const { user } = useAuth();
   const userId = user?.id;
@@ -102,7 +98,12 @@ export function useFundingResult() {
 
   const seed = userId ? readFundingCache(userId) : null;
   const initialData: FundingResult | undefined = seed
-    ? { opportunities: seed.opportunities, keywordsRaw: seed.keywordsRaw, generatedAt: seed.generatedAt, cached: true }
+    ? {
+        opportunities: seed.opportunities,
+        keywordsRaw: seed.keywordsRaw,
+        generatedAt: seed.generatedAt,
+        cached: true,
+      }
     : undefined;
 
   return useQuery<FundingResult | null>({
@@ -143,7 +144,7 @@ export function useFundingResult() {
 }
 
 // ---------------------------------------------------------------------------
-// Generate (AI deep search) — cached & rate-limited server-side
+// Generate (verified-first / AI fallback) — cached & rate-limited server-side
 // ---------------------------------------------------------------------------
 interface GenerateResponse {
   opportunities?: unknown;
@@ -163,7 +164,6 @@ export function useGenerateFunding() {
 
   return useMutation<FundingResult, FundingError, string>({
     mutationFn: async (rawKeywords: string) => {
-      // Double-submit guard (belt-and-braces with the UI's isPending disable).
       if (inFlight.current) throw new FundingError("unknown");
       inFlight.current = true;
       try {
@@ -188,7 +188,6 @@ export function useGenerateFunding() {
           .invoke<GenerateResponse>("aggregate-funding", { body: { keywords } })
           .then(async ({ data, error }) => {
             if (error) {
-              // Non-2xx: pull the structured { error } code from the response body.
               let code: FundingErrorCode = "unknown";
               try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -198,20 +197,18 @@ export function useGenerateFunding() {
                   if (body?.error) code = body.error as FundingErrorCode;
                 }
               } catch {
-                /* keep "unknown" */
+                /* keep unknown */
               }
               throw new FundingError(code);
             }
             return data as GenerateResponse;
           });
 
-        // supabase-js invoke() has no AbortSignal; race a hard client-side stop.
         const timeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new FundingError("timeout")), CLIENT_TIMEOUT_MS),
         );
         const data = await Promise.race([invoke, timeout]);
 
-        // Never render raw model output — validate client-side too.
         const opportunities = parseOpportunities(data.opportunities ?? []);
         return {
           opportunities,
@@ -238,15 +235,30 @@ export function useGenerateFunding() {
 }
 
 // ---------------------------------------------------------------------------
-// Shared weekly feed (primary experience)
+// Shared verified feed (primary experience)
 // ---------------------------------------------------------------------------
+export type FeedVerificationStatus = "verified" | "stale" | "unverified";
+
 export interface FeedItem extends Opportunity {
   id: string;
   lastVerifiedAt: string | null;
   featured: boolean;
+  countryFocus: string[];
+  details: Record<string, unknown>;
+  verificationStatus: FeedVerificationStatus;
 }
 
-/** Published, member-gated funding_opportunities mapped through the Opportunity schema. */
+export function verificationStatusFromDate(
+  lastVerifiedAt: string | null | undefined,
+  now = new Date(),
+): FeedVerificationStatus {
+  if (!lastVerifiedAt) return "unverified";
+  const verified = new Date(lastVerifiedAt).getTime();
+  if (Number.isNaN(verified)) return "unverified";
+  const ageDays = Math.max(0, (now.getTime() - verified) / 86_400_000);
+  return ageDays <= 7 ? "verified" : "stale";
+}
+
 export function useFundingFeed() {
   const { user } = useAuth();
   const viaApi = useApiFor("funding");
@@ -260,7 +272,9 @@ export function useFundingFeed() {
         const rows = await listCuratedFunding();
         const out: FeedItem[] = [];
         for (const row of rows) {
-          const details = (row.details && typeof row.details === "object" ? row.details : {}) as Record<string, unknown>;
+          const details = (
+            row.details && typeof row.details === "object" ? row.details : {}
+          ) as Record<string, unknown>;
           const merged = {
             ...details,
             title: row.title,
@@ -275,14 +289,26 @@ export function useFundingFeed() {
             tags: Array.isArray(row.tags) ? row.tags : [],
           };
           const [op] = parseOpportunities([merged]);
-          if (op) out.push({ ...op, id: row.id, lastVerifiedAt: row.lastVerifiedAt ?? null, featured: !!row.featured });
+          const lastVerifiedAt = row.lastVerifiedAt ?? null;
+          if (op) {
+            out.push({
+              ...op,
+              id: row.id,
+              lastVerifiedAt,
+              featured: !!row.featured,
+              countryFocus: Array.isArray(row.countryFocus) ? row.countryFocus : [],
+              details,
+              verificationStatus: verificationStatusFromDate(lastVerifiedAt),
+            });
+          }
         }
         return out;
       }
+
       const { data, error } = await untyped
         .from("funding_opportunities")
         .select(
-          "id, title, funder, type, summary, amount, opens, deadline, eligibility, url, tags, details, featured, last_verified_at",
+          "id, title, funder, type, summary, amount, opens, deadline, eligibility, url, tags, country_focus, details, featured, last_verified_at",
         )
         .eq("status", "published")
         .order("featured", { ascending: false })
@@ -292,7 +318,9 @@ export function useFundingFeed() {
       const rows = Array.isArray(data) ? data : [];
       const out: FeedItem[] = [];
       for (const row of rows) {
-        const details = (row.details && typeof row.details === "object" ? row.details : {}) as Record<string, unknown>;
+        const details = (
+          row.details && typeof row.details === "object" ? row.details : {}
+        ) as Record<string, unknown>;
         const merged = {
           ...details,
           title: row.title,
@@ -307,8 +335,17 @@ export function useFundingFeed() {
           tags: Array.isArray(row.tags) ? row.tags : [],
         };
         const [op] = parseOpportunities([merged]);
+        const lastVerifiedAt = row.last_verified_at ?? null;
         if (op) {
-          out.push({ ...op, id: row.id, lastVerifiedAt: row.last_verified_at ?? null, featured: !!row.featured });
+          out.push({
+            ...op,
+            id: row.id,
+            lastVerifiedAt,
+            featured: !!row.featured,
+            countryFocus: Array.isArray(row.country_focus) ? row.country_focus : [],
+            details,
+            verificationStatus: verificationStatusFromDate(lastVerifiedAt),
+          });
         }
       }
       return out;
@@ -317,13 +354,15 @@ export function useFundingFeed() {
 }
 
 // ---------------------------------------------------------------------------
-// Own profile (for keyword suggestion chips) — non-fatal for /funding
+// Own profile — recommendation inputs + keyword suggestions
 // ---------------------------------------------------------------------------
 export interface FundingProfile {
   business_name: string | null;
   sector: string | null;
   country: string | null;
   keywords: string[] | null;
+  short_description: string | null;
+  long_description: string | null;
 }
 
 export function useFundingProfile() {
@@ -338,7 +377,7 @@ export function useFundingProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("business_name, sector, country, keywords")
+        .select("business_name, sector, country, keywords, short_description, long_description")
         .eq("user_id", userId!)
         .maybeSingle();
       if (error) throw error;
@@ -347,9 +386,13 @@ export function useFundingProfile() {
   });
 }
 
-/** Build up-to-6 deduped keyword chips from the member's profile, with fallbacks. */
 export function buildKeywordChips(profile: FundingProfile | null | undefined): string[] {
-  const fallback = ["agriculture Nigeria", "women-led fintech", "climate grant Africa", "tech fellowship"];
+  const fallback = [
+    "agriculture Nigeria",
+    "women-led fintech",
+    "climate grant Africa",
+    "tech fellowship",
+  ];
   if (!profile) return fallback;
   const { sector, country, keywords } = profile;
   const chips: string[] = [];
