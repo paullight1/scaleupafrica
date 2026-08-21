@@ -14,7 +14,6 @@ import {
   Plane,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 
 interface OpportunityCardProps {
@@ -91,8 +90,8 @@ export function OpportunityCard({
               </span>
             )}
             {aiDiscovery ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
-                <Sparkles className="h-3 w-3" aria-hidden="true" /> AI discovery · unverified
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
+                AI discovery · unverified
               </span>
             ) : resolvedVerification === "verified" ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-success-strong">
@@ -103,8 +102,8 @@ export function OpportunityCard({
                 <ShieldAlert className="h-3 w-3" aria-hidden="true" /> Source needs recheck
               </span>
             ) : resolvedVerification === "unverified" ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
-                <Sparkles className="h-3 w-3" aria-hidden="true" /> Unverified
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">
+                Unverified
               </span>
             ) : null}
             {sample && (
