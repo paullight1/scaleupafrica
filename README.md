@@ -8,12 +8,13 @@ Cresciva is a Pan-African SME platform: a public, searchable directory where fou
 - **Admin:** a separate Vite/React app assembled under `/admin/` in the production artifact.
 - **Backend today:** Supabase Auth, Postgres/RLS, Storage and Deno Edge Functions.
 - **Payments:** Bachs product-based hosted checkout, signed webhooks, and a Cresciva-owned payment/entitlement ledger. Membership is a one-time annual purchase and does not auto-renew.
+- **Funding intelligence:** deterministic profile recommendations over the curated feed, verified-first opportunity search, and AI-assisted long-tail discovery that is always labelled unverified until source verification upgrades it.
 - **API server:** NestJS + Drizzle under `Backend/`, introduced behind domain-by-domain cutover flags.
 - **Testing:** Vitest + Testing Library; GitHub Actions also typechecks Supabase Edge Functions with Deno.
 
 ## Getting started
 
-**Prerequisite:** Node.js 20+.
+**Prerequisite:** Node.js 22+.
 
 This is an npm workspaces monorepo. Run commands from the repository root.
 
@@ -56,6 +57,22 @@ Useful commands:
 | `npm run sitemap` | Regenerate sitemap and robots |
 | `npm run og` | Re-capture the 1200×630 homepage social image |
 | `npm run assets` | Regenerate brand assets from SVG sources |
+
+## Funding intelligence
+
+The Funding Radar now separates two engines:
+
+- **Recommendation Engine:** member profile → conservative hard eligibility → deterministic 0–100 match score → separate confidence score → explanations → ranked curated feed.
+- **Opportunity Search Engine:** explicit query → deterministic search of published Cresciva opportunities → optional AI-assisted long-tail fallback → verified-first dedupe and trust-labelled results.
+
+The AI fallback is not allowed to create a verified state. Verified and stale states come from Cresciva's curated opportunity records; AI output is forced to `ai_assisted` + `unverified` after schema validation.
+
+Operational documentation:
+
+- `docs/product/RECOMMENDATION-ENGINE.md`
+- `docs/product/OPPORTUNITY-SEARCH-ENGINE.md`
+
+The full provenance/source-ingestion roadmap remains in `docs/production-readiness/05-FUNDING-PROVENANCE-VERIFICATION.md`.
 
 ## Public origin
 
@@ -102,7 +119,7 @@ BACHS_ORGANIZATION_ID       # recommended provider/account pin
 BACHS_ANNUAL_PRODUCT_NGN    # one-time product, exact Cresciva NGN annual price
 BACHS_ANNUAL_PRODUCT_USD    # one-time product, exact Cresciva USD annual price
 APP_URL                     # official Cresciva web origin used for checkout return/cancel URLs
-LOVABLE_API_KEY             # current funding AI gateway key
+LOVABLE_API_KEY             # current funding AI gateway key; verified-only search still works without it
 RESEND_API_KEY
 EMAIL_FROM
 EMAIL_TEAM_INBOX
@@ -150,6 +167,7 @@ config/                   cross-runtime configuration contracts
 supabase/migrations/      database schema/RLS history
 supabase/functions/       Deno Edge Functions
 scripts/                  sitemap, assets, OG-image tooling
+docs/product/             product-engine operating documentation
 docs/production-readiness launch-hardening plans and evidence
 ```
 
