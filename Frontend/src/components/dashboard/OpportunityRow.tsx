@@ -1,5 +1,6 @@
 import { Bookmark, BookmarkCheck, CalendarClock, ExternalLink } from "lucide-react";
 import { cn } from "@shared/lib/utils";
+import { trackEvent } from "@shared/lib/analytics";
 import { Badge } from "@shared/components/ui/badge";
 import { isNewThisWeek } from "@/lib/dashboard/feed";
 import type { FundingOpportunity } from "@/lib/dashboard/types";
@@ -33,6 +34,18 @@ export function OpportunityRow({
   const deadline = formatDeadline(o.deadline);
   const isNew = isNewThisWeek(o);
   const BookmarkIcon = saved ? BookmarkCheck : Bookmark;
+
+  const trackSourceClick = () => {
+    void trackEvent("opportunity_source_click", {
+      entityType: "funding_opportunity",
+      entityId: o.id,
+      metadata: {
+        surface: "dashboard_recommendations",
+        match_score: matchScore ?? null,
+        confidence_score: confidenceScore ?? null,
+      },
+    });
+  };
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-soft transition-colors hover:border-primary/40">
@@ -86,6 +99,7 @@ export function OpportunityRow({
               href={o.url}
               target="_blank"
               rel="noopener noreferrer nofollow"
+              onClick={trackSourceClick}
               className="inline-flex items-center gap-1 font-medium text-navy underline underline-offset-2 hover:text-navy-light dark:text-primary"
             >
               Official source
