@@ -1,6 +1,7 @@
 name: Edge type diagnostics
 
 on:
+  pull_request:
   push:
     branches: [docs/cresciva-production-readiness]
 
