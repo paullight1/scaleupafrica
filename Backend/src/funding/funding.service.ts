@@ -45,6 +45,7 @@ interface RankedCuratedCandidate extends SearchableFundingOpportunity {
 @Injectable()
 export class FundingService {
   private readonly logger = new Logger("Funding");
+
   constructor(
     @Inject(DB) private readonly db: Db,
     @Inject(ENV) private readonly env: Env,
@@ -100,7 +101,7 @@ export class FundingService {
       .limit(1);
     if (cached) {
       return {
-        opportunities: parseOpportunities(cached.opportunities),
+        opportunities: normalizeCachedTrust(parseOpportunities(cached.opportunities)),
         cached: true,
         generatedAt: iso(cached.createdAt),
         keywordsRaw,
@@ -222,7 +223,7 @@ export class FundingService {
       .limit(1);
     if (!row) return null;
     return {
-      opportunities: parseOpportunities(row.opportunities),
+      opportunities: normalizeCachedTrust(parseOpportunities(row.opportunities)),
       cached: true,
       generatedAt: iso(row.createdAt),
       keywordsRaw: row.keywordsRaw ?? "",
@@ -258,6 +259,19 @@ export class FundingService {
   }
 }
 
+function normalizeCachedTrust(opportunities: Opportunity[]): Opportunity[] {
+  return opportunities.map((opportunity) =>
+    opportunity.discovery_source
+      ? opportunity
+      : {
+          ...opportunity,
+          discovery_source: "ai_assisted" as const,
+          verification_status: "unverified" as const,
+          source_checked_at: undefined,
+        },
+  );
+}
+
 function toSearchCandidate(
   row: FundingOpportunityRow,
   query: string,
@@ -283,12 +297,15 @@ function toSearchCandidate(
       eligibility: row.eligibility ?? "",
       url: row.url ?? "",
       tags: row.tags ?? [],
-      discovery_source: "verified_feed",
-      verification_status: verificationStatus(lastVerifiedAt, now),
-      source_checked_at: lastVerifiedAt ?? undefined,
     }]);
     if (!parsed) return null;
-    opportunity = parsed;
+    opportunity = {
+      ...parsed,
+      discovery_source: "verified_feed",
+      verification_status: verificationStatus(lastVerifiedAt, parsed.url, now),
+      source_checked_at: lastVerifiedAt ?? undefined,
+      match_reasons: [],
+    };
   } catch {
     return null;
   }
@@ -314,9 +331,10 @@ function toSearchCandidate(
 
 function verificationStatus(
   lastVerifiedAt: string | null,
+  programUrl: string | null | undefined,
   now: Date,
 ): "verified" | "stale" | "unverified" {
-  if (!lastVerifiedAt) return "unverified";
+  if (!programUrl || !lastVerifiedAt) return "unverified";
   const checked = new Date(lastVerifiedAt).getTime();
   if (Number.isNaN(checked)) return "unverified";
   const ageDays = Math.max(0, (now.getTime() - checked) / 86_400_000);
