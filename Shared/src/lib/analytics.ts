@@ -3,6 +3,9 @@ import { supabase } from "@shared/integrations/supabase/client";
 export type AnalyticsEventType =
   | "page_view"
   | "funding_search"
+  | "recommendation_open"
+  | "recommendation_save"
+  | "opportunity_source_click"
   | "resource_view"
   | "resource_download"
   | "blog_view"
@@ -27,9 +30,9 @@ function getSessionId(): string {
 }
 
 /**
- * Fire-and-forget product analytics. Never throws and never blocks the UI —
- * a failed insert (e.g. offline) is silently ignored. RLS allows anon INSERT
- * only; reads are admin-only.
+ * Fire-and-forget product analytics. Never throws and never blocks the UI.
+ * Funding events must use aggregate/identifier metadata only — do not duplicate
+ * raw business search text into general analytics.
  */
 export async function trackEvent(
   eventType: AnalyticsEventType,
@@ -56,12 +59,10 @@ export async function trackEvent(
   }
 }
 
-/** Convenience wrapper for page views. */
 export function trackPageView(path?: string, metadata?: Record<string, unknown>) {
   void trackEvent("page_view", { path, metadata });
 }
 
-/** URL-safe slug from a title. */
 export function slugify(input: string): string {
   return input
     .toLowerCase()
