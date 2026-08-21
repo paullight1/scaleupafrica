@@ -55,7 +55,6 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: "unauthorized" }, 401);
 
     const service = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
     const { data: active, error: rpcErr } = await service.rpc("has_active_subscription", {
       _user_id: user.id,
     });
@@ -73,7 +72,6 @@ Deno.serve(async (req) => {
     const now = new Date();
     const nowIso = now.toISOString();
 
-    // Existing AI-containing search cache remains the fastest repeat path.
     const { data: cached, error: cacheErr } = await service
       .from("funding_results")
       .select("opportunities, created_at")
@@ -86,14 +84,19 @@ Deno.serve(async (req) => {
       return json({ error: "unavailable" }, 500);
     }
     if (cached) {
+      let cachedOpportunities: Opportunity[];
+      try {
+        cachedOpportunities = normalizeCachedTrust(parseOpportunities(cached.opportunities));
+      } catch {
+        return json({ error: "invalid_ai_output" }, 502);
+      }
       return json({
-        opportunities: cached.opportunities,
+        opportunities: cachedOpportunities,
         cached: true,
         generated_at: cached.created_at,
       });
     }
 
-    // Search Cresciva's curated opportunity intelligence BEFORE consuming AI quota.
     const { data: curatedRows, error: curatedErr } = await service
       .from("funding_opportunities")
       .select(
@@ -109,28 +112,15 @@ Deno.serve(async (req) => {
     const curatedCandidates = (Array.isArray(curatedRows) ? curatedRows : [])
       .map((row) => toCuratedCandidate(row as CuratedRow, rawKeywords, now))
       .filter((candidate): candidate is RankedCuratedCandidate => candidate !== null);
+    const verifiedOpportunities = rankFundingSearch(rawKeywords, curatedCandidates, 12)
+      .map((candidate) => candidate.opportunity);
 
-    const verifiedRanked = rankFundingSearch(rawKeywords, curatedCandidates, 12);
-    const verifiedOpportunities = verifiedRanked.map((candidate) => candidate.opportunity);
-
-    // Strong verified results are cheap and authoritative enough to return directly.
-    // We deliberately do not persist them to funding_results because that table is
-    // also the current AI-rate-limit ledger; verified-only searches must not burn AI quota.
     if (verifiedOpportunities.length >= VERIFIED_RESULT_TARGET) {
-      return json({
-        opportunities: verifiedOpportunities,
-        cached: false,
-        generated_at: nowIso,
-      });
+      return json({ opportunities: verifiedOpportunities, cached: false, generated_at: nowIso });
     }
 
-    // AI fallback starts here. A missing gateway key cannot break verified-only search.
     if (!LOVABLE_API_KEY) {
-      return json({
-        opportunities: verifiedOpportunities,
-        cached: false,
-        generated_at: nowIso,
-      });
+      return json({ opportunities: verifiedOpportunities, cached: false, generated_at: nowIso });
     }
 
     const hourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
@@ -144,22 +134,14 @@ Deno.serve(async (req) => {
       return json({ error: "unavailable" }, 500);
     }
     if ((count ?? 0) >= RATE_LIMIT_PER_HOUR) {
-      // Even when the AI quota is exhausted, don't hide verified matches already found.
       if (verifiedOpportunities.length > 0) {
-        return json({
-          opportunities: verifiedOpportunities,
-          cached: false,
-          generated_at: nowIso,
-        });
+        return json({ opportunities: verifiedOpportunities, cached: false, generated_at: nowIso });
       }
-      return json(
-        {
-          error: "rate_limited",
-          message:
-            "You've run several AI-assisted searches recently. Please try again in about an hour — your previous results are saved.",
-        },
-        429,
-      );
+      return json({
+        error: "rate_limited",
+        message:
+          "You've run several AI-assisted searches recently. Please try again in about an hour — your previous results are saved.",
+      }, 429);
     }
 
     const aiRes = await callGateway(rawKeywords).catch((e) => {
@@ -217,8 +199,6 @@ Deno.serve(async (req) => {
       return json({ error: "invalid_ai_output" }, 502);
     }
 
-    // A non-empty model response that yields zero structurally valid items is bad;
-    // an explicitly empty result is valid and preferable to fabricated padding.
     if (aiOpportunities.length === 0 && rawArray.length > 0) {
       if (verifiedOpportunities.length > 0) {
         return json({ opportunities: verifiedOpportunities, cached: false, generated_at: nowIso });
@@ -226,17 +206,9 @@ Deno.serve(async (req) => {
       return json({ error: "invalid_ai_output" }, 502);
     }
 
-    const opportunities = dedupeFundingSearchResults(
-      verifiedOpportunities,
-      aiOpportunities,
-    ).slice(0, 15);
+    const opportunities = dedupeFundingSearchResults(verifiedOpportunities, aiOpportunities).slice(0, 15);
 
-    await service
-      .from("funding_results")
-      .delete()
-      .eq("user_id", user.id)
-      .lt("expires_at", nowIso);
-
+    await service.from("funding_results").delete().eq("user_id", user.id).lt("expires_at", nowIso);
     const { error: cacheWriteErr } = await service.from("funding_results").upsert(
       {
         user_id: user.id,
@@ -247,11 +219,7 @@ Deno.serve(async (req) => {
       },
       { onConflict: "user_id,keywords_normalized" },
     );
-    if (cacheWriteErr) {
-      // Search results are still useful; log the cost-control degradation without
-      // converting a successful provider response into a user-facing failure.
-      console.error("funding cache write failed", cacheWriteErr);
-    }
+    if (cacheWriteErr) console.error("funding cache write failed", cacheWriteErr);
 
     return json({ opportunities, cached: false, generated_at: new Date().toISOString() });
   } catch (e) {
@@ -259,6 +227,19 @@ Deno.serve(async (req) => {
     return json({ error: "unavailable" }, 500);
   }
 });
+
+function normalizeCachedTrust(opportunities: Opportunity[]): Opportunity[] {
+  return opportunities.map((opportunity) =>
+    opportunity.discovery_source
+      ? opportunity
+      : {
+          ...opportunity,
+          discovery_source: "ai_assisted" as const,
+          verification_status: "unverified" as const,
+          source_checked_at: undefined,
+        }
+  );
+}
 
 function toCuratedCandidate(
   row: CuratedRow,
@@ -269,7 +250,6 @@ function toCuratedCandidate(
     ? row.details as Record<string, unknown>
     : {};
   const lastVerifiedAt = typeof row.last_verified_at === "string" ? row.last_verified_at : null;
-  const status = verificationStatus(lastVerifiedAt, now);
   const countryFocus = Array.isArray(row.country_focus)
     ? row.country_focus.map((value) => String(value ?? "").trim()).filter(Boolean)
     : [];
@@ -288,12 +268,16 @@ function toCuratedCandidate(
       eligibility: String(row.eligibility ?? ""),
       url: row.url ?? "",
       tags: Array.isArray(row.tags) ? row.tags : [],
+    }]);
+    if (!parsed) return null;
+    const status = verificationStatus(lastVerifiedAt, parsed.url, now);
+    opportunity = {
+      ...parsed,
       discovery_source: "verified_feed",
       verification_status: status,
       source_checked_at: lastVerifiedAt ?? undefined,
-    }]);
-    if (!parsed) return null;
-    opportunity = parsed;
+      match_reasons: [],
+    };
   } catch {
     return null;
   }
@@ -308,20 +292,16 @@ function toCuratedCandidate(
     countryFocus,
     url: opportunity.url,
   };
-
-  opportunity = {
-    ...opportunity,
-    match_reasons: fundingSearchReasons(query, searchable),
-  };
-
+  opportunity = { ...opportunity, match_reasons: fundingSearchReasons(query, searchable) };
   return { ...searchable, opportunity };
 }
 
 function verificationStatus(
   lastVerifiedAt: string | null,
+  programUrl: string | null | undefined,
   now: Date,
 ): "verified" | "stale" | "unverified" {
-  if (!lastVerifiedAt) return "unverified";
+  if (!programUrl || !lastVerifiedAt) return "unverified";
   const checked = new Date(lastVerifiedAt).getTime();
   if (Number.isNaN(checked)) return "unverified";
   const ageDays = Math.max(0, (now.getTime() - checked) / 86_400_000);
