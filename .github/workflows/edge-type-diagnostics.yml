@@ -23,6 +23,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      # Run targets individually so the log names the exact function that fails.
       - name: Check active Edge Functions individually
         shell: bash
         run: |
