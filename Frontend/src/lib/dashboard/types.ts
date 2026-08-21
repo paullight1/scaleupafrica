@@ -2,15 +2,19 @@ import type { Tables } from "@shared/integrations/supabase/types";
 import type { ProfileSection } from "./routes";
 
 /**
- * Domain type aliases for the dashboard. Sourced from the generated Supabase
- * types where the table exists. `saved_opportunities` and `user_preferences`
- * are added by 20260720160000_dashboard_tables.sql; until the generated types
- * are regenerated (a manual post-migration step — see HANDOFF), they are
- * declared locally here and the query layer casts the client for those two
- * tables only. Plan 07 re-points these aliases at API DTOs in one place.
+ * Domain type aliases for the dashboard. The generated Supabase snapshot predates
+ * several funding_opportunities columns from 20260720140000, so the dashboard
+ * extends that one row type locally until the production project is available for
+ * a trustworthy type regeneration. This keeps the escape hatch explicit instead
+ * of weakening recommendation-engine inputs.
  */
 export type Profile = Tables<"profiles">;
-export type FundingOpportunity = Tables<"funding_opportunities">;
+
+type GeneratedFundingOpportunity = Tables<"funding_opportunities">;
+export type FundingOpportunity = GeneratedFundingOpportunity & {
+  details?: Record<string, unknown> | null;
+  last_verified_at?: string | null;
+};
 
 /**
  * What a signed-in NON-member may see of the feed — the exact column set the
@@ -27,7 +31,6 @@ export interface TeaserOpportunity {
 
 export interface FundingTeaser {
   items: TeaserOpportunity[];
-  /** Total published rows, so the UI can say "+18 more" truthfully. */
   totalPublished: number;
 }
 
@@ -43,7 +46,6 @@ export interface SavedOpportunity {
   created_at: string;
 }
 
-/** Saved row joined with its funding opportunity (may be null if the opp was deleted). */
 export interface SavedOpportunityWithFunding extends SavedOpportunity {
   funding_opportunities: FundingOpportunity | null;
 }
@@ -56,17 +58,14 @@ export interface UserPreferences {
   updated_at: string;
 }
 
-/** A missing profile field, deep-linkable into the profile editor. */
 export interface MissingItem {
   key: string;
   label: string;
   weight: number;
-  /** The editor section that fixes this gap. */
   section: ProfileSection;
   href: string;
 }
 
-/** A next-best-action guidance item. */
 export interface Action {
   key: string;
   title: string;
