@@ -4,49 +4,66 @@
 
 The Opportunity Search Engine answers:
 
-> **Given what a member explicitly asks for, which verified opportunities can Cresciva find, and what additional AI-assisted discoveries might be worth exploring?**
+> **Given what a member explicitly asks for, which Cresciva-curated opportunities match now, and what additional AI-assisted discoveries may be worth exploring?**
 
-The engine is intentionally **verified-first**. AI is a long-tail discovery fallback, not the source of truth.
+The engine is **curated/verified-first**. AI is a long-tail discovery fallback, not the source of truth.
 
-## Architecture
+## Implemented V2 architecture
 
 ```text
 Member query
    |
    v
-Normalize + validate
+Trim + cap + normalize
    |
    v
-Search curated Cresciva opportunity feed
+Existing AI-containing cache?
+   | yes
+   +----------------------------> return cached result with conservative trust normalization
    |
-   +---- strong verified matches available ----> return them
+   no
+   v
+Search up to 100 published Cresciva opportunities
    |
    v
-AI-assisted discovery
+Deterministic relevance scoring
+   |
+   +---- >=5 strong curated matches ----> return them without AI
+   |
+   v
+AI quota / provider available?
+   | no
+   +----------------------------> return partial curated matches if any
+   |
+   yes
+   v
+AI-assisted long-tail discovery (0-10)
    |
    v
 Schema validation + URL sanitization
    |
    v
-Force unverified trust metadata
+Force `ai_assisted + unverified`
    |
    v
-Deduplicate against verified results
+Verified-first dedupe
    |
    v
-Verified results first + AI discoveries second
+Return curated matches first + AI discoveries second
 ```
+
+The Supabase Edge implementation is `supabase/functions/aggregate-funding/index.ts`. The optional NestJS API implements the same verified-first behavior in `Backend/src/funding/funding.service.ts` so a future API cutover does not regress search semantics.
 
 ## Why verified-first matters
 
-The previous Deep Search architecture sent the user's keywords directly to a model and asked it to remember a fixed number of real opportunities. That was useful as an exploratory prototype but created four accuracy risks:
+The old Deep Search path asked a model to remember a fixed number of opportunities. That prototype created four major accuracy risks:
 
 1. model memory could be stale;
 2. minimum-result quotas encouraged padding;
-3. an unknown deadline could be guessed from a historic cycle;
-4. safe URL syntax could be mistaken for factual verification.
+3. an unknown deadline could be replaced by a historic/typical cycle;
+4. syntactically safe URLs could be mistaken for factual verification.
 
-V2 uses Cresciva's own curated opportunity dataset before making any model call.
+V2 searches Cresciva's curated dataset first and can return reliable matches even if the AI gateway is unavailable.
 
 ## Query normalization
 
@@ -55,107 +72,163 @@ The member query is:
 - trimmed;
 - capped at 200 characters;
 - normalized for cache identity;
-- tokenized for deterministic verified-feed matching.
+- tokenized for deterministic curated-feed matching.
 
-Raw query text remains in the user's existing search cache/record because it is part of the product interaction. Analytics should record only aggregate search outcomes rather than duplicating raw business intent into general analytics events.
+Raw query text remains in the member-owned funding search record/cache because it is required to reproduce the product interaction. General analytics receives only aggregate counts and trust mix, not the raw query.
 
-## Verified-feed search
+## Curated-feed search
 
-Search examines published `funding_opportunities` and weights the following evidence:
+The engine scans up to **100 published** `funding_opportunities` records and scores query overlap.
 
-| Field | Relative importance |
-| --- | --- |
-| tags | very high |
-| country focus | very high |
-| title | high |
-| funder | medium-high |
-| opportunity type | medium |
-| summary | medium |
-| eligibility | medium |
+Current per-token weights:
 
-A published opportunity with no meaningful overlap is not returned merely because it is recent or featured.
+| Evidence | Weight |
+| --- | ---: |
+| tag | +8 |
+| country focus | +8 |
+| title | +6 |
+| funder | +4 |
+| opportunity type | +3 |
+| summary | +2 |
+| eligibility | +2 |
 
-The search output is capped so users receive a useful shortlist rather than an unranked dump.
+An exact normalized phrase in the title adds `+8`; an exact phrase in the summary adds `+4`.
 
-## Verified-result trust metadata
+Zero-overlap records are excluded. Ordering is stable for equal scores.
 
-A verified-feed result carries:
+The search helper also produces deterministic reasons such as:
+
+- `Available in nigeria.`
+- `Matches climate, agritech focus.`
+- `Program title matches climate.`
+
+## Curated trust metadata
+
+Curated search results are classified in code after parsing so free-form `details` JSON cannot spoof provenance fields.
 
 ```ts
 {
   discovery_source: "verified_feed",
   verification_status: "verified" | "stale" | "unverified",
-  source_checked_at: string | undefined
+  source_checked_at?: string,
+  match_reasons: string[]
 }
 ```
 
-`verified` requires a recent verification timestamp under the current V1 contract. The later Funding Provenance phase will make the criteria stricter by requiring official-source evidence.
+Current V2 classification is deliberately conservative:
+
+- usable program/source URL + `last_verified_at <= 7 days` -> `verified`;
+- usable URL + older `last_verified_at` -> `stale`;
+- missing URL or missing/invalid verification timestamp -> `unverified`.
+
+This is a **curated-record trust state**, not yet proof that Cresciva fetched and cryptographically verified an official source page. The stricter official-source provenance model remains Phase 5 work.
+
+## Strong curated-result threshold
+
+When deterministic search produces at least **5** matching curated opportunities, the request returns immediately:
+
+- no AI provider call;
+- no AI quota consumed;
+- no model latency;
+- no model hallucination risk added to an already-useful result set.
+
+If fewer than five curated matches exist, they are retained while AI may supplement the long tail.
 
 ## AI fallback
 
-AI is called only when verified search cannot satisfy the long-tail request strongly enough.
+The model is constrained to discovery rather than verification.
 
-The model is instructed to:
+Its current contract:
 
-- return **up to 10** results;
-- return zero results when it cannot identify useful programs;
-- prefer precision over breadth;
-- never invent a program, funder, amount, URL or past recipient;
-- never infer a current deadline from a historic/typical closing month;
-- leave an unknown current deadline empty;
-- never claim that a result is verified.
+- `0-10` candidates;
+- zero is explicitly valid;
+- fewer strong candidates are preferred over padding;
+- no fabricated funder, program, amount, URL, deadline or recipient;
+- unknown **current** deadline -> empty string;
+- no historic/typical closing-month substitution;
+- no verified/current/open claim without genuine knowledge;
+- no mandatory category or fellowship quota.
 
-After parsing, Cresciva overwrites trust metadata so every model result becomes:
+After parsing, Cresciva **overwrites** model trust metadata:
 
 ```ts
 {
   discovery_source: "ai_assisted",
-  verification_status: "unverified"
+  verification_status: "unverified",
+  source_checked_at: undefined,
+  match_reasons: []
 }
 ```
 
-This is enforced by code rather than trusted to the prompt.
+The model therefore cannot promote itself to verified by emitting a field.
+
+## Graceful degradation
+
+When curated matches already exist, Cresciva returns them rather than failing the whole search if:
+
+- the AI key is missing on the Edge path;
+- the user has exhausted AI-assisted search quota;
+- the AI provider times out;
+- the provider returns an error;
+- AI output is malformed.
+
+AI availability is no longer a prerequisite for useful curated search.
 
 ## Validation
 
-All opportunities pass the same Zod boundary before persistence/rendering.
+All results pass the shared Opportunity schema before persistence/rendering.
 
-Validation currently ensures:
+The boundary constrains:
 
-- title and funder are present;
-- string lengths are bounded;
-- arrays are bounded;
-- external links are only `http:` or `https:`;
-- malformed items can be dropped without crashing valid siblings.
+- title/funder shape;
+- string lengths;
+- bounded arrays;
+- allowed trust enums;
+- HTTP/HTTPS external links;
+- malformed sibling records.
 
-This protects the application from malformed/model-hostile output.
-
-It does **not** prove that a program exists. Factual verification is a separate provenance responsibility.
+Schema validation proves that a result is safe enough to process/render. It does **not** prove a program exists.
 
 ## Deduplication
 
-When verified and AI results are combined, verified records win.
+Curated records always enter dedupe before AI records and therefore win collisions.
 
-Candidates are deduplicated using conservative identity signals:
+Identity uses:
 
-1. normalized program URL when available;
-2. otherwise normalized `title + funder` identity.
+1. canonicalized program URL when available;
+2. otherwise normalized `title + funder`.
 
-An AI result may not replace or overwrite a verified Cresciva record.
+URL canonicalization removes fragments and tracking parameters such as `utm_*`, `fbclid`, `gclid`, mailing IDs and referral parameters. It **preserves meaningful query parameters**, so URLs such as `?program=a` and `?program=b` are not incorrectly collapsed.
 
 ## Caching and cost control
 
-Existing controls remain:
+Current behavior intentionally distinguishes curated-only from AI-assisted work.
 
-- active membership required;
-- normalized per-user cache;
-- seven-day cache window;
-- cache hits do not consume an AI call;
-- maximum three uncached AI searches per user per hour;
+### Curated-only result
+
+A search returning >=5 strong curated matches is **not written to `funding_results` in V2**. That table currently doubles as the AI-result cache and AI-rate-limit ledger; writing cheap curated searches there would incorrectly consume AI quota.
+
+### AI-assisted result
+
+Combined curated + AI results use the existing per-user normalized cache:
+
+- seven-day cache;
+- repeat cache hit avoids another AI call;
+- maximum three uncached AI-assisted searches per user per hour;
 - 60-second server-side AI timeout;
 - 90-second client-side stop.
 
-Verified-feed-only results should be inexpensive and should not count as an AI-generation event.
+A future schema can separate search-result caching from AI-usage accounting and then cache curated-only search independently.
+
+### Legacy cache safety
+
+Older cached rows predate provenance metadata. If `discovery_source` is absent, V2 treats the item conservatively as:
+
+```ts
+ai_assisted + unverified
+```
+
+rather than allowing an old model result to look neutral or verified.
 
 ## UI trust classes
 
@@ -163,35 +236,27 @@ Verified-feed-only results should be inexpensive and should not count as an AI-g
 
 ```text
 VERIFIED SOURCE
-AECF Climate Fund
 Checked 2 days ago
 ```
 
-The official program action is visible immediately.
-
-### Stale/needs recheck
+### Source needs recheck
 
 ```text
 SOURCE NEEDS RECHECK
-Last checked 18 days ago
+Checked 18 days ago
 ```
 
 ### AI discovery
 
 ```text
-AI DISCOVERY
-Verify current details on the program site before applying.
+AI DISCOVERY · UNVERIFIED
 ```
 
-AI discovery must not look visually identical to verified records.
+The official program/source action is visible on the collapsed card. AI discovery never uses the verified treatment merely because it has a URL.
 
 ## Search UX
 
-### Input
-
-The free-text field is a refinement tool, not the only personalization mechanism.
-
-Preferred prompt:
+The input now asks:
 
 > **What kind of opportunity are you looking for?**
 
@@ -199,56 +264,66 @@ Example:
 
 > `climate grant for Nigerian agritech expansion`
 
-### Loading
-
-Use copy that matches the actual implementation:
+Loading copy reflects the actual system:
 
 > **Matching your request against Cresciva's funding intelligence…**
 
-Do not claim live source retrieval until Cresciva actually performs it.
+The UI does not claim live funder-page retrieval before that capability exists.
 
-### Result ordering
+Result summaries expose trust mix, for example:
 
-1. verified strong matches;
-2. verified weaker matches;
-3. AI-assisted discoveries.
+> `9 opportunities found · 6 verified · 3 AI discoveries.`
 
-Within each class, relevance determines order.
+The empty state explicitly permits a small or zero list rather than padding uncertain opportunities.
+
+## Analytics
+
+`funding_search` stores aggregate metadata only:
+
+- result count;
+- verified count;
+- AI count;
+- cached flag.
+
+`opportunity_source_click` records source interaction. Raw query text is not duplicated into the general analytics table.
 
 ## Accuracy rules
 
 1. Search may return zero results.
 2. No minimum list size is required.
-3. Current-cycle deadlines are never fabricated.
-4. Verified data always outranks equivalent AI discovery.
-5. AI-generated links are safe-to-render only after schema validation, but remain factually unverified.
-6. Cached AI output retains its unverified status for the entire cache lifetime.
-7. Search UI must expose the trust class before the user decides to apply.
+3. Current-cycle deadlines are never replaced with historic/typical deadlines.
+4. Curated results always outrank equivalent AI discoveries.
+5. AI-generated links remain factually unverified after URL sanitization.
+6. Cached AI output retains unverified trust unless a separate source-verification process upgrades a canonical opportunity record.
+7. Free-form details cannot assign verified trust.
+8. The UI exposes trust class before the user chooses to apply.
+
+## Verification
+
+Tests cover deterministic relevance weights, zero-overlap exclusion, field-level match reasons, tracking-parameter dedupe, meaningful-query preservation, verified-first API bypass, AI prompt invariants, schema trust enums and AI trust-label UI.
+
+The full repository workspace gate has passed with V2, and a branch-head diagnostic confirmed all seven active Edge Functions pass `deno check`. The normal PR CI is the final release evidence source after documentation reconciliation.
 
 ## Relationship with Recommendation Engine
 
-Opportunity Search does not decide the member's full suitability. It answers an explicit query.
-
-Recommendation Engine may reuse the same verified candidate store, then apply profile eligibility and match scoring:
-
 ```text
-Search:          query   -> candidates -> relevance
-Recommendation: profile -> candidates -> eligibility -> fit
+Search:          query   -> curated candidates -> relevance -> optional AI discovery
+Recommendation: profile -> curated candidates -> eligibility -> fit/confidence
 ```
 
-The engines therefore share opportunity data and UI building blocks but keep separate logic and metrics.
+The engines share opportunity data and UI building blocks but deliberately keep separate intent, ranking and trust semantics.
 
-## Future source-backed search
+## Next source-accuracy layer
 
-The next provenance iteration can add live/periodic source retrieval:
+Phase 5 remains necessary for true official-source provenance:
 
 ```text
 Curated source registry
   -> bounded fetch
   -> extraction
   -> canonicalization
-  -> verification
+  -> official-source verification
   -> daily refreshed opportunity knowledge base
 ```
 
-When that exists, Deep Search can query current source evidence instead of relying on model memory for the long tail.
+Once that exists, the AI fallback can consume retrieved evidence instead of model memory for long-tail discovery.
