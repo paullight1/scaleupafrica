@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { sanitizeUrl } from "@/lib/url";
 
+export const BUSINESS_STAGE_OPTIONS = ["idea", "early", "growth", "scale"] as const;
+export const APPLICATION_READINESS_OPTIONS = ["exploring", "preparing", "ready"] as const;
+export const FUNDING_TYPE_OPTIONS = [
+  "grant",
+  "competition",
+  "accelerator",
+  "incubator",
+  "development finance",
+  "equity",
+  "debt",
+] as const;
+
 /**
  * Profile form schema (Plan 04). Named, human messages per field — never a bare "Required".
  * Shared with tests and importable by Plan 07's DTOs.
@@ -79,6 +91,18 @@ export const profileSchema = z.object({
     )
     .max(10, "Up to 10 keywords")
     .default([]),
+  business_stage: z.enum(BUSINESS_STAGE_OPTIONS).nullable().optional(),
+  funding_target_usd: z
+    .number({ invalid_type_error: "Enter a funding target as a number" })
+    .positive("Funding target must be greater than zero")
+    .max(1_000_000_000, "Funding target is too large")
+    .nullable()
+    .optional(),
+  preferred_funding_types: z
+    .array(z.string().trim().min(1).max(60))
+    .max(7, "Choose up to 7 funding types")
+    .default([]),
+  application_readiness: z.enum(APPLICATION_READINESS_OPTIONS).nullable().optional(),
   show_email: z.boolean().default(true),
   show_phone: z.boolean().default(true),
   show_whatsapp: z.boolean().default(true),
@@ -103,6 +127,10 @@ export const profileFormDefaults: ProfileFormValues = {
   logo_url: "",
   founder_photo_url: "",
   keywords: [],
+  business_stage: null,
+  funding_target_usd: null,
+  preferred_funding_types: [],
+  application_readiness: null,
   show_email: true,
   show_phone: true,
   show_whatsapp: true,
@@ -110,11 +138,19 @@ export const profileFormDefaults: ProfileFormValues = {
 
 /**
  * Normalize validated form values into the DB payload: canonicalize URLs to their `https://`
- * form and lowercase/trim/dedupe keywords. `slug` is never sent — the DB trigger owns it.
+ * form and lowercase/trim/dedupe keywords and funding preferences. `slug` is never sent — the
+ * DB trigger owns it.
  */
 export function normalizeProfileInput(v: ProfileFormValues) {
   const keywords = Array.from(
     new Set((v.keywords ?? []).map((k) => k.trim().toLowerCase()).filter(Boolean)),
+  );
+  const preferredFundingTypes = Array.from(
+    new Set(
+      (v.preferred_funding_types ?? [])
+        .map((type) => type.trim().toLowerCase())
+        .filter(Boolean),
+    ),
   );
   return {
     business_name: v.business_name.trim(),
@@ -133,6 +169,10 @@ export function normalizeProfileInput(v: ProfileFormValues) {
     logo_url: v.logo_url || null,
     founder_photo_url: v.founder_photo_url || null,
     keywords,
+    business_stage: v.business_stage ?? null,
+    funding_target_usd: v.funding_target_usd ?? null,
+    preferred_funding_types: preferredFundingTypes,
+    application_readiness: v.application_readiness ?? null,
     show_email: v.show_email,
     show_phone: v.show_phone,
     show_whatsapp: v.show_whatsapp,
