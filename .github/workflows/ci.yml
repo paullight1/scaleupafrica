@@ -46,6 +46,7 @@ jobs:
             supabase/functions/bachs-webhook/index.ts \
             supabase/functions/payment-reconciliation/index.ts \
             supabase/functions/aggregate-funding/index.ts \
+            supabase/functions/business-enrichment/index.ts \
             supabase/functions/send-email/index.ts \
             supabase/functions/email-unsubscribe/index.ts
 
