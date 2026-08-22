@@ -4,24 +4,25 @@ import * as coreSchema from "./schema";
 import {
   businessEnrichmentRuns,
   businessEnrichmentCandidates,
+  fundingSourcesRegistry,
+  fundingSourceChecks,
 } from "./funding-intelligence-schema";
 
 /**
  * postgres-js + drizzle. The direct Postgres connection BYPASSES RLS (connects as
  * `postgres`, so auth.uid() is NULL) — which is exactly why every handler derives
- * ownership from the JWT `sub`, never from client input (plan 07 §2.4, §7.2).
+ * ownership from the JWT `sub`, never from client input.
  *
- * `prepare: false` is MANDATORY with the Supavisor transaction pooler (port 6543).
- * Created lazily so `import`ing schema/types never opens a socket (keeps build +
- * unit tests DB-free).
- *
- * `profileFundingIntelligence` deliberately is not registered here because it is
- * a focused second projection of the already-registered public.profiles table.
+ * `prepare: false` is mandatory with Supavisor transaction pooling.
+ * Same-table projections (`profileFundingIntelligence`, `fundingOpportunityStatus`)
+ * are intentionally not registered because coreSchema already owns those SQL tables.
  */
 export const dbSchema = {
   ...coreSchema,
   businessEnrichmentRuns,
   businessEnrichmentCandidates,
+  fundingSourcesRegistry,
+  fundingSourceChecks,
 };
 export type Db = ReturnType<typeof drizzle<typeof dbSchema>>;
 
