@@ -4,7 +4,7 @@
 // `${X-Bachs-Timestamp}.${raw_body}` with a 300-second freshness tolerance.
 // Fulfillment authority is collection.succeeded, never the browser redirect and
 // never checkout.completed.
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   bachsFetch,
   classifyWebhookInsertError,
@@ -27,6 +27,8 @@ const BACHS_BASE_URL_CONFIG = Deno.env.get("BACHS_BASE_URL");
 const BACHS_ORGANIZATION_ID = Deno.env.get("BACHS_ORGANIZATION_ID") ?? "";
 const MAX_WEBHOOK_BYTES = 256 * 1024;
 
+type LooseSupabaseClient = SupabaseClient<any, "public", "public", any, any>;
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("", { status: 405 });
   if (!BACHS_SECRET_KEY || !BACHS_WEBHOOK_SIGNING_SECRET) {
@@ -48,7 +50,7 @@ Deno.serve(async (req) => {
   const rawBody = bounded.body;
   const timestamp = req.headers.get("x-bachs-timestamp");
   const signature = req.headers.get("x-bachs-signature");
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  const admin = createClient<any>(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   const signatureValid = await verifyBachsSignature(
     rawBody,
@@ -244,7 +246,7 @@ Deno.serve(async (req) => {
 });
 
 async function markProcessed(
-  admin: ReturnType<typeof createClient>,
+  admin: LooseSupabaseClient,
   eventId: string,
   status: string,
 ): Promise<Response> {
