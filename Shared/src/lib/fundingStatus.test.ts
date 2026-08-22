@@ -6,14 +6,17 @@ import {
   isStatusFresh,
   type FundingStatusSignals,
 } from "./fundingStatus";
+import type { ApplicationStatus } from "../../contracts/funding";
 
 const NOW = new Date("2026-08-22T12:00:00Z");
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
 
 function signals(over: Partial<FundingStatusSignals> = {}): FundingStatusSignals {
   return {
     sourceVerified: true,
     checkedAt: NOW,
-    cycleLabel: "2026",
+    cycleLabel: "2026 cycle",
     explicitOpen: false,
     explicitClosed: false,
     explicitPaused: false,
@@ -27,67 +30,80 @@ function signals(over: Partial<FundingStatusSignals> = {}): FundingStatusSignals
   };
 }
 
-describe("classifyFundingStatus", () => {
-  it("classifies explicit current-cycle open intake", () => {
-    expect(classifyFundingStatus(signals({
-      explicitOpen: true,
-      applicationCtaActive: true,
-      deadlineAt: new Date("2026-09-30T23:59:00Z"),
-    }), NOW)).toBe("open");
-  });
+type ClassificationCase = [name: string, input: Partial<FundingStatusSignals>, expected: ApplicationStatus];
+const classificationCases: ClassificationCase[] = [
+  ["explicit open + CTA + far deadline", { explicitOpen:true,applicationCtaActive:true,deadlineAt:new Date(NOW.getTime()+30*DAY) }, "open"],
+  ["explicit open + CTA + no deadline", { explicitOpen:true,applicationCtaActive:true,deadlineAt:null }, "open"],
+  ["explicit open + CTA + invalid deadline is unsupported", { explicitOpen:true,applicationCtaActive:true,deadlineAt:new Date("invalid") }, "open"],
+  ["open exactly 14 days before deadline", { explicitOpen:true,applicationCtaActive:true,deadlineAt:new Date(NOW.getTime()+14*DAY) }, "closing_soon"],
+  ["open 14 days minus one millisecond", { explicitOpen:true,applicationCtaActive:true,deadlineAt:new Date(NOW.getTime()+14*DAY-1) }, "closing_soon"],
+  ["open 14 days plus one millisecond", { explicitOpen:true,applicationCtaActive:true,deadlineAt:new Date(NOW.getTime()+14*DAY+1) }, "open"],
+  ["deadline exactly now", { explicitOpen:true,applicationCtaActive:true,deadlineAt:NOW }, "closing_soon"],
+  ["expired deadline cannot remain open", { explicitOpen:true,applicationCtaActive:true,deadlineAt:new Date(NOW.getTime()-1) }, "unknown"],
+  ["future deadline alone", { deadlineAt:new Date(NOW.getTime()+30*DAY) }, "unknown"],
+  ["explicit open without active CTA", { explicitOpen:true,applicationCtaActive:false }, "unknown"],
+  ["active CTA without explicit open", { applicationCtaActive:true }, "unknown"],
+  ["rolling + active intake", { explicitRolling:true,applicationCtaActive:true }, "rolling"],
+  ["rolling without active intake", { explicitRolling:true,applicationCtaActive:false }, "unknown"],
+  ["missing deadline is not rolling", {}, "unknown"],
+  ["future opening date", { opensAt:new Date(NOW.getTime()+10*DAY) }, "upcoming"],
+  ["opening date equal to now is not upcoming", { opensAt:NOW }, "unknown"],
+  ["past opening date alone is insufficient", { opensAt:new Date(NOW.getTime()-DAY) }, "unknown"],
+  ["future opening plus explicit open + CTA uses live open signal", { opensAt:new Date(NOW.getTime()+10*DAY),explicitOpen:true,applicationCtaActive:true }, "open"],
+  ["explicit closed", { explicitClosed:true }, "closed"],
+  ["explicit paused", { explicitPaused:true }, "paused"],
+  ["paused takes deterministic precedence after conflict has been ruled out", { explicitPaused:true,explicitClosed:true,conflict:false }, "paused"],
+  ["conflict always fails closed", { conflict:true,explicitOpen:true,applicationCtaActive:true }, "unknown"],
+  ["open/closed conflict flag fails closed", { conflict:true,explicitOpen:true,explicitClosed:true,applicationCtaActive:true }, "unknown"],
+  ["rolling/closed conflict flag fails closed", { conflict:true,explicitRolling:true,explicitClosed:true,applicationCtaActive:true }, "unknown"],
+  ["unverified source cannot create open", { sourceVerified:false,explicitOpen:true,applicationCtaActive:true }, "unknown"],
+  ["unverified source cannot create upcoming", { sourceVerified:false,opensAt:new Date(NOW.getTime()+DAY) }, "unknown"],
+  ["missing current-cycle evidence cannot create open", { hasCurrentCycleEvidence:false,explicitOpen:true,applicationCtaActive:true }, "unknown"],
+  ["missing current-cycle evidence cannot create closed", { hasCurrentCycleEvidence:false,explicitClosed:true }, "unknown"],
+  ["invalid check timestamp fails closed", { checkedAt:new Date("invalid"),explicitOpen:true,applicationCtaActive:true }, "unknown"],
+  ["empty evidence with verified source stays unknown", { cycleLabel:null }, "unknown"],
+];
 
-  it("classifies current open intake closing within fourteen days", () => {
-    expect(classifyFundingStatus(signals({
-      explicitOpen: true,
-      applicationCtaActive: true,
-      deadlineAt: new Date("2026-08-30T23:59:00Z"),
-    }), NOW)).toBe("closing_soon");
-  });
-
-  it("classifies explicitly rolling active intake", () => {
-    expect(classifyFundingStatus(signals({ explicitRolling: true, applicationCtaActive: true }), NOW)).toBe("rolling");
-  });
-
-  it("classifies a future current-cycle opening date as upcoming", () => {
-    expect(classifyFundingStatus(signals({ opensAt: new Date("2026-09-10T00:00:00Z") }), NOW)).toBe("upcoming");
-  });
-
-  it("honors explicit closed and paused evidence", () => {
-    expect(classifyFundingStatus(signals({ explicitClosed: true }), NOW)).toBe("closed");
-    expect(classifyFundingStatus(signals({ explicitPaused: true }), NOW)).toBe("paused");
-  });
-
-  it("does not infer open from a future deadline alone", () => {
-    expect(classifyFundingStatus(signals({ deadlineAt: new Date("2026-09-30T23:59:00Z") }), NOW)).toBe("unknown");
-  });
-
-  it("does not infer rolling from a missing deadline", () => {
-    expect(classifyFundingStatus(signals(), NOW)).toBe("unknown");
-  });
-
-  it("fails closed on conflict or missing source/current-cycle evidence", () => {
-    expect(classifyFundingStatus(signals({ conflict: true, explicitOpen: true, applicationCtaActive: true }), NOW)).toBe("unknown");
-    expect(classifyFundingStatus(signals({ sourceVerified: false, explicitOpen: true, applicationCtaActive: true }), NOW)).toBe("unknown");
-    expect(classifyFundingStatus(signals({ hasCurrentCycleEvidence: false, explicitOpen: true, applicationCtaActive: true }), NOW)).toBe("unknown");
+describe("classifyFundingStatus — certification truth table", () => {
+  it.each(classificationCases)("%s", (_name, input, expected) => {
+    expect(classifyFundingStatus(signals(input), NOW)).toBe(expected);
   });
 });
 
-describe("funding status freshness", () => {
-  it("uses exact per-status freshness windows", () => {
-    expect(freshnessWindowMs("closing_soon")).toBe(6 * 60 * 60 * 1000);
-    expect(freshnessWindowMs("open")).toBe(24 * 60 * 60 * 1000);
-    expect(freshnessWindowMs("rolling")).toBe(48 * 60 * 60 * 1000);
-    expect(freshnessWindowMs("upcoming")).toBe(24 * 60 * 60 * 1000);
-    expect(freshnessWindowMs("closed")).toBe(7 * 24 * 60 * 60 * 1000);
-    expect(freshnessWindowMs("paused")).toBe(24 * 60 * 60 * 1000);
-    expect(freshnessWindowMs("unknown")).toBe(12 * 60 * 60 * 1000);
+const windows: Array<[ApplicationStatus, number]> = [
+  ["closing_soon", 6*HOUR],
+  ["open", 24*HOUR],
+  ["rolling", 48*HOUR],
+  ["upcoming", 24*HOUR],
+  ["closed", 7*DAY],
+  ["paused", 24*HOUR],
+  ["unknown", 12*HOUR],
+];
+
+describe("funding status freshness — certification boundaries", () => {
+  it.each(windows)("%s uses the exact configured freshness window", (status, window) => {
+    expect(freshnessWindowMs(status)).toBe(window);
   });
 
-  it("demotes stale open and closing-soon status to effective unknown", () => {
-    const oldOpen = new Date(NOW.getTime() - 25 * 60 * 60 * 1000);
-    const oldClosing = new Date(NOW.getTime() - 7 * 60 * 60 * 1000);
-    expect(isStatusFresh("open", oldOpen, NOW)).toBe(false);
-    expect(effectiveFundingStatus("open", oldOpen, NOW)).toBe("unknown");
-    expect(effectiveFundingStatus("closing_soon", oldClosing, NOW)).toBe("unknown");
+  it.each(windows)("%s is fresh at the exact boundary", (status, window) => {
+    const checked = new Date(NOW.getTime()-window);
+    expect(isStatusFresh(status, checked, NOW)).toBe(true);
+    expect(effectiveFundingStatus(status, checked, NOW)).toBe(status);
+  });
+
+  it.each(windows)("%s becomes unknown one millisecond past its boundary", (status, window) => {
+    const checked = new Date(NOW.getTime()-window-1);
+    expect(isStatusFresh(status, checked, NOW)).toBe(false);
+    expect(effectiveFundingStatus(status, checked, NOW)).toBe("unknown");
+  });
+
+  it("future check timestamps are never fresh", () => {
+    expect(isStatusFresh("open",new Date(NOW.getTime()+1),NOW)).toBe(false);
+  });
+
+  it("invalid and missing check timestamps are never fresh", () => {
+    expect(isStatusFresh("open","not-a-date",NOW)).toBe(false);
+    expect(isStatusFresh("open",null,NOW)).toBe(false);
+    expect(isStatusFresh("open",undefined,NOW)).toBe(false);
   });
 });
