@@ -3,6 +3,7 @@ import {
   uuid,
   text,
   integer,
+  numeric,
   timestamp,
   jsonb,
   index,
@@ -50,5 +51,27 @@ export const businessEnrichmentCandidates = pgTable(
   (t) => [index("business_enrichment_candidates_run_idx").on(t.runId, t.identityConfidence)],
 );
 
+/**
+ * A focused projection of the private Funding Intelligence columns that live on
+ * public.profiles. It is deliberately NOT registered in the relational dbSchema
+ * because coreSchema already owns the public.profiles table. Drizzle table
+ * objects can still be used for select/update queries independently.
+ */
+export const profileFundingIntelligence = pgTable("profiles", {
+  userId: uuid("user_id").notNull(),
+  businessStage: text("business_stage"),
+  fundingTargetUsd: numeric("funding_target_usd"),
+  preferredFundingTypes: text("preferred_funding_types").array().notNull().default(sql`'{}'::text[]`),
+  applicationReadiness: text("application_readiness"),
+  organisationType: text("organisation_type"),
+  operatingCountries: text("operating_countries").array().notNull().default(sql`'{}'::text[]`),
+  foundingYear: integer("founding_year"),
+  businessIdentityConfirmedAt: timestamp("business_identity_confirmed_at", { withTimezone: true }),
+  businessIdentitySourceUrls: text("business_identity_source_urls").array().notNull().default(sql`'{}'::text[]`),
+  businessIdentityRunId: uuid("business_identity_run_id"),
+  businessIdentityCandidateId: uuid("business_identity_candidate_id"),
+});
+
 export type BusinessEnrichmentRunRow = typeof businessEnrichmentRuns.$inferSelect;
 export type BusinessEnrichmentCandidateRow = typeof businessEnrichmentCandidates.$inferSelect;
+export type ProfileFundingIntelligenceRow = typeof profileFundingIntelligence.$inferSelect;
