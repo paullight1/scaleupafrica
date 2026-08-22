@@ -2,7 +2,7 @@
 // Read-only operational view over payment, subscription, webhook, and receipt state.
 // It never mutates entitlements; remediation must re-run verified provider settlement.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   reconcileActiveSubscription,
   reconcilePayment,
@@ -15,13 +15,15 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const MAX_PAYMENTS = 50;
 const MAX_EVENTS = 250;
 
+type LooseSupabaseClient = SupabaseClient<any, "public", "public", any, any>;
+
 type PaymentRow = {
   id: unknown;
   user_id: unknown;
   provider: unknown;
   reference: unknown;
   status: unknown;
-  amount: unknown;
+  amount: number | string;
   currency: unknown;
   paid_at: string | null;
   created_at: string | null;
@@ -50,13 +52,13 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
-    const authed = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    const authed = createClient<any>(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: { user } } = await authed.auth.getUser();
     if (!user) return json({ error: "unauthorized" }, 401);
 
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    const admin = createClient<any>(SUPABASE_URL, SERVICE_ROLE_KEY);
     const { data: role, error: roleError } = await admin
       .from("user_roles")
       .select("role")
@@ -225,7 +227,7 @@ Deno.serve(async (req) => {
 });
 
 async function getReceiptStatus(
-  admin: ReturnType<typeof createClient>,
+  admin: LooseSupabaseClient,
   userId: string,
   since: string | null,
   emailCache: Map<string, string | null>,
