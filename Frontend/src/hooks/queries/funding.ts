@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@shared/integrations/supabase/client";
 import { useAuth } from "@shared/hooks/useAuth";
 import { fundingVerificationStatus } from "@shared/lib/fundingTrust";
+import { effectiveFundingStatus } from "@shared/lib/fundingStatus";
 import { normalizeKeywords, parseOpportunities, type Opportunity } from "@/lib/fundingSchema";
 import { readFundingCache, writeFundingCache, CACHE_TTL_MS, type FundingCacheEntry } from "@/lib/fundingCache";
 import { useApiFor } from "@/lib/api/flags";
@@ -50,16 +51,65 @@ export function useGenerateFunding() {
 }
 
 export type FeedVerificationStatus="verified"|"stale"|"unverified";
-export interface FeedItem extends Opportunity { id:string; lastVerifiedAt:string|null; featured:boolean; countryFocus:string[]; details:Record<string,unknown>; verificationStatus:FeedVerificationStatus; sourceUrl:string|null; sourceName:string|null; }
+export type FeedApplicationStatus="open"|"closing_soon"|"rolling"|"upcoming"|"closed"|"paused"|"unknown";
+export type FeedDeadlineStatus="confirmed"|"rolling"|"unknown";
+export interface FeedItem extends Opportunity {
+  id:string;
+  lastVerifiedAt:string|null;
+  featured:boolean;
+  countryFocus:string[];
+  details:Record<string,unknown>;
+  verificationStatus:FeedVerificationStatus;
+  sourceUrl:string|null;
+  sourceName:string|null;
+  storedApplicationStatus:FeedApplicationStatus;
+  applicationStatus:FeedApplicationStatus;
+  statusCheckedAt:string|null;
+  statusEvidenceUrl:string|null;
+  opensAt:string|null;
+  deadlineAt:string|null;
+  deadlineTimezone:string|null;
+  deadlineStatus:FeedDeadlineStatus;
+  currentCycleLabel:string|null;
+  applicationUrl:string|null;
+}
 
-function authoritativeFeedItem(op:Opportunity,input:{id:string;lastVerifiedAt:string|null;featured:boolean;countryFocus:string[];details:Record<string,unknown>;sourceUrl:string|null;sourceName:string|null;}):FeedItem {
+function normalizeApplicationStatus(value: unknown): FeedApplicationStatus {
+  return value === "open" || value === "closing_soon" || value === "rolling" || value === "upcoming" || value === "closed" || value === "paused" ? value : "unknown";
+}
+function normalizeDeadlineStatus(value: unknown): FeedDeadlineStatus { return value === "confirmed" || value === "rolling" ? value : "unknown"; }
+
+function authoritativeFeedItem(op:Opportunity,input:{
+  id:string;lastVerifiedAt:string|null;featured:boolean;countryFocus:string[];details:Record<string,unknown>;sourceUrl:string|null;sourceName:string|null;
+  applicationStatus:unknown;statusCheckedAt:string|null;statusEvidenceUrl:string|null;opensAt:string|null;deadlineAt:string|null;deadlineTimezone:string|null;deadlineStatus:unknown;currentCycleLabel:string|null;applicationUrl:string|null;
+}):FeedItem {
   const verificationStatus=fundingVerificationStatus(input.sourceUrl,input.lastVerifiedAt);
-  return {...op,discovery_source:"verified_feed",verification_status:verificationStatus,source_checked_at:input.lastVerifiedAt??undefined,match_reasons:[],id:input.id,lastVerifiedAt:input.lastVerifiedAt,featured:input.featured,countryFocus:input.countryFocus,details:input.details,verificationStatus,sourceUrl:input.sourceUrl,sourceName:input.sourceName};
+  const storedApplicationStatus=normalizeApplicationStatus(input.applicationStatus);
+  const applicationStatus=effectiveFundingStatus(storedApplicationStatus,input.statusCheckedAt) as FeedApplicationStatus;
+  const deadlineStatus=normalizeDeadlineStatus(input.deadlineStatus);
+  return {
+    ...op,
+    discovery_source:"verified_feed",
+    verification_status:verificationStatus,
+    source_checked_at:input.lastVerifiedAt??undefined,
+    application_status:applicationStatus,
+    status_checked_at:input.statusCheckedAt??undefined,
+    status_evidence_url:input.statusEvidenceUrl??undefined,
+    opens_at:input.opensAt??undefined,
+    deadline_at:input.deadlineAt??undefined,
+    deadline_timezone:input.deadlineTimezone??undefined,
+    deadline_status:deadlineStatus,
+    current_cycle_label:input.currentCycleLabel??undefined,
+    application_url:input.applicationUrl??undefined,
+    match_reasons:[],
+    id:input.id,lastVerifiedAt:input.lastVerifiedAt,featured:input.featured,countryFocus:input.countryFocus,details:input.details,verificationStatus,sourceUrl:input.sourceUrl,sourceName:input.sourceName,
+    storedApplicationStatus,applicationStatus,statusCheckedAt:input.statusCheckedAt,statusEvidenceUrl:input.statusEvidenceUrl,opensAt:input.opensAt,deadlineAt:input.deadlineAt,deadlineTimezone:input.deadlineTimezone,deadlineStatus,currentCycleLabel:input.currentCycleLabel,applicationUrl:input.applicationUrl,
+  };
 }
 
 export function useFundingFeed(){const{user}=useAuth();const viaApi=useApiFor("funding");return useQuery<FeedItem[]>({queryKey:["funding","feed"],enabled:!!user,staleTime:5*60_000,queryFn:async()=>{
-  if(viaApi){const rows=await listCuratedFunding();const out:FeedItem[]=[];for(const row of rows){const details=(row.details&&typeof row.details==="object"?row.details:{}) as Record<string,unknown>;const [op]=parseOpportunities([{...details,title:row.title,funder:row.funder,type:row.type??undefined,summary:row.summary??"",amount:row.amount??"",opens:row.opens??"",deadline:row.deadline??"",eligibility:row.eligibility??"",url:row.url??"",tags:Array.isArray(row.tags)?row.tags:[]}]);if(!op)continue;const extended=row as typeof row & {sourceUrl?:string|null;sourceName?:string|null};out.push(authoritativeFeedItem(op,{id:row.id,lastVerifiedAt:row.lastVerifiedAt??null,featured:!!row.featured,countryFocus:Array.isArray(row.countryFocus)?row.countryFocus:[],details,sourceUrl:extended.sourceUrl??null,sourceName:extended.sourceName??null}));}return out;}
-  const{data,error}=await untyped.from("funding_opportunities").select("id, title, funder, type, summary, amount, opens, deadline, eligibility, url, tags, country_focus, details, featured, last_verified_at, source_url, source_name, verification_status").eq("status","published").order("featured",{ascending:false}).order("last_verified_at",{ascending:false,nullsFirst:false});if(error)throw error;const out:FeedItem[]=[];for(const row of Array.isArray(data)?data:[]){const details=(row.details&&typeof row.details==="object"?row.details:{}) as Record<string,unknown>;const[op]=parseOpportunities([{...details,title:row.title,funder:row.funder,type:row.type??undefined,summary:row.summary??"",amount:row.amount??"",opens:row.opens??"",deadline:row.deadline??"",eligibility:row.eligibility??"",url:row.url??"",tags:Array.isArray(row.tags)?row.tags:[]}]);if(!op)continue;out.push(authoritativeFeedItem(op,{id:row.id,lastVerifiedAt:row.last_verified_at??null,featured:!!row.featured,countryFocus:Array.isArray(row.country_focus)?row.country_focus:[],details,sourceUrl:row.source_url??null,sourceName:row.source_name??null}));}return out;}})}
+  if(viaApi){const rows=await listCuratedFunding();const out:FeedItem[]=[];for(const row of rows){const details=(row.details&&typeof row.details==="object"?row.details:{}) as Record<string,unknown>;const [op]=parseOpportunities([{...details,title:row.title,funder:row.funder,type:row.type??undefined,summary:row.summary??"",amount:row.amount??"",opens:row.opens??"",deadline:row.deadline??"",eligibility:row.eligibility??"",url:row.url??"",tags:Array.isArray(row.tags)?row.tags:[]}]);if(!op)continue;const extended=row as typeof row & {sourceUrl?:string|null;sourceName?:string|null};out.push(authoritativeFeedItem(op,{id:row.id,lastVerifiedAt:row.lastVerifiedAt??null,featured:!!row.featured,countryFocus:Array.isArray(row.countryFocus)?row.countryFocus:[],details,sourceUrl:extended.sourceUrl??null,sourceName:extended.sourceName??null,applicationStatus:row.applicationStatus,statusCheckedAt:row.statusCheckedAt,statusEvidenceUrl:row.statusEvidenceUrl,opensAt:row.opensAt,deadlineAt:row.deadlineAt,deadlineTimezone:row.deadlineTimezone,deadlineStatus:row.deadlineStatus,currentCycleLabel:row.currentCycleLabel,applicationUrl:row.applicationUrl}));}return out;}
+  const{data,error}=await untyped.from("funding_opportunities").select("id, title, funder, type, summary, amount, opens, deadline, eligibility, url, tags, country_focus, details, featured, last_verified_at, source_url, source_name, verification_status, application_status, status_checked_at, status_evidence_url, opens_at, deadline_at, deadline_timezone, deadline_status, current_cycle_label, application_url").eq("status","published").order("featured",{ascending:false}).order("last_verified_at",{ascending:false,nullsFirst:false});if(error)throw error;const out:FeedItem[]=[];for(const row of Array.isArray(data)?data:[]){const details=(row.details&&typeof row.details==="object"?row.details:{}) as Record<string,unknown>;const[op]=parseOpportunities([{...details,title:row.title,funder:row.funder,type:row.type??undefined,summary:row.summary??"",amount:row.amount??"",opens:row.opens??"",deadline:row.deadline??"",eligibility:row.eligibility??"",url:row.url??"",tags:Array.isArray(row.tags)?row.tags:[]}]);if(!op)continue;out.push(authoritativeFeedItem(op,{id:row.id,lastVerifiedAt:row.last_verified_at??null,featured:!!row.featured,countryFocus:Array.isArray(row.country_focus)?row.country_focus:[],details,sourceUrl:row.source_url??null,sourceName:row.source_name??null,applicationStatus:row.application_status,statusCheckedAt:row.status_checked_at??null,statusEvidenceUrl:row.status_evidence_url??null,opensAt:row.opens_at??null,deadlineAt:row.deadline_at??null,deadlineTimezone:row.deadline_timezone??null,deadlineStatus:row.deadline_status,currentCycleLabel:row.current_cycle_label??null,applicationUrl:row.application_url??null}));}return out;}})}
 
 export interface FundingProfile {business_name:string|null;sector:string|null;country:string|null;keywords:string[]|null;short_description:string|null;long_description:string|null;business_stage:string|null;funding_target_usd:number|null;preferred_funding_types:string[]|null;application_readiness:"exploring"|"preparing"|"ready"|null;}
 export function useFundingProfile(){const{user}=useAuth();const userId=user?.id;return useQuery<FundingProfile|null>({queryKey:["funding","profile",userId],enabled:!!userId,staleTime:5*60_000,retry:1,queryFn:async()=>{const{data,error}=await untyped.from("profiles").select("business_name, sector, country, keywords, short_description, long_description, business_stage, funding_target_usd, preferred_funding_types, application_readiness").eq("user_id",userId).maybeSingle();if(error)throw error;return(data as FundingProfile)??null;}})}
