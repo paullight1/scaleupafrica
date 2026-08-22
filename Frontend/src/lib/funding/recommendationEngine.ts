@@ -4,12 +4,19 @@ export type EligibilityStatus =
   | "insufficient_information"
   | "ineligible";
 
+export type ApplicationReadiness = "exploring" | "preparing" | "ready";
+export type OpportunityVerificationStatus = "verified" | "stale" | "unverified";
+
 export interface RecommendationProfile {
   country?: string | null;
   sector?: string | null;
   keywords?: string[] | null;
   shortDescription?: string | null;
   longDescription?: string | null;
+  businessStage?: string | null;
+  preferredFundingTypes?: string[] | null;
+  fundingTargetUsd?: number | null;
+  applicationReadiness?: ApplicationReadiness | null;
 }
 
 export interface RecommendationOpportunity {
@@ -25,6 +32,8 @@ export interface RecommendationOpportunity {
   countryFocus?: string[] | null;
   featured?: boolean;
   lastVerifiedAt?: string | null;
+  sourceUrl?: string | null;
+  verificationStatus?: OpportunityVerificationStatus | null;
   details?: Record<string, unknown> | null;
 }
 
@@ -33,6 +42,7 @@ export interface RecommendationResult<T> {
   eligibilityStatus: EligibilityStatus;
   matchScore: number;
   confidenceScore: number;
+  readinessScore: number;
   reasons: string[];
   blockers: string[];
   missingInformation: string[];
@@ -74,7 +84,7 @@ const PAN_AFRICAN = new Set([
   "continent-wide",
 ]);
 
-const MAX_REASON_COUNT = 5;
+const MAX_REASON_COUNT = 6;
 
 function normalizeText(value: unknown): string {
   return String(value ?? "")
@@ -88,7 +98,18 @@ function normalizeText(value: unknown): string {
 }
 
 function normalizeCountry(value: unknown): string {
-  return normalizeText(value);
+  const normalized = normalizeText(value);
+  const aliases: Record<string, string> = {
+    nigerian: "nigeria",
+    kenyan: "kenya",
+    ghanaian: "ghana",
+    ugandan: "uganda",
+    rwandan: "rwanda",
+    tanzanian: "tanzania",
+    zambian: "zambia",
+    zimbabwean: "zimbabwe",
+  };
+  return aliases[normalized] ?? normalized;
 }
 
 function addDomainAliases(values: Set<string>): Set<string> {
@@ -148,6 +169,15 @@ function detailsArrays(details: Record<string, unknown> | null | undefined): str
   ];
 }
 
+function numberValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value.replace(/,/g, ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 function opportunityTokens(opportunity: RecommendationOpportunity): Set<string> {
   return tokenUnion([
     opportunity.title,
@@ -171,6 +201,19 @@ function roundBounded(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+function readinessScore(profile: RecommendationProfile): number {
+  switch (profile.applicationReadiness) {
+    case "ready":
+      return 90;
+    case "preparing":
+      return 60;
+    case "exploring":
+      return 25;
+    default:
+      return 0;
+  }
+}
+
 function eligibility(
   profile: RecommendationProfile,
   opportunity: RecommendationOpportunity,
@@ -181,60 +224,59 @@ function eligibility(
   const country = normalizeCountry(profile.country);
   const focus = (opportunity.countryFocus ?? []).map(normalizeCountry).filter(Boolean);
 
+  let status: EligibilityStatus = "possibly_eligible";
+
   if (focus.length === 0) {
     if (!country) missingInformation.push("Add your operating country to strengthen eligibility checks.");
-    return {
-      eligibilityStatus: "possibly_eligible",
-      reasons,
-      blockers,
-      missingInformation,
-    };
-  }
-
-  if (panAfrican(focus)) {
+  } else if (panAfrican(focus)) {
     reasons.push("Open to businesses across Africa.");
-    return {
-      eligibilityStatus: "eligible",
-      reasons,
-      blockers,
-      missingInformation,
-    };
-  }
-
-  if (!country) {
+    status = "eligible";
+  } else if (!country) {
     missingInformation.push("Add your operating country to confirm geographic eligibility.");
-    return {
-      eligibilityStatus: "insufficient_information",
-      reasons,
-      blockers,
-      missingInformation,
-    };
-  }
-
-  if (focus.includes(country)) {
+    status = "insufficient_information";
+  } else if (focus.includes(country)) {
     reasons.push(`${String(profile.country).trim()} is in the eligible geography.`);
+    status = "eligible";
+  } else {
+    blockers.push(
+      `${String(profile.country).trim()} is not listed in this opportunity's eligible geography.`,
+    );
     return {
-      eligibilityStatus: "eligible",
+      eligibilityStatus: "ineligible",
       reasons,
       blockers,
       missingInformation,
     };
   }
 
-  blockers.push(
-    `${String(profile.country).trim()} is not listed in this opportunity's eligible geography.`,
-  );
-  return {
-    eligibilityStatus: "ineligible",
-    reasons,
-    blockers,
-    missingInformation,
-  };
+  const explicitStages = stringArray(opportunity.details?.business_stages).map(normalizeText).filter(Boolean);
+  const memberStage = normalizeText(profile.businessStage);
+  if (explicitStages.length > 0 && memberStage) {
+    if (!explicitStages.includes(memberStage)) {
+      blockers.push(
+        `Your ${String(profile.businessStage).trim()} business stage is outside this program's stated stage eligibility.`,
+      );
+      return {
+        eligibilityStatus: "ineligible",
+        reasons,
+        blockers,
+        missingInformation,
+      };
+    }
+    reasons.push(`${String(profile.businessStage).trim()} stage matches the program's stated eligibility.`);
+    status = status === "possibly_eligible" ? "eligible" : status;
+  } else if (explicitStages.length > 0 && !memberStage) {
+    missingInformation.push("Add your business stage to confirm stage eligibility.");
+    if (status === "eligible") status = "insufficient_information";
+  }
+
+  return { eligibilityStatus: status, reasons, blockers, missingInformation };
 }
 
 function confidenceScore(opportunity: RecommendationOpportunity, now: Date): number {
   let score = 10;
-  if (opportunity.url) score += 20;
+  const hasSourceEvidence = Boolean(opportunity.sourceUrl);
+  if (hasSourceEvidence) score += 25;
   if ((opportunity.countryFocus ?? []).length > 0) score += 15;
   if (
     String(opportunity.eligibility ?? "").trim() ||
@@ -246,11 +288,12 @@ function confidenceScore(opportunity: RecommendationOpportunity, now: Date): num
   const verifiedAt = opportunity.lastVerifiedAt
     ? new Date(opportunity.lastVerifiedAt).getTime()
     : Number.NaN;
-  if (!Number.isNaN(verifiedAt)) {
+  const explicitlyVerified = opportunity.verificationStatus === "verified";
+  if (hasSourceEvidence && explicitlyVerified && !Number.isNaN(verifiedAt)) {
     const ageDays = Math.max(0, (now.getTime() - verifiedAt) / 86_400_000);
-    if (ageDays <= 7) score += 40;
-    else if (ageDays <= 30) score += 25;
-    else if (ageDays <= 90) score += 10;
+    if (ageDays <= 7) score += 35;
+    else if (ageDays <= 30) score += 20;
+    else if (ageDays <= 90) score += 8;
   }
 
   return roundBounded(score);
@@ -275,6 +318,7 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
   const reasons = [...eligibilityResult.reasons];
   const blockers = [...eligibilityResult.blockers];
   const missingInformation = [...eligibilityResult.missingInformation];
+  const readiness = readinessScore(profile);
 
   if (eligibilityResult.eligibilityStatus === "ineligible") {
     return {
@@ -282,6 +326,7 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
       eligibilityStatus: "ineligible",
       matchScore: 0,
       confidenceScore: confidenceScore(opportunity, now),
+      readinessScore: readiness,
       reasons,
       blockers,
       missingInformation,
@@ -292,18 +337,16 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
   const possible = { value: 0 };
   const oppTokens = opportunityTokens(opportunity);
 
-  // Geography contributes only when the opportunity itself declares enough
-  // geography to evaluate. Unknown geography must not receive full match points.
   const profileCountry = normalizeCountry(profile.country);
   const focus = (opportunity.countryFocus ?? []).map(normalizeCountry).filter(Boolean);
   if (profileCountry && focus.length > 0 && (panAfrican(focus) || focus.includes(profileCountry))) {
-    addScoredDimension(gained, possible, 30, 1);
+    addScoredDimension(gained, possible, 25, 1);
   }
 
   const sectorTokens = tokens(profile.sector);
   if (sectorTokens.size > 0) {
     const matches = intersection(sectorTokens, oppTokens);
-    addScoredDimension(gained, possible, 25, matches.length / sectorTokens.size);
+    addScoredDimension(gained, possible, 20, matches.length / sectorTokens.size);
     if (matches.length > 0) {
       reasons.push(`${String(profile.sector).trim()} aligns with this program's focus.`);
     }
@@ -314,7 +357,7 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
   const keywordTokens = tokenUnion(profile.keywords ?? []);
   if (keywordTokens.size > 0) {
     const matches = intersection(keywordTokens, oppTokens);
-    addScoredDimension(gained, possible, 25, matches.length / keywordTokens.size);
+    addScoredDimension(gained, possible, 20, matches.length / keywordTokens.size);
     if (matches.length > 0) {
       reasons.push(`Matches your ${matches.slice(0, 3).join(", ")} interests.`);
     }
@@ -327,15 +370,48 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
   if (descriptionTokens.size > 0) {
     const matches = intersection(descriptionTokens, oppTokens);
     const denominator = Math.max(1, Math.min(descriptionTokens.size, 8));
-    addScoredDimension(gained, possible, 20, matches.length / denominator);
+    addScoredDimension(gained, possible, 15, matches.length / denominator);
     if (matches.length > 0) {
       reasons.push(`Your business description overlaps on ${matches.slice(0, 3).join(", ")}.`);
+    }
+  }
+
+  const memberStage = normalizeText(profile.businessStage);
+  const explicitStages = stringArray(opportunity.details?.business_stages).map(normalizeText).filter(Boolean);
+  if (memberStage && explicitStages.length > 0) {
+    addScoredDimension(gained, possible, 10, explicitStages.includes(memberStage) ? 1 : 0);
+  }
+
+  const preferredTypes = (profile.preferredFundingTypes ?? []).map(normalizeText).filter(Boolean);
+  const opportunityType = normalizeText(opportunity.type);
+  if (preferredTypes.length > 0 && opportunityType) {
+    const typeMatched = preferredTypes.some(
+      (type) => opportunityType.includes(type) || type.includes(opportunityType),
+    );
+    addScoredDimension(gained, possible, 5, typeMatched ? 1 : 0);
+    if (typeMatched) reasons.push(`${String(opportunity.type).trim()} matches your preferred funding type.`);
+  }
+
+  const fundingTarget = numberValue(profile.fundingTargetUsd);
+  const minAward = numberValue(opportunity.details?.min_award_usd);
+  const maxAward = numberValue(opportunity.details?.max_award_usd);
+  if (fundingTarget && (minAward !== null || maxAward !== null)) {
+    const aboveMinimum = minAward === null || fundingTarget >= minAward;
+    const belowMaximum = maxAward === null || fundingTarget <= maxAward;
+    const amountMatched = aboveMinimum && belowMaximum;
+    addScoredDimension(gained, possible, 5, amountMatched ? 1 : 0);
+    if (amountMatched) {
+      reasons.push("Your funding target is inside the program's stated award range.");
+    } else {
+      missingInformation.push("Your funding target is outside this program's stated award range; review the amount before applying.");
     }
   }
 
   if (keywordTokens.size === 0 && descriptionTokens.size === 0) {
     missingInformation.push("Add business keywords or a description to improve matching.");
   }
+  if (!profile.businessStage) missingInformation.push("Add your business stage to improve funding eligibility checks.");
+  if (!profile.applicationReadiness) missingInformation.push("Add your application readiness to receive preparation guidance.");
 
   const matchScore = possible.value > 0
     ? roundBounded((gained.value / possible.value) * 100)
@@ -346,6 +422,7 @@ export function recommendOpportunity<T extends RecommendationOpportunity>(
     eligibilityStatus: eligibilityResult.eligibilityStatus,
     matchScore,
     confidenceScore: confidenceScore(opportunity, now),
+    readinessScore: readiness,
     reasons: Array.from(new Set(reasons)).slice(0, MAX_REASON_COUNT),
     blockers: Array.from(new Set(blockers)),
     missingInformation: Array.from(new Set(missingInformation)),
