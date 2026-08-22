@@ -1,18 +1,54 @@
 # Cresciva Opportunity Status Engine
 
+## Implementation status — 22 August 2026
+
+**Repository implementation:** substantially complete for P0-B.
+
+**Live production certification:** **BLOCKED_EXTERNAL** until the actual Cresciva Supabase project, Edge deployments, scheduler secrets/provider credentials and production monitoring are accessible and evidenced.
+
+Implemented in the current production-readiness branch:
+
+- canonical application status model: `open | closing_soon | rolling | upcoming | closed | paused | unknown`;
+- deadline provenance: `confirmed | rolling | unknown`;
+- append-only `funding_source_checks` with idempotent `check_key`;
+- source/provenance edits automatically invalidate previous current-cycle trust;
+- service-role-only atomic check/status RPC;
+- bounded SSRF-safe authoritative source retrieval;
+- evidence-only AI signal extraction — the model cannot directly set trusted application status;
+- deterministic status classifier and exact per-status freshness windows;
+- scheduler mode with `FUNDING_REFRESH_SECRET` and hard batch cap of 25;
+- staff JWT mode for individual rechecks;
+- source-registry health tracking and safe source editing with trust invalidation;
+- read-time status freshness downgrade in Edge, NestJS and Frontend paths;
+- AI/cached discovery forced to `unverified + unknown` unless authoritative trust evidence exists;
+- paid `Apply now` gate separated from fit score;
+- member labels for Open / Closing soon / Rolling / Upcoming / Closed / Paused / Unknown;
+- exact current deadline shown only when current-cycle deadline provenance is confirmed;
+- staff Funding Source Health console with due/failure/conflict queues and no `Force open` control;
+- deterministic certification truth table with 30 classification cases plus exact freshness-boundary cases;
+- operational events and alert thresholds documented in `docs/production-readiness/evidence/funding-source-monitoring.md`.
+
+Current external blockers:
+
+- Cresciva Supabase project `dwyglydswegyvjowzdot` is not exposed by the connected Supabase account in this session;
+- no live migration/function deployment evidence is available;
+- no scheduler execution evidence for `funding-source-refresh` is available;
+- GitHub Actions is currently failing at runner/setup before checkout (`steps: null`), so the latest full P0-B branch head does not yet have a real compile/test/Deno run even though earlier P0-A checkpoints were green;
+- real source-network accuracy and monitoring thresholds still require staging/production evidence.
+
+Until those items are resolved, repository source work may advance, but P0-B must not be described as live-certified.
+
+---
+
 ## What it does
 
 The Opportunity Status Engine answers:
 
 > **Does this funding programme exist, and can an eligible organisation actually apply to the current cycle right now?**
 
-This engine exists because `verified` and `open` are different facts.
+This engine exists because `verified` and `open` are different facts. A real funding programme can be verified and still be closed. An upcoming programme can be verified but not yet accepting applications. A historical programme page can exist even though there is no current round.
 
-A real funding programme can be verified and still be closed. An upcoming programme can be verified but not yet accepting applications. A historical programme page can exist even though there is no current round.
-
-Cresciva therefore models trust and application status separately.
-
----
+Cresciva therefore models source verification, current application status and member eligibility separately.
 
 ## Core process
 
@@ -20,23 +56,20 @@ Cresciva therefore models trust and application status separately.
 Funding source registry
         |
         v
-Due-source scheduler
+Due-source scheduler / staff recheck
         |
         v
-Bounded source fetch
-        |
-        v
-HTTP/content validation
+Bounded SSRF-safe source fetch
         |
         v
 Content fingerprint
         |
         v
-Status-signal extraction
+Evidence-only status-signal extraction
         |
         +-- explicit current cycle?
         +-- application CTA/form?
-        +-- open/close language?
+        +-- open/close/paused language?
         +-- opening date?
         +-- deadline?
         +-- rolling language?
@@ -45,423 +78,178 @@ Status-signal extraction
 Deterministic status classifier
         |
         v
-Conflict / freshness rules
+Conflict + freshness rules
         |
         v
-Application status
  OPEN / CLOSING_SOON / ROLLING /
  UPCOMING / CLOSED / PAUSED / UNKNOWN
         |
         v
-Funding Recommendation Engine
+Eligibility + Recommendation Engine
+        |
+        v
+Primary Apply-now gate
 ```
 
----
+## Independent truth dimensions
 
-## Truth dimensions
-
-Every curated opportunity should expose at least three independent dimensions.
-
-### 1. Verification status
+### Verification status
 
 ```ts
 "verified" | "stale" | "unverified"
 ```
 
-Question answered:
+Question: do we have recent authoritative evidence for the opportunity record?
 
-> Do we have recent authoritative evidence for the opportunity record?
-
-### 2. Application status
+### Application status
 
 ```ts
-"open"
-| "closing_soon"
-| "rolling"
-| "upcoming"
-| "closed"
-| "paused"
-| "unknown"
+"open" | "closing_soon" | "rolling" | "upcoming" | "closed" | "paused" | "unknown"
 ```
 
-Question answered:
+Question: can applications be submitted in the current cycle?
 
-> Can applications be submitted in the current cycle?
-
-### 3. Eligibility status
+### Eligibility status
 
 ```ts
-"eligible"
-| "possibly_eligible"
-| "insufficient_information"
-| "ineligible"
+"eligible" | "possibly_eligible" | "insufficient_information" | "ineligible"
 ```
 
-Question answered:
-
-> Can this member apply, based on the known criteria?
+Question: can this member apply based on known criteria?
 
 These states must never be collapsed into one generic `verified` badge.
 
----
+## Deterministic status rules
 
-## Source registry
+### OPEN
 
-`funding_sources` is the authoritative list of sources Cresciva is allowed to monitor automatically.
+Requires authoritative verified source evidence, identifiable current-cycle evidence, explicit open intake, an active application CTA/form, no conflict, and a non-expired current-cycle deadline when one is confirmed. A future deadline alone is never enough.
 
-A source contains:
+### CLOSING_SOON
 
-- name;
-- canonical/base URL;
-- source type;
-- country focus;
-- tags;
-- active flag;
-- refresh interval;
-- last checked/success/error metadata.
+All OPEN requirements plus a confirmed deadline no more than 14 calendar days away. The 14-day value is a Cresciva product threshold, not source truth.
 
-Examples of acceptable source types:
+### ROLLING
 
-- official programme page;
-- official funder page;
-- government funding portal;
-- development-finance institution;
-- foundation;
-- accelerator/incubator.
+Requires explicit official rolling/continuous intake language plus an active intake. Missing deadline does not imply rolling.
 
-Source registry membership does not automatically mean every extracted programme is verified. Each opportunity keeps its own evidence and check state.
+### UPCOMING
 
----
+Requires a future opening date/current-cycle statement and no explicit current OPEN signal.
 
-## Fetch safety
+### CLOSED
 
-The source worker is not a general browser.
+Requires explicit current-cycle closed evidence. Historical/typical deadlines are never substituted.
 
-Required controls:
+### PAUSED
 
-- reject localhost/private/link-local/metadata-service destinations;
-- cap redirects at 5;
-- request timeout of 10 seconds;
-- body limit of 2 MiB for HTML/text/JSON;
-- allow only HTTP(S);
-- restrict content types;
-- do not execute JavaScript from third-party pages;
-- do not follow arbitrary downloads;
-- record HTTP/result metadata, not unlimited raw pages;
-- use a clear Cresciva user agent where appropriate;
-- respect source terms and sane refresh rates.
+Requires explicit source evidence that intake/programme operation is temporarily paused.
 
-A bad source cannot make Cresciva's server act as an internal-network proxy.
+### UNKNOWN
 
----
+Used when current-cycle evidence is insufficient, contradictory, stale, unreachable, or cannot be mapped safely. Unknown is a correct fail-closed result and never gets `Apply now`.
 
-## Status evidence
+Conflicts currently include:
 
-The classifier looks for explicit current-cycle evidence.
-
-Evidence can include:
-
-- `Applications are now open`;
-- an active `Apply` CTA associated with the current programme;
-- a valid current-cycle application form;
-- a current opening date;
-- a current future deadline;
-- explicit `rolling applications` language;
-- `Applications are closed`;
-- `Applications open on ...`;
-- `Applications paused`;
-- a cycle/year marker such as `2026 cohort`.
-
-Historical awards, old recipients and generic programme descriptions prove the programme exists but do not prove the current cycle is open.
-
----
-
-## Status rules
-
-## OPEN
-
-Requirements:
-
-1. opportunity source is authoritative and reachable;
-2. record verification is not unverified;
-3. source check is inside the OPEN freshness SLA;
-4. current-cycle evidence exists;
-5. application intake is explicitly active;
-6. confirmed deadline is in the future, or the programme explicitly has no fixed deadline because it is rolling;
-7. no stronger conflicting evidence says closed/paused.
-
-A future date alone is not enough.
-
-## CLOSING_SOON
-
-All OPEN requirements plus:
-
-```text
-confirmed deadline <= 14 calendar days away
-```
-
-The 14-day threshold is product configuration, not source truth.
-
-## ROLLING
-
-Requires explicit official wording that submissions are accepted continuously/rolling/throughout the year.
-
-Missing deadline does not mean rolling.
-
-## UPCOMING
-
-Requires an official future opening date or an explicit statement that the next current cycle will open later.
-
-## CLOSED
-
-Requires current official closed/deadline-passed evidence. A confirmed past deadline can classify closed when the cycle identity is known.
-
-## PAUSED
-
-Requires explicit source evidence that applications or the programme are temporarily suspended.
-
-## UNKNOWN
-
-Use when:
-
-- source is unreachable beyond allowed retry policy;
-- current cycle cannot be identified;
-- source copy conflicts;
-- only historical information exists;
-- application CTA state cannot be determined;
-- date extraction is ambiguous;
-- freshness SLA has expired.
-
-Unknown is a correct result. It is not an error to be hidden.
-
----
-
-## Current-cycle identity
-
-Cresciva needs to know which round the source evidence refers to.
-
-Suggested fields:
-
-```ts
-interface OpportunityCycleEvidence {
-  cycleLabel: string | null;       // "2026 cohort", "Round 3", etc.
-  opensAt: string | null;
-  deadlineAt: string | null;
-  deadlineTimezone: string | null;
-  applicationUrl: string | null;
-  statusEvidenceUrl: string;
-  checkedAt: string;
-  sourceFingerprint: string;
-}
-```
-
-If a page contains both 2025 and 2026 information, extraction must not merge the 2025 deadline into the 2026 cycle.
-
----
+- open + closed;
+- open + paused;
+- rolling + closed;
+- rolling + paused;
+- closed + paused.
 
 ## Deadline policy
 
-Deadline has its own status:
+Deadline status is independent:
 
 ```ts
 "confirmed" | "rolling" | "unknown"
 ```
 
-Rules:
-
-- model-generated or historically typical deadlines are never `confirmed`;
-- the UI shows an exact deadline only when evidence maps it to the current cycle;
-- timezone should be stored when present;
-- if the source only says `11:59 PM` without timezone, retain the uncertainty in metadata;
-- if dates conflict across authoritative pages, status becomes `unknown` and enters review.
-
----
+Exact deadline UI requires `deadline_status = confirmed` and a source-backed `deadline_at`. Historical or model-generated dates are never confirmed. Rolling requires explicit rolling evidence. Conflicting dates keep status unknown and enter review.
 
 ## Freshness SLA
 
 | State | Maximum normal age |
 | --- | ---: |
-| Open | 24h |
 | Closing soon | 6h |
+| Open | 24h |
 | Rolling | 48h |
 | Upcoming | 24h |
+| Paused | 24h |
 | Closed | 7d |
-| Unknown/conflict | 12h while actively resolving |
+| Unknown/conflict | 12h |
 
-When the SLA expires:
+When the window expires, Edge/NestJS/Frontend read boundaries convert the stored state to effective `unknown`. The last evidence remains append-only for audit, but the paid UI does not keep an optimistic stale label.
 
-- do not keep showing `Open now` unchanged;
-- recompute effective state as stale/unknown until refreshed;
-- keep the last evidence for audit and user explanation.
+## Source checks and retry safety
 
----
+Each refresh attempt writes an append-only check containing bounded HTTP metadata, fingerprint, extracted signal structure, deterministic classified status and bounded error class.
 
-## Source checks
+Successful checks may update canonical current-cycle fields through `record_funding_status_check(...)` in the same transaction. Failed fetch/extraction checks use `apply_canonical = false`; critically, they do **not** advance `status_checked_at`.
 
-Each bounded check should create an append-only record similar to:
-
-```ts
-interface FundingSourceCheck {
-  sourceId?: string;
-  opportunityId?: string;
-  url: string;
-  checkedAt: string;
-  httpStatus: number | null;
-  contentType: string | null;
-  contentBytes: number | null;
-  fingerprint: string | null;
-  extractedCycle: string | null;
-  extractedStatusSignals: string[];
-  classifiedStatus: ApplicationStatus;
-  errorClass: string | null;
-}
-```
-
-This history answers:
-
-> Why did Cresciva tell a subscriber this programme was open at that time?
-
----
+`check_key` is unique so retried attempts cannot create duplicate contradictory transitions.
 
 ## AI's role
 
-AI may extract candidate status signals from bounded source text.
+AI may extract candidate signals from bounded fetched source text. The extraction prompt explicitly requires supplied-source-only facts, rejects historical/typical deadline substitution, and forbids returning trusted `application_status`.
 
-Example:
+The deterministic classifier owns the final status. AI-assisted opportunity discovery is separately forced to `unverified + unknown` and cannot be promoted to OPEN by model output.
 
-```json
-{
-  "cycle_label": "2026 cohort",
-  "opening_text": "Applications are now open",
-  "deadline_text": "30 September 2026",
-  "application_cta_text": "Apply now"
-}
-```
+## Source registry and edits
 
-The deterministic classifier then decides whether these signals satisfy OPEN.
+`funding_sources` stores authorised source domains and retrieval health. Staff can add/edit sources from `/admin/funding/sources`.
 
-AI cannot return `{"application_status":"open"}` and have that value trusted directly.
+Changing a source base URL calls `update_funding_source_and_invalidate(...)`. Dependent opportunity verification/current-cycle trust is reset until authoritative evidence is recollected. Editing an opportunity program/source URL also clears its previous application status through a database trigger.
 
----
+There is no manual `Force open` control.
 
-## Conflict handling
+## Apply Now gate
 
-Potential conflict examples:
+Application availability does not change the underlying fit score. A strong CLOSED match remains a strong match, but it is not a primary action.
 
-- programme page says open, application portal says closed;
-- funder home page says 2026 open, programme subpage still shows 2025 closed;
-- two different deadlines appear;
-- source content changes back and forth.
-
-Conflict policy:
-
-1. prefer the most specific official current-cycle application source;
-2. prefer newer explicit current-cycle evidence over generic page content;
-3. if two strong sources remain irreconcilable, classify `unknown`;
-4. create an admin-review item;
-5. never choose the optimistic status simply because it improves conversion.
-
----
-
-## Apply Now eligibility gate
-
-Status Engine output alone does not make a recommendation.
-
-The primary paid list requires:
+Primary paid application action requires:
 
 ```text
 verification = verified
-application status = open | closing_soon | rolling
-eligibility = eligible
+AND effective application status in (open, closing_soon, rolling)
+AND eligibility = eligible
+AND a valid application action URL exists
 ```
 
-Then the Recommendation Engine ranks those records by fit.
+Therefore:
 
-This means:
+- verified + closed -> no Apply now;
+- stale stored open -> effective unknown -> no Apply now;
+- open + unverified -> no Apply now;
+- open + verified + ineligible -> no Apply now;
+- AI discovery claiming open -> rewritten unknown -> no Apply now;
+- verified + fresh open + eligible -> candidate for Apply now.
 
-- verified + closed -> not Apply Now;
-- open + unverified -> not Apply Now;
-- open + verified + ineligible -> not Apply Now;
-- open + verified + insufficient member data -> ask for missing detail;
-- open + verified + eligible -> candidate for Apply Now.
+## Operations
 
----
+The staff console shows:
 
-## Admin workflow
+- due for refresh;
+- failures and consecutive failure streaks;
+- conflicts / unknown;
+- source registry and retrieval health;
+- recent successful status transitions;
+- individual recheck;
+- bounded staff-side due refresh;
+- safe source add/edit.
 
-Admin needs views for:
+The production scheduler uses `mode: "due"` with `X-Cresciva-Refresh-Secret`, never exposing `FUNDING_REFRESH_SECRET` to the browser.
 
-- sources due for refresh;
-- sources failing repeatedly;
-- opportunity/source conflicts;
-- `unknown` current-cycle records;
-- deadline conflicts;
-- recent status transitions;
-- source check history;
-- manual recheck.
+See `docs/production-readiness/evidence/funding-source-monitoring.md` for exact alert thresholds and live evidence still required.
 
-Manual verification should still require evidence URL and audit information. Admin should not have a one-click `Force open` control with no evidence.
+## Accuracy targets carried into P0-D
 
----
-
-## Subscriber-facing labels
-
-### OPEN NOW
-
-```text
-OPEN NOW · Verified 3h ago
-Deadline: 30 Sep 2026
-```
-
-### CLOSING SOON
-
-```text
-CLOSING SOON · 4 days left
-Verified 2h ago
-```
-
-### ROLLING
-
-```text
-ROLLING APPLICATIONS
-Source checked yesterday
-```
-
-### UPCOMING
-
-```text
-UPCOMING
-Applications open 10 Oct 2026
-```
-
-### UNKNOWN
-
-```text
-CURRENT STATUS NOT CONFIRMED
-Last reliable source check: ...
-```
-
-Unknown should not display an Apply Now CTA.
-
----
-
-## Accuracy targets
-
-- >=98% correct OPEN/CLOSING_SOON/ROLLING labels in benchmark review;
-- 100% confirmed deadline fields have current-cycle source evidence;
-- 0 AI-only records promoted to OPEN;
-- <=1% broken official source links in primary paid recommendations;
+- >=98% current-open status precision;
+- 100% confirmed deadlines backed by current-cycle source evidence;
+- 0 AI-only records promoted to verified/open;
+- <=1% broken authoritative source links in primary paid output;
+- zero stale OPEN records in primary output;
 - OPEN source age <=24h;
 - CLOSING_SOON source age <=6h.
 
----
-
-## Relationship with Search and Recommendations
-
-```text
-Opportunity Search finds relevant records.
-Opportunity Status decides current application availability.
-Recommendation Engine decides member eligibility and fit.
-```
-
-All three consume the same canonical opportunity record but answer different questions.
+P0-D owns benchmark/staging certification against these targets.
