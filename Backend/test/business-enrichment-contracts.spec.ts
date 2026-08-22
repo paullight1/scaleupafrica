@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BusinessEnrichmentRequestSchema,
@@ -5,6 +7,13 @@ import {
   BusinessIdentityCandidateSchema,
   BusinessEnrichmentResponseSchema,
 } from "../src/contracts";
+
+const sharedPath = resolve(process.cwd(), "../supabase/functions/_shared/businessDiscovery.ts");
+const edgePath = resolve(process.cwd(), "../supabase/functions/business-enrichment/index.ts");
+const configPath = resolve(process.cwd(), "../supabase/config.toml");
+const sharedSource = existsSync(sharedPath) ? readFileSync(sharedPath, "utf8") : "";
+const edgeSource = existsSync(edgePath) ? readFileSync(edgePath, "utf8") : "";
+const configSource = existsSync(configPath) ? readFileSync(configPath, "utf8") : "";
 
 describe("Business Enrichment contracts", () => {
   it("keeps the run state machine bounded", () => {
@@ -48,5 +57,42 @@ describe("Business Enrichment contracts", () => {
     });
     expect(parsed.state).toBe("ambiguous");
     expect(parsed.selectedCandidate).toBeUndefined();
+  });
+});
+
+describe("business enrichment Edge trust boundary", () => {
+  it("requires JWT authentication at the function boundary", () => {
+    expect(edgeSource).toContain("auth.getUser");
+    expect(edgeSource).toContain('error: "unauthorized"');
+    expect(configSource).toContain("[functions.business-enrichment]");
+    expect(configSource).toContain("verify_jwt = true");
+  });
+
+  it("bounds public discovery and never returns search snippets as confirmed identity", () => {
+    expect(sharedSource).toContain("BRAVE_SEARCH_API_KEY");
+    expect(sharedSource).toContain("MAX_SEARCH_RESULTS = 8");
+    expect(sharedSource).toContain("MAX_EVIDENCE_FETCHES = 6");
+    expect(sharedSource).toContain("safeExternalFetch");
+    expect(edgeSource).toContain("selectBusinessIdentity");
+    expect(edgeSource).toContain("business_enrichment_candidates");
+  });
+
+  it("forces AI extraction to use only supplied evidence", () => {
+    expect(sharedSource).toContain("Use only the supplied public evidence");
+    expect(sharedSource).toContain("Do not use model memory");
+    expect(sharedSource).toContain("Return null or [] for unsupported fields");
+    expect(sharedSource).toContain("source_urls");
+  });
+
+  it("forbids sensitive demographic inference", () => {
+    expect(sharedSource).toContain("Never infer sensitive personal characteristics");
+    expect(sharedSource).toContain("religion");
+    expect(sharedSource).toContain("ethnicity");
+    expect(sharedSource).toContain("sexual orientation");
+  });
+
+  it("degrades cleanly when the optional discovery provider is unavailable", () => {
+    expect(sharedSource).toContain("provider_unavailable");
+    expect(edgeSource).toContain("business_enrichment_failed");
   });
 });
