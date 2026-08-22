@@ -22,7 +22,7 @@
 // acknowledgement is best-effort and the failure is recorded in email_events.
 // =============================================================================
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { loadEmailConfig, normalizeEmail } from "../_shared/email/config.ts";
 import { dispatch, type EmailLogRow } from "../_shared/email/dispatch.ts";
 import { unsubscribeUrl } from "../_shared/email/tokens.ts";
@@ -31,6 +31,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const CONFIG = loadEmailConfig(Deno.env.toObject());
 const FUNCTIONS_BASE = `${SUPABASE_URL.replace(/\/+$/, "")}/functions/v1`;
+
+type LooseSupabaseClient = SupabaseClient<any, "public", "public", any, any>;
 
 /** Salt for the IP hash. Falls back to the service key so it is never unsalted. */
 const IP_SALT = CONFIG.tokenSecret || SERVICE_ROLE_KEY;
@@ -43,7 +45,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  const admin = createClient<any>(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   // Assigned before any dispatch; the audit row carries it so the throttle can
   // count this caller's sends on the next request.
@@ -88,7 +90,7 @@ Deno.serve(async (req) => {
 // --- intents -----------------------------------------------------------------
 
 async function handleContact(
-  admin: ReturnType<typeof createClient>,
+  admin: LooseSupabaseClient,
   body: Record<string, unknown>,
   log: (row: EmailLogRow) => Promise<void>,
 ) {
@@ -144,7 +146,7 @@ async function handleContact(
     },
     {
       to: CONFIG.teamInbox,
-      replyTo: email!, // hitting "Reply" answers the founder, not our own inbox
+      replyTo: email!,
       idempotencyKey: `contact-notify:${lead.id}`,
     },
     deps,
@@ -154,7 +156,7 @@ async function handleContact(
 }
 
 async function handleNewsletter(
-  admin: ReturnType<typeof createClient>,
+  admin: LooseSupabaseClient,
   body: Record<string, unknown>,
   log: (row: EmailLogRow) => Promise<void>,
 ) {
@@ -168,15 +170,12 @@ async function handleNewsletter(
     .eq("email", email)
     .maybeSingle();
 
-  // Already subscribed → no row change, no second welcome. Re-subscribing after
-  // an unsubscribe flips the status back and DOES earn a fresh welcome.
   const alreadySubscribed = existing?.status === "subscribed";
 
   if (!existing) {
     const { error } = await admin
       .from("newsletter_subscribers")
       .insert({ email, source, status: "subscribed" });
-    // A concurrent duplicate insert is a benign race, not an error worth surfacing.
     if (error && !/duplicate key/i.test(error.message)) {
       console.error("send-email: subscriber insert failed", error.message);
       return json({ error: "Could not subscribe. Please try again.", code: "SAVE_FAILED" }, 500);
@@ -201,13 +200,11 @@ async function handleNewsletter(
     );
   }
 
-  // Same response either way: whether an address is already on the list is not
-  // something an unauthenticated caller gets to enumerate.
   return json({ ok: true }, 200);
 }
 
 async function handleResource(
-  admin: ReturnType<typeof createClient>,
+  admin: LooseSupabaseClient,
   body: Record<string, unknown>,
   log: (row: EmailLogRow) => Promise<void>,
 ) {
@@ -219,8 +216,6 @@ async function handleResource(
   if (!email) return json({ error: "Enter a valid email address.", fields: { email: "Enter a valid email address." } }, 400);
   if (!resourceId) return json({ error: "Missing resource." }, 400);
 
-  // The file URL comes from the DATABASE, never from the request. Otherwise this
-  // endpoint would happily mail an attacker-chosen link over our sending domain.
   const { data: resource } = await admin
     .from("resources")
     .select("id, title, slug, file_url, status")
@@ -263,8 +258,6 @@ async function handleResource(
     { config: CONFIG, log },
   );
 
-  // Echo the URL so the page can unlock the download immediately rather than
-  // making the visitor wait on an inbox round-trip.
   return json({ ok: true, leadId: lead.id, fileUrl: resource.file_url ?? null }, 200);
 }
 
@@ -286,7 +279,7 @@ async function hashIp(ip: string): Promise<string> {
 }
 
 async function isThrottled(
-  admin: ReturnType<typeof createClient>,
+  admin: LooseSupabaseClient,
   ipHash: string,
 ): Promise<boolean> {
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -295,8 +288,6 @@ async function isThrottled(
     .select("id", { count: "exact", head: true })
     .eq("ip_hash", ipHash)
     .gte("created_at", since);
-  // Fail OPEN on a counting error: a broken throttle must not take the contact
-  // form offline. Abuse is recoverable; a dead form silently loses customers.
   if (error) {
     console.error("send-email: throttle check failed", error.message);
     return false;
