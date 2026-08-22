@@ -7,6 +7,9 @@ import { z } from "zod";
  * upsert (FOUNDATION §8.3, plan 07 §7.2). Pure zod.
  */
 
+export const BUSINESS_STAGE_VALUES = ["idea", "early", "growth", "scale"] as const;
+export const APPLICATION_READINESS_VALUES = ["exploring", "preparing", "ready"] as const;
+
 /**
  * Normalize + validate a web address. Prepends `https://` when scheme-less; rejects
  * anything that isn't http/https (blocks `javascript:`, `data:`…). Mirrors src/lib/url.ts.
@@ -74,6 +77,16 @@ export const ProfileUpsertSchema = z
       .transform((arr) =>
         Array.from(new Set(arr.map((k) => k.trim().toLowerCase()).filter(Boolean))),
       ),
+    business_stage: z.enum(BUSINESS_STAGE_VALUES).nullable().optional(),
+    funding_target_usd: z.number().positive().max(1_000_000_000).nullable().optional(),
+    preferred_funding_types: z
+      .array(z.string().trim().min(1).max(60))
+      .max(7)
+      .default([])
+      .transform((arr) =>
+        Array.from(new Set(arr.map((v) => v.trim().toLowerCase()).filter(Boolean))),
+      ),
+    application_readiness: z.enum(APPLICATION_READINESS_VALUES).nullable().optional(),
     show_email: z.boolean().default(true),
     show_phone: z.boolean().default(true),
     show_whatsapp: z.boolean().default(true),
@@ -92,7 +105,6 @@ export const ProfileListQuerySchema = z.object({
 });
 export type ProfileListQuery = z.infer<typeof ProfileListQuerySchema>;
 
-/** Card subset the Directory grid needs (excludes long_description + contact). */
 export interface ProfileCard {
   id: string;
   slug: string;
@@ -106,7 +118,6 @@ export interface ProfileCard {
   created_at: string;
 }
 
-/** Full public profile (get-by-slug). Contact fields honor show_* flags. */
 export interface ProfileDetail {
   id: string;
   slug: string;
@@ -123,6 +134,10 @@ export interface ProfileDetail {
   linkedin: string | null;
   twitter: string | null;
   keywords: string[];
+  business_stage?: (typeof BUSINESS_STAGE_VALUES)[number] | null;
+  funding_target_usd?: number | null;
+  preferred_funding_types?: string[];
+  application_readiness?: (typeof APPLICATION_READINESS_VALUES)[number] | null;
   status: string;
   featured: boolean;
   view_count: number;
@@ -136,5 +151,4 @@ export interface ProfileDetail {
   updated_at: string;
 }
 
-/** Own profile (full row incl. contact + flags). */
 export type OwnProfile = ProfileDetail & { user_id: string };
