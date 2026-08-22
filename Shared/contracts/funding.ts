@@ -15,8 +15,20 @@ const trimmed = (max: number) => z.string().trim().max(max);
 
 export const DiscoverySourceSchema = z.enum(["verified_feed", "ai_assisted"]);
 export const VerificationStatusSchema = z.enum(["verified", "unverified", "stale"]);
+export const ApplicationStatusSchema = z.enum([
+  "open",
+  "closing_soon",
+  "rolling",
+  "upcoming",
+  "closed",
+  "paused",
+  "unknown",
+]);
+export const DeadlineStatusSchema = z.enum(["confirmed", "rolling", "unknown"]);
 export type DiscoverySource = z.infer<typeof DiscoverySourceSchema>;
 export type VerificationStatus = z.infer<typeof VerificationStatusSchema>;
+export type ApplicationStatus = z.infer<typeof ApplicationStatusSchema>;
+export type DeadlineStatus = z.infer<typeof DeadlineStatusSchema>;
 
 export const RecipientSchema = z.object({
   business_name: z.string().trim().min(1).max(200),
@@ -46,25 +58,29 @@ export const OpportunitySchema = z.object({
   discovery_source: DiscoverySourceSchema.optional(),
   verification_status: VerificationStatusSchema.optional(),
   source_checked_at: trimmed(100).optional(),
+  application_status: ApplicationStatusSchema.optional(),
+  status_checked_at: trimmed(100).optional(),
+  status_evidence_url: z.unknown().transform(sanitizeExternalUrl).optional(),
+  opens_at: trimmed(100).optional(),
+  deadline_at: trimmed(100).optional(),
+  deadline_timezone: trimmed(80).optional(),
+  deadline_status: DeadlineStatusSchema.optional(),
+  current_cycle_label: trimmed(120).optional(),
+  application_url: z.unknown().transform(sanitizeExternalUrl).optional(),
   match_reasons: z.array(z.string().trim().max(240)).max(6).default([]),
 });
 export type Opportunity = z.infer<typeof OpportunitySchema>;
 
 const MAX_ITEMS = 30;
-
 export function parseOpportunities(input: unknown): Opportunity[] {
   let items: unknown[];
-  if (Array.isArray(input)) {
-    items = input;
-  } else if (
+  if (Array.isArray(input)) items = input;
+  else if (
     input &&
     typeof input === "object" &&
     Array.isArray((input as { opportunities?: unknown[] }).opportunities)
-  ) {
-    items = (input as { opportunities: unknown[] }).opportunities;
-  } else {
-    throw new Error("invalid_opportunities_payload");
-  }
+  ) items = (input as { opportunities: unknown[] }).opportunities;
+  else throw new Error("invalid_opportunities_payload");
 
   const out: Opportunity[] = [];
   for (const item of items.slice(0, MAX_ITEMS)) {
@@ -87,9 +103,7 @@ export function normalizeKeywords(raw: string): string {
     .slice(0, 200);
 }
 
-export const FundingSearchSchema = z
-  .object({ keywords: z.string().trim().max(200).default("") })
-  .strict();
+export const FundingSearchSchema = z.object({ keywords: z.string().trim().max(200).default("") }).strict();
 export type FundingSearchInput = z.infer<typeof FundingSearchSchema>;
 
 export interface FundingSearchResult {
@@ -115,4 +129,13 @@ export interface CuratedOpportunity {
   featured: boolean;
   lastVerifiedAt: string | null;
   details: Record<string, unknown>;
+  applicationStatus: ApplicationStatus;
+  statusCheckedAt: string | null;
+  statusEvidenceUrl: string | null;
+  opensAt: string | null;
+  deadlineAt: string | null;
+  deadlineTimezone: string | null;
+  deadlineStatus: DeadlineStatus;
+  currentCycleLabel: string | null;
+  applicationUrl: string | null;
 }
