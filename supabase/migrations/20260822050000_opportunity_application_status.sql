@@ -55,6 +55,36 @@ CREATE POLICY "Staff read funding source checks"
   TO authenticated
   USING (public.is_staff(auth.uid()));
 
+-- URL/provenance edits can invalidate a previously correct OPEN decision. This
+-- trigger clears current-cycle state before the row can be served again.
+CREATE OR REPLACE FUNCTION public.invalidate_funding_application_status_on_provenance_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.url IS DISTINCT FROM OLD.url
+     OR NEW.source_url IS DISTINCT FROM OLD.source_url
+     OR (OLD.verification_status = 'verified' AND NEW.verification_status <> 'verified') THEN
+    NEW.application_status := 'unknown';
+    NEW.status_checked_at := NULL;
+    NEW.status_evidence_url := NULL;
+    NEW.opens_at := NULL;
+    NEW.deadline_at := NULL;
+    NEW.deadline_timezone := NULL;
+    NEW.deadline_status := 'unknown';
+    NEW.current_cycle_label := NULL;
+    NEW.application_url := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS funding_application_status_provenance_guard ON public.funding_opportunities;
+CREATE TRIGGER funding_application_status_provenance_guard
+BEFORE UPDATE ON public.funding_opportunities
+FOR EACH ROW EXECUTE FUNCTION public.invalidate_funding_application_status_on_provenance_change();
+
 -- Append a source-check attempt and, only for a successful extraction/classification,
 -- apply the canonical cycle state in the same transaction. check_key makes retries
 -- idempotent: a repeated attempt key cannot create a second transition.
@@ -96,38 +126,18 @@ BEGIN
   END IF;
 
   INSERT INTO public.funding_source_checks (
-    check_key,
-    opportunity_id,
-    source_id,
-    source_url,
-    checked_at,
-    http_status,
-    content_type,
-    content_bytes,
-    source_fingerprint,
-    extracted_signals,
-    classified_status,
-    error_class
+    check_key, opportunity_id, source_id, source_url, checked_at, http_status,
+    content_type, content_bytes, source_fingerprint, extracted_signals,
+    classified_status, error_class
   ) VALUES (
-    _check_key,
-    _opportunity_id,
-    _source_id,
-    _source_url,
-    COALESCE(_checked_at, now()),
-    _http_status,
-    _content_type,
-    _content_bytes,
-    _source_fingerprint,
-    COALESCE(_extracted_signals, '{}'::jsonb),
-    _classified_status,
-    _error_class
+    _check_key, _opportunity_id, _source_id, _source_url, COALESCE(_checked_at, now()),
+    _http_status, _content_type, _content_bytes, _source_fingerprint,
+    COALESCE(_extracted_signals, '{}'::jsonb), _classified_status, _error_class
   )
   ON CONFLICT (check_key) DO NOTHING;
 
   GET DIAGNOSTICS inserted_count = ROW_COUNT;
-  IF inserted_count = 0 THEN
-    RETURN false;
-  END IF;
+  IF inserted_count = 0 THEN RETURN false; END IF;
 
   IF _apply_canonical THEN
     UPDATE public.funding_opportunities
@@ -142,10 +152,7 @@ BEGIN
         application_url = _application_url,
         updated_at = now()
     WHERE id = _opportunity_id;
-
-    IF NOT FOUND THEN
-      RAISE EXCEPTION 'Funding opportunity not found';
-    END IF;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Funding opportunity not found'; END IF;
   END IF;
 
   RETURN true;
@@ -160,6 +167,77 @@ GRANT EXECUTE ON FUNCTION public.record_funding_status_check(
   UUID, UUID, UUID, TEXT, TIMESTAMPTZ, INTEGER, TEXT, INTEGER, TEXT, JSONB,
   TEXT, TEXT, BOOLEAN, TEXT, TIMESTAMPTZ, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT
 ) TO service_role;
+
+-- Source registry edits are privileged operations. If a base URL changes, all
+-- opportunities tied to the previous base lose verification and current-cycle
+-- trust until fresh source evidence is collected.
+CREATE OR REPLACE FUNCTION public.update_funding_source_and_invalidate(
+  _source_id UUID,
+  _name TEXT,
+  _base_url TEXT,
+  _active BOOLEAN
+)
+RETURNS public.funding_sources
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  old_source public.funding_sources%ROWTYPE;
+  new_source public.funding_sources%ROWTYPE;
+BEGIN
+  IF NOT public.is_staff(auth.uid()) THEN
+    RAISE EXCEPTION 'Forbidden';
+  END IF;
+  IF _base_url IS NULL OR _base_url !~* '^https?://' THEN
+    RAISE EXCEPTION 'A valid HTTP(S) source URL is required';
+  END IF;
+
+  SELECT * INTO old_source FROM public.funding_sources WHERE id = _source_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Funding source not found'; END IF;
+
+  UPDATE public.funding_sources
+  SET name = NULLIF(btrim(_name), ''),
+      base_url = btrim(_base_url),
+      active = COALESCE(_active, true),
+      updated_at = now()
+  WHERE id = _source_id
+  RETURNING * INTO new_source;
+
+  IF new_source.base_url IS DISTINCT FROM old_source.base_url THEN
+    UPDATE public.funding_opportunities
+    SET verification_status = 'unverified',
+        last_verified_at = NULL,
+        verified_by = NULL,
+        source_retrieved_at = NULL,
+        application_status = 'unknown',
+        status_checked_at = NULL,
+        status_evidence_url = NULL,
+        opens_at = NULL,
+        deadline_at = NULL,
+        deadline_timezone = NULL,
+        deadline_status = 'unknown',
+        current_cycle_label = NULL,
+        application_url = NULL,
+        updated_at = now()
+    WHERE source_url LIKE old_source.base_url || '%';
+  END IF;
+
+  INSERT INTO public.admin_audit_log(actor_id, action, entity_type, entity_id, details)
+  VALUES (
+    auth.uid(),
+    'update_funding_source',
+    'funding_source',
+    _source_id::text,
+    jsonb_build_object('base_url_changed', new_source.base_url IS DISTINCT FROM old_source.base_url, 'active', new_source.active)
+  );
+
+  RETURN new_source;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.update_funding_source_and_invalidate(UUID, TEXT, TEXT, BOOLEAN) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.update_funding_source_and_invalidate(UUID, TEXT, TEXT, BOOLEAN) TO authenticated;
 
 COMMENT ON COLUMN public.funding_opportunities.application_status IS
   'Current-cycle application state. Independent of verification_status and always freshness-gated at read time.';
