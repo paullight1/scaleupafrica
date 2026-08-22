@@ -56,11 +56,14 @@ function mockDb(row: unknown): Db {
   } as unknown as Db;
 }
 
-function mockUpsertDb(row: ReturnType<typeof activeRow>, capture: { values?: Record<string, unknown> }): Db {
-  return {
+function mockUpsertDb(
+  row: ReturnType<typeof activeRow>,
+  capture: { publicValues?: Record<string, unknown>; fundingValues?: Record<string, unknown> },
+): Db {
+  const tx = {
     insert: () => ({
       values: (values: Record<string, unknown>) => {
-        capture.values = values;
+        capture.publicValues = values;
         return {
           onConflictDoUpdate: () => ({
             returning: () => Promise.resolve([row]),
@@ -68,6 +71,19 @@ function mockUpsertDb(row: ReturnType<typeof activeRow>, capture: { values?: Rec
         };
       },
     }),
+    update: () => ({
+      set: (values: Record<string, unknown>) => {
+        capture.fundingValues = values;
+        return {
+          where: () => ({
+            returning: () => Promise.resolve([row]),
+          }),
+        };
+      },
+    }),
+  };
+  return {
+    transaction: (callback: (inner: typeof tx) => unknown) => callback(tx),
   } as unknown as Db;
 }
 
@@ -126,15 +142,19 @@ describe("ProfilesService own funding intelligence parity", () => {
       operating_countries: ["Nigeria", "Ghana"],
       founding_year: 2023,
     });
-    const capture: { values?: Record<string, unknown> } = {};
+    const capture: {
+      publicValues?: Record<string, unknown>;
+      fundingValues?: Record<string, unknown>;
+    } = {};
     const svc = new ProfilesService(mockUpsertDb(activeRow("active"), capture));
     await svc.upsertOwn("u1", input);
-    expect(capture.values?.businessStage).toBe("growth");
-    expect(capture.values?.fundingTargetUsd).toBe(250000);
-    expect(capture.values?.preferredFundingTypes).toEqual(["grant"]);
-    expect(capture.values?.applicationReadiness).toBe("ready");
-    expect(capture.values?.organisationType).toBe("nonprofit");
-    expect(capture.values?.operatingCountries).toEqual(["Nigeria", "Ghana"]);
-    expect(capture.values?.foundingYear).toBe(2023);
+    expect(capture.fundingValues?.businessStage).toBe("growth");
+    expect(capture.fundingValues?.fundingTargetUsd).toBe("250000");
+    expect(capture.fundingValues?.preferredFundingTypes).toEqual(["grant"]);
+    expect(capture.fundingValues?.applicationReadiness).toBe("ready");
+    expect(capture.fundingValues?.organisationType).toBe("nonprofit");
+    expect(capture.fundingValues?.operatingCountries).toEqual(["Nigeria", "Ghana"]);
+    expect(capture.fundingValues?.foundingYear).toBe(2023);
+    expect(capture.publicValues).not.toHaveProperty("fundingTargetUsd");
   });
 });
