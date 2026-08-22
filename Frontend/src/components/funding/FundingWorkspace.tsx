@@ -51,8 +51,7 @@ export function FundingWorkspace() {
     return {
       country: profile?.country || identity?.country || enrichedCountries[0] || null,
       sector: profile?.sector || enrichedSectors[0] || null,
-      keywords:
-        profile?.keywords?.length ? profile.keywords : enrichedKeywords,
+      keywords: profile?.keywords?.length ? profile.keywords : enrichedKeywords,
       shortDescription: profile?.short_description || identity?.summary || null,
       longDescription: profile?.long_description ?? null,
       businessStage: profile?.business_stage ?? null,
@@ -80,12 +79,19 @@ export function FundingWorkspace() {
       lastVerifiedAt: item.lastVerifiedAt,
       sourceUrl: item.sourceUrl,
       verificationStatus: item.verificationStatus,
+      applicationStatus: item.applicationStatus,
+      statusCheckedAt: item.statusCheckedAt,
+      statusEvidenceUrl: item.statusEvidenceUrl,
+      opensAt: item.opensAt,
+      deadlineAt: item.deadlineAt,
+      deadlineTimezone: item.deadlineTimezone,
+      deadlineStatus: item.deadlineStatus,
+      currentCycleLabel: item.currentCycleLabel,
+      applicationUrl: item.applicationUrl,
       details: item.details,
     }));
     return rankRecommendations(effectiveProfile, candidates).flatMap((result) => {
-      const original = result.opportunity.id
-        ? itemById.get(result.opportunity.id)
-        : undefined;
+      const original = result.opportunity.id ? itemById.get(result.opportunity.id) : undefined;
       return original ? [{ ...result, opportunity: original }] : [];
     });
   }, [effectiveProfile, items]);
@@ -97,106 +103,52 @@ export function FundingWorkspace() {
 
   const rankedItems = useMemo<FeedItem[]>(() => {
     if (recommendations.length === 0) return items;
-    const matchedIds = new Set(
-      recommendations.map((recommendation) => recommendation.opportunity.id),
-    );
-    return [
-      ...recommendations.map((recommendation) => recommendation.opportunity),
-      ...items.filter((item) => !matchedIds.has(item.id)),
-    ];
+    const matchedIds = new Set(recommendations.map((recommendation) => recommendation.opportunity.id));
+    return [...recommendations.map((recommendation) => recommendation.opportunity), ...items.filter((item) => !matchedIds.has(item.id))];
   }, [items, recommendations]);
 
-  const filtered = useMemo(
-    () => rankedItems.filter((item) => matches(item, filter)),
-    [rankedItems, filter],
-  );
+  const filtered = useMemo(() => rankedItems.filter((item) => matches(item, filter)), [rankedItems, filter]);
 
-  const toggle = (key: string) =>
-    setOpenKeys((previous) => {
-      const next = new Set(previous);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+  const toggle = (key: string) => setOpenKeys((previous) => {
+    const next = new Set(previous);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
 
   if (feed.isPending) return <OpportunityCardSkeletonList count={4} />;
-  if (feed.isError) {
-    return (
-      <ErrorState
-        title="We couldn't load the funding feed"
-        message="This is a connection problem. Your membership is unaffected — please retry."
-        onRetry={() => feed.refetch()}
-      />
-    );
-  }
+  if (feed.isError) return <ErrorState title="We couldn't load the funding feed" message="This is a connection problem. Your membership is unaffected — please retry." onRetry={() => feed.refetch()} />;
 
-  const enrichmentPrompt =
-    !identityQuery.isPending && !identity ? (
-      <BusinessEnrichmentPanel initialBusinessName={profile?.business_name} />
-    ) : null;
+  const enrichmentPrompt = !identityQuery.isPending && !identity ? <BusinessEnrichmentPanel initialBusinessName={profile?.business_name} /> : null;
 
-  if (items.length === 0) {
-    return (
-      <div className="space-y-6">
-        {enrichmentPrompt}
-        <FundingSearch />
-      </div>
-    );
-  }
+  if (items.length === 0) return <div className="space-y-6">{enrichmentPrompt}<FundingSearch /></div>;
 
   return (
     <div className="space-y-8">
       {enrichmentPrompt}
-
       <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="w-full sm:max-w-sm">
             <label htmlFor="funding-feed-filter" className="sr-only">Filter the funding feed</label>
-            <Input
-              id="funding-feed-filter"
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-              placeholder="Filter by keyword, funder or tag…"
-              className="h-11"
-            />
+            <Input id="funding-feed-filter" value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Filter by keyword, funder or tag…" className="h-11" />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowDeepSearch((value) => !value)}
-            aria-expanded={showDeepSearch}
-          >
-            <Telescope className="mr-2 h-4 w-4" aria-hidden="true" />
-            {showDeepSearch ? "Hide opportunity search" : "Opportunity search"}
+          <Button variant="outline" onClick={() => setShowDeepSearch((value) => !value)} aria-expanded={showDeepSearch}>
+            <Telescope className="mr-2 h-4 w-4" aria-hidden="true" />{showDeepSearch ? "Hide opportunity search" : "Opportunity search"}
           </Button>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
           {recommendations.length > 0
-            ? "Best matches are ranked using your confirmed organisation evidence plus your funding-profile details."
+            ? "Best matches are ranked using your confirmed organisation evidence plus your funding-profile details. Current-cycle status is checked separately and never changes the underlying fit score."
             : effectiveProfile
               ? "Add more funding-profile details to improve eligibility and personalized ranking."
               : "Confirm your organisation or complete your business profile to personalize this feed."}
         </p>
       </div>
 
-      {showDeepSearch ? (
-        <div className="rounded-xl border border-border bg-surface-subtle p-6">
-          <h2 className="mb-1 font-display text-lg font-semibold text-ink-strong">Opportunity search</h2>
-          <p className="mb-5 text-sm text-muted-foreground">
-            Search the verified Cresciva feed first, then use AI-assisted discovery for long-tail needs. Results are cached for 7 days.
-          </p>
-          <FundingSearch />
-        </div>
-      ) : null}
+      {showDeepSearch ? <div className="rounded-xl border border-border bg-surface-subtle p-6"><h2 className="mb-1 font-display text-lg font-semibold text-ink-strong">Opportunity search</h2><p className="mb-5 text-sm text-muted-foreground">Search the verified Cresciva feed first, then use AI-assisted discovery for long-tail needs. AI discoveries stay unverified with unknown application status until authoritative evidence is checked.</p><FundingSearch /></div> : null}
 
       <div aria-live="polite" className="sr-only">{filtered.length} opportunities shown.</div>
 
-      {filtered.length === 0 ? (
-        <EmptyState
-          variant="search"
-          title="No feed items match that filter"
-          description="Clear the filter, or try Opportunity search for a niche request."
-        />
-      ) : (
+      {filtered.length === 0 ? <EmptyState variant="search" title="No feed items match that filter" description="Clear the filter, or try Opportunity search for a niche request." /> : (
         <div className="grid gap-6">
           {filtered.map((item) => {
             const recommendation = recommendationById.get(item.id);
@@ -209,6 +161,12 @@ export function FundingWorkspace() {
                 onToggle={() => toggle(item.id)}
                 lastVerifiedAt={item.lastVerifiedAt}
                 verificationStatus={item.verificationStatus}
+                applicationStatus={recommendation?.applicationStatus ?? item.applicationStatus}
+                statusCheckedAt={item.statusCheckedAt}
+                applicationUrl={item.applicationUrl}
+                deadlineAt={item.deadlineAt}
+                deadlineStatus={item.deadlineStatus}
+                primaryApplyEligible={recommendation?.primaryApplyEligible ?? false}
                 matchScore={recommendation?.matchScore}
                 confidenceScore={recommendation?.confidenceScore}
                 matchReasons={recommendation?.reasons}
