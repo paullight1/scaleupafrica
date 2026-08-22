@@ -16,6 +16,10 @@ function recommendationProfile(profile: Profile): RecommendationProfile {
     keywords: profile.keywords,
     shortDescription: profile.short_description,
     longDescription: profile.long_description,
+    businessStage: profile.business_stage,
+    preferredFundingTypes: profile.preferred_funding_types,
+    fundingTargetUsd: profile.funding_target_usd,
+    applicationReadiness: profile.application_readiness,
   };
 }
 
@@ -33,6 +37,8 @@ function recommendationOpportunity(opportunity: FundingOpportunity): Recommendat
     countryFocus: opportunity.country_focus,
     featured: opportunity.featured,
     lastVerifiedAt: opportunity.last_verified_at,
+    sourceUrl: opportunity.source_url,
+    verificationStatus: opportunity.verification_status,
     details:
       opportunity.details && typeof opportunity.details === "object" && !Array.isArray(opportunity.details)
         ? (opportunity.details as Record<string, unknown>)
@@ -53,15 +59,10 @@ export function recommendFundingOpportunity(
   return { ...result, opportunity };
 }
 
-/** Compatibility score for callers/tests that only need the numeric fit. */
 export function scoreOpportunity(profile: Profile, opportunity: FundingOpportunity): number {
   return recommendFundingOpportunity(profile, opportunity).matchScore;
 }
 
-/**
- * Full explainable recommendation results for dashboard/Funding Radar surfaces.
- * Hard-ineligible opportunities are excluded by the core engine.
- */
 export function recommendFundingOpportunities(
   profile: Profile | null | undefined,
   opportunities: FundingOpportunity[],
@@ -80,7 +81,6 @@ export function recommendFundingOpportunities(
   }));
 }
 
-/** Existing dashboard compatibility: return only the ranked opportunity rows. */
 export function matchOpportunities(
   profile: Profile | null | undefined,
   opportunities: FundingOpportunity[],
