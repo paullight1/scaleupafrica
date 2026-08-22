@@ -2,6 +2,8 @@ import { useId } from "react";
 import { Button } from "@shared/components/ui/button";
 import { trackEvent } from "@shared/lib/analytics";
 import type { Opportunity } from "@/lib/fundingSchema";
+import type { EligibilityStatus } from "@/lib/funding/recommendationEngine";
+import type { MemberOpportunityStateName } from "@/hooks/queries/memberOpportunityState";
 import {
   ExternalLink,
   Calendar,
@@ -15,6 +17,10 @@ import {
   ShieldAlert,
   ShieldCheck,
   Clock3,
+  Bookmark,
+  ClipboardCheck,
+  Trophy,
+  XCircle,
 } from "lucide-react";
 
 export type CardApplicationStatus = "open"|"closing_soon"|"rolling"|"upcoming"|"closed"|"paused"|"unknown";
@@ -36,6 +42,12 @@ interface OpportunityCardProps {
   matchScore?: number;
   confidenceScore?: number;
   matchReasons?: string[];
+  eligibilityStatus?: EligibilityStatus;
+  eligibilityBlockers?: string[];
+  missingInformation?: string[];
+  memberState?: MemberOpportunityStateName | null;
+  onMemberStateChange?: (state: MemberOpportunityStateName) => void;
+  memberStatePending?: boolean;
 }
 
 function formatDate(iso: string): string {
@@ -58,6 +70,24 @@ function StatusPill({ status }: { status: CardApplicationStatus }) {
   return <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">Current status unconfirmed</span>;
 }
 
+function EligibilityPill({ status }: { status: EligibilityStatus }) {
+  if (status === "eligible") return <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-success-strong">Eligible</span>;
+  if (status === "possibly_eligible") return <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-foreground">Possibly eligible</span>;
+  if (status === "insufficient_information") return <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-foreground">Needs information</span>;
+  return <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">Not eligible</span>;
+}
+
+function memberStateLabel(state: MemberOpportunityStateName): string {
+  switch (state) {
+    case "saved": return "Saved";
+    case "preparing": return "Preparing";
+    case "applied": return "Applied";
+    case "won": return "Won";
+    case "rejected": return "Rejected";
+    case "dismissed": return "Not relevant";
+  }
+}
+
 export function OpportunityCard({
   opportunity: o,
   opportunityId,
@@ -75,6 +105,12 @@ export function OpportunityCard({
   matchScore,
   confidenceScore,
   matchReasons = [],
+  eligibilityStatus,
+  eligibilityBlockers = [],
+  missingInformation = [],
+  memberState = null,
+  onMemberStateChange,
+  memberStatePending = false,
 }: OpportunityCardProps) {
   const detailsId = useId();
   const checked = lastVerifiedAt ? formatDate(lastVerifiedAt) : "";
@@ -86,7 +122,7 @@ export function OpportunityCard({
   const resolvedDeadlineAt = o.deadline_at ?? deadlineAt ?? null;
   const resolvedApplicationUrl = o.application_url ?? applicationUrl ?? null;
   const confirmedDeadline = resolvedDeadlineStatus === "confirmed" && resolvedDeadlineAt ? formatDate(resolvedDeadlineAt) : "";
-  const canApplyNow = Boolean(primaryApplyEligible && resolvedApplicationUrl && resolvedVerification === "verified" && (resolvedStatus === "open" || resolvedStatus === "closing_soon" || resolvedStatus === "rolling"));
+  const canApplyNow = Boolean(primaryApplyEligible && resolvedApplicationUrl && resolvedVerification === "verified" && eligibilityStatus === "eligible" && (resolvedStatus === "open" || resolvedStatus === "closing_soon" || resolvedStatus === "rolling"));
 
   const handleToggle = () => {
     if (!open && typeof matchScore === "number") {
@@ -98,6 +134,7 @@ export function OpportunityCard({
           confidence_score: confidenceScore ?? null,
           verification_status: resolvedVerification ?? null,
           application_status: resolvedStatus,
+          eligibility_status: eligibilityStatus ?? null,
           primary_apply_eligible: canApplyNow,
         },
       });
@@ -113,20 +150,28 @@ export function OpportunityCard({
         discovery_source: o.discovery_source ?? "verified_feed",
         verification_status: resolvedVerification ?? null,
         application_status: resolvedStatus,
+        eligibility_status: eligibilityStatus ?? null,
         match_score: matchScore ?? null,
       },
     });
   };
 
   const trackApplyClick = () => {
+    const metadata = {
+      match_score: matchScore ?? null,
+      verification_status: resolvedVerification ?? null,
+      application_status: resolvedStatus,
+      eligibility_status: eligibilityStatus ?? null,
+    };
     void trackEvent("recommendation_apply_click", {
       entityType: "funding_opportunity",
       entityId: opportunityId,
-      metadata: {
-        match_score: matchScore ?? null,
-        verification_status: resolvedVerification ?? null,
-        application_status: resolvedStatus,
-      },
+      metadata,
+    });
+    void trackEvent("application_started", {
+      entityType: "funding_opportunity",
+      entityId: opportunityId,
+      metadata,
     });
   };
 
@@ -136,6 +181,7 @@ export function OpportunityCard({
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {typeof matchScore === "number" && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary-dark">{matchScore}% match</span>}
+            {eligibilityStatus ? <EligibilityPill status={eligibilityStatus} /> : null}
             <StatusPill status={resolvedStatus} />
             {aiDiscovery ? (
               <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">AI discovery · unverified</span>
@@ -146,6 +192,7 @@ export function OpportunityCard({
             ) : resolvedVerification === "unverified" ? (
               <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">Unverified</span>
             ) : null}
+            {memberState && memberState !== "dismissed" ? <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-foreground">{memberStateLabel(memberState)}</span> : null}
             {sample && <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">Example</span>}
             {o.type && <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground">{o.type}</span>}
             {o.travel_component && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary-dark"><Plane className="h-3 w-3" aria-hidden="true" /> Travel</span>}
@@ -162,6 +209,20 @@ export function OpportunityCard({
           <ul className="space-y-1 text-sm text-foreground/80">
             {matchReasons.slice(0, 3).map((reason) => <li key={reason} className="flex gap-2"><span aria-hidden="true">✓</span><span>{reason}</span></li>)}
           </ul>
+        </div>
+      )}
+
+      {missingInformation.length > 0 && (
+        <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Eligibility information needed</p>
+          <ul className="mt-1 space-y-1 text-sm text-foreground/80">{missingInformation.slice(0, 3).map((item) => <li key={item}>• {item}</li>)}</ul>
+        </div>
+      )}
+
+      {eligibilityBlockers.length > 0 && (
+        <div className="mb-4 rounded-lg border border-border bg-surface-subtle p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Eligibility blocker</p>
+          <ul className="mt-1 space-y-1 text-sm text-foreground/80">{eligibilityBlockers.slice(0, 3).map((item) => <li key={item}>• {item}</li>)}</ul>
         </div>
       )}
 
@@ -201,6 +262,16 @@ export function OpportunityCard({
           </Button>
         )}
       </div>
+
+      {onMemberStateChange && opportunityId ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+          <Button type="button" variant={memberState === "saved" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("saved")}><Bookmark className="mr-1.5 h-4 w-4" />Save</Button>
+          <Button type="button" variant={memberState === "preparing" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("preparing")}><ClipboardCheck className="mr-1.5 h-4 w-4" />I'm preparing</Button>
+          <Button type="button" variant={memberState === "applied" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("applied")}>Mark applied</Button>
+          {memberState === "applied" ? <><Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("won")}><Trophy className="mr-1.5 h-4 w-4" />Won</Button><Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("rejected")}><XCircle className="mr-1.5 h-4 w-4" />Rejected</Button></> : null}
+          <Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("dismissed")}>Not relevant</Button>
+        </div>
+      ) : null}
 
       {open && (
         <div id={detailsId} className="mt-6 space-y-5 border-t border-border pt-6">
