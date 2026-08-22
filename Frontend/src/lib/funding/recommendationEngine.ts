@@ -264,7 +264,6 @@ function eligibility(
       };
     }
     reasons.push(`${String(profile.businessStage).trim()} stage matches the program's stated eligibility.`);
-    status = status === "possibly_eligible" ? "eligible" : status;
   } else if (explicitStages.length > 0 && !memberStage) {
     missingInformation.push("Add your business stage to confirm stage eligibility.");
     if (status === "eligible") status = "insufficient_information";
