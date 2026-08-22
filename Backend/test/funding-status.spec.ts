@@ -5,8 +5,10 @@ import { ApplicationStatusSchema, DeadlineStatusSchema } from "../src/contracts"
 
 const signalPath = resolve(process.cwd(), "../supabase/functions/_shared/fundingSourceSignals.ts");
 const refreshPath = resolve(process.cwd(), "../supabase/functions/funding-source-refresh/index.ts");
+const aggregatePath = resolve(process.cwd(), "../supabase/functions/aggregate-funding/index.ts");
 const signalSource = existsSync(signalPath) ? readFileSync(signalPath, "utf8") : "";
 const refreshSource = existsSync(refreshPath) ? readFileSync(refreshPath, "utf8") : "";
+const aggregateSource = existsSync(aggregatePath) ? readFileSync(aggregatePath, "utf8") : "";
 
 describe("Funding application status contracts", () => {
   it("keeps application status bounded", () => {
@@ -42,5 +44,12 @@ describe("Funding source extraction trust boundary", () => {
     expect(refreshSource).toContain("funding_source_checks");
     expect(refreshSource).toContain("FUNDING_REFRESH_SECRET");
     expect(refreshSource).toContain("timingSafeEqual");
+  });
+
+  it("forces AI and non-verified cached discovery to unknown application status", () => {
+    expect(aggregateSource).toContain('application_status:"unknown"');
+    expect(aggregateSource).toContain('verification_status:"unverified"');
+    expect(aggregateSource).toContain("effectiveFundingStatus");
+    expect(aggregateSource).toContain("status_checked_at");
   });
 });
