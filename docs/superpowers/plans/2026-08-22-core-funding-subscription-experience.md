@@ -4,7 +4,7 @@
 
 **Goal:** Make Funding Radar deliver the paid promise through a business-name-first, trust-explicit experience with separate Open for you, Closing soon, Watchlist and Explore surfaces.
 
-**Architecture:** Funding Radar consumes the canonical outputs of Business Enrichment, Opportunity Status and Recommendation Engines. The primary Apply experience is a derived view—never a second source of truth—and only admits verified, fresh, current-cycle open/rolling, deterministically eligible records. Member interactions persist as workflow/feedback state without mutating deterministic eligibility.
+**Architecture:** Funding Radar consumes canonical outputs from Business Enrichment, Opportunity Status and Recommendation Engines. The primary Apply experience is a derived view—never a second source of truth—and admits only verified, fresh, current-cycle open/rolling, deterministically eligible records. Member interactions persist as workflow/feedback state without mutating deterministic eligibility.
 
 **Tech Stack:** React, TypeScript, TanStack Query, Supabase/PostgreSQL, existing funding/recommendation hooks, shared analytics, Vitest/Testing Library.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Primary `Open for you` requires verified + fresh + open/closing-soon/rolling + eligible.
+- Primary `Open for you` requires verified + fresh + `open|closing_soon|rolling` + eligible.
 - `Closing soon` is a subset of the primary eligible/open set.
 - Upcoming/current-status-unknown/incomplete-eligibility records go to Watchlist, not Apply Now.
 - AI discoveries remain Explore-only and explicitly unverified.
@@ -21,6 +21,7 @@
 - Official source/application CTA is primary for verified/open records.
 - User feedback never directly changes hard eligibility rules.
 - Existing membership/paywall gates remain authoritative.
+- Do not hand-edit generated Supabase types; regenerate them only from the real project/tooling.
 
 ---
 
@@ -33,8 +34,12 @@
 - `Frontend/src/lib/funding/primaryFundingGate.test.ts` — truth-table tests.
 - `Frontend/src/components/funding/FundingRadarTabs.tsx` — tab navigation/counts.
 - `Frontend/src/components/funding/FundingRadarTabs.test.tsx` — UI gating tests.
-- `Frontend/src/hooks/queries/memberOpportunityState.ts` — save/applied/dismissed workflow.
-- `Frontend/src/components/funding/FundingProfilePrompt.tsx` — missing-detail/enrichment progress prompt.
+- `Frontend/src/hooks/queries/memberOpportunityState.ts` — saved/preparing/applied/won/rejected/dismissed workflow.
+- `Frontend/src/hooks/queries/memberOpportunityState.test.ts` — state-mutation tests.
+- `Frontend/src/components/funding/FundingProfilePrompt.tsx` — enrichment/profile-completeness prompt.
+- `Frontend/src/components/funding/FundingSearch.test.tsx` — Explore/search grouping tests.
+- `Shared/src/lib/analytics.test.ts` — funding event allowlist/privacy tests.
+- `Backend/test/funding-notifications.spec.ts` — notification transition/dedupe tests.
 
 **Modify**
 
@@ -42,10 +47,11 @@
 - `Frontend/src/components/funding/OpportunityCard.tsx` — hierarchy/status/CTA rules.
 - `Frontend/src/components/funding/OpportunityCard.test.tsx` — trust-critical CTA tests.
 - `Frontend/src/components/funding/FundingSearch.tsx` — Explore semantics and trust mix.
-- `Frontend/src/hooks/queries/funding.ts` — carry status/evidence and member state.
+- `Frontend/src/hooks/queries/funding.ts` — carry status/evidence/member state.
 - `Frontend/src/lib/funding/recommendationEngine.ts` — expose readiness/missing-information reasons used by UI.
 - `Shared/src/lib/analytics.ts` — recommendation/application feedback events.
-- `Shared/integrations/supabase/types.ts` — regenerate only when the real project/tooling is available; do not hand-edit generated types.
+- `Backend/src/db/schema.ts` — mirror member workflow/notification tables.
+- `supabase/config.toml` — register notification worker.
 - `docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md` — implementation/evidence status.
 
 ---
@@ -65,47 +71,65 @@ type FundingSurface =
   | "watchlist"
   | "explore";
 
-classifyFundingSurface({
-  verificationStatus,
-  applicationStatus,
-  eligibilityStatus,
-  statusFresh,
-  discoverySource,
-}): FundingSurface[]
+interface PrimaryFundingGateInput {
+  verificationStatus: "verified" | "stale" | "unverified";
+  applicationStatus:
+    | "open"
+    | "closing_soon"
+    | "rolling"
+    | "upcoming"
+    | "closed"
+    | "paused"
+    | "unknown";
+  eligibilityStatus:
+    | "eligible"
+    | "possibly_eligible"
+    | "insufficient_information"
+    | "ineligible";
+  statusFresh: boolean;
+  discoverySource: "verified_feed" | "ai_assisted";
+}
+
+classifyFundingSurface(input: PrimaryFundingGateInput): FundingSurface[];
 ```
 
-- [ ] **Step 1: Write failing truth-table tests**
+- [ ] **Step 1: Write the failing truth-table tests**
 
-Required cases:
+Include exact cases:
 
 ```text
-verified + fresh + open + eligible -> open_for_you
-verified + fresh + closing_soon + eligible -> open_for_you + closing_soon
-verified + fresh + rolling + eligible -> open_for_you
-verified + upcoming + eligible -> watchlist
-verified + open + insufficient_information -> watchlist
-verified + unknown + strong match -> watchlist
-verified + closed -> explore only
-unverified AI discovery -> explore only
-stale stored open -> watchlist/explore, never open_for_you
-ineligible -> never open_for_you/watchlist eligibility prompt
+verified + fresh + open + eligible -> [open_for_you]
+verified + fresh + closing_soon + eligible -> [open_for_you, closing_soon]
+verified + fresh + rolling + eligible -> [open_for_you]
+verified + upcoming + eligible -> [watchlist]
+verified + open + insufficient_information -> [watchlist]
+verified + unknown + eligible -> [watchlist]
+verified + closed -> [explore]
+unverified AI discovery -> [explore]
+stored open + statusFresh=false -> [watchlist]
+ineligible -> [explore]
 ```
 
-- [ ] **Step 2: Run RED**
+- [ ] **Step 2: Run the focused test and verify RED**
 
 ```bash
 npm run test --workspace Frontend -- primaryFundingGate.test.ts
 ```
 
-- [ ] **Step 3: Implement minimal pure classifier**
+Expected: FAIL because `primaryFundingGate.ts` does not exist.
 
-No UI conditions may duplicate this business rule later.
+- [ ] **Step 3: Implement the minimal pure classifier**
+
+Do not copy the rule into React components; all surface membership must call this function.
 
 - [ ] **Step 4: Run GREEN**
 
 ```bash
 npm run test --workspace Frontend -- primaryFundingGate.test.ts
+npm run typecheck --workspace Frontend
 ```
+
+Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -121,12 +145,10 @@ git commit -m "feat: gate primary funding recommendations"
 **Files:**
 - Create: `supabase/migrations/20260822060000_member_funding_pipeline.sql`
 - Create: `Frontend/src/hooks/queries/memberOpportunityState.ts`
+- Create: `Frontend/src/hooks/queries/memberOpportunityState.test.ts`
 - Modify: `Backend/src/db/schema.ts`
-- Test: `Frontend/src/hooks/queries/memberOpportunityState.test.ts`
 
 **Interfaces:**
-
-Use one row per member/canonical opportunity:
 
 ```sql
 CREATE TABLE public.member_opportunity_state (
@@ -141,36 +163,51 @@ CREATE TABLE public.member_opportunity_state (
 );
 ```
 
-Owner-only RLS; staff may read aggregated support data only if needed by existing staff policy.
+Expose:
+
+```ts
+useMemberOpportunityStates(): UseQueryResult<MemberOpportunityState[]>;
+useSetMemberOpportunityState(): UseMutationResult<...>;
+```
 
 - [ ] **Step 1: Write failing hook tests**
 
-Cover successful state transitions, rollback/error behavior and query invalidation.
+Test:
+
+- `saved -> preparing -> applied` mutation payloads;
+- `applied_at` is supplied only for `applied|won|rejected` transitions where required by implementation;
+- failed mutation does not optimistically persist incorrect state;
+- success invalidates the member-state query;
+- `dismissed` remains member-local and does not update `funding_opportunities`.
 
 - [ ] **Step 2: Run RED**
 
-- [ ] **Step 3: Add migration and Drizzle mirror**
-
-- [ ] **Step 4: Implement TanStack Query hook**
-
-```ts
-useMemberOpportunityStates()
-useSetMemberOpportunityState()
+```bash
+npm run test --workspace Frontend -- memberOpportunityState.test.ts
 ```
 
-Do not treat `dismissed` as global opportunity invalidation; it is a member preference signal.
+Expected: FAIL because the hook/module does not exist.
+
+- [ ] **Step 3: Add migration and RLS**
+
+Owner may SELECT/INSERT/UPDATE/DELETE only rows where `auth.uid() = user_id`. Do not expose other members' workflow state.
+
+- [ ] **Step 4: Mirror the table in Drizzle and implement the hook**
 
 - [ ] **Step 5: Run GREEN**
 
 ```bash
 npm run test --workspace Frontend -- memberOpportunityState.test.ts
+npm run typecheck --workspace Frontend
 npm run typecheck --workspace Backend
 ```
+
+Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add supabase/migrations/20260822060000_member_funding_pipeline.sql Frontend/src/hooks/queries/memberOpportunityState.ts Backend/src/db/schema.ts
+git add supabase/migrations/20260822060000_member_funding_pipeline.sql Frontend/src/hooks/queries/memberOpportunityState.ts Frontend/src/hooks/queries/memberOpportunityState.test.ts Backend/src/db/schema.ts
 git commit -m "feat: track member funding workflow"
 ```
 
@@ -185,7 +222,7 @@ git commit -m "feat: track member funding workflow"
 
 **Interfaces:**
 
-Tabs:
+Tabs are exactly:
 
 ```text
 Open for you
@@ -198,11 +235,11 @@ Explore
 
 Assert:
 
-- counts match classified results;
-- unverified AI result never enters first three tabs;
-- closed record cannot enter Open/Closing;
-- zero Open results shows honest zero state, not Explore results;
-- active tab is keyboard accessible and uses correct ARIA semantics.
+- counts match `classifyFundingSurface` output;
+- unverified AI results never enter first three tabs;
+- closed records never enter Open/Closing;
+- zero Open results shows the honest zero state, not Explore results;
+- tabs use `role=tablist`, `role=tab`, `aria-selected`, keyboard-focusable controls.
 
 - [ ] **Step 2: Run RED**
 
@@ -210,9 +247,11 @@ Assert:
 npm run test --workspace Frontend -- FundingRadarTabs.test.tsx
 ```
 
-- [ ] **Step 3: Refactor FundingWorkspace composition**
+Expected: FAIL because the tab component does not exist.
 
-Calculate recommendation result once, call `classifyFundingSurface`, build four lists, then render via tabs.
+- [ ] **Step 3: Implement `FundingRadarTabs` and refactor `FundingWorkspace`**
+
+Calculate recommendation results once, classify once, then render four derived lists.
 
 - [ ] **Step 4: Add zero-state copy**
 
@@ -228,6 +267,8 @@ npm run test --workspace Frontend -- FundingRadarTabs.test.tsx
 npm run typecheck --workspace Frontend
 ```
 
+Expected: PASS.
+
 - [ ] **Step 6: Commit**
 
 ```bash
@@ -237,7 +278,7 @@ git commit -m "feat: split Funding Radar by application readiness"
 
 ---
 
-### Task 4: Rebuild opportunity card information hierarchy and CTA gates
+### Task 4: Rebuild opportunity-card hierarchy and CTA gates
 
 **Files:**
 - Modify: `Frontend/src/components/funding/OpportunityCard.tsx`
@@ -258,16 +299,16 @@ Potential blocker / missing info
 CTA row
 ```
 
-- [ ] **Step 1: Write failing trust-critical CTA tests**
+- [ ] **Step 1: Add failing trust-critical CTA tests**
 
-Required:
+Required assertions:
 
 ```text
-verified open eligible -> Apply on official site visible
-verified upcoming -> no Apply; View source / Watchlist visible
-verified closed -> no Apply
-unverified AI -> Check this discovery; never Apply
-verified open insufficient member data -> Confirm eligibility detail; no Apply
+verified + fresh + open + eligible -> "Apply on official site"
+verified + upcoming -> no Apply; "View official source"
+verified + closed -> no Apply
+unverified AI -> "Check this discovery"; no Apply
+verified + open + insufficient_information -> eligibility prompt; no Apply
 ```
 
 - [ ] **Step 2: Run RED**
@@ -276,11 +317,13 @@ verified open insufficient member data -> Confirm eligibility detail; no Apply
 npm run test --workspace Frontend -- OpportunityCard.test.tsx
 ```
 
-- [ ] **Step 3: Implement compact hierarchy**
+Expected: at least one new trust-critical assertion FAILS.
 
-Keep secondary data in expanded section. Never use one generic green badge for both verification and open state.
+- [ ] **Step 3: Implement compact hierarchy and CTA decisions**
 
-- [ ] **Step 4: Add status-specific labels**
+Use separate badges/labels for verification and application status. Do not use one generic green `Verified` treatment to imply open.
+
+- [ ] **Step 4: Add exact status labels**
 
 ```text
 OPEN NOW
@@ -292,12 +335,14 @@ CURRENT STATUS NOT CONFIRMED
 AI DISCOVERY · UNVERIFIED
 ```
 
-- [ ] **Step 5: Run GREEN + accessibility test suite**
+- [ ] **Step 5: Run GREEN**
 
 ```bash
 npm run test --workspace Frontend -- OpportunityCard.test.tsx
-npm run test --workspace Shared
+npm run typecheck --workspace Frontend
 ```
+
+Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
@@ -308,29 +353,27 @@ git commit -m "feat: make funding cards status and trust explicit"
 
 ---
 
-### Task 5: Make business enrichment the first-class funding-profile entry point
+### Task 5: Make Business Enrichment the first-class funding-profile entry point
 
 **Files:**
 - Create: `Frontend/src/components/funding/FundingProfilePrompt.tsx`
 - Modify: `Frontend/src/components/funding/FundingWorkspace.tsx`
 - Modify: `Frontend/src/components/funding/BusinessEnrichmentStart.tsx`
-- Test: `Frontend/src/components/funding/FundingRadarTabs.test.tsx`
+- Modify: `Frontend/src/components/funding/FundingRadarTabs.test.tsx`
 
 **Interfaces:**
 
-Funding profile state:
-
 ```ts
-{
+interface FundingProfilePromptState {
   identityConfirmed: boolean;
   profileCompleteness: number;
   missingEligibilityFields: string[];
 }
 ```
 
-- [ ] **Step 1: Write failing first-run tests**
+- [ ] **Step 1: Add failing first-run tests to `FundingRadarTabs.test.tsx`**
 
-New member sees:
+Assert a new member sees:
 
 ```text
 Tell Cresciva your organisation
@@ -338,19 +381,39 @@ Tell Cresciva your organisation
 [Find my organisation]
 ```
 
-Returning member with incomplete funding profile sees a compact improvement prompt, not the full onboarding wizard again.
+Assert a returning member with incomplete profile sees a compact improvement prompt rather than the full first-run form.
 
 - [ ] **Step 2: Run RED**
 
-- [ ] **Step 3: Implement prompt states**
+```bash
+npm run test --workspace Frontend -- FundingRadarTabs.test.tsx
+```
 
-Show how a missing field improves recommendation confidence/eligibility only when that improvement is real and deterministic.
+Expected: new first-run/prompt assertions FAIL.
 
-- [ ] **Step 4: Confirm manual fallback remains available**
+- [ ] **Step 3: Implement `FundingProfilePrompt`**
+
+Show only deterministic missing-data benefits; do not promise fake percentage improvements.
+
+- [ ] **Step 4: Keep manual profile editing available**
+
+Render an explicit `Enter details manually` route/action whenever enrichment is unavailable, ambiguous or declined.
 
 - [ ] **Step 5: Run GREEN**
 
+```bash
+npm run test --workspace Frontend -- FundingRadarTabs.test.tsx
+npm run typecheck --workspace Frontend
+```
+
+Expected: PASS.
+
 - [ ] **Step 6: Commit**
+
+```bash
+git add Frontend/src/components/funding/FundingProfilePrompt.tsx Frontend/src/components/funding/FundingWorkspace.tsx Frontend/src/components/funding/BusinessEnrichmentStart.tsx Frontend/src/components/funding/FundingRadarTabs.test.tsx
+git commit -m "feat: make business enrichment the funding entry point"
+```
 
 ---
 
@@ -359,49 +422,74 @@ Show how a missing field improves recommendation confidence/eligibility only whe
 **Files:**
 - Modify: `Frontend/src/components/funding/FundingSearch.tsx`
 - Modify: `Frontend/src/hooks/queries/funding.ts`
-- Test: `Frontend/src/components/funding/FundingSearch.test.tsx` or nearest existing test.
+- Create: `Frontend/src/components/funding/FundingSearch.test.tsx`
 
 **Interfaces:**
 
-Search result grouping:
+Search groups are exactly:
 
 ```text
-Verified/current matches
+Verified current matches
 Other verified records
 AI discoveries
 ```
 
 - [ ] **Step 1: Write failing grouping tests**
 
-- [ ] **Step 2: Ensure explicit search cannot move an AI discovery into Apply Now**
+Assert:
 
-- [ ] **Step 3: Surface source mix truthfully**
+- verified/current records render before other verified records;
+- AI discoveries render in their own labelled group;
+- explicit user search cannot make AI discovery receive `Apply on official site` treatment;
+- result summary reports counts by trust/status group;
+- zero/few result states stay truthful.
 
-Example:
+- [ ] **Step 2: Run RED**
+
+```bash
+npm run test --workspace Frontend -- FundingSearch.test.tsx
+```
+
+Expected: FAIL because the new grouping behavior/test target is not implemented.
+
+- [ ] **Step 3: Implement grouping and copy**
+
+Example summary:
 
 ```text
 9 results · 4 verified current · 2 verified watchlist · 3 AI discoveries
 ```
 
-- [ ] **Step 4: Preserve zero/few-result behavior**
+- [ ] **Step 4: Run GREEN**
 
-- [ ] **Step 5: Run GREEN**
+```bash
+npm run test --workspace Frontend -- FundingSearch.test.tsx
+npm run typecheck --workspace Frontend
+```
 
-- [ ] **Step 6: Commit**
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add Frontend/src/components/funding/FundingSearch.tsx Frontend/src/components/funding/FundingSearch.test.tsx Frontend/src/hooks/queries/funding.ts
+git commit -m "feat: separate verified search from AI discoveries"
+```
 
 ---
 
-### Task 7: Add useful member feedback analytics and application events
+### Task 7: Add member feedback analytics and application events
 
 **Files:**
 - Modify: `Shared/src/lib/analytics.ts`
+- Create: `Shared/src/lib/analytics.test.ts`
 - Modify: `Frontend/src/hooks/queries/memberOpportunityState.ts`
+- Modify: `Frontend/src/hooks/queries/memberOpportunityState.test.ts`
 - Modify: `Frontend/src/components/funding/OpportunityCard.tsx`
-- Test: corresponding analytics/member-state tests.
 
 **Interfaces:**
 
-Events:
+Event allowlist additions:
 
 ```text
 recommendation_impression
@@ -415,11 +503,43 @@ application_rejected
 opportunity_source_click
 ```
 
-- [ ] **Step 1: Write failing analytics allowlist tests**
-- [ ] **Step 2: Emit events after successful state mutations where applicable**
-- [ ] **Step 3: Include match/status/confidence classes, not raw third-party source bodies**
-- [ ] **Step 4: Run GREEN**
-- [ ] **Step 5: Commit**
+- [ ] **Step 1: Write failing analytics allowlist/privacy tests**
+
+Assert all nine events are accepted and metadata sanitisation does not admit raw third-party page bodies or unrestricted query/source text.
+
+- [ ] **Step 2: Run RED**
+
+```bash
+npm run test --workspace Shared -- analytics.test.ts
+```
+
+Expected: FAIL until new events are added.
+
+- [ ] **Step 3: Add events and emit them only after successful mutations where applicable**
+
+For save/applied/won/rejected events, emit after the member-state database mutation succeeds.
+
+- [ ] **Step 4: Add mutation-event assertions**
+
+Update `memberOpportunityState.test.ts` to prove failure paths do not emit success analytics.
+
+- [ ] **Step 5: Run GREEN**
+
+```bash
+npm run test --workspace Shared -- analytics.test.ts
+npm run test --workspace Frontend -- memberOpportunityState.test.ts
+npm run typecheck --workspace Shared
+npm run typecheck --workspace Frontend
+```
+
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Shared/src/lib/analytics.ts Shared/src/lib/analytics.test.ts Frontend/src/hooks/queries/memberOpportunityState.ts Frontend/src/hooks/queries/memberOpportunityState.test.ts Frontend/src/components/funding/OpportunityCard.tsx
+git commit -m "feat: track funding recommendation outcomes"
+```
 
 ---
 
@@ -428,35 +548,59 @@ opportunity_source_click
 **Files:**
 - Create: `supabase/migrations/20260822061000_funding_notifications.sql`
 - Create: `supabase/functions/funding-notifications/index.ts`
-- Modify: `Shared/src/lib/analytics.ts`
-- Test: `Backend/test/funding-status.spec.ts`
+- Create: `Backend/test/funding-notifications.spec.ts`
+- Modify: `supabase/config.toml`
 
 **Interfaces:**
 
-Notify only on meaningful transitions:
+Meaningful transition types:
 
 ```text
-watchlist upcoming -> open
-watchlist unknown -> open
-open -> closing_soon
-confirmed deadline changed
-member profile update changes insufficient_information -> eligible for an open programme
-new verified/open high-fit opportunity
+watchlist_upcoming_to_open
+watchlist_unknown_to_open
+open_to_closing_soon
+deadline_changed
+member_became_eligible
+new_high_fit_open_opportunity
 ```
 
-- [ ] **Step 1: Write failing dedupe tests**
+Outbox must have a unique `event_key` so the same transition cannot enqueue twice.
 
-Same transition/event key must not send twice.
+- [ ] **Step 1: Write failing dedupe/transition tests**
 
-- [ ] **Step 2: Create notification outbox table with unique event key**
+Test that identical `{user, opportunity, transition, source-state-version}` produces one outbox event and unchanged refreshes produce zero notification events.
 
-- [ ] **Step 3: Build JWT/cron-secret protected delivery worker using existing email infrastructure**
+- [ ] **Step 2: Run RED**
 
-- [ ] **Step 4: Respect existing user email preferences**
+```bash
+npm run test --workspace Backend -- funding-notifications.spec.ts
+```
 
-- [ ] **Step 5: Deno check + tests**
+Expected: FAIL because notification persistence/worker contract does not exist.
+
+- [ ] **Step 3: Create notification outbox migration**
+
+Include `event_key text UNIQUE NOT NULL`, `user_id`, `opportunity_id`, `event_type`, `payload jsonb`, `status`, `attempt_count`, timestamps.
+
+- [ ] **Step 4: Implement delivery worker using existing email infrastructure**
+
+Authenticate scheduled mode with a dedicated secret; respect existing email preferences; mark sent/failed idempotently.
+
+- [ ] **Step 5: Register the function and verify**
+
+```bash
+deno check supabase/functions/funding-notifications/index.ts
+npm run test --workspace Backend -- funding-notifications.spec.ts
+```
+
+Expected: PASS.
 
 - [ ] **Step 6: Commit**
+
+```bash
+git add supabase/migrations/20260822061000_funding_notifications.sql supabase/functions/funding-notifications/index.ts Backend/test/funding-notifications.spec.ts supabase/config.toml
+git commit -m "feat: notify members on meaningful funding changes"
+```
 
 ---
 
@@ -464,6 +608,7 @@ Same transition/event key must not send twice.
 
 **Files:**
 - Modify: `docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md`
+- Modify: `docs/superpowers/plans/2026-08-22-core-funding-subscription-experience.md` — check boxes only after fresh evidence.
 
 - [ ] **Step 1: Run full repository verification**
 
@@ -472,29 +617,73 @@ npm ci
 npm run verify
 ```
 
+Expected: exit 0.
+
 - [ ] **Step 2: Deno-check every active Edge Function including new funding workers**
 
-- [ ] **Step 3: Execute end-to-end fixture matrix**
+```bash
+for f in \
+  supabase/functions/business-enrichment/index.ts \
+  supabase/functions/funding-source-refresh/index.ts \
+  supabase/functions/funding-notifications/index.ts \
+  supabase/functions/aggregate-funding/index.ts \
+  supabase/functions/bachs-init/index.ts \
+  supabase/functions/bachs-verify/index.ts \
+  supabase/functions/bachs-webhook/index.ts \
+  supabase/functions/payment-reconciliation/index.ts \
+  supabase/functions/send-email/index.ts \
+  supabase/functions/email-unsubscribe/index.ts; do
+  deno check "$f"
+done
+```
 
-Minimum scenarios:
+Expected: every command exits 0.
+
+- [ ] **Step 3: Execute the end-to-end fixture matrix**
+
+Automated acceptance tests must cover:
 
 ```text
 name-only business resolves -> confirmed -> open eligible recommendations
 ambiguous business -> no recommendation profile until selection
 no open eligible opportunities -> truthful zero + Watchlist
-verified closed high match -> Explore/Watchlist only, no Apply CTA
-unverified AI discovery -> Explore-only
-verified open but missing stage -> prompt, no Apply CTA
+verified closed high match -> Explore only, no Apply CTA
+unverified AI discovery -> Explore only
+verified open but missing stage -> Watchlist/missing-detail prompt, no Apply CTA
 verified open eligible -> Apply official source CTA
 status becomes stale -> removed from Open for you
 ```
 
+Run:
+
+```bash
+npm run test --workspace Frontend -- FundingRadarTabs.test.tsx OpportunityCard.test.tsx FundingSearch.test.tsx
+npm run test --workspace Backend -- funding-notifications.spec.ts funding-status.spec.ts
+```
+
+Expected: PASS.
+
 - [ ] **Step 4: Verify membership boundary**
 
-Non-member still sees only the approved teaser/paywall experience; detailed source/eligibility intelligence remains paid.
+Run the existing funding/paywall tests and confirm a non-member cannot read full recommendation/source/eligibility intelligence.
 
-- [ ] **Step 5: Update engine manual with exact implemented behavior and external deployment blockers**
+```bash
+npm run test --workspace Frontend -- DashboardFunding.test.tsx
+```
+
+Expected: PASS.
+
+- [ ] **Step 5: Update engine manual with exact implementation status and external deployment blockers**
+
+Document repository evidence separately from live deployment evidence.
+
+- [ ] **Step 6: Commit verification documentation**
+
+```bash
+git add docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md docs/superpowers/plans/2026-08-22-core-funding-subscription-experience.md
+git commit -m "docs: record core funding subscription verification"
+```
 
 ## Plan PASS gate
 
-Repository PASS requires the trust-critical UI matrix, workspace verification and all Edge checks green. Production PASS additionally requires live source refresh and business enrichment smoke tests. The paid claim `open for you` must not be enabled in production until the Accuracy Certification plan passes.
+Repository PASS requires the trust-critical UI matrix, workspace verification and all Edge checks green. Production PASS additionally requires live source refresh and Business Enrichment smoke tests. The paid claim `Open for you` must not be enabled in production until the Accuracy Certification plan passes.
