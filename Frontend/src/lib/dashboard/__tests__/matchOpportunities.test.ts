@@ -29,6 +29,10 @@ function profile(over: Partial<Profile> = {}): Profile {
     linkedin: null,
     twitter: null,
     keywords: ["agriculture", "climate", "export"],
+    business_stage: "growth",
+    funding_target_usd: 100000,
+    preferred_funding_types: ["grant"],
+    application_readiness: "ready",
     status: "active",
     featured: false,
     view_count: 0,
@@ -54,10 +58,13 @@ function opp(over: Partial<FundingOpportunity> = {}): FundingOpportunity {
     country_focus: ["Nigeria"],
     status: "published",
     featured: false,
-    details: {},
+    details: { business_stages: ["growth", "scale"], min_award_usd: 50000, max_award_usd: 150000 },
     source: "manual",
     batch_id: null,
     last_verified_at: "2026-08-20T00:00:00Z",
+    source_url: "https://example.org/program",
+    source_name: "Example Fund",
+    verification_status: "verified",
     verified_by: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
@@ -72,12 +79,13 @@ describe("dashboard recommendation adapter", () => {
     expect(score).toBeLessThanOrEqual(100);
   });
 
-  it("exposes deterministic match reasons and confidence", () => {
+  it("exposes deterministic match reasons and source-backed confidence", () => {
     const result = recommendFundingOpportunity(profile(), opp(), NOW);
     expect(result.eligibilityStatus).toBe("eligible");
     expect(result.reasons.join(" ")).toMatch(/Nigeria/i);
     expect(result.reasons.join(" ")).toMatch(/AgriTech/i);
     expect(result.confidenceScore).toBeGreaterThan(70);
+    expect(result.readinessScore).toBeGreaterThan(70);
   });
 
   it("hard-excludes explicit country mismatch", () => {
@@ -113,6 +121,7 @@ describe("recommendFundingOpportunities", () => {
       summary: "A broad opportunity for established businesses",
       tags: ["business"],
       eligibility: "African SMEs",
+      details: {},
     });
     const ranked = recommendFundingOpportunities(profile(), [generic, strong], NOW);
     expect(ranked.map((x) => x.opportunity.id)).toEqual(["strong", "generic"]);
@@ -126,6 +135,7 @@ describe("recommendFundingOpportunities", () => {
       title: "General SME award",
       summary: "A broad opportunity",
       tags: [],
+      details: {},
     });
     expect(matchOpportunities(profile(), [generic, strong]).map((o) => o.id)).toEqual([
       "strong",
