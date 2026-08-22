@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import * as schema from "./schema";
+import * as coreSchema from "./schema";
+import * as fundingIntelligenceSchema from "./funding-intelligence-schema";
 
 /**
  * postgres-js + drizzle. The direct Postgres connection BYPASSES RLS (connects as
@@ -11,11 +12,12 @@ import * as schema from "./schema";
  * Created lazily so `import`ing schema/types never opens a socket (keeps build +
  * unit tests DB-free).
  */
-export type Db = ReturnType<typeof drizzle<typeof schema>>;
+export const dbSchema = { ...coreSchema, ...fundingIntelligenceSchema };
+export type Db = ReturnType<typeof drizzle<typeof dbSchema>>;
 
 export function createDb(databaseUrl: string): { db: Db; close: () => Promise<void> } {
   const sql = postgres(databaseUrl, { prepare: false, max: 10 });
-  const db = drizzle(sql, { schema });
+  const db = drizzle(sql, { schema: dbSchema });
   return { db, close: () => sql.end({ timeout: 5 }) };
 }
 
