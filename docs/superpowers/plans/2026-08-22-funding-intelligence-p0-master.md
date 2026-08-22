@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Coordinate the four approved Cresciva funding-intelligence plans into one evidence-gated execution sequence that delivers the paid promise: business-name understanding plus accurate, current, eligible funding recommendations.
+**Goal:** Coordinate the approved Cresciva funding-intelligence plans into one evidence-gated sequence that delivers the paid promise: business-name understanding plus accurate, current, eligible funding recommendations.
 
 **Architecture:** Execute identity understanding first, source/current-cycle truth second, subscriber surfaces third, and independent accuracy certification last. Each subsystem has its own repository PASS gate; no later layer may paper over an earlier layer's unknown or failed evidence.
 
@@ -10,15 +10,41 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-22-business-to-funding-intelligence-design.md`
 
-## Global Constraints
+## Mandatory plan set
+
+Execute these in order:
+
+1. `docs/superpowers/plans/2026-08-22-business-enrichment-engine.md`
+2. `docs/superpowers/plans/2026-08-22-open-opportunity-verification-engine.md`
+3. `docs/superpowers/plans/2026-08-22-core-funding-subscription-experience.md`
+4. `docs/superpowers/plans/2026-08-22-funding-intelligence-accuracy-certification.md`
+
+**Mandatory execution companion:**
+
+- `docs/superpowers/plans/2026-08-22-funding-intelligence-plan-clarifications.md`
+
+The clarification file overrides any shorter/vague RED/GREEN wording in the original subsystem plans. It is part of this master plan, not optional reading.
+
+Engine manuals:
+
+- `docs/product/BUSINESS-ENRICHMENT-ENGINE.md`
+- `docs/product/OPPORTUNITY-STATUS-ENGINE.md`
+- `docs/product/RECOMMENDATION-ENGINE.md`
+- `docs/product/OPPORTUNITY-SEARCH-ENGINE.md`
+- `docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md`
+
+---
+
+## Global constraints
 
 - `Open for you` is the core paid promise and is fail-closed.
 - No AI-only fact can become verified/open/eligible merely through model output.
-- Business ambiguity requires confirmation.
+- Business ambiguity requires member confirmation.
 - Verification, application status, eligibility, match score, source confidence and readiness remain separate values.
 - Zero primary recommendations is valid.
-- Do not merge or deploy a phase whose own gate is red.
+- Do not merge or deploy a subsystem whose own gate is red.
 - External provider/live deployment gaps are `BLOCKED_EXTERNAL`, not silently waived.
+- Every behavior change follows test-first RED -> GREEN -> relevant type/Deno checks -> review -> commit.
 
 ---
 
@@ -35,29 +61,14 @@ P0-B Open Opportunity Verification Engine
         v
 P0-C Core Funding Subscription Experience
         |
-        | product UX cannot bypass A/B gates
+        | UX cannot bypass A/B truth gates
         v
 P0-D Funding Intelligence Accuracy Certification
         |
-        | measured thresholds
+        | measured release thresholds
         v
 PAID CLAIM ELIGIBLE FOR PRODUCTION RELEASE
 ```
-
-Plans:
-
-1. `docs/superpowers/plans/2026-08-22-business-enrichment-engine.md`
-2. `docs/superpowers/plans/2026-08-22-open-opportunity-verification-engine.md`
-3. `docs/superpowers/plans/2026-08-22-core-funding-subscription-experience.md`
-4. `docs/superpowers/plans/2026-08-22-funding-intelligence-accuracy-certification.md`
-
-Engine manuals:
-
-- `docs/product/BUSINESS-ENRICHMENT-ENGINE.md`
-- `docs/product/OPPORTUNITY-STATUS-ENGINE.md`
-- `docs/product/RECOMMENDATION-ENGINE.md`
-- `docs/product/OPPORTUNITY-SEARCH-ENGINE.md`
-- `docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md`
 
 ---
 
@@ -75,13 +86,14 @@ member corrections -> preserved
 sensitive traits -> never inferred
 ```
 
-- [ ] Execute every task in `2026-08-22-business-enrichment-engine.md`.
-- [ ] Confirm the full repository gate is green.
-- [ ] Confirm all active Edge Functions including `business-enrichment` pass Deno check.
-- [ ] Confirm the acceptance fixture contains same-name ambiguity and malicious URL cases.
-- [ ] Record repository PASS or exact blocker before P0-B begins.
+- [ ] Execute every task in `2026-08-22-business-enrichment-engine.md` plus its exact-command overrides in the clarification file.
+- [ ] Confirm `npm ci && npm run verify` exits 0.
+- [ ] Confirm every active Edge Function, including `business-enrichment`, passes `deno check`.
+- [ ] Confirm acceptance fixtures include same-name ambiguity, no-public-footprint and malicious/private-URL cases.
+- [ ] Confirm false automatic identity selections = 0 in the acceptance fixture set.
+- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before P0-B.
 
-**P0-A exit artifact:** confirmed structured organisation profile suitable for deterministic eligibility/recommendation.
+**Exit artifact:** confirmed structured organisation profile suitable for deterministic eligibility/recommendation.
 
 ---
 
@@ -99,14 +111,15 @@ conflict -> unknown
 stale open -> effective unknown
 ```
 
-- [ ] Execute every task in `2026-08-22-open-opportunity-verification-engine.md`.
-- [ ] Confirm current-cycle status truth table is green.
-- [ ] Confirm source refresh is bounded and SSRF-safe.
+- [ ] Execute every task in `2026-08-22-open-opportunity-verification-engine.md` plus clarification overrides.
+- [ ] Confirm the current-cycle status truth table is green.
+- [ ] Confirm source refresh uses bounded SSRF-safe retrieval.
 - [ ] Confirm AI extraction cannot persist trusted `application_status` directly.
-- [ ] Confirm Admin has no evidence-free Force Open path.
-- [ ] Record repository PASS or exact blocker before P0-C begins.
+- [ ] Confirm Admin has no evidence-free `Force open` path.
+- [ ] Confirm `npm ci && npm run verify` exits 0 and every active Edge Function passes `deno check`.
+- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before P0-C.
 
-**P0-B exit artifact:** canonical opportunity records with source-backed verification and effective application status/freshness.
+**Exit artifact:** canonical opportunity records with source-backed verification and effective application status/freshness.
 
 ---
 
@@ -114,26 +127,25 @@ stale open -> effective unknown
 
 **Purpose:** Expose only the right funding in the right surface and collect useful member outcomes.
 
-**Hard gate:**
-
-`Open for you` requires:
+**Primary gate:**
 
 ```text
-verified
-+ fresh
-+ open | closing_soon | rolling
-+ eligible
+verification = verified
++ source status is fresh
++ application_status = open | closing_soon | rolling
++ eligibility = eligible
 ```
 
 - [ ] Execute every task in `2026-08-22-core-funding-subscription-experience.md`.
-- [ ] Verify `Open for you`, `Closing soon`, `Watchlist`, `Explore` truth table.
-- [ ] Verify AI discovery never receives Apply Now treatment.
-- [ ] Verify zero-result state does not pad uncertainty.
-- [ ] Verify member workflow states persist and do not mutate hard eligibility.
-- [ ] Verify business-name enrichment is the first-class funding profile entry point with manual fallback.
-- [ ] Record repository PASS or exact blocker before P0-D begins.
+- [ ] Verify Open for you / Closing soon / Watchlist / Explore truth-table tests.
+- [ ] Verify an AI discovery never receives Apply Now treatment.
+- [ ] Verify zero-result state never pads with uncertain results.
+- [ ] Verify member workflow state does not mutate hard eligibility.
+- [ ] Verify Business Enrichment is the first-class funding-profile entry point with manual fallback.
+- [ ] Confirm full repository verification and all Edge checks green.
+- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before P0-D.
 
-**P0-C exit artifact:** subscription UX implementing the engine truth boundaries rather than reinterpreting them client-side.
+**Exit artifact:** subscription UX implementing engine truth boundaries instead of reinterpreting them client-side.
 
 ---
 
@@ -144,17 +156,17 @@ verified
 - [ ] Execute every task in `2026-08-22-funding-intelligence-accuracy-certification.md`.
 - [ ] Reach >=100 organisation identity fixtures.
 - [ ] Reach >=200 opportunity-cycle fixtures.
-- [ ] Record two-human-reviewer labels for P0 cases.
+- [ ] Reach >=150 labelled eligibility pairs and >=50 ranking candidate pools.
+- [ ] Record two-human-reviewer labels for every P0 identity/status/eligibility fixture.
 - [ ] Run `npm ci`, `npm run verify`, and `npm run eval:funding`.
-- [ ] Run live/staging source/link checks when provider/environment access exists.
-- [ ] Compare every P0 metric with the fixed release threshold.
-- [ ] Publish exact PASS/FAIL in `docs/production-readiness/evidence/funding-intelligence-certification.md`.
+- [ ] Run live/staging source/link checks when the deployed provider/environment is available.
+- [ ] Publish exact metric-by-metric PASS/FAIL in `docs/production-readiness/evidence/funding-intelligence-certification.md`.
 
 **Production release thresholds:**
 
 ```text
 Business auto-identity false selections: 0 in acceptance corpus
-Primary source coverage: >=95%
+Primary authoritative source coverage: >=95%
 Open/Closing Soon/Rolling precision: >=98%
 Confirmed deadline source coverage: 100%
 Hard eligibility false positives: <2%
@@ -170,20 +182,20 @@ Any P0 failure keeps the paid claim gated.
 
 ## Approval policy for execution
 
-The user has explicitly authorised approvals wherever necessary for this phase. Therefore the implementation agent may proceed through routine internal design/reviewer gates without asking for repeated confirmation when all of the following are true:
+The user explicitly authorised approvals wherever necessary for this phase. The implementation agent may therefore proceed through routine internal design/reviewer gates without asking for repeated confirmation when all are true:
 
 - the change is inside these approved plans;
 - it preserves the trust boundaries in the spec;
 - tests are written first for behavior changes;
 - P0/P1 review findings are fixed before moving to the next task;
-- it does not merge the PR, deploy to production, rotate credentials, purchase an external service, or weaken a release threshold.
+- it does not merge the PR, deploy to production, rotate credentials, purchase an external service, lower a release threshold, or weaken a security control.
 
 Explicit user approval is still required before:
 
-- merging to `main` if that is treated as a release action;
+- merging to `main` if treated as a release action;
 - production deployment/cutover;
 - enabling paid marketing claims before certification;
-- adding a paid third-party provider contract or material spend;
+- entering a paid third-party provider contract/material spend;
 - lowering a P0 metric threshold;
 - bypassing a security/trust control.
 
@@ -191,27 +203,28 @@ Explicit user approval is still required before:
 
 ## Loop policy
 
-For each task:
+For every behavior task:
 
 ```text
-RED test
- -> verify correct failure
- -> minimal implementation
- -> GREEN focused test
- -> relevant type/lint checks
- -> reviewer/critic pass
- -> resolve P0/P1 findings
- -> commit
- -> next task
+write focused test first
+-> run it and observe the expected RED
+-> implement minimum behavior
+-> rerun focused test GREEN
+-> run relevant typecheck / Deno check
+-> run reviewer/critic pass
+-> resolve all P0/P1 findings
+-> commit
+-> move to next task
 ```
 
-At the end of each subsystem:
+At the end of every subsystem:
 
 ```text
-full repository verify
-+ all active Edge Deno checks
-+ plan-specific acceptance fixtures
-+ evidence document update
+npm ci
+npm run verify
+all active Edge deno checks
+plan-specific acceptance fixtures
+engine-manual/evidence update
 ```
 
-Do not move forward because a task "looks done". Move forward only on fresh evidence.
+Do not move forward because a task merely looks complete. Move forward only on fresh verification evidence.
