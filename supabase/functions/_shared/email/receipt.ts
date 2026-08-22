@@ -21,7 +21,7 @@ interface AdminClient {
         maybeSingle(): Promise<{ data: Record<string, unknown> | null }>;
       };
     };
-    insert(row: Record<string, unknown>): Promise<{ error: unknown }>;
+    insert(row: Record<string, unknown> | EmailLogRow): Promise<{ error: unknown }>;
   };
   auth: {
     admin: {
