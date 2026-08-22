@@ -4,16 +4,13 @@ import {
   text,
   integer,
   numeric,
+  boolean,
   timestamp,
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-/**
- * Funding Intelligence schema additions live here so the core schema mirror does
- * not become a catch-all. Supabase migrations remain the only DDL authority.
- */
 export const businessEnrichmentRuns = pgTable(
   "business_enrichment_runs",
   {
@@ -51,12 +48,7 @@ export const businessEnrichmentCandidates = pgTable(
   (t) => [index("business_enrichment_candidates_run_idx").on(t.runId, t.identityConfidence)],
 );
 
-/**
- * A focused projection of the private Funding Intelligence columns that live on
- * public.profiles. It is deliberately NOT registered in the relational dbSchema
- * because coreSchema already owns the public.profiles table. Drizzle table
- * objects can still be used for select/update queries independently.
- */
+/** Same-table projection: private fields only; not registered in dbSchema. */
 export const profileFundingIntelligence = pgTable("profiles", {
   userId: uuid("user_id").notNull(),
   businessStage: text("business_stage"),
@@ -72,6 +64,67 @@ export const profileFundingIntelligence = pgTable("profiles", {
   businessIdentityCandidateId: uuid("business_identity_candidate_id"),
 });
 
+/** Same-table projection: current-cycle status only; not registered in dbSchema. */
+export const fundingOpportunityStatus = pgTable("funding_opportunities", {
+  id: uuid("id").notNull(),
+  applicationStatus: text("application_status").notNull().default("unknown"),
+  statusCheckedAt: timestamp("status_checked_at", { withTimezone: true }),
+  statusEvidenceUrl: text("status_evidence_url"),
+  opensAt: timestamp("opens_at", { withTimezone: true }),
+  deadlineAt: timestamp("deadline_at", { withTimezone: true }),
+  deadlineTimezone: text("deadline_timezone"),
+  deadlineStatus: text("deadline_status").notNull().default("unknown"),
+  currentCycleLabel: text("current_cycle_label"),
+  applicationUrl: text("application_url"),
+});
+
+export const fundingSourcesRegistry = pgTable(
+  "funding_sources",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    name: text("name").notNull(),
+    baseUrl: text("base_url").notNull(),
+    sourceType: text("source_type").notNull().default("official_program"),
+    countryFocus: text("country_focus").array().notNull().default(sql`'{}'::text[]`),
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    active: boolean("active").notNull().default(true),
+    refreshIntervalHours: integer("refresh_interval_hours").notNull().default(24),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+    lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    createdBy: uuid("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("funding_sources_active_idx").on(t.active, t.lastCheckedAt)],
+);
+
+export const fundingSourceChecks = pgTable(
+  "funding_source_checks",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    checkKey: uuid("check_key").notNull().unique(),
+    opportunityId: uuid("opportunity_id").notNull(),
+    sourceId: uuid("source_id"),
+    sourceUrl: text("source_url").notNull(),
+    checkedAt: timestamp("checked_at", { withTimezone: true }).notNull().defaultNow(),
+    httpStatus: integer("http_status"),
+    contentType: text("content_type"),
+    contentBytes: integer("content_bytes"),
+    sourceFingerprint: text("source_fingerprint"),
+    extractedSignals: jsonb("extracted_signals").notNull().default(sql`'{}'::jsonb`),
+    classifiedStatus: text("classified_status").notNull().default("unknown"),
+    errorClass: text("error_class"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("funding_source_checks_opportunity_idx").on(t.opportunityId, t.checkedAt),
+    index("funding_source_checks_source_idx").on(t.sourceId, t.checkedAt),
+  ],
+);
+
 export type BusinessEnrichmentRunRow = typeof businessEnrichmentRuns.$inferSelect;
 export type BusinessEnrichmentCandidateRow = typeof businessEnrichmentCandidates.$inferSelect;
 export type ProfileFundingIntelligenceRow = typeof profileFundingIntelligence.$inferSelect;
+export type FundingOpportunityStatusRow = typeof fundingOpportunityStatus.$inferSelect;
+export type FundingSourceCheckRow = typeof fundingSourceChecks.$inferSelect;
