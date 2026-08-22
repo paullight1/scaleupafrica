@@ -1,20 +1,27 @@
 import { supabase } from "@shared/integrations/supabase/client";
 
-export type AnalyticsEventType =
-  | "page_view"
-  | "funding_search"
-  | "recommendation_open"
-  | "recommendation_save"
-  | "opportunity_source_click"
-  | "resource_view"
-  | "resource_download"
-  | "blog_view"
-  | "signup"
-  | "profile_create"
-  | "newsletter_signup"
-  | "lead_submit";
+export const ANALYTICS_EVENT_TYPES = [
+  "page_view",
+  "funding_search",
+  "recommendation_open",
+  "recommendation_save",
+  "opportunity_source_click",
+  "business_enrichment_started",
+  "business_enrichment_result",
+  "business_enrichment_failed",
+  "business_identity_confirmed",
+  "business_identity_rejected",
+  "resource_view",
+  "resource_download",
+  "blog_view",
+  "signup",
+  "profile_create",
+  "newsletter_signup",
+  "lead_submit",
+] as const;
 
-/** Anonymous, per-browser session id used to group events. */
+export type AnalyticsEventType = (typeof ANALYTICS_EVENT_TYPES)[number];
+
 function getSessionId(): string {
   try {
     const key = "sua_session_id";
@@ -32,7 +39,7 @@ function getSessionId(): string {
 /**
  * Fire-and-forget product analytics. Never throws and never blocks the UI.
  * Funding events must use aggregate/identifier metadata only — do not duplicate
- * raw business search text into general analytics.
+ * raw business/search text or fetched third-party source bodies into analytics.
  */
 export async function trackEvent(
   eventType: AnalyticsEventType,
