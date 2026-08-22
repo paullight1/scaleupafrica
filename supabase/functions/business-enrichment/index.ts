@@ -17,6 +17,12 @@ const BRAVE_SEARCH_API_KEY = Deno.env.get("BRAVE_SEARCH_API_KEY") ?? "";
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 const MAX_BODY_BYTES = 16 * 1024;
 
+type ConfirmationInput = {
+  runId: string;
+  candidateId: string;
+  accepted: boolean;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -30,10 +36,14 @@ Deno.serve(async (req) => {
 
   const bodyResult = await readJsonBody(req);
   if (!bodyResult.ok) return json({ error: bodyResult.error }, 400);
+  const admin = createClient<any>(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+  const confirmation = parseConfirmation(bodyResult.value);
+  if (confirmation) return handleConfirmation(admin, user.id, confirmation);
+
   const input = parseInput(bodyResult.value);
   if (!input) return json({ error: "invalid_request" }, 400);
 
-  const admin = createClient<any>(SUPABASE_URL, SERVICE_ROLE_KEY);
   const runId = crypto.randomUUID();
   const startedAt = new Date().toISOString();
   const { error: runInsertError } = await admin.from("business_enrichment_runs").insert({
@@ -122,27 +132,88 @@ Deno.serve(async (req) => {
       null,
     );
 
-    await auditEvent(admin, user.id, selection.state === "resolved" ? "business_identity_resolved" : selection.state === "ambiguous" ? "business_identity_ambiguous" : "business_enrichment_failed", {
-      run_id: runId,
-      candidate_count: rows.length,
-      top_confidence: selection.score,
-      margin: selection.margin,
-    });
+    await auditEvent(
+      admin,
+      user.id,
+      selection.state === "resolved"
+        ? "business_identity_resolved"
+        : selection.state === "ambiguous"
+          ? "business_identity_ambiguous"
+          : "business_enrichment_failed",
+      {
+        run_id: runId,
+        candidate_count: rows.length,
+        top_confidence: selection.score,
+        margin: selection.margin,
+      },
+    );
 
-    const candidates = discovery.candidates.map((candidate) => publicCandidate(candidate, scoreById.get(candidate.id) ?? 0));
+    const candidates = discovery.candidates.map((candidate) =>
+      publicCandidate(candidate, scoreById.get(candidate.id) ?? 0)
+    );
     return json({
       runId,
       state: selection.state,
       candidates,
-      selectedCandidate: selected ? publicCandidate(selected, scoreById.get(selected.id) ?? 0) : undefined,
+      selectedCandidate: selected
+        ? publicCandidate(selected, scoreById.get(selected.id) ?? 0)
+        : undefined,
     });
   } catch (error) {
     console.error("business-enrichment failed", error instanceof Error ? error.message : error);
     await finishRun(admin, runId, "failed", 0, null, "unavailable");
-    await auditEvent(admin, user.id, "business_enrichment_failed", { run_id: runId, error_class: "unavailable" });
+    await auditEvent(admin, user.id, "business_enrichment_failed", {
+      run_id: runId,
+      error_class: "unavailable",
+    });
     return json({ runId, state: "failed", candidates: [], error: "business_enrichment_failed" }, 500);
   }
 });
+
+async function handleConfirmation(admin: any, userId: string, input: ConfirmationInput): Promise<Response> {
+  const { data: run, error: runError } = await admin
+    .from("business_enrichment_runs")
+    .select("id,user_id")
+    .eq("id", input.runId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (runError) {
+    console.error("business-enrichment: confirmation ownership lookup failed", runError.message);
+    return json({ error: "unavailable" }, 500);
+  }
+  if (!run) return json({ error: "not_found" }, 404);
+
+  const { data: candidate, error: candidateError } = await admin
+    .from("business_enrichment_candidates")
+    .select("id,run_id")
+    .eq("id", input.candidateId)
+    .eq("run_id", input.runId)
+    .maybeSingle();
+  if (candidateError) {
+    console.error("business-enrichment: candidate lookup failed", candidateError.message);
+    return json({ error: "unavailable" }, 500);
+  }
+  if (!candidate) return json({ error: "not_found" }, 404);
+
+  const { data, error } = await admin.rpc("confirm_business_identity", {
+    _run_id: input.runId,
+    _candidate_id: input.candidateId,
+    _user_id: userId,
+    _accepted: input.accepted,
+  });
+  if (error || !data) {
+    console.error("business-enrichment: confirmation RPC failed", error?.message);
+    return json({ error: "unavailable" }, 500);
+  }
+
+  await auditEvent(
+    admin,
+    userId,
+    input.accepted ? "business_identity_confirmed" : "business_identity_rejected",
+    { run_id: input.runId, candidate_id: input.candidateId },
+  );
+  return json(data, 200);
+}
 
 async function finishRun(
   admin: any,
@@ -190,6 +261,19 @@ function publicCandidate(candidate: EnrichedBusinessCandidate, identityConfidenc
   };
 }
 
+function parseConfirmation(value: unknown): ConfirmationInput | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  const keys = Object.keys(raw);
+  if (!keys.includes("runId") && !keys.includes("candidateId")) return null;
+  const allowed = new Set(["runId", "candidateId", "accepted"]);
+  if (keys.some((key) => !allowed.has(key))) return null;
+  const runId = uuid(raw.runId);
+  const candidateId = uuid(raw.candidateId);
+  if (!runId || !candidateId || typeof raw.accepted !== "boolean") return null;
+  return { runId, candidateId, accepted: raw.accepted };
+}
+
 function parseInput(value: unknown): { businessName: string; website?: string; countryHint?: string } | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const raw = value as Record<string, unknown>;
@@ -206,16 +290,22 @@ function parseInput(value: unknown): { businessName: string; website?: string; c
   };
 }
 
-async function readJsonBody(req: Request): Promise<{ ok: true; value: unknown } | { ok: false; error: string }> {
+async function readJsonBody(
+  req: Request,
+): Promise<{ ok: true; value: unknown } | { ok: false; error: string }> {
   const length = Number(req.headers.get("content-length") ?? "0");
-  if (Number.isFinite(length) && length > MAX_BODY_BYTES) return { ok: false, error: "request_too_large" };
+  if (Number.isFinite(length) && length > MAX_BODY_BYTES) {
+    return { ok: false, error: "request_too_large" };
+  }
   let textBody: string;
   try {
     textBody = await req.text();
   } catch {
     return { ok: false, error: "invalid_request" };
   }
-  if (new TextEncoder().encode(textBody).byteLength > MAX_BODY_BYTES) return { ok: false, error: "request_too_large" };
+  if (new TextEncoder().encode(textBody).byteLength > MAX_BODY_BYTES) {
+    return { ok: false, error: "request_too_large" };
+  }
   try {
     return { ok: true, value: JSON.parse(textBody) };
   } catch {
@@ -230,6 +320,14 @@ function text(value: unknown, max: number): string {
 function optionalText(value: unknown, max: number): string | undefined {
   const result = text(value, max);
   return result || undefined;
+}
+
+function uuid(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(normalized)
+    ? normalized
+    : null;
 }
 
 function json(data: unknown, status = 200) {
