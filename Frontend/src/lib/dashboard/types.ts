@@ -3,24 +3,27 @@ import type { ProfileSection } from "./routes";
 
 /**
  * Domain type aliases for the dashboard. The generated Supabase snapshot predates
- * several funding_opportunities columns from 20260720140000, so the dashboard
- * extends that one row type locally until the production project is available for
- * a trustworthy type regeneration. This keeps the escape hatch explicit instead
- * of weakening recommendation-engine inputs.
+ * several profile/funding columns from later migrations, so the dashboard extends
+ * those row types locally until the production project is available for a trustworthy
+ * type regeneration.
  */
-export type Profile = Tables<"profiles">;
+type GeneratedProfile = Tables<"profiles">;
+export type Profile = GeneratedProfile & {
+  business_stage?: string | null;
+  funding_target_usd?: number | null;
+  preferred_funding_types?: string[] | null;
+  application_readiness?: "exploring" | "preparing" | "ready" | null;
+};
 
 type GeneratedFundingOpportunity = Tables<"funding_opportunities">;
 export type FundingOpportunity = GeneratedFundingOpportunity & {
   details?: Record<string, unknown> | null;
   last_verified_at?: string | null;
+  source_url?: string | null;
+  source_name?: string | null;
+  verification_status?: "verified" | "stale" | "unverified" | null;
 };
 
-/**
- * What a signed-in NON-member may see of the feed — the exact column set the
- * `funding_teaser` RPC returns (20260802120000). Deliberately missing `url`,
- * `summary`, `eligibility`, `amount` and `details`: those are the membership.
- */
 export interface TeaserOpportunity {
   id: string;
   title: string;
