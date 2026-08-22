@@ -68,8 +68,8 @@ describe("business enrichment Edge trust boundary", () => {
     expect(configSource).toContain("verify_jwt = true");
   });
 
-  it("bounds public discovery and never returns search snippets as confirmed identity", () => {
-    expect(sharedSource).toContain("BRAVE_SEARCH_API_KEY");
+  it("bounds public discovery and keeps provider credentials at the edge boundary", () => {
+    expect(edgeSource).toContain("BRAVE_SEARCH_API_KEY");
     expect(sharedSource).toContain("MAX_SEARCH_RESULTS = 8");
     expect(sharedSource).toContain("MAX_EVIDENCE_FETCHES = 6");
     expect(sharedSource).toContain("safeExternalFetch");
