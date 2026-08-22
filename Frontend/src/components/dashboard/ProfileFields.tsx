@@ -28,6 +28,9 @@ export const SECTION_FIELDS: Record<ProfileSection, (keyof ProfileFormValues)[]>
     "funding_target_usd",
     "preferred_funding_types",
     "application_readiness",
+    "organisation_type",
+    "operating_countries",
+    "founding_year",
   ],
   contact: [
     "website", "email", "phone", "whatsapp", "show_email", "show_phone", "show_whatsapp",
@@ -64,12 +67,15 @@ function MatchingFields() {
   return <div className="space-y-6">
     <div><Label htmlFor="keywords" className="mb-1.5 block">Keywords</Label><p className="mb-2 text-sm text-muted-foreground">Use the words a funder would use — “solar”, “irrigation”, “women-led”.</p><Controller control={control} name="keywords" render={({ field }) => <KeywordInput value={field.value ?? []} onChange={field.onChange} />} />{errors.keywords && <p className="mt-1 text-sm text-destructive-strong">{errors.keywords.message as string}</p>}</div>
 
-    <div className="rounded-xl border border-border bg-surface-muted p-4"><h3 className="font-medium text-ink-strong">Funding profile</h3><p className="mt-1 text-sm text-muted-foreground">Optional. These answers improve eligibility and fit scoring; they are not shown on your public profile.</p>
+    <div className="rounded-xl border border-border bg-surface-muted p-4"><h3 className="font-medium text-ink-strong">Funding profile</h3><p className="mt-1 text-sm text-muted-foreground">Private. These answers improve eligibility and fit scoring; they are not shown on your public profile.</p>
       <div className="mt-4 grid gap-5 md:grid-cols-2">
+        <Field label="Organisation type" error={errors.organisation_type?.message} name="organisation_type" hint="For example: nonprofit, social enterprise, company or association."><Input {...register("organisation_type")} maxLength={80} placeholder="Nonprofit" /></Field>
+        <Field label="Founding year" error={errors.founding_year?.message} name="founding_year"><Input type="number" min="1800" max="2100" placeholder="2023" {...register("founding_year", { setValueAs: (v) => v === "" ? null : Number(v) })} /></Field>
         <Field label="Business stage" error={errors.business_stage?.message} name="business_stage"><select {...register("business_stage", { setValueAs: (v) => v || null })} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"><option value="">Select stage</option>{BUSINESS_STAGE_OPTIONS.map((v)=><option key={v} value={v}>{v === "idea" ? "Idea / pre-launch" : v === "early" ? "Early / validating" : v === "growth" ? "Growth" : "Scale"}</option>)}</select></Field>
         <Field label="Funding target (USD)" error={errors.funding_target_usd?.message} name="funding_target_usd" hint="Used only when a program publishes a structured award range."><Input type="number" min="1" step="100" placeholder="100000" {...register("funding_target_usd", { setValueAs: (v) => v === "" ? null : Number(v) })} /></Field>
         <Field label="Application readiness" error={errors.application_readiness?.message} name="application_readiness"><select {...register("application_readiness", { setValueAs: (v) => v || null })} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"><option value="">Select readiness</option>{APPLICATION_READINESS_OPTIONS.map((v)=><option key={v} value={v}>{v === "exploring" ? "Exploring opportunities" : v === "preparing" ? "Preparing documents" : "Ready to apply"}</option>)}</select></Field>
       </div>
+      <div className="mt-5"><Label className="mb-2 block">Operating countries</Label><p className="mb-2 text-xs text-muted-foreground">Add the countries where your organisation actively operates. Press Enter after each country.</p><Controller control={control} name="operating_countries" render={({ field }) => <KeywordInput value={field.value ?? []} onChange={field.onChange} />} />{errors.operating_countries && <p className="mt-1 text-sm text-destructive-strong">{errors.operating_countries.message as string}</p>}</div>
       <div className="mt-5"><Label className="mb-2 block">Preferred funding types</Label><Controller control={control} name="preferred_funding_types" render={({ field }) => <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{FUNDING_TYPE_OPTIONS.map((type) => { const checked=(field.value??[]).includes(type); return <label key={type} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm"><input type="checkbox" checked={checked} onChange={(e)=>field.onChange(e.target.checked ? [...(field.value??[]), type] : (field.value??[]).filter((v)=>v!==type))} /><span className="capitalize">{type}</span></label>; })}</div>} /></div>
     </div>
   </div>;
