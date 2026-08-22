@@ -64,9 +64,15 @@ export const profileFundingIntelligence = pgTable("profiles", {
   businessIdentityCandidateId: uuid("business_identity_candidate_id"),
 });
 
-/** Same-table projection: current-cycle status only; not registered in dbSchema. */
+/**
+ * Same-table projection: funding provenance + current-cycle status only; not
+ * registered in dbSchema because coreSchema already owns funding_opportunities.
+ */
 export const fundingOpportunityStatus = pgTable("funding_opportunities", {
   id: uuid("id").notNull(),
+  sourceUrl: text("source_url"),
+  sourceName: text("source_name"),
+  verificationStatus: text("verification_status").notNull().default("unverified"),
   applicationStatus: text("application_status").notNull().default("unknown"),
   statusCheckedAt: timestamp("status_checked_at", { withTimezone: true }),
   statusEvidenceUrl: text("status_evidence_url"),
