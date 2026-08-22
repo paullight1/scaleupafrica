@@ -47,6 +47,7 @@ jobs:
             supabase/functions/payment-reconciliation/index.ts \
             supabase/functions/aggregate-funding/index.ts \
             supabase/functions/business-enrichment/index.ts \
+            supabase/functions/funding-source-refresh/index.ts \
             supabase/functions/send-email/index.ts \
             supabase/functions/email-unsubscribe/index.ts
 
