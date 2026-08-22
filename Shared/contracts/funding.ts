@@ -128,6 +128,9 @@ export interface CuratedOpportunity {
   countryFocus: string[];
   featured: boolean;
   lastVerifiedAt: string | null;
+  sourceUrl: string | null;
+  sourceName: string | null;
+  verificationStatus: VerificationStatus;
   details: Record<string, unknown>;
   applicationStatus: ApplicationStatus;
   statusCheckedAt: string | null;
