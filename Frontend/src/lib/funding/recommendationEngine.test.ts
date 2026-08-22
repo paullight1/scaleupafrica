@@ -41,6 +41,11 @@ function opportunity(
     lastVerifiedAt: "2026-08-19T12:00:00Z",
     sourceUrl: "https://example.org/program",
     verificationStatus: "verified",
+    applicationStatus: "open",
+    statusCheckedAt: "2026-08-21T10:00:00Z",
+    applicationUrl: "https://example.org/program/apply",
+    deadlineAt: "2026-10-01T23:59:59Z",
+    deadlineStatus: "confirmed",
     details: {
       business_stages: ["growth", "scale"],
       min_award_usd: 50_000,
@@ -189,6 +194,43 @@ describe("recommendOpportunity", () => {
     expect(recent.matchScore).toBeGreaterThan(0);
     expect(recent.confidenceScore).toBeGreaterThan(stale.confidenceScore);
     expect(recent.confidenceScore).toBeGreaterThan(fakeFresh.confidenceScore);
+  });
+
+  it("keeps a strong closed match scored but excludes it from primary apply-now output", () => {
+    const open = recommendOpportunity(profile(), opportunity(), NOW);
+    const closed = recommendOpportunity(
+      profile(),
+      opportunity({ applicationStatus: "closed", statusCheckedAt: "2026-08-21T10:00:00Z" }),
+      NOW,
+    );
+    expect(closed.matchScore).toBe(open.matchScore);
+    expect(closed.applicationStatus).toBe("closed");
+    expect(closed.primaryApplyEligible).toBe(false);
+    expect(open.primaryApplyEligible).toBe(true);
+  });
+
+  it("downgrades a stale stored OPEN status to effective unknown before rendering", () => {
+    const result = recommendOpportunity(
+      profile(),
+      opportunity({ applicationStatus: "open", statusCheckedAt: "2026-08-19T10:00:00Z" }),
+      NOW,
+    );
+    expect(result.applicationStatus).toBe("unknown");
+    expect(result.primaryApplyEligible).toBe(false);
+  });
+
+  it("never promotes unverified discovery into primary apply-now output", () => {
+    const result = recommendOpportunity(
+      profile(),
+      opportunity({
+        verificationStatus: "unverified",
+        sourceUrl: null,
+        applicationStatus: "open",
+        statusCheckedAt: "2026-08-21T11:00:00Z",
+      }),
+      NOW,
+    );
+    expect(result.primaryApplyEligible).toBe(false);
   });
 });
 
