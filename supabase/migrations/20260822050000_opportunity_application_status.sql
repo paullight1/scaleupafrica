@@ -55,6 +55,112 @@ CREATE POLICY "Staff read funding source checks"
   TO authenticated
   USING (public.is_staff(auth.uid()));
 
+-- Append a source-check attempt and, only for a successful extraction/classification,
+-- apply the canonical cycle state in the same transaction. check_key makes retries
+-- idempotent: a repeated attempt key cannot create a second transition.
+CREATE OR REPLACE FUNCTION public.record_funding_status_check(
+  _check_key UUID,
+  _opportunity_id UUID,
+  _source_id UUID,
+  _source_url TEXT,
+  _checked_at TIMESTAMPTZ,
+  _http_status INTEGER,
+  _content_type TEXT,
+  _content_bytes INTEGER,
+  _source_fingerprint TEXT,
+  _extracted_signals JSONB,
+  _classified_status TEXT,
+  _error_class TEXT,
+  _apply_canonical BOOLEAN DEFAULT false,
+  _status_evidence_url TEXT DEFAULT NULL,
+  _opens_at TIMESTAMPTZ DEFAULT NULL,
+  _deadline_at TIMESTAMPTZ DEFAULT NULL,
+  _deadline_timezone TEXT DEFAULT NULL,
+  _deadline_status TEXT DEFAULT 'unknown',
+  _current_cycle_label TEXT DEFAULT NULL,
+  _application_url TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  inserted_count INTEGER := 0;
+BEGIN
+  IF _classified_status NOT IN ('open','closing_soon','rolling','upcoming','closed','paused','unknown') THEN
+    RAISE EXCEPTION 'Invalid classified funding status';
+  END IF;
+  IF _deadline_status NOT IN ('confirmed','rolling','unknown') THEN
+    RAISE EXCEPTION 'Invalid deadline status';
+  END IF;
+
+  INSERT INTO public.funding_source_checks (
+    check_key,
+    opportunity_id,
+    source_id,
+    source_url,
+    checked_at,
+    http_status,
+    content_type,
+    content_bytes,
+    source_fingerprint,
+    extracted_signals,
+    classified_status,
+    error_class
+  ) VALUES (
+    _check_key,
+    _opportunity_id,
+    _source_id,
+    _source_url,
+    COALESCE(_checked_at, now()),
+    _http_status,
+    _content_type,
+    _content_bytes,
+    _source_fingerprint,
+    COALESCE(_extracted_signals, '{}'::jsonb),
+    _classified_status,
+    _error_class
+  )
+  ON CONFLICT (check_key) DO NOTHING;
+
+  GET DIAGNOSTICS inserted_count = ROW_COUNT;
+  IF inserted_count = 0 THEN
+    RETURN false;
+  END IF;
+
+  IF _apply_canonical THEN
+    UPDATE public.funding_opportunities
+    SET application_status = _classified_status,
+        status_checked_at = COALESCE(_checked_at, now()),
+        status_evidence_url = _status_evidence_url,
+        opens_at = _opens_at,
+        deadline_at = _deadline_at,
+        deadline_timezone = _deadline_timezone,
+        deadline_status = _deadline_status,
+        current_cycle_label = _current_cycle_label,
+        application_url = _application_url,
+        updated_at = now()
+    WHERE id = _opportunity_id;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Funding opportunity not found';
+    END IF;
+  END IF;
+
+  RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.record_funding_status_check(
+  UUID, UUID, UUID, TEXT, TIMESTAMPTZ, INTEGER, TEXT, INTEGER, TEXT, JSONB,
+  TEXT, TEXT, BOOLEAN, TEXT, TIMESTAMPTZ, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_funding_status_check(
+  UUID, UUID, UUID, TEXT, TIMESTAMPTZ, INTEGER, TEXT, INTEGER, TEXT, JSONB,
+  TEXT, TEXT, BOOLEAN, TEXT, TIMESTAMPTZ, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT
+) TO service_role;
+
 COMMENT ON COLUMN public.funding_opportunities.application_status IS
   'Current-cycle application state. Independent of verification_status and always freshness-gated at read time.';
 COMMENT ON COLUMN public.funding_opportunities.deadline_status IS
