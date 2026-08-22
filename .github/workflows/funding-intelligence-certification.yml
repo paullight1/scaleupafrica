@@ -1,0 +1,97 @@
+name: Funding Intelligence Certification
+
+on:
+  pull_request:
+    paths:
+      - "Shared/contracts/funding.ts"
+      - "Shared/src/lib/fundingStatus.ts"
+      - "Shared/src/lib/fundingCertification.ts"
+      - "Shared/src/lib/fundingNotifications.ts"
+      - "Frontend/src/lib/funding/**"
+      - "Frontend/src/components/funding/**"
+      - "Frontend/src/hooks/queries/funding*.ts"
+      - "Frontend/src/hooks/queries/memberOpportunityState*.ts"
+      - "Backend/src/funding/**"
+      - "Backend/test/funding*.spec.ts"
+      - "supabase/functions/aggregate-funding/**"
+      - "supabase/functions/funding-source-refresh/**"
+      - "supabase/functions/_shared/funding*.ts"
+      - "supabase/migrations/2026082205*.sql"
+      - "supabase/migrations/2026082206*.sql"
+      - "supabase/migrations/2026082207*.sql"
+      - "docs/production-readiness/fixtures/funding-intelligence-certification-v1.json"
+      - ".github/workflows/funding-intelligence-certification.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    name: funding-intelligence-certification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Shared status and certification gates
+        run: |
+          npm run test --workspace Shared -- \
+            src/lib/fundingStatus.test.ts \
+            src/lib/fundingCertification.test.ts \
+            src/lib/fundingCertificationBenchmark.test.ts \
+            src/lib/fundingNotifications.test.ts \
+            src/lib/funding-subscriber-analytics.test.ts
+
+      - name: Paid Funding Radar trust gates
+        run: |
+          npm run test --workspace Frontend -- \
+            src/lib/funding/primaryFundingGate.test.ts \
+            src/lib/funding/recommendationEngine.test.ts \
+            src/components/funding/FundingRadarTabs.test.tsx \
+            src/components/funding/FundingWorkspace.test.tsx \
+            src/components/funding/OpportunityCard.test.tsx \
+            src/components/funding/OpportunityCard.member.test.tsx \
+            src/hooks/queries/memberOpportunityState.test.ts
+
+      - name: Backend funding parity gates
+        run: |
+          npm run test --workspace Backend -- \
+            test/funding-status.spec.ts \
+            test/funding-verified-first.spec.ts \
+            test/funding-search-ranking.spec.ts
+
+      - name: Typecheck workspaces
+        run: npm run typecheck --workspaces --if-present
+
+      - name: Deno-check funding trust boundary
+        run: |
+          deno check \
+            supabase/functions/aggregate-funding/index.ts \
+            supabase/functions/funding-source-refresh/index.ts \
+            supabase/functions/business-enrichment/index.ts
+
+      - name: Repository trust invariants
+        run: |
+          grep -q 'application_status:"unknown"' supabase/functions/aggregate-funding/index.ts
+          grep -q 'verification_status:"unverified"' supabase/functions/aggregate-funding/index.ts
+          grep -q 'MAX_BATCH=25' supabase/functions/funding-source-refresh/index.ts
+          grep -q 'Do not output a trusted application_status' supabase/functions/_shared/fundingSourceSignals.ts
+          grep -q 'You’re not currently eligible for any verified open opportunities.' Frontend/src/components/funding/FundingWorkspace.tsx
