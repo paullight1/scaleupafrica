@@ -1,0 +1,39 @@
+name: P0 Funding Intelligence Focused
+
+on:
+  push:
+    branches:
+      - docs/cresciva-production-readiness
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-funding-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: npm ci --no-audit --no-fund
+      - name: Business identity tests
+        run: npm run test --workspace Shared -- businessIdentity.test.ts
+      - name: Business enrichment contract tests
+        run: npm run test --workspace Backend -- business-enrichment-contracts.spec.ts
+      - name: Safe external fetch contract
+        run: npm run test --workspace Frontend -- safe-external-fetch-contract.test.ts
+      - name: Deno check safe fetch when present
+        run: |
+          if [ -f supabase/functions/_shared/safeExternalFetch.ts ]; then
+            deno check supabase/functions/_shared/safeExternalFetch.ts
+          fi
