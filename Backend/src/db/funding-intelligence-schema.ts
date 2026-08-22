@@ -64,10 +64,7 @@ export const profileFundingIntelligence = pgTable("profiles", {
   businessIdentityCandidateId: uuid("business_identity_candidate_id"),
 });
 
-/**
- * Same-table projection: funding provenance + current-cycle status only; not
- * registered in dbSchema because coreSchema already owns funding_opportunities.
- */
+/** Same-table projection: funding provenance/current-cycle status; not registered. */
 export const fundingOpportunityStatus = pgTable("funding_opportunities", {
   id: uuid("id").notNull(),
   sourceUrl: text("source_url"),
@@ -129,8 +126,25 @@ export const fundingSourceChecks = pgTable(
   ],
 );
 
+export const memberOpportunityState = pgTable(
+  "member_opportunity_state",
+  {
+    userId: uuid("user_id").notNull(),
+    opportunityId: uuid("opportunity_id").notNull(),
+    state: text("state").notNull().default("saved"),
+    note: text("note"),
+    appliedAt: timestamp("applied_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("member_opportunity_state_user_updated_idx").on(t.userId, t.updatedAt),
+    index("member_opportunity_state_opportunity_idx").on(t.opportunityId, t.state),
+  ],
+);
+
 export type BusinessEnrichmentRunRow = typeof businessEnrichmentRuns.$inferSelect;
 export type BusinessEnrichmentCandidateRow = typeof businessEnrichmentCandidates.$inferSelect;
 export type ProfileFundingIntelligenceRow = typeof profileFundingIntelligence.$inferSelect;
 export type FundingOpportunityStatusRow = typeof fundingOpportunityStatus.$inferSelect;
 export type FundingSourceCheckRow = typeof fundingSourceChecks.$inferSelect;
+export type MemberOpportunityStateRow = typeof memberOpportunityState.$inferSelect;
