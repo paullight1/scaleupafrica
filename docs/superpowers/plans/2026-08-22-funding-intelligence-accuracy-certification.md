@@ -4,9 +4,9 @@
 
 **Goal:** Create a repeatable evidence gate proving that Cresciva's business identity, current-cycle status, eligibility and top recommendations meet the accuracy standard required for the paid funding promise.
 
-**Architecture:** Build a versioned benchmark corpus with human-labelled organisation identities, opportunity cycles and eligibility/relevance judgments. Run deterministic evaluation code in CI against frozen fixtures; run a separate live/staging source-freshness certification against deployed providers. Release claims are driven by measured thresholds, not by unit-test count or anecdotal examples.
+**Architecture:** Build a versioned benchmark corpus with human-labelled organisation identities, opportunity cycles and eligibility/relevance judgments. Run deterministic evaluation code in CI against frozen fixtures using the exact production identity/status/recommendation functions; run separate staging/live source-freshness certification against deployed providers. Release claims are driven by measured thresholds, not unit-test count or anecdotal examples.
 
-**Tech Stack:** TypeScript/Node 22, Vitest, JSON fixtures, existing Recommendation/Search/Status/Identity engines, GitHub Actions, Markdown evidence reports.
+**Tech Stack:** TypeScript on Node 22's type-stripping runtime, Vitest, JSON fixtures, existing Recommendation/Search/Status/Identity engines, GitHub Actions, Markdown evidence reports.
 
 **Spec:** `docs/superpowers/specs/2026-08-22-business-to-funding-intelligence-design.md`
 
@@ -14,11 +14,13 @@
 
 - Benchmark labels are human/source-grounded; an LLM cannot grade its own production outputs.
 - Minimum certification corpus: 100 organisation profiles and 200 opportunity-cycle records.
-- Primary source evidence must be retained as URL + bounded excerpt/fact metadata; do not copy entire third-party pages into fixtures.
-- Benchmark must include positive, negative, ambiguous and unknown cases.
+- Primary source evidence is retained as URL + bounded fact/excerpt metadata; do not copy entire third-party pages into fixtures.
+- Benchmark includes positive, negative, ambiguous and unknown cases.
 - No sensitive demographic inference fixtures unless a user-supplied field is explicitly needed to test a legitimate eligibility rule.
 - Paid `Open for you` production claim remains gated until all P0 thresholds pass.
-- Evaluation failures cannot be waived by changing the metric after seeing the result; metric/version changes require documented rationale and a new benchmark version.
+- Metric/version changes require documented rationale and a new benchmark version; do not move thresholds after seeing a failing score.
+- The evaluator imports the exact production modules; it must not reimplement scoring/classification logic.
+- Normal CI never performs live third-party network checks.
 
 ---
 
@@ -48,23 +50,24 @@ Any P0 threshold failure = release gate FAIL.
 - `evaluation/funding/v1/organisations.json` — 100+ labelled organisation inputs/identities.
 - `evaluation/funding/v1/opportunity-cycles.json` — 200+ source-grounded cycle/status fixtures.
 - `evaluation/funding/v1/eligibility.json` — organisation/opportunity hard-eligibility labels.
-- `evaluation/funding/v1/relevance.json` — human relevance judgments for ranking metrics.
+- `evaluation/funding/v1/relevance.json` — human relevance judgments and candidate pools.
 - `evaluation/funding/v1/README.md` — labelling rubric and provenance rules.
-- `Shared/src/lib/fundingEvaluation.ts` — metrics.
-- `Shared/src/lib/fundingEvaluation.test.ts` — metric correctness tests.
-- `scripts/funding-intelligence-eval.mjs` — deterministic benchmark runner.
+- `Shared/src/lib/fundingEvaluation.ts` — pure metric helpers.
+- `Shared/src/lib/fundingEvaluation.test.ts` — metric/fixture-validation tests.
+- `scripts/funding-intelligence-eval.ts` — deterministic benchmark runner importing production TypeScript modules.
 - `docs/product/FUNDING-INTELLIGENCE-EVALUATION.md` — evaluation methodology.
-- `docs/production-readiness/evidence/funding-intelligence-certification.md` — current release evidence.
-- `.github/workflows/funding-intelligence-eval.yml` — benchmark gate.
+- `docs/production-readiness/evidence/funding-intelligence-certification.md` — release evidence.
+- `.github/workflows/funding-intelligence-eval.yml` — deterministic benchmark workflow.
 
 **Modify**
 
-- `package.json` — add `eval:funding` script.
-- `.github/workflows/ci.yml` — optionally require deterministic benchmark after runtime is proven acceptable; do not add live-network calls to normal CI.
-- `docs/product/RECOMMENDATION-ENGINE.md` — link to measured ranking gate.
-- `docs/product/OPPORTUNITY-SEARCH-ENGINE.md` — link to source/status accuracy gate.
-- `docs/product/BUSINESS-ENRICHMENT-ENGINE.md` — link identity precision gate.
-- `docs/product/OPPORTUNITY-STATUS-ENGINE.md` — link current-cycle precision gate.
+- `package.json` — add `eval:funding` script using Node 22 type stripping.
+- `docs/product/RECOMMENDATION-ENGINE.md` — link ranking certification.
+- `docs/product/OPPORTUNITY-SEARCH-ENGINE.md` — link source/status certification.
+- `docs/product/BUSINESS-ENRICHMENT-ENGINE.md` — link identity certification.
+- `docs/product/OPPORTUNITY-STATUS-ENGINE.md` — link current-cycle certification.
+
+**Do not modify normal `.github/workflows/ci.yml` in this plan.** The new evaluation workflow is its own release check; requiring it in branch protection is a repository-setting action after the workflow is observed green.
 
 ---
 
@@ -76,25 +79,27 @@ Any P0 threshold failure = release gate FAIL.
 - Create: `evaluation/funding/v1/opportunity-cycles.json`
 - Create: `evaluation/funding/v1/eligibility.json`
 - Create: `evaluation/funding/v1/relevance.json`
-- Test: `Shared/src/lib/fundingEvaluation.test.ts`
+- Create: `Shared/src/lib/fundingEvaluation.test.ts`
 
 **Interfaces:**
 
-Organisation fixture example:
+Organisation fixture:
 
 ```json
 {
   "id": "org-001",
   "input_name": "Example Organisation",
   "country_hint": "Nigeria",
+  "website_hint": "https://example.org",
   "expected_state": "resolved",
   "expected_canonical_name": "Example Organisation Ltd",
   "expected_domain": "example.org",
-  "source_urls": ["https://example.org/about"]
+  "source_urls": ["https://example.org/about"],
+  "reviewers": ["R1", "R2"]
 }
 ```
 
-Opportunity-cycle fixture example:
+Opportunity-cycle fixture:
 
 ```json
 {
@@ -105,18 +110,30 @@ Opportunity-cycle fixture example:
   "source_verified": true,
   "signals": {
     "explicit_open": true,
+    "explicit_closed": false,
+    "explicit_paused": false,
+    "explicit_rolling": false,
     "application_cta_active": true,
+    "opens_at": null,
     "deadline_at": "2026-09-30T23:59:00Z",
     "has_current_cycle_evidence": true,
     "conflict": false
   },
-  "expected_application_status": "open"
+  "expected_application_status": "open",
+  "source_urls": ["https://funder.example/2026"],
+  "reviewers": ["R1", "R2"]
 }
 ```
 
 - [ ] **Step 1: Write failing fixture-validation tests**
 
-Validate IDs unique, required provenance present and minimum counts enforceable.
+Tests must fail when:
+
+- fixture IDs repeat;
+- a P0 fixture lacks two reviewer IDs;
+- an expected resolved identity lacks source URLs;
+- a confirmed deadline fixture lacks current-cycle source evidence;
+- fixture counts are below the configured certification minimum when `certificationMode=true`.
 
 - [ ] **Step 2: Run RED**
 
@@ -124,9 +141,11 @@ Validate IDs unique, required provenance present and minimum counts enforceable.
 npm run test --workspace Shared -- fundingEvaluation.test.ts
 ```
 
-- [ ] **Step 3: Write labelling rubric**
+Expected: FAIL because metric/fixture helpers do not exist yet.
 
-Define how human reviewers label:
+- [ ] **Step 3: Write the exact labelling rubric**
+
+`evaluation/funding/v1/README.md` defines:
 
 ```text
 identity: resolved / ambiguous / not_found
@@ -135,11 +154,11 @@ eligibility: eligible / insufficient_information / ineligible
 relevance: 0 irrelevant, 1 weak, 2 relevant, 3 highly relevant
 ```
 
-Require two reviewers for all P0 test cases; disagreement is adjudicated and recorded.
+P0 cases require two reviewers; disagreement is adjudicated and the final label is recorded.
 
-- [ ] **Step 4: Seed initial fixtures**
+- [ ] **Step 4: Seed implementation fixtures**
 
-Start with at least 20 organisations and 40 cycles during implementation, then expand to minimum certification counts before PASS.
+Create at least 20 organisations, 40 cycles, 20 eligibility cases and 10 ranking candidate pools. The final PASS gate expands these counts in Task 10.
 
 - [ ] **Step 5: Commit**
 
@@ -159,50 +178,83 @@ git commit -m "test: define funding intelligence benchmark corpus"
 **Interfaces:**
 
 ```ts
-precision(tp, fp): number
-falsePositiveRate(fp, tn): number
-precisionAtK(labels, k): number
-ndcgAtK(relevance, k): number
-sourceCoverage(records): number
-freshnessViolationRate(records): number
+export function precision(tp: number, fp: number): number;
+export function falsePositiveRate(fp: number, tn: number): number;
+export function precisionAtK(relevance: number[], k: number): number;
+export function ndcgAtK(relevance: number[], k: number): number;
+export function sourceCoverage(records: { hasAuthoritativeSource: boolean }[]): number;
+export function freshnessViolationRate(records: { violatesFreshness: boolean }[]): number;
 ```
 
-- [ ] **Step 1: Write failing metric unit tests with hand-calculated answers**
-
-Example:
+- [ ] **Step 1: Add failing hand-calculated metric tests**
 
 ```ts
 expect(precision(8, 2)).toBe(0.8);
-expect(precisionAtK([3, 2, 0, 1, 0], 5)).toBe(0.6);
+expect(falsePositiveRate(1, 99)).toBe(0.01);
+expect(precisionAtK([3, 2, 0, 1, 0], 5)).toBe(0.4);
+expect(sourceCoverage([{ hasAuthoritativeSource: true }, { hasAuthoritativeSource: false }])).toBe(0.5);
 ```
 
-Define `useful` as relevance >=2 for Precision@K.
+`precisionAtK` counts relevance >=2 as useful, so the example above has 2 useful results out of 5 = `0.4`.
 
 - [ ] **Step 2: Run RED**
-
-- [ ] **Step 3: Implement pure metrics**
-
-Handle zero denominators explicitly and never return NaN.
-
-- [ ] **Step 4: Run GREEN**
 
 ```bash
 npm run test --workspace Shared -- fundingEvaluation.test.ts
 ```
 
+Expected: FAIL because `fundingEvaluation.ts` does not exist.
+
+- [ ] **Step 3: Implement pure metrics**
+
+Zero denominators return `0`, never `NaN` or `Infinity`.
+
+- [ ] **Step 4: Run GREEN**
+
+```bash
+npm run test --workspace Shared -- fundingEvaluation.test.ts
+npm run typecheck --workspace Shared
+```
+
+Expected: PASS.
+
 - [ ] **Step 5: Commit**
+
+```bash
+git add Shared/src/lib/fundingEvaluation.ts Shared/src/lib/fundingEvaluation.test.ts
+git commit -m "test: add funding intelligence evaluation metrics"
+```
 
 ---
 
-### Task 3: Evaluate Business Enrichment identity resolution
+### Task 3: Build the TypeScript benchmark runner and evaluate Business Enrichment
 
 **Files:**
-- Create: `scripts/funding-intelligence-eval.mjs`
+- Create: `scripts/funding-intelligence-eval.ts`
 - Modify: `package.json`
 
 **Interfaces:**
 
-Runner section output:
+Run with the repository's Node 22 floor:
+
+```json
+{
+  "scripts": {
+    "eval:funding": "node --experimental-strip-types scripts/funding-intelligence-eval.ts"
+  }
+}
+```
+
+The runner imports with explicit `.ts` extensions:
+
+```ts
+import {
+  scoreBusinessIdentity,
+  selectBusinessIdentity,
+} from "../Shared/src/lib/businessIdentity.ts";
+```
+
+Output section:
 
 ```json
 {
@@ -210,277 +262,439 @@ Runner section output:
     "auto_proposed": 72,
     "correct_auto_proposed": 72,
     "precision": 1,
-    "ambiguous_withheld_rate": 1
+    "ambiguous_withheld_rate": 1,
+    "wrong_auto_selections": 0
   }
 }
 ```
 
-- [ ] **Step 1: Write a failing runner smoke test or invoke against fixtures before implementation**
+- [ ] **Step 1: Prove runner RED**
 
 ```bash
 npm run eval:funding
 ```
 
-Expected: FAIL because script does not exist.
+Expected: FAIL because the script does not exist.
 
-- [ ] **Step 2: Import the production `scoreBusinessIdentity/selectBusinessIdentity` functions**
+- [ ] **Step 2: Implement fixture loading and production identity imports**
 
-Do not duplicate scoring in the evaluator.
+The runner must not reimplement name similarity or confidence thresholds.
 
-- [ ] **Step 3: Compute automatic-identity precision and ambiguity withholding**
+- [ ] **Step 3: Compute identity precision and ambiguity withholding**
 
-- [ ] **Step 4: Fail process when wrong auto-selection >0 in the acceptance corpus**
+Wrong auto-selection count is a hard failure in certification mode.
+
+- [ ] **Step 4: Run GREEN for the seeded corpus**
+
+```bash
+npm run eval:funding
+```
+
+Expected: command exits 0 only if the seeded fixture thresholds configured for implementation mode are met.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add scripts/funding-intelligence-eval.mjs package.json
+git add scripts/funding-intelligence-eval.ts package.json
 git commit -m "test: evaluate business identity precision"
 ```
 
 ---
 
-### Task 4: Evaluate opportunity status classification and freshness
+### Task 4: Evaluate Opportunity Status classification and freshness
 
 **Files:**
-- Modify: `scripts/funding-intelligence-eval.mjs`
-- Use: `Shared/src/lib/fundingStatus.ts`
-
-- [ ] **Step 1: Add failing status-evaluation assertions**
-
-Runner must report per-class precision and combined primary status precision for `open|closing_soon|rolling`.
-
-- [ ] **Step 2: Run benchmark and confirm initial failure/metrics output**
-
-- [ ] **Step 3: Evaluate exact production classifier against all cycle fixtures**
-
-- [ ] **Step 4: Add explicit historical-cycle contamination metric**
-
-Any fixture where a prior-cycle deadline causes a current-cycle OPEN classification is a hard failure.
-
-- [ ] **Step 5: Add stale primary-output metric**
-
-Expected `0` stale OPEN records past SLA.
-
-- [ ] **Step 6: Commit**
-
----
-
-### Task 5: Evaluate hard eligibility false positives
-
-**Files:**
-- Modify: `scripts/funding-intelligence-eval.mjs`
-- Use: `Frontend/src/lib/funding/recommendationEngine.ts` or move engine-neutral eligibility logic to Shared if import boundaries require it.
+- Modify: `scripts/funding-intelligence-eval.ts`
+- Use exactly: `Shared/src/lib/fundingStatus.ts`
 
 **Interfaces:**
 
-Report:
+Import:
+
+```ts
+import {
+  classifyFundingStatus,
+  isStatusFresh,
+} from "../Shared/src/lib/fundingStatus.ts";
+```
+
+- [ ] **Step 1: Add a failing status-evaluation section**
+
+Before implementation, require the report to contain:
 
 ```json
 {
-  "eligibility": {
-    "eligible_cases": 80,
-    "ineligible_cases": 70,
-    "false_positive_rate": 0.014
+  "status": {
+    "primary_precision": 0,
+    "historical_cycle_contamination": 0,
+    "stale_primary_records": 0
   }
 }
 ```
 
-- [ ] **Step 1: Add failing eligibility benchmark section**
-- [ ] **Step 2: Evaluate production hard rules only**
-- [ ] **Step 3: Treat `possibly_eligible/insufficient_information` as abstentions, not false positives**
-- [ ] **Step 4: Fail when an expected hard-ineligible case is labelled eligible**
-- [ ] **Step 5: Commit**
+with real computed values, not constants.
+
+- [ ] **Step 2: Run and verify RED**
+
+```bash
+npm run eval:funding
+```
+
+Expected: FAIL because status evaluation/report fields are not implemented.
+
+- [ ] **Step 3: Evaluate every cycle fixture through `classifyFundingStatus`**
+
+Report per-class precision plus combined precision for predicted `open|closing_soon|rolling`.
+
+- [ ] **Step 4: Add historical-cycle contamination check**
+
+Any fixture where prior-cycle evidence causes current-cycle `open|closing_soon|rolling` prediction increments `historical_cycle_contamination` and fails the gate.
+
+- [ ] **Step 5: Add freshness violations**
+
+Use the production `isStatusFresh` helper. Primary records past SLA fail.
+
+- [ ] **Step 6: Run GREEN and commit**
+
+```bash
+npm run eval:funding
+git add scripts/funding-intelligence-eval.ts
+git commit -m "test: evaluate current funding cycle accuracy"
+```
 
 ---
 
-### Task 6: Evaluate recommendation relevance at Top 5
+### Task 5: Evaluate hard eligibility false positives using the production Recommendation Engine
 
 **Files:**
-- Modify: `scripts/funding-intelligence-eval.mjs`
-- Use: production recommendation ranking.
+- Modify: `scripts/funding-intelligence-eval.ts`
+- Use exactly: `Frontend/src/lib/funding/recommendationEngine.ts`
 
-- [ ] **Step 1: Add ranking fixtures with a candidate pool per organisation**
+**Interfaces:**
 
-Each fixture must contain enough negative candidates to make ranking meaningful.
+Import:
 
-- [ ] **Step 2: Compute Precision@5 and NDCG@5**
-
-Primary release metric:
-
-```text
-Precision@5 >= 0.80
+```ts
+import {
+  recommendOpportunity,
+} from "../Frontend/src/lib/funding/recommendationEngine.ts";
 ```
 
-- [ ] **Step 3: Add per-segment readout**
+- [ ] **Step 1: Add failing eligibility report assertions**
 
-At minimum:
+Required output:
+
+```json
+{
+  "eligibility": {
+    "labelled_ineligible": 70,
+    "false_eligible": 1,
+    "false_positive_rate": 0.0142857,
+    "abstentions": 10
+  }
+}
+```
+
+- [ ] **Step 2: Run RED**
+
+```bash
+npm run eval:funding
+```
+
+Expected: FAIL until the evaluator calls `recommendOpportunity` on eligibility fixtures.
+
+- [ ] **Step 3: Evaluate production hard rules only**
+
+`possibly_eligible` and `insufficient_information` count as abstentions, not false positives. A fixture labelled hard-ineligible but predicted `eligible` is a false positive.
+
+- [ ] **Step 4: Run GREEN and commit**
+
+```bash
+npm run eval:funding
+git add scripts/funding-intelligence-eval.ts
+git commit -m "test: evaluate funding eligibility false positives"
+```
+
+---
+
+### Task 6: Evaluate recommendation relevance at Top 5 using production ranking
+
+**Files:**
+- Modify: `scripts/funding-intelligence-eval.ts`
+- Use exactly: `Frontend/src/lib/funding/recommendationEngine.ts`
+
+**Interfaces:**
+
+Import:
+
+```ts
+import {
+  rankRecommendations,
+} from "../Frontend/src/lib/funding/recommendationEngine.ts";
+```
+
+Each `relevance.json` fixture contains one profile, a candidate pool and a map of opportunity IDs to human relevance `0..3`.
+
+- [ ] **Step 1: Add failing ranking-report assertion**
+
+Require `precision_at_5`, `ndcg_at_5`, and per-segment rows.
+
+- [ ] **Step 2: Run RED**
+
+```bash
+npm run eval:funding
+```
+
+Expected: FAIL until ranking evaluation exists.
+
+- [ ] **Step 3: Rank each candidate pool with `rankRecommendations`**
+
+Map the top five IDs back to human relevance labels; calculate Precision@5 and NDCG@5.
+
+- [ ] **Step 4: Add segment readouts**
+
+Exactly these initial segments:
 
 ```text
 country
 organisation_type
 business_stage
-funding_type
+preferred_funding_type
 ```
 
-This is to catch a high average hiding a broken segment.
+Do not let a high global average hide a zero/very-low segment; report every segment with sample count.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Run GREEN and commit**
+
+```bash
+npm run eval:funding
+git add scripts/funding-intelligence-eval.ts
+git commit -m "test: evaluate top funding recommendation relevance"
+```
 
 ---
 
 ### Task 7: Add provenance, deadline and link-quality metrics
 
 **Files:**
-- Modify: `scripts/funding-intelligence-eval.mjs`
-
-- [ ] **Step 1: Measure authoritative source coverage for primary recommendations**
-
-Required >=95%.
-
-- [ ] **Step 2: Measure deadline provenance**
-
-Every `deadline_status=confirmed` primary record must have status/source evidence for the same current cycle. Required 100%.
-
-- [ ] **Step 3: Measure AI-promotion violations**
-
-Any AI-assisted/unverified record in primary Apply Now = hard failure.
-
-- [ ] **Step 4: Add live/staging broken-link probe mode**
-
-This mode is not normal CI. It performs bounded HEAD/GET checks against primary official URLs and requires <1% broken links.
-
-Command shape:
-
-```bash
-npm run eval:funding -- --live-links
-```
-
-Require explicit `ALLOW_FUNDING_LIVE_EVAL=1` to prevent accidental network calls.
-
-- [ ] **Step 5: Commit**
-
----
-
-### Task 8: Generate human-readable and machine-readable certification reports
-
-**Files:**
-- Create: `docs/production-readiness/evidence/funding-intelligence-certification.md`
-- Modify: `scripts/funding-intelligence-eval.mjs`
+- Modify: `scripts/funding-intelligence-eval.ts`
 
 **Interfaces:**
 
-Machine report:
+Report fields:
+
+```text
+primary_authoritative_source_coverage
+confirmed_deadline_source_coverage
+ai_primary_promotion_violations
+broken_primary_link_rate
+```
+
+- [ ] **Step 1: Add failing provenance report assertions**
+- [ ] **Step 2: Run RED**
+
+```bash
+npm run eval:funding
+```
+
+- [ ] **Step 3: Measure authoritative source coverage**
+
+A primary record counts covered only if the canonical recommendation has authoritative source evidence under the production trust contract.
+
+- [ ] **Step 4: Measure deadline provenance**
+
+Every primary `deadline_status=confirmed` record must reference evidence for the same current cycle. Required coverage = 1.0.
+
+- [ ] **Step 5: Measure AI promotion violations**
+
+Any `discovery_source=ai_assisted` or `verification_status!=verified` record classified into primary Apply Now is a hard failure.
+
+- [ ] **Step 6: Add explicit live-link mode**
+
+```bash
+ALLOW_FUNDING_LIVE_EVAL=1 npm run eval:funding -- --live-links
+```
+
+Without `ALLOW_FUNDING_LIVE_EVAL=1`, `--live-links` must exit non-zero before making a request. Live mode uses the same bounded safe-fetch helper and reports broken links; it is never called by normal CI.
+
+- [ ] **Step 7: Run deterministic GREEN and commit**
+
+```bash
+npm run eval:funding
+git add scripts/funding-intelligence-eval.ts
+git commit -m "test: evaluate funding provenance and deadline evidence"
+```
+
+---
+
+### Task 8: Generate machine-readable and human-readable certification reports
+
+**Files:**
+- Modify: `scripts/funding-intelligence-eval.ts`
+- Create: `docs/production-readiness/evidence/funding-intelligence-certification.md`
+- Create: `docs/product/FUNDING-INTELLIGENCE-EVALUATION.md`
+
+**Interfaces:**
+
+Machine report path:
 
 ```text
 artifacts/funding-intelligence-eval.json
 ```
 
-Markdown contains:
+Report must include:
 
 ```text
-benchmark version
-commit SHA
-run date
-counts
-metrics vs thresholds
+benchmark_version
+commit_sha
+run_date
+fixture_counts
+metric values
+thresholds
 PASS/FAIL per metric
-known external/live blockers
+live_checks_ran boolean
+external blockers
 ```
 
-- [ ] **Step 1: Add failing report-output test/command assertion**
-- [ ] **Step 2: Produce deterministic JSON report**
-- [ ] **Step 3: Render/update Markdown evidence from the JSON**
-- [ ] **Step 4: Verify no claims are emitted as PASS when live checks were skipped**
-- [ ] **Step 5: Commit**
+- [ ] **Step 1: Add failing report-output check**
+
+```bash
+rm -f artifacts/funding-intelligence-eval.json
+npm run eval:funding
+test -f artifacts/funding-intelligence-eval.json
+```
+
+Expected before implementation: final `test -f` fails.
+
+- [ ] **Step 2: Write deterministic JSON report from computed metrics**
+
+- [ ] **Step 3: Create evaluation methodology doc**
+
+Document fixture sources, human labelling, metric formulas, versioning and live-check separation.
+
+- [ ] **Step 4: Create certification evidence doc**
+
+When live checks are skipped, the report may state `REPOSITORY_BENCHMARK: PASS` but production live certification remains `BLOCKED_EXTERNAL`; never emit `PRODUCTION: PASS` from fixture-only evidence.
+
+- [ ] **Step 5: Verify and commit**
+
+```bash
+npm run eval:funding
+test -f artifacts/funding-intelligence-eval.json
+git add scripts/funding-intelligence-eval.ts docs/product/FUNDING-INTELLIGENCE-EVALUATION.md docs/production-readiness/evidence/funding-intelligence-certification.md
+git commit -m "docs: generate funding intelligence certification evidence"
+```
 
 ---
 
-### Task 9: Add GitHub Actions benchmark gate
+### Task 9: Add an independent GitHub Actions benchmark gate
 
 **Files:**
 - Create: `.github/workflows/funding-intelligence-eval.yml`
-- Modify: `package.json`
 
 **Interfaces:**
 
-Workflow runs on changes to:
+Workflow triggers on changes to:
 
 ```text
 Frontend/src/lib/funding/**
 Shared/src/lib/businessIdentity.ts
 Shared/src/lib/fundingStatus.ts
+Shared/src/lib/fundingEvaluation.ts
 supabase/functions/aggregate-funding/**
 supabase/functions/funding-source-refresh/**
 evaluation/funding/**
-scripts/funding-intelligence-eval.mjs
+scripts/funding-intelligence-eval.ts
 ```
-
-- [ ] **Step 1: Create Node 22 read-only workflow**
 
 Permissions:
 
 ```yaml
-contents: read
+permissions:
+  contents: read
 ```
 
-- [ ] **Step 2: Run locked install + deterministic benchmark**
+- [ ] **Step 1: Create Node 22 workflow**
+
+Steps:
 
 ```yaml
+- uses: actions/checkout@v4
+- uses: actions/setup-node@v4
+  with:
+    node-version: 22
+    cache: npm
 - run: npm ci --no-audit --no-fund
 - run: npm run eval:funding
+- uses: actions/upload-artifact@v4
+  with:
+    name: funding-intelligence-eval
+    path: artifacts/funding-intelligence-eval.json
 ```
 
-No live third-party network calls in this workflow.
+- [ ] **Step 2: Verify no live-network flag/secret exists in the workflow**
 
-- [ ] **Step 3: Upload JSON report artifact**
+```bash
+grep -n "ALLOW_FUNDING_LIVE_EVAL\|--live-links\|BRAVE_SEARCH_API_KEY" .github/workflows/funding-intelligence-eval.yml && exit 1 || true
+```
 
-- [ ] **Step 4: Verify a deliberately bad fixture causes workflow failure before restoring it**
+Expected: exit 0 because none of the prohibited live-network terms exist.
 
-This is required evidence that the gate can actually catch regressions.
+- [ ] **Step 3: Prove the gate can fail**
 
-- [ ] **Step 5: Commit**
+On the feature branch only, temporarily change one known-correct expected fixture label to a wrong P0 value, commit/push, observe the evaluation workflow fail, then restore the fixture in a new commit and observe the workflow pass. Do not merge the deliberately bad commit.
+
+- [ ] **Step 4: Commit the restored green workflow/fixtures**
+
+```bash
+git add .github/workflows/funding-intelligence-eval.yml evaluation/funding/v1
+git commit -m "ci: gate funding intelligence accuracy"
+```
+
+- [ ] **Step 5: Record branch-protection follow-up**
+
+Once the check name is observed green on GitHub, document that `funding-intelligence-eval` should become a required `main` check. If the connector cannot change branch protection, record it as an external repository-setting action.
 
 ---
 
 ### Task 10: Reach minimum certification corpus and run release gate
 
 **Files:**
-- Expand: `evaluation/funding/v1/*.json`
+- Expand: `evaluation/funding/v1/organisations.json`
+- Expand: `evaluation/funding/v1/opportunity-cycles.json`
+- Expand: `evaluation/funding/v1/eligibility.json`
+- Expand: `evaluation/funding/v1/relevance.json`
 - Modify: `docs/production-readiness/evidence/funding-intelligence-certification.md`
-- Create: `docs/product/FUNDING-INTELLIGENCE-EVALUATION.md`
+- Modify: all four engine manuals with benchmark version/results.
 
 - [ ] **Step 1: Expand to >=100 organisation fixtures**
 
-Include:
-
-- companies;
-- nonprofits/NGOs;
-- social enterprises;
-- associations;
-- early/growth/scale businesses;
-- multiple African countries;
-- ambiguous names;
-- no-public-footprint cases.
+Include companies, nonprofits/NGOs, social enterprises, associations, multiple stages/countries, ambiguous names and no-public-footprint cases.
 
 - [ ] **Step 2: Expand to >=200 opportunity-cycle fixtures**
 
-Include every status and at least:
+Include rolling, contradictory sources, historical pages, changed deadline, future opening, source outage, stale open and closed application portal with a generic live programme page.
 
-- rolling;
-- contradictory sources;
-- historic pages;
-- changed deadline;
-- future opening date;
-- source outage;
-- stale open;
-- closed application portal with generic live programme page.
+- [ ] **Step 3: Reach robust eligibility/ranking coverage**
 
-- [ ] **Step 3: Ensure >=2 human reviewers for P0 labels**
+Minimum:
 
-Record reviewer IDs/initials in metadata, not personal secrets.
+```text
+>=150 labelled organisation-opportunity eligibility pairs
+>=50 ranking candidate pools
+```
 
-- [ ] **Step 4: Run deterministic certification**
+- [ ] **Step 4: Confirm two human reviewers for every P0 identity/status/eligibility label**
+
+Run fixture validation:
+
+```bash
+npm run test --workspace Shared -- fundingEvaluation.test.ts
+```
+
+Expected: PASS in certification mode.
+
+- [ ] **Step 5: Run full deterministic certification**
 
 ```bash
 npm ci
@@ -488,18 +702,27 @@ npm run verify
 npm run eval:funding
 ```
 
-- [ ] **Step 5: Run staging/live source/link certification when real environment is available**
+Expected: exit 0 and every repository P0 metric meets its fixed threshold.
+
+- [ ] **Step 6: Run staging/live source/link certification when the real environment is available**
 
 ```bash
 ALLOW_FUNDING_LIVE_EVAL=1 npm run eval:funding -- --live-links
 ```
 
-- [ ] **Step 6: Record exact PASS/FAIL**
+Expected for production certification: broken primary link rate <1% and all live-source freshness checks satisfy the engine SLA.
 
-If live provider/Supabase deployment is unavailable, repository benchmark may PASS while production certification remains `BLOCKED_EXTERNAL`.
+- [ ] **Step 7: Record exact release state**
 
-- [ ] **Step 7: Update all engine manuals with benchmark version and measured results**
+If the deployed provider/Supabase environment is unavailable, repository benchmark may PASS while production certification remains `BLOCKED_EXTERNAL`.
+
+- [ ] **Step 8: Commit final evidence**
+
+```bash
+git add evaluation/funding/v1 docs/product docs/production-readiness/evidence/funding-intelligence-certification.md artifacts/funding-intelligence-eval.json
+git commit -m "docs: certify funding intelligence accuracy"
+```
 
 ## Plan PASS gate
 
-The paid `Open for you` claim is approved for production only when every P0 metric meets its threshold on the minimum corpus, deterministic repository gates are green, and the live/staging freshness/link checks pass against the deployed Cresciva environment. No metric may be waived merely to meet a launch date.
+The paid `Open for you` claim is approved for production only when every P0 metric meets its fixed threshold on the minimum corpus, deterministic repository gates are green, and the staging/live freshness/link checks pass against the deployed Cresciva environment. No metric may be waived merely to meet a launch date.
