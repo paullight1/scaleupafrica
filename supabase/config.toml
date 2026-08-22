@@ -22,6 +22,13 @@ verify_jwt = true
 [functions.business-enrichment]
 verify_jwt = true
 
+# Funding status refresh supports two auth modes: staff JWT for a single manual
+# recheck, and X-Cresciva-Refresh-Secret for scheduler batches. Supabase's outer
+# JWT verification must therefore be disabled; the function authenticates either
+# mode explicitly before any source reads/writes.
+[functions.funding-source-refresh]
+verify_jwt = false
+
 # Transactional email (Resend). Both are called by SIGNED-OUT visitors — the
 # contact form, the newsletter box, the gated-resource form, and the
 # List-Unsubscribe link in every bulk email — so neither can require a JWT.
