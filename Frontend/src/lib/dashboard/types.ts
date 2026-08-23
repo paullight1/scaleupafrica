@@ -2,21 +2,28 @@ import type { Tables } from "@shared/integrations/supabase/types";
 import type { ProfileSection } from "./routes";
 
 /**
- * Domain type aliases for the dashboard. Sourced from the generated Supabase
- * types where the table exists. `saved_opportunities` and `user_preferences`
- * are added by 20260720160000_dashboard_tables.sql; until the generated types
- * are regenerated (a manual post-migration step — see HANDOFF), they are
- * declared locally here and the query layer casts the client for those two
- * tables only. Plan 07 re-points these aliases at API DTOs in one place.
+ * Domain type aliases for the dashboard. The generated Supabase snapshot predates
+ * several profile/funding columns from later migrations, so the dashboard extends
+ * those row types locally until the production project is available for a trustworthy
+ * type regeneration.
  */
-export type Profile = Tables<"profiles">;
-export type FundingOpportunity = Tables<"funding_opportunities">;
+type GeneratedProfile = Tables<"profiles">;
+export type Profile = GeneratedProfile & {
+  business_stage?: string | null;
+  funding_target_usd?: number | null;
+  preferred_funding_types?: string[] | null;
+  application_readiness?: "exploring" | "preparing" | "ready" | null;
+};
 
-/**
- * What a signed-in NON-member may see of the feed — the exact column set the
- * `funding_teaser` RPC returns (20260802120000). Deliberately missing `url`,
- * `summary`, `eligibility`, `amount` and `details`: those are the membership.
- */
+type GeneratedFundingOpportunity = Tables<"funding_opportunities">;
+export type FundingOpportunity = GeneratedFundingOpportunity & {
+  details?: Record<string, unknown> | null;
+  last_verified_at?: string | null;
+  source_url?: string | null;
+  source_name?: string | null;
+  verification_status?: "verified" | "stale" | "unverified" | null;
+};
+
 export interface TeaserOpportunity {
   id: string;
   title: string;
@@ -27,7 +34,6 @@ export interface TeaserOpportunity {
 
 export interface FundingTeaser {
   items: TeaserOpportunity[];
-  /** Total published rows, so the UI can say "+18 more" truthfully. */
   totalPublished: number;
 }
 
@@ -43,7 +49,6 @@ export interface SavedOpportunity {
   created_at: string;
 }
 
-/** Saved row joined with its funding opportunity (may be null if the opp was deleted). */
 export interface SavedOpportunityWithFunding extends SavedOpportunity {
   funding_opportunities: FundingOpportunity | null;
 }
@@ -56,17 +61,14 @@ export interface UserPreferences {
   updated_at: string;
 }
 
-/** A missing profile field, deep-linkable into the profile editor. */
 export interface MissingItem {
   key: string;
   label: string;
   weight: number;
-  /** The editor section that fixes this gap. */
   section: ProfileSection;
   href: string;
 }
 
-/** A next-best-action guidance item. */
 export interface Action {
   key: string;
   title: string;

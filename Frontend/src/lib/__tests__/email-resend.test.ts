@@ -92,7 +92,7 @@ describe("sendEmail", () => {
     expect(calls).toHaveLength(1);
     expect(result).toMatchObject({ ok: false, status: 422, retryable: false });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("Invalid");
+    if (result.ok === false) expect(result.error).toContain("Invalid");
   });
 
   it("retries a thrown network error", async () => {
@@ -160,12 +160,11 @@ describe("redact", () => {
 
   it("never leaks the key through an error message", async () => {
     const impl = vi.fn(async () =>
-      // A provider echoing the auth header back into the error body.
       new Response(JSON.stringify({ message: `Bad key: ${KEY}` }), { status: 401 }),
     ) as unknown as typeof fetch;
     const result = await sendEmail(KEY, BASE, { fetchImpl: impl, sleepImpl: noSleep });
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       expect(result.error).not.toContain(KEY);
       expect(result.error).toContain("re_***");
     }

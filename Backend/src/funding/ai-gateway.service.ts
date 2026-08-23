@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ENV, type Env } from "../config/env";
 import { parseOpportunities, type Opportunity } from "../contracts";
 
@@ -13,11 +13,49 @@ export class GatewayError extends Error {
 
 const GATEWAY_TIMEOUT_MS = 60_000;
 
-/**
- * Ports the aggregate-funding edge function's model call: same system/user prompts
- * (verbatim), env-driven url/key/model. Validates + sanitizes output through the
- * shared OpportunitySchema — never returns or persists raw model output.
- */
+const SYSTEM_PROMPT = `You are an AI-assisted funding discovery analyst for African SMEs. Return ONLY valid JSON matching the requested schema.
+
+CRITICAL RULES:
+- Return between 0 and 10 candidate opportunities. ZERO is valid. Prefer fewer plausible candidates over padding.
+- NEVER invent a fictional funder, program, amount, URL, deadline, or recipient.
+- If you are not confident a program exists, omit it.
+- If the CURRENT application deadline is unknown, use an empty string. NEVER substitute a typical or historical closing month for a current deadline.
+- Never claim that a result is verified, current, open, or source-checked unless that fact is actually known from your available information.
+- Past recipients must be empty unless genuinely known.
+- Focus on relevance to the user's query rather than forcing diversity or a minimum number of categories.
+- Cresciva will label every result from this call as AI-assisted and unverified until a separate source-verification process confirms it.`;
+
+function userPrompt(keywords: string): string {
+  return `Search request: "${keywords}"
+
+Return a JSON object with an "opportunities" array containing 0-10 items. Each item may contain:
+{
+  "title": string,
+  "funder": string,
+  "type": "Grant" | "Competition" | "Accelerator" | "Incubator" | "Fellowship" | "Scholarship" | "Pitch Event" | "Development Finance",
+  "summary": string,
+  "amount": string (empty if unknown),
+  "opens": string (empty if unknown),
+  "deadline": string (CURRENT application deadline only; empty string if unknown),
+  "eligibility": string,
+  "url": string (real http/https program or funder URL, empty if unknown),
+  "tags": string[],
+  "funder_about": string,
+  "sdg_focus": string[],
+  "past_recipients": [ { "business_name": string, "founder_name": string, "website": string, "note": string } ],
+  "application_tips": string[],
+  "travel_component": string,
+  "important_notes": string
+}
+
+Do not add filler to reach a target count. An empty opportunities array is better than uncertain or fabricated records. Never claim a result is verified.`;
+}
+
+export const fundingDiscoveryPrompt = {
+  system: SYSTEM_PROMPT,
+  user: userPrompt,
+} as const;
+
 @Injectable()
 export class AiGatewayService {
   private readonly logger = new Logger("AiGateway");
@@ -41,7 +79,7 @@ export class AiGatewayService {
             { role: "user", content: userPrompt(keywords) },
           ],
           response_format: { type: "json_object" },
-          max_tokens: 16000,
+          max_tokens: 9000,
         }),
         signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS),
       });
@@ -76,48 +114,21 @@ export class AiGatewayService {
       : [];
     let opportunities: Opportunity[];
     try {
-      opportunities = parseOpportunities(parsedRaw);
+      opportunities = parseOpportunities(parsedRaw).map((opportunity) => ({
+        ...opportunity,
+        discovery_source: "ai_assisted" as const,
+        verification_status: "unverified" as const,
+        source_checked_at: undefined,
+        match_reasons: [],
+      }));
     } catch {
       throw new GatewayError("invalid_ai_output");
     }
-    // A non-empty model response yielding zero valid items is a bad response.
-    if (opportunities.length === 0 && rawArray.length > 0) throw new GatewayError("invalid_ai_output");
+
+    // Explicit [] is a valid precision-first answer; non-empty garbage is not.
+    if (opportunities.length === 0 && rawArray.length > 0) {
+      throw new GatewayError("invalid_ai_output");
+    }
     return opportunities;
   }
-}
-
-const SYSTEM_PROMPT = `You are a funding intelligence analyst for African SMEs. Return ONLY valid JSON matching the schema.
-
-CRITICAL RULES:
-- Curate 15-25 REAL, verifiable funding opportunities (grants, competitions, accelerators, incubators, pitch events, development finance, scholarships, and FELLOWSHIPS with travel/exchange opportunities) accessible to African SMEs, founders, and young leaders.
-- NEVER invent fictional funders, programs, URLs, or founder examples. If you are not confident a program exists and is genuine, DO NOT include it.
-- Cast a WIDE net across credible funders and programs. Consider (non-exhaustive): Tony Elumelu Foundation, African Development Bank, GIZ, USADF, AECF, World Bank, IFC, Mastercard Foundation (incl. EleV, Africa Growth Fund), Google for Startups Africa / Black Founders Fund, Mandela Washington Fellowship (YALI), Obama Foundation Leaders Africa, Chevening, Commonwealth Scholarships, Acumen Fellowship, Anzisha Prize, Jack Ma Foundation Africa Netpreneur Prize, Ashoka, Echoing Green, Cartier Women's Initiative, One Young World, Orange Corners (Netherlands MFA), Westerwelle Young Founders Programme, Seedstars, MEST Africa, Founders Factory Africa, Norrsken Impact Accelerator, Village Capital, Injini, GreenTec Capital, Katapult Africa, FATE Foundation, LEAP Africa, She Leads Africa / SLA, Rising Tide Africa, AWIEF, Africa Enterprise Challenge Fund, DOEN Foundation, Segal Family Foundation, Draper Richards Kaplan, Skoll, Schwab Foundation, WEF Global Shapers, Commonwealth Youth Awards, UNLEASH, Global Citizen Year, MIT Solve, Hult Prize, Milken-Motsepe Prize, Africa's Business Heroes (Jack Ma), Total Startupper, Standard Bank / MTN / Access Bank programs, Shell LiveWIRE, IBM Sustainability Accelerator, Bloomberg Philanthropies, Rockefeller, Ford Foundation, Bill & Melinda Gates Foundation, DFC, FMO, Proparco, British International Investment, EU Delegation SME facilities, AfCFTA-related programs, and similar credible funders.
-- Include at least 3-5 FELLOWSHIP opportunities that offer travel, exchange, or residency components.
-- For each opportunity provide RICH detail so the founder can decide before visiting the funder site.
-- Prioritize breadth and diversity of funder types and geographies over repeating the same 2-3 funders.`;
-
-function userPrompt(keywords: string): string {
-  return `Keywords: "${keywords}"
-
-Return a JSON object with an "opportunities" array. Each item MUST have:
-{
-  "title": string,
-  "funder": string,
-  "type": "Grant" | "Competition" | "Accelerator" | "Incubator" | "Fellowship" | "Scholarship" | "Pitch Event" | "Development Finance",
-  "summary": string (2 sentences overview),
-  "amount": string (e.g. "Up to $50,000" or "" if unknown),
-  "opens": string (when applications open),
-  "deadline": string (APPLICATION DEADLINE — the last day to apply. Required. If unknown for the current cycle, give the typical closing month.),
-  "eligibility": string (short),
-  "url": string (funder homepage or program URL — must be a real https domain),
-  "tags": string[] (2-4 short tags),
-  "funder_about": string (2-3 sentences about the funding organization),
-  "sdg_focus": string[] (relevant UN SDGs),
-  "past_recipients": [ { "business_name": string, "founder_name": string, "website": string (or ""), "note": string } ] (2-4 examples if genuinely known, otherwise empty array — do NOT fabricate),
-  "application_tips": string[] (3-5 concrete tips),
-  "travel_component": string (describe travel/exchange/residency if fellowship, otherwise ""),
-  "important_notes": string (caveats or things to know)
-}
-
-Return AT LEAST 15 opportunities spanning different funder types. If you cannot recall genuine past recipients, return an empty array for past_recipients — never invent names.`;
 }

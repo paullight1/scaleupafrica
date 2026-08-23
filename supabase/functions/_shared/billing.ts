@@ -1,13 +1,14 @@
 // =============================================================================
-// CANONICAL server-side price list (Plan 06 §5.1). SOURCE OF TRUTH.
+// CANONICAL server-side membership price list. SOURCE OF TRUTH.
 //
 // Pure TypeScript — NO Deno globals — so it runs both on the Deno edge runtime
-// and under Vitest (Node). The client mirror in src/lib/billing.ts must stay in
-// lockstep; src/lib/__tests__/billing.test.ts asserts the two agree.
+// and under Vitest (Node). The client mirror in Frontend/src/lib/billing.ts must
+// stay in lockstep; billing tests assert the two agree.
 //
-// Amounts are integer subunits only (kobo for NGN, cents for USD) — never floats.
-// The client NEVER sends an amount; it sends { plan_code, currency } and the
-// server resolves the amount from this table.
+// Cresciva stores money internally as integer subunits (kobo/cents), never
+// floats. The browser NEVER sends an amount; it sends { plan_code, currency }
+// and the server resolves the amount here. Bachs expects decimal strings, so
+// conversion happens only in _shared/bachs.ts at the provider boundary.
 // =============================================================================
 
 export type PlanCode = "annual";

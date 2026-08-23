@@ -1,10 +1,18 @@
 import { z } from "zod";
 import { sanitizeUrl } from "@/lib/url";
 
-/**
- * Profile form schema (Plan 04). Named, human messages per field — never a bare "Required".
- * Shared with tests and importable by Plan 07's DTOs.
- */
+export const BUSINESS_STAGE_OPTIONS = ["idea", "early", "growth", "scale"] as const;
+export const APPLICATION_READINESS_OPTIONS = ["exploring", "preparing", "ready"] as const;
+export const FUNDING_TYPE_OPTIONS = [
+  "grant",
+  "competition",
+  "accelerator",
+  "incubator",
+  "development finance",
+  "equity",
+  "debt",
+] as const;
+
 export const profileSchema = z.object({
   business_name: z
     .string()
@@ -79,6 +87,30 @@ export const profileSchema = z.object({
     )
     .max(10, "Up to 10 keywords")
     .default([]),
+  business_stage: z.enum(BUSINESS_STAGE_OPTIONS).nullable().optional(),
+  funding_target_usd: z
+    .number({ invalid_type_error: "Enter a funding target as a number" })
+    .positive("Funding target must be greater than zero")
+    .max(1_000_000_000, "Funding target is too large")
+    .nullable()
+    .optional(),
+  preferred_funding_types: z
+    .array(z.string().trim().min(1).max(60))
+    .max(7, "Choose up to 7 funding types")
+    .default([]),
+  application_readiness: z.enum(APPLICATION_READINESS_OPTIONS).nullable().optional(),
+  organisation_type: z.string().trim().max(80, "Keep organisation type under 80 characters").optional().or(z.literal("")),
+  operating_countries: z
+    .array(z.string().trim().min(1).max(120))
+    .max(30, "Choose up to 30 operating countries")
+    .default([]),
+  founding_year: z
+    .number({ invalid_type_error: "Enter a four-digit founding year" })
+    .int("Enter a four-digit founding year")
+    .min(1800, "Founding year is too early")
+    .max(2100, "Founding year is too late")
+    .nullable()
+    .optional(),
   show_email: z.boolean().default(true),
   show_phone: z.boolean().default(true),
   show_whatsapp: z.boolean().default(true),
@@ -103,18 +135,31 @@ export const profileFormDefaults: ProfileFormValues = {
   logo_url: "",
   founder_photo_url: "",
   keywords: [],
+  business_stage: null,
+  funding_target_usd: null,
+  preferred_funding_types: [],
+  application_readiness: null,
+  organisation_type: "",
+  operating_countries: [],
+  founding_year: null,
   show_email: true,
   show_phone: true,
   show_whatsapp: true,
 };
 
-/**
- * Normalize validated form values into the DB payload: canonicalize URLs to their `https://`
- * form and lowercase/trim/dedupe keywords. `slug` is never sent — the DB trigger owns it.
- */
 export function normalizeProfileInput(v: ProfileFormValues) {
   const keywords = Array.from(
     new Set((v.keywords ?? []).map((k) => k.trim().toLowerCase()).filter(Boolean)),
+  );
+  const preferredFundingTypes = Array.from(
+    new Set(
+      (v.preferred_funding_types ?? [])
+        .map((type) => type.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  );
+  const operatingCountries = Array.from(
+    new Set((v.operating_countries ?? []).map((country) => country.trim()).filter(Boolean)),
   );
   return {
     business_name: v.business_name.trim(),
@@ -133,6 +178,13 @@ export function normalizeProfileInput(v: ProfileFormValues) {
     logo_url: v.logo_url || null,
     founder_photo_url: v.founder_photo_url || null,
     keywords,
+    business_stage: v.business_stage ?? null,
+    funding_target_usd: v.funding_target_usd ?? null,
+    preferred_funding_types: preferredFundingTypes,
+    application_readiness: v.application_readiness ?? null,
+    organisation_type: v.organisation_type?.trim() || null,
+    operating_countries: operatingCountries,
+    founding_year: v.founding_year ?? null,
     show_email: v.show_email,
     show_phone: v.show_phone,
     show_whatsapp: v.show_whatsapp,

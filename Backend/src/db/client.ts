@@ -1,21 +1,44 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import * as schema from "./schema";
+import * as coreSchema from "./schema";
+import { payments, paymentWebhookEvents } from "./payment-schema";
+import {
+  businessEnrichmentRuns,
+  businessEnrichmentCandidates,
+  fundingSourcesRegistry,
+  fundingSourceChecks,
+  memberOpportunityState,
+  notificationEvents,
+} from "./funding-intelligence-schema";
 
 /**
  * postgres-js + drizzle. The direct Postgres connection BYPASSES RLS (connects as
  * `postgres`, so auth.uid() is NULL) — which is exactly why every handler derives
- * ownership from the JWT `sub`, never from client input (plan 07 §2.4, §7.2).
+ * ownership from the JWT `sub`, never from client input.
  *
- * `prepare: false` is MANDATORY with the Supavisor transaction pooler (port 6543).
- * Created lazily so `import`ing schema/types never opens a socket (keeps build +
- * unit tests DB-free).
+ * `prepare: false` is mandatory with Supavisor transaction pooling.
+ * Same-table projections (`profileFundingIntelligence`, `fundingOpportunityStatus`)
+ * are intentionally not registered because coreSchema already owns those SQL tables.
+ *
+ * The current Bachs/data-rights payment projections intentionally override the
+ * historical payment definitions in coreSchema.
  */
-export type Db = ReturnType<typeof drizzle<typeof schema>>;
+export const dbSchema = {
+  ...coreSchema,
+  payments,
+  paymentWebhookEvents,
+  businessEnrichmentRuns,
+  businessEnrichmentCandidates,
+  fundingSourcesRegistry,
+  fundingSourceChecks,
+  memberOpportunityState,
+  notificationEvents,
+};
+export type Db = ReturnType<typeof drizzle<typeof dbSchema>>;
 
 export function createDb(databaseUrl: string): { db: Db; close: () => Promise<void> } {
   const sql = postgres(databaseUrl, { prepare: false, max: 10 });
-  const db = drizzle(sql, { schema });
+  const db = drizzle(sql, { schema: dbSchema });
   return { db, close: () => sql.end({ timeout: 5 }) };
 }
 

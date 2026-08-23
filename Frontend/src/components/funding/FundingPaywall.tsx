@@ -2,13 +2,7 @@ import { useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { Checkbox } from "@shared/components/ui/checkbox";
 import { Lock, AlertTriangle, ShieldAlert } from "lucide-react";
-// SIBLING CONTRACT (Plan 06 / payments): usePaystackCheckout() returns
-//   { startCheckout: (opts?: { next?: string }) => void; isPending: boolean }
-// This module is owned by Plan 06 and may not exist yet during Wave 3 — tsc will
-// report "Cannot find module '@/hooks/usePaystack'" until it lands. The
-// orchestrator's post-wave typecheck resolves it. (Previously this CTA linked to
-// /#pricing; Plan 06 repoints it at real checkout with a ?next=/funding return.)
-import { usePaystackCheckout } from "@/hooks/usePaystack";
+import { useBachsCheckout } from "@/hooks/useBachs";
 
 interface FundingPaywallProps {
   userEmail?: string;
@@ -16,17 +10,16 @@ interface FundingPaywallProps {
 
 /**
  * Shown when the subscription status is "inactive" (never on a fetch ERROR — that
- * renders ErrorState instead, IMPROVEMENTS §2.1). Owns the fraud-warning +
- * acknowledgement gate before checkout.
+ * renders ErrorState instead). Owns the fraud-warning + acknowledgement gate
+ * before the Bachs hosted checkout begins.
  *
- * The "example opportunities" cards that used to sit at the bottom are gone:
- * <FundingTeaserPanel> now renders three REAL currently-open opportunities
- * directly above this on /dashboard/funding, and invented examples next to
- * genuine listings read as padding at best and as bait at worst.
+ * The example-opportunity cards that used to sit at the bottom are gone:
+ * FundingTeaserPanel renders real currently-open opportunities directly above
+ * this surface instead of mixing invented examples with live listings.
  */
 export function FundingPaywall({ userEmail }: FundingPaywallProps) {
   const [acknowledged, setAcknowledged] = useState(false);
-  const { startCheckout, isPending } = usePaystackCheckout();
+  const { startCheckout, isPending } = useBachsCheckout();
 
   return (
     <div className="mx-auto max-w-3xl">

@@ -1,13 +1,7 @@
 // MIRROR of supabase/functions/_shared/fundingSchema.ts — change BOTH.
-// Edge (Deno) functions cannot import from src/; the two files are kept byte-similar.
-// Plan 07 (NestJS) removes this duplication when the API owns aggregation.
+// Edge (Deno) functions cannot import from src/; keep the schemas equivalent.
 import { z } from "zod";
 
-/**
- * Return a safe absolute href only for http/https URLs. Everything else — including
- * `javascript:`, `data:`, `vbscript:`, relative strings, and garbage — becomes null.
- * No model-supplied string may reach an <a href> without passing through here.
- */
 export function sanitizeExternalUrl(raw: unknown): string | null {
   if (typeof raw !== "string" && typeof raw !== "number") return null;
   try {
@@ -20,6 +14,15 @@ export function sanitizeExternalUrl(raw: unknown): string | null {
 }
 
 const trimmed = (max: number) => z.string().trim().max(max);
+
+export const DiscoverySourceSchema = z.enum(["verified_feed", "ai_assisted"]);
+export const VerificationStatusSchema = z.enum(["verified", "unverified", "stale"]);
+export const ApplicationStatusSchema = z.enum(["open", "closing_soon", "rolling", "upcoming", "closed", "paused", "unknown"]);
+export const DeadlineStatusSchema = z.enum(["confirmed", "rolling", "unknown"]);
+export type DiscoverySource = z.infer<typeof DiscoverySourceSchema>;
+export type VerificationStatus = z.infer<typeof VerificationStatusSchema>;
+export type ApplicationStatus = z.infer<typeof ApplicationStatusSchema>;
+export type DeadlineStatus = z.infer<typeof DeadlineStatusSchema>;
 
 export const RecipientSchema = z.object({
   business_name: z.string().trim().min(1).max(200),
@@ -37,7 +40,7 @@ export const OpportunitySchema = z.object({
   opens: trimmed(300).default(""),
   deadline: trimmed(300).default(""),
   eligibility: trimmed(300).default(""),
-  url: z.unknown().transform(sanitizeExternalUrl), // nullable — card hides the button if null
+  url: z.unknown().transform(sanitizeExternalUrl),
   tags: z.array(z.string().trim().max(40)).max(6).default([]),
   funder_about: trimmed(1000).optional(),
   travel_component: trimmed(1000).optional(),
@@ -45,6 +48,19 @@ export const OpportunitySchema = z.object({
   sdg_focus: z.array(z.string().trim().max(80)).max(8).default([]),
   past_recipients: z.array(RecipientSchema).max(6).default([]),
   application_tips: z.array(z.string().trim().max(300)).max(8).default([]),
+  discovery_source: DiscoverySourceSchema.optional(),
+  verification_status: VerificationStatusSchema.optional(),
+  source_checked_at: trimmed(100).optional(),
+  application_status: ApplicationStatusSchema.optional(),
+  status_checked_at: trimmed(100).optional(),
+  status_evidence_url: z.unknown().transform(sanitizeExternalUrl).optional(),
+  opens_at: trimmed(100).optional(),
+  deadline_at: trimmed(100).optional(),
+  deadline_timezone: trimmed(80).optional(),
+  deadline_status: DeadlineStatusSchema.optional(),
+  current_cycle_label: trimmed(120).optional(),
+  application_url: z.unknown().transform(sanitizeExternalUrl).optional(),
+  match_reasons: z.array(z.string().trim().max(240)).max(6).default([]),
 });
 
 export type Recipient = z.infer<typeof RecipientSchema>;
@@ -52,13 +68,6 @@ export type Opportunity = z.infer<typeof OpportunitySchema>;
 
 const MAX_ITEMS = 30;
 
-/**
- * Validate model / cache / storage output into a clean Opportunity[].
- * Accepts either an array or `{ opportunities: [...] }`. Invalid ITEMS are dropped
- * (an empty array is a valid "no matches" result). A payload that is not an object
- * and not an array (missing the shape entirely) is treated as an ERROR — callers
- * distinguish "no results" from "bad response".
- */
 export function parseOpportunities(input: unknown): Opportunity[] {
   let items: unknown[];
   if (Array.isArray(input)) {
@@ -84,12 +93,6 @@ export function parseOpportunities(input: unknown): Opportunity[] {
   return out;
 }
 
-/**
- * Deterministic cache key. Lowercase, strip to [a-z0-9\s-], collapse whitespace,
- * sort tokens, join with single space, cap 200 chars. Order- and case-insensitive:
- * "FinTech, Nigeria" and "nigeria fintech" both normalize to "fintech nigeria".
- * MUST match the server copy exactly (shared cache keys).
- */
 export function normalizeKeywords(raw: string): string {
   return String(raw ?? "")
     .toLowerCase()

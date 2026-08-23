@@ -4,22 +4,23 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock, XCircle, Loader2, MessageCircle } from "lucide-react";
 import { SEO } from "@shared/components/common/SEO";
 import { Button } from "@shared/components/ui/button";
-import { verifyPayment, type VerifyStatus } from "@/lib/paystack";
+import { verifyPayment, type VerifyStatus } from "@/lib/bachs";
 import { conciergeWhatsappUrl, BILLING_ROUTE } from "@/lib/billing";
 
 type UiState = "verifying" | "success" | "pending" | "failed" | "missing";
 
-const MAX_POLLS = 6; // ~6 attempts over ~60s for lagging bank-transfer/USSD channels
+const MAX_POLLS = 6;
 const POLL_INTERVAL = 10_000;
 
 /**
- * Post-checkout landing page (route: /payment/callback). Reads the Paystack
- * reference (Paystack sends `reference` and/or `trxref`), verifies it server-side,
- * and shows success / pending / failed states — then routes back to /funding.
+ * Bachs returns to this route with Cresciva's random payment `reference` that was
+ * embedded into return_url at checkout creation. The reference is only a lookup
+ * key — the browser redirect is never proof of payment. bachs-verify retrieves
+ * the linked Bachs checkout server-side and revalidates settlement.
  */
 export default function PaymentCallback() {
   const [params] = useSearchParams();
-  const reference = params.get("reference") ?? params.get("trxref") ?? "";
+  const reference = params.get("reference") ?? "";
   const queryClient = useQueryClient();
 
   const [state, setState] = useState<UiState>(reference ? "verifying" : "missing");
@@ -31,10 +32,10 @@ export default function PaymentCallback() {
       setState("missing");
       return;
     }
+
     const status: VerifyStatus = await verifyPayment(reference);
     if (status === "success") {
       setState("success");
-      // Unlock /funding & billing without a reload.
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       return;
@@ -43,7 +44,9 @@ export default function PaymentCallback() {
       setState("failed");
       return;
     }
-    // pending → poll a few times, then rest on pending.
+
+    // Provider settlement may lag the browser redirect. Poll briefly; the signed
+    // collection.succeeded webhook remains the authoritative fulfillment path.
     if (pollsRef.current < MAX_POLLS) {
       pollsRef.current += 1;
       setState("verifying");
@@ -75,7 +78,7 @@ export default function PaymentCallback() {
             icon={<Loader2 className="h-8 w-8 animate-spin motion-reduce:animate-none" />}
             tone="navy"
             title="Confirming your payment…"
-            body="Hang tight — we're verifying your transaction with Paystack. This usually takes a few seconds."
+            body="We're securely verifying your checkout with Bachs. This usually takes a few seconds."
             busy
           />
         )}
@@ -103,7 +106,7 @@ export default function PaymentCallback() {
             icon={<Clock className="h-8 w-8" />}
             tone="navy"
             title="Payment is processing"
-            body="Some bank transfers and mobile-money payments take a little longer to settle. We'll unlock your access the moment it clears — you can safely close this page and check back, or refresh to re-check now."
+            body="Some payment methods take longer to settle. We'll unlock your access when Bachs confirms collection — you can safely close this page and check back, or re-check now."
           >
             <div className="mt-6 flex flex-col gap-3">
               <Button size="lg" onClick={retry}>Check again</Button>
@@ -119,15 +122,15 @@ export default function PaymentCallback() {
             icon={<XCircle className="h-8 w-8" />}
             tone="destructive"
             title="Payment didn't go through"
-            body="Your card or transfer wasn't completed and you have not been charged for membership. You can try again, or pay by transfer / mobile money via the concierge."
+            body="The payment was not confirmed, so membership access was not granted. You can try checkout again or contact the concierge for help."
           >
             <div className="mt-6 flex flex-col gap-3">
               <Button asChild size="lg">
-                <Link to="/dashboard/funding">Try again</Link>
+                <Link to={BILLING_ROUTE}>Try again</Link>
               </Button>
               <Button asChild variant="navyOutline">
                 <a href={conciergeWhatsappUrl()} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="h-4 w-4" /> Pay via WhatsApp concierge
+                  <MessageCircle className="h-4 w-4" /> Contact payment support
                 </a>
               </Button>
             </div>
@@ -139,7 +142,7 @@ export default function PaymentCallback() {
             icon={<XCircle className="h-8 w-8" />}
             tone="destructive"
             title="No payment to confirm"
-            body="We couldn't find a payment reference in this link. If you just paid, open your billing page to check your status."
+            body="We couldn't find a Cresciva payment reference in this link. Open your billing page to check your membership or start checkout again."
           >
             <div className="mt-6 flex flex-col gap-3">
               <Button asChild size="lg">

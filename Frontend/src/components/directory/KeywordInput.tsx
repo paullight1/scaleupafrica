@@ -3,44 +3,57 @@ import { Input } from "@shared/components/ui/input";
 import { X } from "lucide-react";
 import { cn } from "@shared/lib/utils";
 
-const MAX_KEYWORDS = 10;
-
 /**
- * Chip/tag input writing the `keywords TEXT[]` column. Enter or comma commits the current
- * token; ⨯ (or Backspace on an empty field) removes the last. Deduped, lowercased on commit.
+ * Reusable chip/tag input. Defaults preserve the legacy keyword behavior:
+ * lowercase values, max 10, token length 2..30.
  */
 export function KeywordInput({
   value,
   onChange,
   id = "keywords",
+  maxItems = 10,
+  minLength = 2,
+  maxLength = 30,
+  lowercase = true,
+  placeholder = "shea butter, export, Lagos",
+  helpText,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
   id?: string;
+  maxItems?: number;
+  minLength?: number;
+  maxLength?: number;
+  lowercase?: boolean;
+  placeholder?: string;
+  helpText?: string;
 }) {
   const [draft, setDraft] = useState("");
 
   const commit = (raw: string) => {
-    const token = raw.trim().toLowerCase();
-    if (!token) return;
-    if (token.length < 2 || token.length > 30) return;
-    if (value.includes(token)) {
+    const trimmed = raw.trim();
+    const token = lowercase ? trimmed.toLowerCase() : trimmed;
+    if (!token || token.length < minLength || token.length > maxLength) return;
+    const duplicate = value.some((existing) =>
+      lowercase ? existing.toLowerCase() === token.toLowerCase() : existing === token,
+    );
+    if (duplicate) {
       setDraft("");
       return;
     }
-    if (value.length >= MAX_KEYWORDS) return;
+    if (value.length >= maxItems) return;
     onChange([...value, token]);
     setDraft("");
   };
 
-  const remove = (token: string) => onChange(value.filter((k) => k !== token));
+  const remove = (token: string) => onChange(value.filter((item) => item !== token));
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
       commit(draft);
-    } else if (e.key === "Backspace" && !draft && value.length) {
-      e.preventDefault();
+    } else if (event.key === "Backspace" && !draft && value.length) {
+      event.preventDefault();
       remove(value[value.length - 1]);
     }
   };
@@ -72,17 +85,17 @@ export function KeywordInput({
         <Input
           id={id}
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(event) => setDraft(event.target.value)}
           onKeyDown={onKeyDown}
           onBlur={() => commit(draft)}
-          disabled={value.length >= MAX_KEYWORDS}
-          placeholder={value.length ? "" : "shea butter, export, Lagos"}
+          disabled={value.length >= maxItems}
+          placeholder={value.length ? "" : placeholder}
           className="h-9 min-w-[8rem] flex-1 border-0 p-0 shadow-none focus-visible:ring-0"
         />
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">
-        Words buyers might search — e.g. shea butter, export, Lagos. Press Enter or comma to add.
-        {value.length >= MAX_KEYWORDS && " You've reached the 10-keyword limit."}
+        {helpText ?? "Words buyers might search — e.g. shea butter, export, Lagos. Press Enter or comma to add."}
+        {value.length >= maxItems && ` You've reached the ${maxItems}-item limit.`}
       </p>
     </div>
   );

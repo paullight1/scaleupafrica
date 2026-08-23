@@ -5,7 +5,7 @@
  * Build-time rather than an edge function, deliberately: a sitemap has to be
  * served from the same host as the URLs it lists, and the site is a static SPA
  * bundle with no host-level rewrite config in the repo. Regenerating on every
- * deploy keeps /sitemap.xml on cresciva.com with no per-host wiring.
+ * deploy keeps /sitemap.xml aligned with the declared Cresciva production origin.
  *
  * Reads through PostgREST with the anon key, so it only ever sees what an
  * anonymous visitor sees — a draft post cannot leak into the sitemap even if
@@ -19,6 +19,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEFAULT_SITE_ORIGIN, normalizeSiteOrigin } from "../config/site-origin.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = resolve(ROOT, "Frontend/public/sitemap.xml");
@@ -42,12 +43,9 @@ const env = { ...fileEnv, ...process.env };
 
 const SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY;
-// Keep the fallback in step with Shared/src/lib/siteMeta.ts and Frontend/vite.config.ts.
-const SITE_URL = (
-  env.SITE_ORIGIN ||
-  env.VITE_SITE_ORIGIN ||
-  "https://cresciva.vercel.app"
-).replace(/\/$/, "");
+const SITE_URL = normalizeSiteOrigin(
+  env.SITE_ORIGIN || env.VITE_SITE_ORIGIN || DEFAULT_SITE_ORIGIN,
+);
 
 /**
  * Public routes, hand-maintained alongside Frontend/src/App.tsx.
@@ -109,7 +107,6 @@ async function fetchRows({ table, status }) {
       },
     });
     if (!res.ok) {
-      // The caller prefixes the table name.
       throw new Error(`${res.status} ${res.statusText} — ${(await res.text()).slice(0, 300)}`);
     }
 

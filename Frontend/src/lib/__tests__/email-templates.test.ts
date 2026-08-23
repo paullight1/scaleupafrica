@@ -3,6 +3,7 @@ import {
   contactAck,
   contactNotify,
   formatAmount,
+  fundingAlert,
   newsletterWelcome,
   paymentReceipt,
   render,
@@ -183,6 +184,39 @@ describe("paymentReceipt", () => {
   });
 });
 
+describe("fundingAlert", () => {
+  it.each([
+    ["watchlist_opened", "now open"],
+    ["closing_soon", "closing soon"],
+    ["deadline_changed", "deadline changed"],
+  ] as const)("renders %s with a safe official action", (eventType, expected) => {
+    const mail = fundingAlert({
+      siteUrl: SITE,
+      eventType,
+      opportunityTitle: "Climate Growth Fund",
+      funder: "Example Foundation",
+      applicationUrl: "https://example.org/apply",
+      deadlineAt: "2026-09-01T23:59:00Z",
+    });
+    expect(mail.subject.toLowerCase()).toContain(expected);
+    expect(mail.html).toContain("https://example.org/apply");
+    expect(mail.text).toContain("Climate Growth Fund");
+  });
+
+  it("never renders an unsafe application URL", () => {
+    const mail = fundingAlert({
+      siteUrl: SITE,
+      eventType: "watchlist_opened",
+      opportunityTitle: "Unsafe",
+      funder: "Example",
+      applicationUrl: "javascript:alert(1)",
+      deadlineAt: null,
+    });
+    expect(mail.html).not.toContain("javascript:");
+    expect(mail.text).not.toContain("javascript:");
+  });
+});
+
 describe("render() catalogue", () => {
   it("dispatches every kind and always produces subject + html + text", () => {
     const payloads = [
@@ -191,6 +225,7 @@ describe("render() catalogue", () => {
       { kind: "newsletter_welcome", siteUrl: SITE, email: "a@b.com" },
       { kind: "resource_delivery", siteUrl: SITE, resourceTitle: "Guide" },
       { kind: "payment_receipt", siteUrl: SITE, amount: 100, currency: "USD", reference: "r" },
+      { kind: "funding_alert", siteUrl: SITE, eventType: "watchlist_opened", opportunityTitle: "Fund", funder: "Funder", applicationUrl: "https://example.org/apply", deadlineAt: null },
     ] as const;
 
     for (const payload of payloads) {

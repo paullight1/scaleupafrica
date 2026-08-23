@@ -2,192 +2,117 @@ import { Link } from "react-router-dom";
 import { SEO } from "@shared/components/common/SEO";
 import { PageHeader } from "@shared/components/common/PageHeader";
 
-const LAST_UPDATED = "20 July 2026";
+const LAST_UPDATED = "23 August 2026";
 
-const Privacy = () => {
-  return (
-    <>
-      <SEO
-        title="Privacy Policy"
-        description="How Cresciva collects, uses, and protects the personal data of founders using the directory and Funding Radar."
-        noindex
-      />
+const Privacy = () => (
+  <>
+    <SEO
+      title="Privacy Policy"
+      description="How Cresciva handles account, business-profile, funding-intelligence, payment and service data."
+      noindex
+    />
 
-      {/* Hero band */}
-      <section className="bg-navy px-6 py-16 md:py-20">
-        <div className="mx-auto max-w-3xl">
-          <PageHeader
-            onDark
-            title="Privacy Policy"
-            subtitle={`Last updated: ${LAST_UPDATED}`}
-          />
+    <section className="bg-navy px-6 py-16 md:py-20">
+      <div className="mx-auto max-w-3xl">
+        <PageHeader onDark title="Privacy Policy" subtitle={`Last updated: ${LAST_UPDATED}`} />
+      </div>
+    </section>
+
+    <section className="bg-background px-6 py-12 md:py-16">
+      <div className="mx-auto max-w-3xl">
+        <div role="note" className="mb-10 rounded-xl border border-border bg-surface-subtle p-5 text-sm leading-relaxed text-muted-foreground">
+          <strong className="font-semibold text-ink-strong">Please note:</strong> This policy describes Cresciva's current product behaviour in good faith. It should be reviewed by qualified counsel for applicable jurisdictions before final public launch.
         </div>
-      </section>
 
-      <section className="bg-background px-6 py-12 md:py-16">
-        <div className="mx-auto max-w-3xl">
-          {/* Template notice */}
-          <div
-            role="note"
-            className="mb-10 rounded-xl border border-border bg-surface-subtle p-5 text-sm leading-relaxed text-muted-foreground"
-          >
-            <strong className="font-semibold text-ink-strong">Please note:</strong> This policy is
-            a good-faith template provided for transparency. It is not legal advice and must be
-            reviewed and adapted by qualified legal counsel before you rely on it for your
-            jurisdiction.
-          </div>
+        <div className="prose prose-slate max-w-none prose-headings:font-display prose-headings:text-ink-strong prose-h2:text-2xl prose-h2:font-bold prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary-dark prose-strong:text-ink-strong dark:prose-invert">
+          <p>
+            Cresciva operates a public Pan-African business directory and a subscription funding-intelligence service. This policy explains how personal and business data is collected, used, shared and retained.
+          </p>
 
-          <div className="prose prose-slate max-w-none prose-headings:font-display prose-headings:text-ink-strong prose-h2:text-2xl prose-h2:font-bold prose-h3:text-lg prose-h3:font-semibold prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary-dark prose-strong:text-ink-strong dark:prose-invert">
-            <p>
-              Cresciva ("we", "us", or "our") operates a public
-              pan-African SME directory and a subscription-based funding-intelligence service (the
-              "Service"). This Privacy Policy explains what personal data we collect, how we use
-              and share it, and the choices and rights you have. It applies to founders, visitors,
-              and subscribers across the countries in which we operate.
-            </p>
+          <h2>1. Information we collect</h2>
+          <ul>
+            <li><strong>Account and authentication data</strong> — account identifiers, email address, authentication/session information and security settings.</li>
+            <li><strong>Business profile data</strong> — business/founder name, country, sector, descriptions, links, images and other information you choose to add.</li>
+            <li><strong>Contact visibility choices</strong> — phone, email and WhatsApp details may be collected for your profile, but their public availability depends on the supported visibility/reveal settings rather than being treated as universally public.</li>
+            <li><strong>Funding intelligence data</strong> — funding preferences, business-enrichment confirmations, searches, saved opportunities, member opportunity states and notification preferences.</li>
+            <li><strong>Payment and membership data</strong> — payment references, amount/currency, settlement status, membership state and operational reconciliation records. Full payment credentials are handled by Bachs and are not stored by Cresciva.</li>
+            <li><strong>Communications and marketing data</strong> — contact-form messages, resource requests, newsletter state and email delivery/unsubscribe events.</li>
+            <li><strong>Operational and analytics data</strong> — product events, pseudonymous session identifiers, error/diagnostic information and salted hashes used for public-endpoint abuse prevention. Raw private funding queries are not copied into general product analytics.</li>
+          </ul>
 
-            <h2>1. Information we collect</h2>
-            <p>We collect the following categories of information:</p>
-            <ul>
-              <li>
-                <strong>Account information</strong> — your name, email address, and authentication
-                details when you create an account or sign in (including via a third-party
-                provider such as Google).
-              </li>
-              <li>
-                <strong>Business profile information</strong> — the details you choose to publish
-                in the directory, such as business name, founder name, country, sector,
-                descriptions, contact details, links, and images. This information is intentionally
-                public.
-              </li>
-              <li>
-                <strong>Subscription and payment information</strong> — records of your
-                subscription status and history. Card and payment details are handled by our
-                payment processor; we do not store full card numbers.
-              </li>
-              <li>
-                <strong>Communications</strong> — the content of messages you send us (for
-                example, through the contact form), and any lead or enquiry details you provide.
-              </li>
-              <li>
-                <strong>Usage and device data</strong> — anonymous or pseudonymous analytics such
-                as pages viewed, searches run, approximate session identifiers, device and browser
-                type, and similar technical information.
-              </li>
-            </ul>
+          <h2>2. Public and private information</h2>
+          <p>
+            Published business-directory fields are intentionally visible to directory visitors. Private account, authentication, payment, funding-preference and operational data is not part of the public directory. Contact details are exposed only through the visibility/reveal behaviour implemented by Cresciva.
+          </p>
 
-            <h2>2. How we use your information</h2>
-            <p>We use personal data to:</p>
-            <ul>
-              <li>Provide, operate, and maintain the directory and Funding Radar.</li>
-              <li>Publish the business profile you choose to make public.</li>
-              <li>
-                Curate and deliver funding intelligence relevant to your business (this information
-                is guidance only — see our{" "}
-                <Link to="/terms">Terms of Service</Link>).
-              </li>
-              <li>Process subscriptions, confirm access, and provide customer support.</li>
-              <li>Respond to your enquiries and communicate service updates.</li>
-              <li>
-                Understand and improve how the Service is used, and keep it secure and reliable.
-              </li>
-              <li>Comply with legal obligations and enforce our terms.</li>
-            </ul>
+          <h2>3. How we use information</h2>
+          <ul>
+            <li>operate authentication, profiles, directory search and membership access;</li>
+            <li>enrich a business profile using public evidence when a member requests that feature and asks the member to confirm identity where appropriate;</li>
+            <li>match businesses to funding opportunities, check eligibility/status evidence and provide funding notifications;</li>
+            <li>process and reconcile annual membership payments and issue receipts;</li>
+            <li>respond to support/contact requests and deliver requested resources or opted-in communications;</li>
+            <li>protect the Service from abuse and diagnose reliability/security failures;</li>
+            <li>measure aggregate product performance and improve the Service;</li>
+            <li>meet legal, accounting and contractual obligations.</li>
+          </ul>
 
-            <h2>3. Cookies and analytics</h2>
-            <p>
-              We use a small number of cookies and similar technologies to keep you signed in,
-              remember preferences, and understand aggregate usage. Analytics events are collected
-              to measure engagement and improve the Service; wherever possible these are grouped by
-              an anonymous session identifier rather than tied to your identity. You can control
-              cookies through your browser settings, though disabling them may affect some
-              functionality.
-            </p>
+          <h2>4. Service providers</h2>
+          <p>Cresciva uses service providers to operate the product. Launch providers may include:</p>
+          <ul>
+            <li><strong>Supabase</strong> for database, authentication, storage and Edge Functions;</li>
+            <li><strong>Vercel</strong> for web/application hosting and deployment;</li>
+            <li><strong>Bachs</strong> for payment checkout and settlement;</li>
+            <li><strong>Resend</strong> for transactional email when enabled;</li>
+            <li>AI/search/infrastructure providers used by Business Enrichment and AI-assisted funding discovery;</li>
+            <li>monitoring/analytics providers that Cresciva enables for production operations.</li>
+          </ul>
+          <p>Cresciva does not sell personal data to advertisers.</p>
 
-            <h2>4. How we share information</h2>
-            <p>
-              We do not sell your personal data. Your public business profile is, by design,
-              visible to anyone using the directory. Beyond that, we share personal data only with
-              service providers who help us run the Service, under appropriate confidentiality and
-              data-protection obligations, including:
-            </p>
-            <ul>
-              <li>
-                <strong>Supabase</strong> — our hosting, database, authentication, and storage
-                provider.
-              </li>
-              <li>
-                <strong>Paystack</strong> — our payment processor for subscriptions.
-              </li>
-              <li>
-                AI and infrastructure providers used to generate curated funding intelligence.
-              </li>
-            </ul>
-            <p>
-              We may also disclose information where required by law, to protect our rights and the
-              safety of our users, or in connection with a business transfer such as a merger or
-              acquisition.
-            </p>
+          <h2>5. Funding source and public-web processing</h2>
+          <p>
+            Cresciva may retrieve public organisation and funder webpages to identify organisations, verify funding sources or determine whether a programme appears open, upcoming, rolling or closed. AI may help extract facts from retrieved evidence, but source verification/status decisions are controlled separately and are not based solely on AI memory.
+          </p>
 
-            <h2>5. International data transfers</h2>
-            <p>
-              We operate across the African continent and use service providers that may store or
-              process data outside your country of residence. Where we transfer personal data
-              across borders, we take reasonable steps to ensure it remains protected in line with
-              this policy and applicable law.
-            </p>
+          <h2>6. Retention</h2>
+          <p>
+            Account/profile/member data is kept while needed to provide the Service and is deleted or anonymised when a valid deletion request completes, subject to required retention. Cresciva may retain a minimal detached payment/accounting ledger after account deletion, while removing the account link and raw provider payloads. Unsubscribe/suppression information may be retained where necessary to honour communication choices or legal obligations.
+          </p>
 
-            <h2>6. Data retention</h2>
-            <p>
-              We retain personal data for as long as your account is active and as needed to
-              provide the Service, meet legal and accounting obligations, resolve disputes, and
-              enforce our agreements. When data is no longer required, we take steps to delete or
-              anonymise it. You may request deletion of your account at any time.
-            </p>
+          <h2>7. Your rights and controls</h2>
+          <p>
+            Subject to applicable law, you may request access, correction, export or deletion of your personal data and may object to or restrict certain processing. Account settings provide a portable data export and account-deletion workflow. You can edit profile information and communication preferences through the product.
+          </p>
 
-            <h2>7. Your rights and choices</h2>
-            <p>
-              Subject to applicable law, you have the right to access, correct, update, or delete
-              your personal data, to object to or restrict certain processing, and to request a
-              copy of the data you have provided. You can edit or remove your public profile
-              directly from your account, and you can unsubscribe from non-essential
-              communications at any time. To exercise any of these rights, contact us using the
-              details below.
-            </p>
+          <h2>8. Account deletion</h2>
+          <p>
+            Account deletion is completed server-side after deliberate confirmation and recent authentication. Cresciva removes account/profile/member records and owned profile media, sanitises directly identifying operational records, and detaches the minimum payment ledger that must be retained for reconciliation or accounting purposes.
+          </p>
 
-            <h2>8. Security</h2>
-            <p>
-              We use reasonable technical and organisational measures — including access controls
-              and row-level security on our database — to protect personal data. No method of
-              transmission or storage is completely secure, however, and we cannot guarantee
-              absolute security.
-            </p>
+          <h2>9. Security</h2>
+          <p>
+            Cresciva uses authentication, row-level security, restricted service roles, server-side privileged operations, source-validation controls and access logging/monitoring practices designed to protect data. No internet service can guarantee absolute security.
+          </p>
 
-            <h2>9. Children's privacy</h2>
-            <p>
-              The Service is intended for founders and business users and is not directed at
-              children. We do not knowingly collect personal data from anyone under the age of 18.
-            </p>
+          <h2>10. International processing</h2>
+          <p>
+            Cresciva serves users across Africa and uses infrastructure providers that may process information in other countries. Where applicable, Cresciva takes reasonable measures required for lawful international processing and transfer.
+          </p>
 
-            <h2>10. Changes to this policy</h2>
-            <p>
-              We may update this Privacy Policy from time to time. When we do, we will revise the
-              "Last updated" date above and, where appropriate, provide additional notice. Your
-              continued use of the Service after changes take effect constitutes acceptance of the
-              updated policy.
-            </p>
+          <h2>11. Children's privacy</h2>
+          <p>The Service is intended for founders, organisations and business users and is not directed to children under 18.</p>
 
-            <h2>11. Contact us</h2>
-            <p>
-              If you have questions about this policy or how we handle your data, please reach out
-              through our <Link to="/contact">contact page</Link> or email{" "}
-              <a href="mailto:privacy@cresciva.com">privacy@cresciva.com</a>.
-            </p>
-          </div>
+          <h2>12. Changes</h2>
+          <p>Material updates will be reflected by changing the date above and providing additional notice where appropriate.</p>
+
+          <h2>13. Contact and data-rights requests</h2>
+          <p>
+            Privacy questions and data-rights requests can be submitted through the monitored <Link to="/contact">Cresciva contact page</Link>. Signed-in members can also use the export/delete controls in Account settings.
+          </p>
         </div>
-      </section>
-    </>
-  );
-};
+      </div>
+    </section>
+  </>
+);
 
 export default Privacy;

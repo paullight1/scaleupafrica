@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { sanitizeExternalUrl, parseOpportunities, normalizeKeywords } from "@/lib/fundingSchema";
+import { describe, expect, it } from "vitest";
+import { normalizeKeywords, parseOpportunities, sanitizeExternalUrl } from "@/lib/fundingSchema";
 
 describe("sanitizeExternalUrl", () => {
   it("allows https and http", () => {
@@ -42,6 +42,29 @@ describe("parseOpportunities", () => {
     });
     expect(out).toHaveLength(2);
     expect(out.map((o) => o.title)).toEqual(["Grant X", "Grant Z"]);
+  });
+
+  it("preserves valid search trust metadata", () => {
+    const [op] = parseOpportunities([
+      validItem({
+        discovery_source: "verified_feed",
+        verification_status: "verified",
+        source_checked_at: "2026-08-20T00:00:00Z",
+        match_reasons: ["Matched title", "Matched Nigeria"],
+      }),
+    ]);
+    expect(op.discovery_source).toBe("verified_feed");
+    expect(op.verification_status).toBe("verified");
+    expect(op.source_checked_at).toBe("2026-08-20T00:00:00Z");
+    expect(op.match_reasons).toEqual(["Matched title", "Matched Nigeria"]);
+  });
+
+  it("drops results with spoofed trust enum values", () => {
+    expect(
+      parseOpportunities([
+        validItem({ discovery_source: "verified_by_ai", verification_status: "definitely_real" }),
+      ]),
+    ).toEqual([]);
   });
 
   it("caps at 30 items", () => {

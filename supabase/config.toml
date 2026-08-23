@@ -1,15 +1,44 @@
 project_id = "dwyglydswegyvjowzdot"
 
-# Paystack payment functions (Plan 06).
-# init/verify require the caller's Supabase JWT (default); the webhook must NOT,
-# because Paystack sends no JWT — its authenticity is proven by the HMAC signature.
-[functions.paystack-init]
+# Bachs payment functions (production-readiness Phase 1).
+# init/verify require the caller's Supabase JWT. The webhook does not receive a
+# Supabase JWT; it authenticates Bachs with timestamped HMAC-SHA256 over raw body.
+[functions.bachs-init]
 verify_jwt = true
 
-[functions.paystack-verify]
+[functions.bachs-verify]
 verify_jwt = true
 
-[functions.paystack-webhook]
+[functions.bachs-webhook]
+verify_jwt = false
+
+# Admin-only payment reconciliation. JWT is required at the edge and the
+# function performs an explicit administrator-role check before service-role reads.
+[functions.payment-reconciliation]
+verify_jwt = true
+
+# Authenticated data-rights operations. The function verifies the user again,
+# requires recent authentication for destructive deletion, and performs all
+# cascading/sanitization work server-side.
+[functions.account-data]
+verify_jwt = true
+
+# Business-name enrichment is a paid/member intelligence workflow. The caller's
+# JWT identifies the owner; public evidence writes are service-role only.
+[functions.business-enrichment]
+verify_jwt = true
+
+# Funding status refresh supports two auth modes: staff JWT for a single manual
+# recheck, and X-Cresciva-Refresh-Secret for scheduler batches. Supabase's outer
+# JWT verification must therefore be disabled; the function authenticates either
+# mode explicitly before any source reads/writes.
+[functions.funding-source-refresh]
+verify_jwt = false
+
+# Funding notification delivery is scheduler-only. It authenticates a dedicated
+# X-Cresciva-Notification-Secret before leasing queue rows; recipients, member
+# state, preferences and opportunity trust are rechecked immediately before send.
+[functions.funding-notifications]
 verify_jwt = false
 
 # Transactional email (Resend). Both are called by SIGNED-OUT visitors — the

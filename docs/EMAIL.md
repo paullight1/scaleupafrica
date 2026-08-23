@@ -1,151 +1,80 @@
 # Transactional email (Resend)
 
-Every outbound email Cresciva sends goes through Resend, from Supabase edge
-functions. The browser never holds an API key and never picks a recipient.
+Every outbound Cresciva email goes through Resend from Supabase Edge Functions. Browser clients never hold the Resend API key and never choose arbitrary recipients.
 
-## Layout
+## Shared email layer
 
-```
-supabase/functions/_shared/email/
-├── config.ts      brand palette + env → EmailConfig, address validation
-├── render.ts      esc(), safeUrl(), layout(), button() — HTML primitives
-├── templates.ts   one pure function per message; render() dispatches on `kind`
-├── resend.ts      the only code that talks to api.resend.com (retry, idempotency)
-├── dispatch.ts    render → send → audit. The single funnel.
-├── tokens.ts      HMAC-signed unsubscribe tokens
-└── receipt.ts     payment receipt, shared by both Paystack paths
+`supabase/functions/_shared/email/` owns:
 
-supabase/functions/send-email/          public capture + notify endpoint
-supabase/functions/email-unsubscribe/   List-Unsubscribe handler
-Frontend/src/lib/email.ts               the browser's only entry point
-```
+- `config.ts` — environment/brand configuration;
+- `render.ts` — escaped HTML/text primitives;
+- `templates.ts` — typed message templates;
+- `resend.ts` — the only direct Resend HTTP client;
+- `tokens.ts` — signed unsubscribe tokens;
+- `dispatch.ts` — render → send → audit funnel;
+- `receipt.ts` — provider-neutral membership receipt helper.
 
-`config.ts`, `render.ts`, `templates.ts`, `resend.ts`, `tokens.ts` and
-`dispatch.ts` are pure TypeScript — no `Deno.*`, no `npm:` imports — so they run
-on the Deno edge runtime *and* under Vitest. That is why the test suite in
-`Frontend/src/lib/__tests__/email-*.test.ts` can import them directly.
-Keep it that way: an `npm:` import in any of those files breaks the tests.
+Keep pure template/config/render helpers free of `Deno.*` and `npm:` imports so Frontend Vitest can import and validate them.
 
-## The five messages
+## Current message families
 
-| kind | Trigger | Recipient |
-|---|---|---|
-| `contact_ack` | `/contact` form | the sender |
-| `contact_notify` | `/contact` form | `EMAIL_TEAM_INBOX`, reply-to = sender |
-| `newsletter_welcome` | newsletter box | the subscriber (once) |
-| `resource_delivery` | gated `/resources/:slug` form | the requester |
-| `payment_receipt` | successful Paystack charge | the buyer |
+The repository includes contact acknowledgements/team notifications, newsletter/resource delivery, payment receipts and Funding Intelligence notification templates. Funding notifications are queued/delivered by the scheduler-only `funding-notifications` function and re-check member preferences/trust before send.
 
-## Flows
+## Bachs payment receipts
 
-**Contact, newsletter and gated downloads** all POST to the `send-email` edge
-function, which owns the row write *and* the notification. The browser no longer
-inserts into `leads` / `newsletter_subscribers` directly. This buys three things:
+Payment settlement is owned by the Bachs Supabase Edge path (`bachs-webhook` / `bachs-verify`). A successful verified settlement can cause either path to complete the same entitlement. Receipt delivery therefore uses a stable idempotency key derived from the Cresciva payment ID/reference so a callback/webhook race does not intentionally send duplicate receipts.
 
-- The team is always told about a lead that was captured — one code path, not two.
-- The download URL in a delivery email is resolved from the `resources` table
-  server-side. A client cannot make us mail an arbitrary link over our domain.
-- Validation, honeypot and throttling live somewhere devtools can't reach.
+A failed receipt is **not** a failed payment. Payment/access truth comes from the payment ledger and membership grant transaction; email delivery state is audited separately in `email_events`.
 
-**A failed send is not a failed submit.** Once the row is persisted the caller
-gets a 200 even if Resend is down; the failure lands in `email_events`. Telling
-a founder "your message failed" because our mail provider blipped is strictly
-worse than a missing acknowledgement.
+## Public email capture endpoint
 
-**Payment receipts** are sent by `paystack-webhook` *and* `paystack-verify` —
-either can complete the same grant. Both use the `receipt:<paymentId>`
-idempotency key, and Resend collapses identical keys for 24h, so the customer
-gets exactly one receipt whichever path wins.
+`send-email` must remain callable by signed-out visitors because contact, newsletter and gated-resource flows can start without an account. It defends itself with:
 
-## Why `send-email` has no JWT
+- strict server-side payload validation;
+- honeypot handling;
+- per-IP throttling using a salted hash rather than the raw IP;
+- server-selected recipients;
+- server-resolved resource delivery URLs.
 
-The contact form, newsletter box and resource form are all used by signed-out
-visitors, so `verify_jwt = false`. That makes the function internet-facing, and
-it defends itself:
+The throttle may fail open to preserve the contact path, but payload validation/recipient ownership must not.
 
-- strict server-side validation of every field;
-- a honeypot field (`hp`) that silently absorbs naive bots — the response is a
-  normal 200 so they learn nothing;
-- a per-IP throttle of 10 sends/hour, counted against `public.email_events`
-  using a **salted SHA-256 of the IP**, never the raw address;
-- recipients are never caller-controlled beyond the single address being
-  confirmed. There is no "send to whoever you like" shape in the API.
+## Unsubscribe and preferences
 
-The throttle **fails open**: if the count query errors, the request proceeds. A
-broken throttle must not take the contact form offline.
+Bulk/non-essential email must honour the supported unsubscribe/preference model. Signed unsubscribe tokens must not expose secrets and must remain useful for already-delivered messages across their reasonable lifetime. Transactional receipts/security/account messages are not treated as optional marketing mail.
 
-## Unsubscribe
-
-Bulk-ish mail (newsletter welcome, resource delivery) carries RFC 8058
-`List-Unsubscribe` + `List-Unsubscribe-Post` headers pointing at
-`email-unsubscribe`, plus a footer link. Tokens are HMAC-SHA256 over
-`{purpose, email}` and **do not expire** — a link sits in an inbox for years,
-and a token that stops working turns a legal obligation into a support ticket.
-
-Rotating `EMAIL_TOKEN_SECRET` invalidates every unsubscribe link already
-delivered. Treat it as permanent.
-
-Transactional mail (receipts, contact acknowledgements) carries no unsubscribe
-link, which is correct: you cannot opt out of a receipt for something you bought.
+Funding-alert delivery additionally checks the member's funding-notification preferences immediately before sending.
 
 ## Audit log
 
-`public.email_events` records every dispatch — `sent`, `failed`, or `skipped`
-(the last means `RESEND_API_KEY` was not configured). Service-role write, admin
-read. It answers "did the receipt actually go out?" without opening the Resend
-dashboard, and it backs the throttle.
+`public.email_events` records send attempts (`sent`, `failed`, or `skipped`) and provider IDs/errors where available. Service-role owns writes and administrators can inspect the audit trail. Do not put raw authentication tokens, payment credentials or unrelated private provider payloads in this table.
 
 ## Configuration
 
-Secrets live in `supabase/.env` (gitignored — see `supabase/.env.example`):
+Secrets belong in the deployment secret store / `supabase/.env` for local operation, never Vite/browser variables.
 
-| Var | Required | Notes |
-|---|---|---|
-| `RESEND_API_KEY` | yes | Missing → every send is logged `skipped`, flows still work |
-| `EMAIL_FROM` | no | Default `Cresciva <hello@cresciva.com>`. Domain must be verified in Resend |
-| `EMAIL_REPLY_TO` | no | Default `hello@cresciva.com` |
-| `EMAIL_TEAM_INBOX` | no | Where contact-form notifications land |
-| `SITE_URL` | no | Link base inside emails. No trailing slash |
-| `EMAIL_TOKEN_SECRET` | yes for unsubscribe | `openssl rand -hex 32`. Also salts the IP hash |
+| Variable | Purpose |
+| --- | --- |
+| `RESEND_API_KEY` | Resend API authentication |
+| `EMAIL_FROM` | verified sending identity |
+| `EMAIL_REPLY_TO` | monitored reply destination |
+| `EMAIL_TEAM_INBOX` | contact/support notification inbox |
+| `SITE_URL` | canonical link base used in emails |
+| `EMAIL_TOKEN_SECRET` | HMAC secret for unsubscribe/safety tokens |
+| `FUNDING_NOTIFICATION_SECRET` | scheduler authentication for funding delivery |
 
-Local:
+The actual sending domain/address must be one Cresciva controls and has verified with Resend. Do not assume `cresciva.com` ownership from repository examples; configure the verified operational domain at deployment.
 
-```sh
-supabase functions serve --env-file supabase/.env
-```
+## Deployment
 
-Production:
+After database migrations/secrets are applied, deploy the email/payment/funding functions used by the release, including at minimum the current Bachs functions plus `send-email`, `email-unsubscribe` and, when scheduled funding alerts are enabled, `funding-notifications`.
 
-```sh
-supabase secrets set --env-file supabase/.env
-supabase db push
-supabase functions deploy send-email email-unsubscribe paystack-webhook paystack-verify
-```
+The repository deliberately does not require retired `paystack-*` functions.
 
-### Before the first real send
+## Adding a message
 
-1. **Verify the sending domain** in Resend (Domains → add `cresciva.com`, then
-   the DKIM/SPF/DMARC records at your DNS host). Until that is green, Resend
-   only accepts sends to your own account address and everything else 403s.
-2. Point `EMAIL_FROM` at a mailbox on that verified domain.
-3. Set `EMAIL_TOKEN_SECRET`, or unsubscribe links are silently omitted.
-
-## Adding a template
-
-1. Write a pure `(ctx) => RenderedEmail` in `templates.ts`, escaping every
-   interpolated value with `esc()` / `safeUrl()` and producing a plain-text
-   alternative (HTML-only mail is penalised by spam filters).
-2. Add it to the `EmailPayload` union and the `render()` switch — the
-   exhaustiveness check makes a missed case a compile error.
-3. Call it through `dispatch()`, never `sendEmail()` directly, or you skip the
-   audit row, the unsubscribe headers and the tagging.
-4. Add cases to `Frontend/src/lib/__tests__/email-templates.test.ts`, including
-   one that proves a `<script>` in the input does not survive rendering.
-
-## MCP
-
-`.mcp.json` registers Resend's hosted MCP server at `https://mcp.resend.com/mcp`
-for sending/inspecting mail from the agent. It authenticates with
-`Bearer ${RESEND_API_KEY}`, expanded from the environment — the key itself sits
-in `.claude/settings.local.json`, which is gitignored. `.mcp.json` is committed,
-so never inline the literal key there.
+1. Add a typed template and text alternative in `templates.ts`.
+2. Escape every user/provider string and validate URLs before rendering.
+3. Add the payload to the exhaustive template dispatch union/switch.
+4. Send through the shared audited dispatch funnel, never direct provider calls.
+5. Add template tests, including hostile input/XSS cases where relevant.
+6. Define whether the message is transactional or preference-controlled before shipping it.

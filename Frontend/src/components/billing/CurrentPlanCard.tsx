@@ -16,9 +16,9 @@ function formatDate(iso: string | null): string {
 }
 
 /**
- * Current membership status + renew CTA (Plan 06 §5.6). TanStack Query via
- * useSubscription — a fetch error surfaces ErrorState + Retry, NEVER a false
- * "no plan". Renew extends the current expiry by a year (adds-a-year copy).
+ * Current membership status + renew CTA. TanStack Query via useSubscription —
+ * a fetch error surfaces ErrorState + Retry, NEVER a false "no plan". Renewal
+ * extends the current expiry by one year rather than replacing remaining time.
  */
 export function CurrentPlanCard() {
   const { status, data, active, refetch } = useSubscription();
@@ -36,7 +36,7 @@ export function CurrentPlanCard() {
     return (
       <ErrorState
         title="Couldn't load your membership"
-        message="We couldn't check your subscription. Check your connection and try again — your access is safe."
+        message="We couldn't check your membership. Check your connection and try again — your access is safe."
         onRetry={refetch}
       />
     );
@@ -73,7 +73,6 @@ export function CurrentPlanCard() {
         )}
       </div>
 
-      {/* Status line */}
       <div className="mt-4 flex items-start gap-2 text-sm text-foreground">
         <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         {active ? (
@@ -90,19 +89,17 @@ export function CurrentPlanCard() {
         )}
       </div>
 
-      {/* Never-subscribed: show the pitch */}
       {neverSubscribed && (
         <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-          {MEMBERSHIP_FEATURES.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+          {MEMBERSHIP_FEATURES.map((feature) => (
+            <li key={feature} className="flex items-start gap-2 text-sm text-foreground">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-dark" />
-              {f}
+              {feature}
             </li>
           ))}
         </ul>
       )}
 
-      {/* CTA: show on inactive OR when active and expiring soon */}
       {(!active || expiringSoon) && (
         <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -129,12 +126,12 @@ export function CurrentPlanCard() {
         </div>
       )}
 
-      {/* No-auto-renew explanation (Plan 06 §5.4) */}
       <p className="mt-6 flex items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          Your membership <strong>does not auto-renew</strong> — we never store your card or charge you
-          again. Access simply runs until it expires; renew any time. No partial refunds.
+          Cresciva's current annual membership <strong>does not auto-renew</strong>. Payment details are
+          handled by Bachs; Cresciva does not receive your card details. Access runs until the displayed
+          expiry date, and you can renew manually at any time.
         </span>
       </p>
     </section>

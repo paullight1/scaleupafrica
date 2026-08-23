@@ -9,10 +9,11 @@
 //    token that stops working turns a legal obligation into a support ticket.
 //  - The token authorises exactly one action (unsubscribe THIS address) and
 //    leaks nothing beyond the address the recipient already knows — their own.
-//  - Comparison is timing-safe, reusing the audited helper from _shared/paystack.ts.
+//  - Comparison is timing-safe, reusing the audited Web-Crypto helper shared by
+//    the Bachs payment boundary.
 // =============================================================================
 
-import { timingSafeEqualHex } from "../paystack.ts";
+import { timingSafeEqualHex } from "../bachs.ts";
 
 const PURPOSE = "unsub";
 

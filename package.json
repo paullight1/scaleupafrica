@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "description": "Pan-African SME directory and funding intelligence.",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "Shared",
     "Frontend",
@@ -21,9 +24,17 @@
     "assemble": "node scripts/assemble-dist.mjs",
     "build:admin": "npm run build --workspace AdminPanel",
     "build:api": "npm run build --workspace Backend",
-    "lint": "npm run lint --workspace Frontend && npm run lint --workspace AdminPanel",
+    "lint": "npm run lint --workspace Frontend && npm run lint --workspace AdminPanel && npm run lint --workspace Backend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "eval:funding": "node --experimental-strip-types scripts/funding-intelligence-eval.ts",
+    "verify:web-quality": "node scripts/check-web-quality.mjs",
+    "verify:release": "node scripts/check-release-readiness.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run verify:web-quality && npm run build:api && npm run verify:release",
     "assets": "bash scripts/generate-assets.sh"
+  },
+  "overrides": {
+    "nanoid": "3.3.18"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

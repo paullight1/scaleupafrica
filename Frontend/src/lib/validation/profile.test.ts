@@ -59,6 +59,31 @@ describe("profileSchema", () => {
     });
     expect(fieldError(r, "keywords")).toBe("Up to 10 keywords");
   });
+
+  it("accepts structured funding preferences", () => {
+    const r = profileSchema.safeParse({
+      ...profileFormDefaults,
+      business_name: "Acme",
+      country: "Nigeria",
+      sector: "Retail & E-commerce",
+      business_stage: "growth",
+      funding_target_usd: 125000,
+      preferred_funding_types: ["grant", "development finance"],
+      application_readiness: "ready",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects negative funding targets", () => {
+    const r = profileSchema.safeParse({
+      ...profileFormDefaults,
+      business_name: "Acme",
+      country: "Nigeria",
+      sector: "Retail & E-commerce",
+      funding_target_usd: -1,
+    });
+    expect(fieldError(r, "funding_target_usd")).toMatch(/greater than zero/i);
+  });
 });
 
 describe("normalizeProfileInput", () => {
@@ -79,5 +104,21 @@ describe("normalizeProfileInput", () => {
     const out = normalizeProfileInput({ ...profileFormDefaults, business_name: "Acme" });
     expect(out.email).toBeNull();
     expect(out.website).toBeNull();
+    expect(out.business_stage).toBeNull();
+    expect(out.funding_target_usd).toBeNull();
+  });
+
+  it("normalizes funding preferences without duplicating types", () => {
+    const out = normalizeProfileInput({
+      ...profileFormDefaults,
+      business_stage: "growth",
+      funding_target_usd: 125000,
+      preferred_funding_types: ["Grant", " grant ", "Development Finance"],
+      application_readiness: "ready",
+    });
+    expect(out.business_stage).toBe("growth");
+    expect(out.funding_target_usd).toBe(125000);
+    expect(out.preferred_funding_types).toEqual(["grant", "development finance"]);
+    expect(out.application_readiness).toBe("ready");
   });
 });
