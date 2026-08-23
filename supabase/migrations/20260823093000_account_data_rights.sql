@@ -18,28 +18,37 @@ CREATE OR REPLACE FUNCTION public.prepare_account_deletion(_user_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, auth
 AS $$
+DECLARE
+  _email TEXT;
 BEGIN
   IF auth.role() <> 'service_role' THEN
     RAISE EXCEPTION 'prepare_account_deletion is service-role only';
   END IF;
 
-  -- Raw webhook payloads may contain provider/customer PII. Once the account is
-  -- being deleted, keep the normalized payment ledger rather than raw webhook
-  -- evidence tied to its references.
+  SELECT email INTO _email FROM auth.users WHERE id = _user_id;
+
   DELETE FROM public.payment_webhook_events
   WHERE reference IN (
     SELECT reference FROM public.payments WHERE user_id = _user_id
   );
 
-  -- Preserve the minimum ledger needed for reconciliation/accounting while
-  -- unlinking it from the deleted account and removing raw provider payloads.
   UPDATE public.payments
   SET user_id = NULL,
       gateway_response = NULL,
       updated_at = now()
   WHERE user_id = _user_id;
+
+  -- Aggregate analytics can remain useful after a deletion request, but they no
+  -- longer need an account identifier.
+  UPDATE public.analytics_events SET user_id = NULL WHERE user_id = _user_id;
+
+  IF _email IS NOT NULL THEN
+    DELETE FROM public.leads WHERE lower(email) = lower(_email);
+    DELETE FROM public.email_events WHERE lower(to_email) = lower(_email);
+    DELETE FROM public.newsletter_subscribers WHERE lower(email) = lower(_email);
+  END IF;
 END;
 $$;
 
@@ -47,4 +56,4 @@ REVOKE EXECUTE ON FUNCTION public.prepare_account_deletion(UUID) FROM PUBLIC, an
 GRANT EXECUTE ON FUNCTION public.prepare_account_deletion(UUID) TO service_role;
 
 COMMENT ON FUNCTION public.prepare_account_deletion(UUID) IS
-  'Service-only pre-delete sanitization: removes raw webhook payloads and detaches the retained minimal payment ledger before auth user deletion.';
+  'Service-only pre-delete sanitization: removes direct-email operational rows/raw webhook payloads, anonymizes analytics, and detaches the retained minimal payment ledger before auth user deletion.';
