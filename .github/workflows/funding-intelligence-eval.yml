@@ -1,0 +1,50 @@
+name: Funding Intelligence Eval
+
+on:
+  pull_request:
+    paths:
+      - "Frontend/src/lib/funding/**"
+      - "Shared/src/lib/businessIdentity.ts"
+      - "Shared/src/lib/fundingStatus.ts"
+      - "Shared/src/lib/fundingEvaluation.ts"
+      - "evaluation/funding/**"
+      - "scripts/funding-intelligence-eval.ts"
+      - "supabase/functions/aggregate-funding/**"
+      - "supabase/functions/funding-source-refresh/**"
+      - ".github/workflows/funding-intelligence-eval.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    name: funding-intelligence-eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Validate evaluation helpers
+        run: npm run test --workspace Shared -- src/lib/fundingEvaluation.test.ts
+
+      - name: Run deterministic funding benchmark
+        run: npm run eval:funding
+
+      - name: Upload evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: funding-intelligence-eval
+          path: artifacts/funding-intelligence-eval.json
