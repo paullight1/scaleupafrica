@@ -60,6 +60,13 @@ describe("Funding notification delivery trust boundary", () => {
     expect(deliveryMigrationSource).toContain("failed");
   });
 
+  it("terminalizes an abandoned exhausted lease instead of leaving a zombie pending row", () => {
+    expect(deliveryMigrationSource).toContain("delivery_attempts_exhausted");
+    expect(deliveryMigrationSource).toContain("attempt_count >= 3");
+    expect(deliveryMigrationSource).toContain("processing_at < now() - interval '10 minutes'");
+    expect(deliveryMigrationSource).toContain("SET status = 'failed'");
+  });
+
   it("mirrors notification delivery state in the Backend schema", () => {
     expect(schemaSource).toContain("notificationEvents");
     expect(schemaSource).toContain('"notification_events"');
