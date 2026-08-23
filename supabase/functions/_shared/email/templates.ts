@@ -32,6 +32,10 @@ function greet(name?: string | null): string {
   return first ? `Hi ${first},` : "Hi there,";
 }
 
+function label(value: unknown, max = 180): string {
+  return String(value ?? "").replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
 /**
  * Integer subunits -> display string. Amounts are ALWAYS integer kobo/cents
  * (see _shared/billing.ts) — never floats, so this divides exactly once here.
@@ -292,6 +296,74 @@ export function paymentReceipt(ctx: PaymentReceiptCtx): RenderedEmail {
   };
 }
 
+// --- 6. Funding Radar high-signal alerts ------------------------------------
+
+export type FundingAlertEventType = "watchlist_opened" | "closing_soon" | "deadline_changed";
+
+export interface FundingAlertCtx extends BaseCtx {
+  eventType: FundingAlertEventType;
+  opportunityTitle: string;
+  funder: string;
+  applicationUrl?: string | null;
+  deadlineAt?: string | null;
+}
+
+export function fundingAlert(ctx: FundingAlertCtx): RenderedEmail {
+  const title = label(ctx.opportunityTitle) || "A funding opportunity";
+  const funder = label(ctx.funder) || "the funder";
+  const applicationUrl = safeUrl(ctx.applicationUrl);
+  const fallbackUrl = safeUrl(`${ctx.siteUrl}/funding`) ?? ctx.siteUrl;
+  const actionUrl = applicationUrl ?? fallbackUrl;
+  const deadline = isoToLongDate(ctx.deadlineAt);
+
+  const copy = ctx.eventType === "watchlist_opened"
+    ? {
+        subject: `${title} is now open`,
+        heading: "A funding opportunity you saved is now open",
+        body: `${title} from ${funder} has moved into an active application cycle based on Cresciva's latest source check.`,
+      }
+    : ctx.eventType === "closing_soon"
+      ? {
+          subject: `${title} is closing soon`,
+          heading: "A saved funding opportunity is closing soon",
+          body: `${title} from ${funder} is inside Cresciva's closing-soon window.`,
+        }
+      : {
+          subject: `${title} deadline changed`,
+          heading: "A funding deadline you are watching changed",
+          body: `${title} from ${funder} has a newly source-confirmed deadline.`,
+        };
+
+  const body =
+    h1(copy.heading) +
+    p(copy.body) +
+    (deadline ? definitions([["Current deadline", deadline]]) : "") +
+    button(applicationUrl ? "View official application" : "Open Funding Radar", actionUrl) +
+    p("Cresciva alerts are based on the latest authoritative-source evidence available. Re-check the official source before submitting.");
+
+  const text = [
+    copy.heading,
+    ``,
+    copy.body,
+    deadline ? `Current deadline: ${deadline}` : ``,
+    ``,
+    `${applicationUrl ? "Official application" : "Funding Radar"}: ${actionUrl}`,
+    ``,
+    `Re-check the official source before submitting.`,
+    textFooter(ctx),
+  ].filter(Boolean).join("\n");
+
+  return {
+    subject: copy.subject,
+    html: layout(body, {
+      siteUrl: ctx.siteUrl,
+      preheader: copy.body,
+      footerNote: "You're receiving this because you saved or are preparing this opportunity in Cresciva Funding Radar.",
+    }),
+    text,
+  };
+}
+
 // --- catalogue ---------------------------------------------------------------
 
 /**
@@ -304,7 +376,8 @@ export type EmailPayload =
   | ({ kind: "contact_notify" } & ContactNotifyCtx)
   | ({ kind: "newsletter_welcome" } & NewsletterWelcomeCtx)
   | ({ kind: "resource_delivery" } & ResourceDeliveryCtx)
-  | ({ kind: "payment_receipt" } & PaymentReceiptCtx);
+  | ({ kind: "payment_receipt" } & PaymentReceiptCtx)
+  | ({ kind: "funding_alert" } & FundingAlertCtx);
 
 export type EmailKind = EmailPayload["kind"];
 
@@ -320,6 +393,8 @@ export function render(payload: EmailPayload): RenderedEmail {
       return resourceDelivery(payload);
     case "payment_receipt":
       return paymentReceipt(payload);
+    case "funding_alert":
+      return fundingAlert(payload);
     default: {
       const never: never = payload;
       throw new Error(`Unhandled email kind: ${JSON.stringify(never)}`);
