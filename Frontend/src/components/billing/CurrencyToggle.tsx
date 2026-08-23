@@ -7,7 +7,7 @@ interface CurrencyToggleProps {
   className?: string;
 }
 
-/** Two-option NGN / USD segmented control (Plan 06 §5.1 — replaces the FX table). */
+/** Currency control retained for compatibility; recurring Cresciva plans currently use USD. */
 export function CurrencyToggle({ value, onChange, className }: CurrencyToggleProps) {
   return (
     <div

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import type { JsonLd } from "@shared/lib/structuredData";
 import {
   SITE_NAME,
@@ -70,6 +71,8 @@ export function SEO({
   canonical,
   jsonLd,
 }: SEOProps) {
+  const location = useLocation();
+
   useEffect(() => {
     const fullTitle = `${title} — ${SITE_NAME}`;
     document.title = fullTitle;
@@ -106,7 +109,10 @@ export function SEO({
 
     upsertMeta("name", "robots", noindex ? "noindex, nofollow" : "index, follow");
 
-    const path = canonical ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+    // Read the router location rather than window.location directly. This is
+    // important for nested SPA routes such as /dashboard/funding: the parent
+    // dashboard SEO node stays mounted while the pathname changes.
+    const path = canonical ?? location.pathname;
     // Resolved against SITE_ORIGIN, never window.location.origin — otherwise a
     // preview deploy names itself canonical. Canonical URLs are also
     // deliberately query-free: /directory?industry=agri is the same document as
@@ -114,7 +120,7 @@ export function SEO({
     const canonicalHref = absoluteUrl(path);
     upsertCanonical(canonicalHref);
     upsertMeta("property", "og:url", canonicalHref);
-  }, [title, description, ogImage, ogImageAlt, noindex, canonical]);
+  }, [title, description, ogImage, ogImageAlt, noindex, canonical, location.pathname]);
 
   // Serialised separately so an inline object literal in a page's JSX doesn't
   // re-run the effect on every render.

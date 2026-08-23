@@ -1,14 +1,15 @@
 # Supabase project migration + auth rollout
 
-Moving Cresciva from Supabase project `dwyglydswegyvjowzdot` to **`zttqskrvbkjdzwrxtzaa`**, and
+Moving Cresciva from Supabase project `dwyglydswegyvjowzdot` to **`fqragjhmunphhdnmvpgs`**, and
 enabling the two auth features added alongside it (passwordless sign-in, TOTP two-factor).
 
-Nothing in this document has been executed — the app still points at the old project. These are the
-steps to run once the Supabase MCP server is authenticated.
+The CLI cutover to the new project is complete: local references, migrations, edge-function secrets,
+and edge functions are configured for `fqragjhmunphhdnmvpgs`. The remaining items below are
+dashboard-only settings and data-transfer decisions.
 
 ---
 
-## 0. Authenticate the MCP server (blocks everything else)
+## 0. Authenticate the MCP server (optional for CLI cutover)
 
 `.mcp.json` already points at the new project. Authenticate in a **regular terminal**, not the IDE
 extension:
@@ -20,13 +21,14 @@ claude
 
 Select **supabase** → **Authenticate**, complete the browser flow, reload the session.
 
-Until this is done the new project's URL and publishable key can't be read, so steps 1–3 can't run.
+The CLI authentication and cutover do not depend on this MCP connection. Authenticate it if you want
+project-scoped Supabase tooling inside the IDE.
 
 ---
 
 ## 1. Repoint the app
 
-Three files carry the project ref. All still hold the **old** values:
+The project references are now set to the new project:
 
 | File | Key |
 |---|---|
@@ -40,10 +42,12 @@ see `Backend/.env.example`.
 The client (`Shared/src/integrations/supabase/client.ts`) already handles both legacy JWT `anon`
 keys and the newer opaque `sb_publishable_*` keys, so either key format works.
 
-## 2. Apply the migrations
+## 2. Apply the migrations (complete)
 
-Nine files in `supabase/migrations/`, applied in filename order. The newest is
-`20260727120000_admin_set_role_rpc.sql` (see §5).
+All 14 files in `supabase/migrations/` were applied in filename order. The newest are
+`20260823120000_paystack_recurring_subscriptions.sql` and
+`20260823150000_seed_cross_functional_collaboration_blog.sql`, plus the
+`20260823091653_create_profile_media_bucket.sql` cutover migration.
 
 ## 3. Regenerate types
 

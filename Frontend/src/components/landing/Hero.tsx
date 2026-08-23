@@ -51,7 +51,7 @@ const Hero = () => {
           </div>
 
           <p className="mt-7 text-sm text-muted-foreground">
-            Directory is free. Funding Intelligence unlocks with annual membership.
+            Directory is free. Funding Intelligence unlocks with a paid membership.
           </p>
         </div>
 

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@shared/integrations/supabase/client";
 import { useAuth } from "@shared/hooks/useAuth";
+import type { PlanCode } from "@/lib/billing";
 
 /**
  * CANONICAL client-side active-subscription rule.
@@ -15,10 +16,23 @@ import { useAuth } from "@shared/hooks/useAuth";
  * `isSubscriptionActive` from here — do NOT reimplement the rule.
  */
 
-export type SubscriptionRow = { has_access: boolean; expires_at: string | null } | null;
+export type SubscriptionRow = {
+  has_access: boolean;
+  expires_at: string | null;
+  plan_code?: PlanCode | null;
+  billing_status?: string | null;
+  auto_renew?: boolean | null;
+  next_payment_at?: string | null;
+  paystack_subscription_code?: string | null;
+} | null;
 
-export function isSubscriptionActive(sub: SubscriptionRow, now: Date = new Date()): boolean {
-  return !!sub?.has_access && (!sub.expires_at || new Date(sub.expires_at) > now);
+export function isSubscriptionActive(
+  sub: SubscriptionRow,
+  now: Date = new Date(),
+): boolean {
+  return (
+    !!sub?.has_access && (!sub.expires_at || new Date(sub.expires_at) > now)
+  );
 }
 
 export type SubscriptionStatus = "loading" | "error" | "active" | "inactive";
@@ -50,23 +64,26 @@ export function useSubscription(): UseSubscriptionResult {
     queryFn: async (): Promise<SubscriptionRow> => {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("has_access, expires_at")
+        .select(
+          "has_access, expires_at, plan_code, billing_status, auto_renew, next_payment_at, paystack_subscription_code",
+        )
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error; // <-- errors become status:"error", never "no access"
-      return data ?? null; // null row (trigger should create one) = inactive
+      return (data ?? null) as unknown as SubscriptionRow; // null row (trigger should create one) = inactive
     },
   });
 
   const data = (query.data ?? null) as SubscriptionRow;
 
-  const status: SubscriptionStatus = !user || query.isPending
-    ? "loading"
-    : query.isError
-      ? "error"
-      : isSubscriptionActive(data)
-        ? "active"
-        : "inactive";
+  const status: SubscriptionStatus =
+    !user || query.isPending
+      ? "loading"
+      : query.isError
+        ? "error"
+        : isSubscriptionActive(data)
+          ? "active"
+          : "inactive";
 
   return {
     status,
