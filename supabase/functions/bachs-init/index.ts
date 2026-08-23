@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       product_cart: [{ product_id: productId, quantity: 1 }],
       billing_currency: currency,
       return_url: `${appUrl}/payment/callback?reference=${encodeURIComponent(reference)}`,
-      cancel_url: `${appUrl}/dashboard/account#billing`,
+      cancel_url: `${appUrl}/dashboard/account/membership`,
       customer: { email: user.email },
       metadata: {
         cresciva_reference: reference,

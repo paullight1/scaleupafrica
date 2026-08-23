@@ -1,11 +1,18 @@
 import type { ReactNode } from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import HowItWorks from "@/components/landing/HowItWorks";
 import DirectoryPreview from "@/components/landing/DirectoryPreview";
 import FundingPreview from "@/components/landing/FundingPreview";
 import { SAMPLE_PROFILES } from "@/content/homepage";
+
+vi.mock("@/hooks/queries/directory", () => ({
+  useDirectorySearch: () => ({
+    data: { pages: [{ rows: SAMPLE_PROFILES }] },
+    isLoading: false,
+  }),
+}));
 
 const wrap = (ui: ReactNode) => render(<MemoryRouter>{ui}</MemoryRouter>);
 

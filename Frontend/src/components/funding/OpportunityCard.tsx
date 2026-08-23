@@ -268,8 +268,12 @@ export function OpportunityCard({
           <Button type="button" variant={memberState === "saved" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("saved")}><Bookmark className="mr-1.5 h-4 w-4" />Save</Button>
           <Button type="button" variant={memberState === "preparing" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("preparing")}><ClipboardCheck className="mr-1.5 h-4 w-4" />I'm preparing</Button>
           <Button type="button" variant={memberState === "applied" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("applied")}>Applied</Button>
-          <Button type="button" variant={memberState === "won" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("won")}><Trophy className="mr-1.5 h-4 w-4" />Won</Button>
-          <Button type="button" variant={memberState === "rejected" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("rejected")}><XCircle className="mr-1.5 h-4 w-4" />Rejected</Button>
+          {memberState === "applied" || memberState === "won" || memberState === "rejected" ? (
+            <>
+              <Button type="button" variant={memberState === "won" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("won")}><Trophy className="mr-1.5 h-4 w-4" />Won</Button>
+              <Button type="button" variant={memberState === "rejected" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("rejected")}><XCircle className="mr-1.5 h-4 w-4" />Rejected</Button>
+            </>
+          ) : null}
           <Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("dismissed")}>Not relevant</Button>
         </div>
       ) : null}

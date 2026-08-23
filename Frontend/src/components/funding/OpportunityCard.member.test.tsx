@@ -28,9 +28,9 @@ describe("OpportunityCard member workflow", () => {
 
   it("offers apply only when primary gate is passed", () => {
     const { rerender } = render(<OpportunityCard opportunity={opportunity} open={false} onToggle={() => {}} opportunityId="00000000-0000-4000-8000-000000000001" verificationStatus="verified" applicationStatus="open" applicationUrl="https://example.org/apply" eligibilityStatus="eligible" primaryApplyEligible />);
-    expect(screen.getByRole("link", { name: /apply now/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /apply on official site/i })).toBeInTheDocument();
     rerender(<OpportunityCard opportunity={opportunity} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="unknown" applicationUrl="https://example.org/apply" eligibilityStatus="eligible" primaryApplyEligible={false} />);
-    expect(screen.queryByRole("link", { name: /apply now/i })).toBeNull();
+    expect(screen.queryByRole("link", { name: /apply on official site/i })).toBeNull();
   });
 
   it("emits saved, preparing, applied and dismissed member-local state changes", () => {
@@ -38,7 +38,7 @@ describe("OpportunityCard member workflow", () => {
     render(<OpportunityCard opportunity={opportunity} opportunityId="00000000-0000-4000-8000-000000000001" open={false} onToggle={() => {}} eligibilityStatus="eligible" memberState={null} onMemberStateChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: /^Save$/i }));
     fireEvent.click(screen.getByRole("button", { name: /I'm preparing/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Mark applied/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Applied$/i }));
     fireEvent.click(screen.getByRole("button", { name: /Not relevant/i }));
     expect(onChange).toHaveBeenNthCalledWith(1, "saved");
     expect(onChange).toHaveBeenNthCalledWith(2, "preparing");
@@ -48,9 +48,10 @@ describe("OpportunityCard member workflow", () => {
 
   it("offers outcome controls only after an application has been marked applied", () => {
     const onChange = vi.fn();
-    const { rerender } = render(<OpportunityCard opportunity={opportunity} open={false} onToggle={() => {}} memberState="saved" onMemberStateChange={onChange} />);
+    const opportunityId = "00000000-0000-4000-8000-000000000001";
+    const { rerender } = render(<OpportunityCard opportunity={opportunity} opportunityId={opportunityId} open={false} onToggle={() => {}} memberState="saved" onMemberStateChange={onChange} />);
     expect(screen.queryByRole("button", { name: /^Won$/i })).toBeNull();
-    rerender(<OpportunityCard opportunity={opportunity} open={false} onToggle={() => {}} memberState="applied" onMemberStateChange={onChange} />);
+    rerender(<OpportunityCard opportunity={opportunity} opportunityId={opportunityId} open={false} onToggle={() => {}} memberState="applied" onMemberStateChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: /^Won$/i }));
     fireEvent.click(screen.getByRole("button", { name: /^Rejected$/i }));
     expect(onChange).toHaveBeenCalledWith("won");

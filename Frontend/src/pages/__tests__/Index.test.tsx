@@ -16,6 +16,9 @@ vi.mock("@/hooks/useViewerState", async () => {
 vi.mock("@/hooks/queries/blog", () => ({
   useLatestPosts: () => ({ data: [], isPending: false, isError: false, refetch: vi.fn() }),
 }));
+vi.mock("@/hooks/queries/directory", () => ({
+  useDirectorySearch: () => ({ data: { pages: [{ rows: [] }] }, isLoading: false }),
+}));
 vi.mock("@/components/NewsletterSignup", () => ({ default: () => <div /> }));
 vi.mock("@/components/billing/CheckoutButton", () => ({
   CheckoutButton: ({ children }: { children: ReactNode }) => <button>{children}</button>,
