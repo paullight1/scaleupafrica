@@ -35,16 +35,20 @@ export const memberOpportunityStateKeys = {
   all: (userId: string | undefined) => ["funding", "member-state", userId] as const,
 };
 
+/**
+ * `applied_at` records when the member first marks an application as submitted.
+ * Later workflow states deliberately omit the column so an upsert cannot replace
+ * that original timestamp (or clear it when a member moves through other states).
+ */
 export function buildMemberOpportunityMutation(
   input: SetMemberOpportunityStateInput,
   now = new Date(),
 ) {
-  const applicationTimeline = input.state === "applied" || input.state === "won" || input.state === "rejected";
   return {
     opportunity_id: input.opportunityId,
     state: input.state,
     note: input.note?.trim().slice(0, 2000) || null,
-    applied_at: applicationTimeline ? now.toISOString() : null,
+    ...(input.state === "applied" ? { applied_at: now.toISOString() } : {}),
     updated_at: now.toISOString(),
   };
 }
