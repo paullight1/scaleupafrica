@@ -38,11 +38,19 @@ export type SafeExternalFetchError =
   | "unsupported_content_type"
   | "body_too_large";
 
+export type ExternalDnsResolver = (hostname: string) => Promise<string[]>;
+
 export interface SafeExternalFetchOptions {
   timeoutMs?: number;
   maxBytes?: number;
   maxRedirects?: number;
   headers?: Record<string, string>;
+  /**
+   * Runtime-neutral DNS seam. Deno source workers use Deno.resolveDns by
+   * default; Node certification injects node:dns lookup so both paths keep the
+   * same private-network/redirect/body security policy.
+   */
+  resolveDns?: ExternalDnsResolver;
 }
 
 export interface SafeExternalFetchSuccess {
@@ -70,11 +78,12 @@ export async function safeExternalFetch(
   const timeoutMs = boundedInt(options.timeoutMs, DEFAULT_TIMEOUT_MS, 500, 30_000);
   const maxBytes = boundedInt(options.maxBytes, DEFAULT_MAX_BYTES, 1_024, 5 * 1024 * 1024);
   const maxRedirects = boundedInt(options.maxRedirects, DEFAULT_MAX_REDIRECTS, 0, 5);
+  const resolveDns = options.resolveDns ?? resolvePublicAddresses;
   const deadline = Date.now() + timeoutMs;
 
   let current: URL;
   try {
-    current = await validateExternalUrl(rawUrl);
+    current = await validateExternalUrl(rawUrl, resolveDns);
   } catch (error) {
     return failure(null, null, classifyValidationError(error));
   }
@@ -108,7 +117,7 @@ export async function safeExternalFetch(
       if (!location) return failure(current.href, response.status, "redirect_missing_location");
       try {
         // Every redirect is revalidated, including fresh DNS resolution.
-        current = await validateExternalUrl(new URL(location, current).href);
+        current = await validateExternalUrl(new URL(location, current).href, resolveDns);
       } catch (error) {
         return failure(current.href, response.status, classifyValidationError(error));
       }
@@ -151,7 +160,10 @@ export async function safeExternalFetch(
   return failure(current.href, null, "redirect_limit");
 }
 
-export async function validateExternalUrl(rawUrl: string): Promise<URL> {
+export async function validateExternalUrl(
+  rawUrl: string,
+  resolveDns: ExternalDnsResolver = resolvePublicAddresses,
+): Promise<URL> {
   if (typeof rawUrl !== "string" || !rawUrl.trim() || rawUrl.length > 2_048) {
     throw new SafeFetchValidationError("invalid_url");
   }
@@ -175,9 +187,15 @@ export async function validateExternalUrl(rawUrl: string): Promise<URL> {
   }
 
   if (!isIpLiteral(host)) {
-    const addresses = await resolvePublicAddresses(host);
-    if (!addresses.length) throw new SafeFetchValidationError("dns_failed");
-    if (addresses.some(isBlockedIp)) throw new SafeFetchValidationError("blocked_host");
+    let addresses: string[];
+    try {
+      addresses = await resolveDns(host);
+    } catch {
+      throw new SafeFetchValidationError("dns_failed");
+    }
+    const uniqueAddresses = Array.from(new Set(addresses.map(String).map(normalizeHostname).filter(Boolean)));
+    if (!uniqueAddresses.length) throw new SafeFetchValidationError("dns_failed");
+    if (uniqueAddresses.some(isBlockedIp)) throw new SafeFetchValidationError("blocked_host");
   }
 
   return url;
