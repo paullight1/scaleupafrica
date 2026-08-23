@@ -10,7 +10,6 @@ async function bootstrap(): Promise<void> {
   const env = loadEnv(); // crash fast on invalid config
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    rawBody: true, // Paystack webhook needs the raw body for HMAC verification
     bodyParser: true,
   });
 
@@ -18,15 +17,14 @@ async function bootstrap(): Promise<void> {
   app.use(helmet());
   app.useBodyParser("json", { limit: "256kb" });
 
-  // Auth is a Bearer header (no cookies) -> no credentials, explicit origin allowlist.
+  // Auth uses Bearer headers, not cookies: no credentialed cross-origin requests.
   app.enableCors({
     origin: env.corsOrigins,
     credentials: false,
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: "Authorization,Content-Type,x-paystack-signature",
+    methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    allowedHeaders: "Authorization,Content-Type",
   });
 
-  // Route-level validation uses ZodBody; this guards any stray class-based DTOs.
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   await app.listen(env.PORT);
