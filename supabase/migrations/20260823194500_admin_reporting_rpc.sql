@@ -70,22 +70,31 @@ security definer
 set search_path = public
 as $$
 declare
+  bounded_days integer := greatest(1, least(coalesce(_days, 30), 365));
   bounded_limit integer := greatest(1, least(coalesce(_limit, 10), 50));
+  since_at timestamptz;
 begin
   if not public.is_admin(auth.uid()) then
     raise exception 'Administrator access required' using errcode = '42501';
   end if;
+  since_at := now() - make_interval(days => bounded_days);
   return query
     select ranked.content_type, ranked.content_id, ranked.title, ranked.status,
            ranked.views, ranked.downloads, ranked.views + ranked.downloads
     from (
       select 'blog'::text content_type, b.id content_id, b.title, b.status,
-             b.view_count::bigint views, 0::bigint downloads
+             count(e.id) filter (where e.event_type in ('page_view', 'blog_view'))::bigint views,
+             0::bigint downloads
       from public.blog_posts b
+      left join public.analytics_events e on e.entity_id = b.id and e.created_at >= since_at
+      group by b.id, b.title, b.status
       union all
       select 'resource'::text, r.id, r.title, r.status,
-             r.view_count::bigint, r.download_count::bigint
+             count(e.id) filter (where e.event_type in ('page_view', 'resource_view'))::bigint,
+             count(e.id) filter (where e.event_type = 'resource_download')::bigint
       from public.resources r
+      left join public.analytics_events e on e.entity_id = r.id and e.created_at >= since_at
+      group by r.id, r.title, r.status
     ) ranked
     order by ranked.views + ranked.downloads desc, ranked.title
     limit bounded_limit;
