@@ -12,6 +12,7 @@ import {
   Newspaper,
   Landmark,
   Radar,
+  Flag,
   Building2,
   Users,
   Inbox,
@@ -36,6 +37,7 @@ const NAV: NavGroup[] = [
       { label: "Blog", to: "/admin/blog", icon: Newspaper },
       { label: "Funding", to: "/admin/funding", icon: Landmark, end: true },
       { label: "Funding source health", to: "/admin/funding/sources", icon: Radar },
+      { label: "Funding reports", to: "/admin/funding/reports", icon: Flag },
     ],
   },
   {
