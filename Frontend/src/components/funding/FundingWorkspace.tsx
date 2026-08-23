@@ -43,6 +43,11 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String).map((v) => v.trim()).filter(Boolean) : [];
 }
 
+function validYear(value: unknown): number | null {
+  const year = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  return Number.isInteger(year) && year >= 1800 && year <= new Date().getUTCFullYear() ? year : null;
+}
+
 type FeedRecommendation = RecommendationResult<FeedItem>;
 type EvaluatedItem = {
   item: FeedItem;
@@ -125,8 +130,15 @@ export function FundingWorkspace() {
     const enrichedCountries = stringArray(enriched.operating_countries);
     const enrichedSectors = stringArray(enriched.sectors);
     const enrichedKeywords = stringArray(enriched.keywords);
+    const enrichedOrganisationType = typeof enriched.organisation_type === "string" && enriched.organisation_type.trim()
+      ? enriched.organisation_type.trim()
+      : null;
+    const enrichedFoundingYear = validYear(enriched.founding_year);
     return {
       country: profile?.country || identity?.country || enrichedCountries[0] || null,
+      operatingCountries: profile?.operating_countries?.length ? profile.operating_countries : enrichedCountries,
+      organisationType: profile?.organisation_type || enrichedOrganisationType,
+      foundingYear: profile?.founding_year ?? enrichedFoundingYear,
       sector: profile?.sector || enrichedSectors[0] || null,
       keywords: profile?.keywords?.length ? profile.keywords : enrichedKeywords,
       shortDescription: profile?.short_description || identity?.summary || null,
