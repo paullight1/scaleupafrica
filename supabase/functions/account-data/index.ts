@@ -7,14 +7,10 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RECENT_AUTH_SECONDS = 15 * 60;
 
 type Action = "export" | "delete";
-
 type JsonRecord = Record<string, unknown>;
 
 function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
 
 function jwtIssuedAt(authHeader: string): number | null {
@@ -47,7 +43,7 @@ async function exportAccount(
   service: ReturnType<typeof createClient>,
   user: { id: string; email?: string; created_at?: string },
 ): Promise<JsonRecord> {
-  const [profiles, subscriptions, payments, preferences, saved, fundingResults, memberStates, notificationPrefs, enrichmentRuns] = await Promise.all([
+  const [profiles, subscriptions, payments, preferences, saved, fundingResults, memberStates, notificationPrefs, enrichmentRuns, fundingReports] = await Promise.all([
     selectRows(service, "profiles", "id", user.id),
     selectRows(service, "subscriptions", "user_id", user.id),
     selectRows(service, "payments", "user_id", user.id, "id,provider,reference,plan_code,amount,currency,status,channel,paid_at,created_at,updated_at"),
@@ -57,6 +53,7 @@ async function exportAccount(
     selectRows(service, "member_opportunity_state", "user_id", user.id),
     selectRows(service, "funding_notification_preferences", "user_id", user.id),
     selectRows(service, "business_enrichment_runs", "user_id", user.id),
+    selectRows(service, "funding_opportunity_reports", "user_id", user.id),
   ]);
 
   return {
@@ -72,6 +69,7 @@ async function exportAccount(
     member_opportunity_state: memberStates,
     funding_notification_preferences: notificationPrefs,
     business_enrichment_runs: enrichmentRuns,
+    funding_correction_reports: fundingReports,
   };
 }
 
@@ -106,20 +104,14 @@ Deno.serve(async (req) => {
   const service = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
-    if (action === "export") {
-      return json(await exportAccount(service, user));
-    }
+    if (action === "export") return json(await exportAccount(service, user));
 
     if (action !== "delete") return json({ error: "invalid_action" }, 400);
-    if ((body as { confirmation?: unknown }).confirmation !== "DELETE MY ACCOUNT") {
-      return json({ error: "confirmation_required" }, 400);
-    }
+    if ((body as { confirmation?: unknown }).confirmation !== "DELETE MY ACCOUNT") return json({ error: "confirmation_required" }, 400);
 
     const issuedAt = jwtIssuedAt(authHeader);
     const nowSeconds = Math.floor(Date.now() / 1000);
-    if (!issuedAt || nowSeconds - issuedAt > RECENT_AUTH_SECONDS) {
-      return json({ error: "recent_auth_required" }, 409);
-    }
+    if (!issuedAt || nowSeconds - issuedAt > RECENT_AUTH_SECONDS) return json({ error: "recent_auth_required" }, 409);
 
     const { error: prepareError } = await service.rpc("prepare_account_deletion", { _user_id: user.id });
     if (prepareError) throw new Error("account_sanitization_failed");
