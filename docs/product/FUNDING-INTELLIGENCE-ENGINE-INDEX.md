@@ -6,51 +6,47 @@ Cresciva's paid funding intelligence is built to answer:
 
 > **Who is this organisation, which real funding programmes are current, which ones can this organisation actually apply for, and why are they a strong match?**
 
-No single model owns that answer. Cresciva separates identity, source truth, current-cycle status, eligibility, ranking and subscriber presentation into independently testable engines.
-
----
+No single model owns that answer. Cresciva separates identity, source truth, current-cycle status, eligibility, ranking, search, member workflow, notifications and certification into independently testable layers.
 
 ## Engine map
 
 ```text
-Organisation name
-      |
-      v
+Organisation name / member profile
+        ↓
 BUSINESS ENRICHMENT ENGINE
 identity + public evidence + member confirmation
-      |
-      v
+        ↓
 CONFIRMED FUNDING PROFILE
-      |
-      +--------------------------------+
-                                       |
-AUTHORITATIVE FUNDING SOURCES          |
-      |                                |
-      v                                |
-PROVENANCE / SOURCE REFRESH            |
-      |                                |
-      v                                |
-OPPORTUNITY STATUS ENGINE              |
-verified? current cycle? open now?     |
-      |                                |
-      +---------------+----------------+
-                      |
-                      v
+        ↓
+AUTHORITATIVE FUNDING SOURCES
+        ↓
+PROVENANCE + SOURCE REFRESH
+        ↓
+OPPORTUNITY STATUS ENGINE
+verified? current cycle? open now?
+        ↓
 HARD ELIGIBILITY ENGINE
-                      |
-                      v
+        ↓
 RECOMMENDATION ENGINE
-fit + source confidence + readiness + reasons
-                      |
-                      v
-CORE SUBSCRIPTION FUNDING EXPERIENCE
+fit + confidence + readiness + reasons
+        ↓
+PRIMARY FUNDING GATE
+verified + fresh + current + eligible
+        ↓
+FUNDING RADAR
 Open for you / Closing soon / Watchlist / Explore
-                      |
-                      v
-MEMBER OUTCOMES + EVALUATION
+        ├─────────────→ OPPORTUNITY SEARCH
+        │               verified current / other verified / AI discovery
+        ↓
+MEMBER WORKFLOW
+saved / preparing / applied / won / rejected / dismissed
+        ↓
+TRANSITION NOTIFICATION ENGINE
+queue → preference/state/trust recheck → email dispatch
+        ↓
+FUNDING INTELLIGENCE CERTIFICATION
+engineering benchmark + human/live certification mode
 ```
-
----
 
 ## Engine manuals
 
@@ -58,14 +54,7 @@ MEMBER OUTCOMES + EVALUATION
 
 `docs/product/BUSINESS-ENRICHMENT-ENGINE.md`
 
-Owns:
-
-- organisation identity resolution;
-- authoritative/controlled/secondary public evidence;
-- structured public-business fact extraction;
-- field-level evidence/confidence;
-- ambiguity handling;
-- member confirmation.
+Owns organisation identity resolution, bounded public evidence, structured public-business fact extraction, ambiguity handling and member confirmation.
 
 Does **not** recommend funding or infer sensitive personal facts.
 
@@ -73,27 +62,29 @@ Does **not** recommend funding or infer sensitive personal facts.
 
 `docs/product/OPPORTUNITY-SEARCH-ENGINE.md`
 
-Owns:
+Owns explicit search intent, verified-first retrieval/ranking, deterministic deduplication and AI-assisted long-tail discovery.
 
-- explicit member search intent;
-- verified-first candidate retrieval;
-- deterministic search ranking;
-- AI-assisted long-tail discovery;
-- verified-result precedence and deduplication.
+User-facing groups are:
 
-Does **not** make AI discoveries verified or prove that a current round is open.
+```text
+Verified current matches
+Other verified records
+AI discoveries
+```
+
+Search does not grant primary application eligibility.
 
 ### Opportunity Status
 
 `docs/product/OPPORTUNITY-STATUS-ENGINE.md`
 
-Owns:
+Owns current-cycle evidence and:
 
-- current-cycle evidence;
-- `open`, `closing_soon`, `rolling`, `upcoming`, `closed`, `paused`, `unknown`;
-- status freshness;
-- source-check history;
-- conflict handling.
+```text
+open | closing_soon | rolling | upcoming | closed | paused | unknown
+```
+
+It also owns freshness, append-only source-check history and conflict handling.
 
 `verified` is not synonymous with `open`.
 
@@ -101,50 +92,70 @@ Owns:
 
 `docs/product/RECOMMENDATION-ENGINE.md`
 
-Owns:
+Owns hard eligibility, match score, source confidence, readiness, deterministic ranking and match/blocker/missing-information explanations.
 
-- hard eligibility;
-- match score;
-- source confidence;
-- application readiness;
-- deterministic ranking;
-- match/blocker/missing-information explanations.
-
-A high match score cannot bypass an eligibility or current-cycle gate.
+A high match score cannot bypass eligibility/current-cycle gates.
 
 ### Core Subscription Flow
 
 `docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md`
 
-Owns the product composition:
+Owns composition of the four Funding Radar surfaces, truthful zero state, application CTA rules, member workflow, notifications, analytics/privacy and certification relationship.
 
-- Open for you;
-- Closing soon;
-- Watchlist;
-- Explore;
-- CTA rules;
-- zero-result behavior;
-- save/apply/dismiss workflow;
-- notification transition semantics.
+### Funding Radar implementation status
 
----
+`docs/product/FUNDING-RADAR-SUBSCRIPTION.md`
+
+Tracks repository implementation versus external/live production evidence.
+
+## Notification engine
+
+Source refresh owns the authoritative transition. After successful canonical persistence it passes previous/next status and deadline plus the source-check UUID into the deduplicating queue RPC.
+
+Delivery then:
+
+1. leases a bounded queue batch;
+2. rechecks `saved|preparing` member state;
+3. rechecks member preferences;
+4. rechecks published/verified/current freshness;
+5. suppresses stale/irrelevant transitions;
+6. sends through the existing email dispatch/Resend funnel;
+7. uses `funding-alert:<event-id>` transport idempotency;
+8. records bounded retry state.
+
+Notification state never changes opportunity truth.
 
 ## Primary paid recommendation rule
 
 An opportunity can enter **Open for you** only when all are true:
 
 ```text
-verification_status = verified
+discovery_source = verified_feed
+AND verification_status = verified
 AND source/current-status evidence is fresh
 AND application_status IN (open, closing_soon, rolling)
 AND eligibility_status = eligible
 ```
 
-Ranking happens **after** those truth gates.
+Ranking happens **after** those gates.
 
-Anything else is Watchlist, Explore, an eligibility prompt, or excluded.
+The application CTA additionally requires a valid authoritative `application_url` and is labelled **Apply on official site**.
 
----
+## Certification
+
+Two different evaluation modes exist.
+
+### Engineering evaluation
+
+Fixed/synthetic fixtures test deterministic behavior and regression boundaries.
+
+### Production certification
+
+Requires the minimum human-adjudicated corpus plus real/staging authoritative-source evidence. Explicit live-link mode uses the same `safeExternalFetch` boundary as source refresh with Node DNS injected.
+
+Certification evidence:
+
+`docs/production-readiness/evidence/funding-intelligence-certification.md`
 
 ## Implementation plans
 
@@ -167,11 +178,9 @@ Approved architecture:
 
 `docs/superpowers/specs/2026-08-22-business-to-funding-intelligence-design.md`
 
----
-
 ## Release metrics
 
-The production paid claim remains gated until the certification plan proves:
+The production paid claim remains gated until the live certification proves:
 
 ```text
 0 wrong automatic identity selections in acceptance corpus
@@ -185,4 +194,4 @@ The production paid claim remains gated until the certification plan proves:
 0 stale OPEN records in primary output
 ```
 
-Repository tests alone do not certify live source accuracy. Live/staging source freshness and link checks are required before production PASS.
+Repository implementation/tests do not certify live source accuracy. Live/staging deployment, human adjudication, source freshness and link checks are required before production PASS.
