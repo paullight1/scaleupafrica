@@ -40,16 +40,16 @@ const App = () => (
           <Suspense fallback={<LoadingState className="min-h-[60vh]" label="Loading…" />}>
             <Routes>
               <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
-                <Route index element={<AdminDashboard />} />
+                <Route index element={<AdminGuard require="admin"><AdminDashboard /></AdminGuard>} />
                 <Route path="resources" element={<AdminResources />} />
                 <Route path="resources/new" element={<AdminResourceEdit />} />
                 <Route path="resources/:id" element={<AdminResourceEdit />} />
                 <Route path="blog" element={<AdminBlog />} />
                 <Route path="blog/new" element={<AdminBlogEdit />} />
                 <Route path="blog/:id" element={<AdminBlogEdit />} />
-                <Route path="funding" element={<AdminFunding />} />
-                <Route path="funding/sources" element={<AdminFundingSources />} />
-                <Route path="funding/reports" element={<AdminFundingReports />} />
+                <Route path="funding" element={<AdminGuard require="admin"><AdminFunding /></AdminGuard>} />
+                <Route path="funding/sources" element={<AdminGuard require="admin"><AdminFundingSources /></AdminGuard>} />
+                <Route path="funding/reports" element={<AdminGuard require="admin"><AdminFundingReports /></AdminGuard>} />
                 <Route path="profiles" element={<AdminGuard require="admin"><AdminProfiles /></AdminGuard>} />
                 <Route path="users" element={<AdminGuard require="admin"><AdminUsers /></AdminGuard>} />
                 <Route path="leads" element={<AdminGuard require="admin"><AdminLeads /></AdminGuard>} />

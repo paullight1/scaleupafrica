@@ -12,6 +12,8 @@ import {
   Search as SearchIcon,
 } from "lucide-react";
 import { SEO } from "@shared/components/common/SEO";
+import { useRole } from "@shared/hooks/useRole";
+import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
 import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
@@ -68,6 +70,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 const AdminBlog = () => {
+  const { isAdmin, isEditor } = useRole();
   const { data, isLoading, isError, refetch } = useAdminBlogPosts();
   const togglePublish = useTogglePublish();
   const duplicate = useDuplicateBlogPost();
@@ -88,6 +91,7 @@ const AdminBlog = () => {
   }, [data, status, search]);
 
   const handleToggle = (post: BlogPost) => {
+    if (!isAdmin) return;
     togglePublish.mutate(post, {
       onSuccess: (row) =>
         toast.success(
@@ -98,6 +102,7 @@ const AdminBlog = () => {
   };
 
   const handleDuplicate = (post: BlogPost) => {
+    if (!isAdmin) return;
     duplicate.mutate(post, {
       onSuccess: () => toast.success("Post duplicated as a draft."),
       onError: () => toast.error("Couldn't duplicate the post. Please try again."),
@@ -105,7 +110,7 @@ const AdminBlog = () => {
   };
 
   const confirmDelete = () => {
-    if (!pendingDelete) return;
+    if (!pendingDelete || !isAdmin) return;
     const title = pendingDelete.title;
     remove.mutate(pendingDelete.id, {
       onSuccess: () => toast.success(`Deleted "${title}".`),
@@ -198,6 +203,11 @@ const AdminBlog = () => {
               {posts.map((post) => {
                 const tags = post.tags ?? [];
                 const isPublished = post.status === "published";
+                const permissions = contentPermissions({
+                  isAdmin,
+                  isEditor,
+                  status: post.status as ContentStatus,
+                });
                 return (
                   <TableRow key={post.id}>
                     <TableCell>
@@ -263,7 +273,7 @@ const AdminBlog = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
-                        <Button
+                        {permissions.canEdit && <Button
                           asChild
                           variant="ghost"
                           size="icon"
@@ -272,8 +282,8 @@ const AdminBlog = () => {
                           <Link to={`/admin/blog/${post.id}`}>
                             <Pencil className="h-4 w-4" />
                           </Link>
-                        </Button>
-                        <Button
+                        </Button>}
+                        {(permissions.canPublish || permissions.canUnpublish) && <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleToggle(post)}
@@ -286,8 +296,8 @@ const AdminBlog = () => {
                           ) : (
                             <Eye className="h-4 w-4" />
                           )}
-                        </Button>
-                        <Button
+                        </Button>}
+                        {permissions.canDuplicate && <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDuplicate(post)}
@@ -296,8 +306,8 @@ const AdminBlog = () => {
                           title="Duplicate"
                         >
                           <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
+                        </Button>}
+                        {permissions.canDelete && <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setPendingDelete(post)}
@@ -306,7 +316,7 @@ const AdminBlog = () => {
                           className="text-destructive-strong hover:text-destructive-strong"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </Button>
+                        </Button>}
                       </div>
                     </TableCell>
                   </TableRow>

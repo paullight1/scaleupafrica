@@ -7,6 +7,8 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@shared/hooks/useAuth";
+import { useRole } from "@shared/hooks/useRole";
+import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
 import { slugify } from "@shared/lib/analytics";
 import { logAdminAction } from "@shared/lib/audit";
 import { Markdown } from "@shared/lib/markdown";
@@ -113,6 +115,7 @@ const AdminResourceEdit = () => {
   const isEdit = !!id;
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin, isEditor } = useRole();
 
   const resourceQuery = useAdminResource(id);
   const createResource = useCreateResource();
@@ -178,6 +181,13 @@ const AdminResourceEdit = () => {
   }, [resourceQuery.data, reset]);
 
   const persist = async (values: FormValues, nextStatus: ResourceStatus) => {
+    const permissions = contentPermissions({
+      isAdmin,
+      isEditor,
+      status: (resourceQuery.data?.status ?? "draft") as ContentStatus,
+    });
+    if (!permissions.canEdit || (nextStatus === "published" && !permissions.canPublish)) return;
+    if (!isAdmin) nextStatus = "draft";
     const willPublish = nextStatus === "published";
     const nextPublishedAt =
       willPublish && !publishedAt ? new Date().toISOString() : publishedAt;
@@ -238,6 +248,11 @@ const AdminResourceEdit = () => {
   const onSave = handleSubmit((values) => persist(values, values.status));
 
   const busy = isSubmitting || createResource.isPending || updateResource.isPending;
+  const permissions = contentPermissions({
+    isAdmin,
+    isEditor,
+    status: (resourceQuery.data?.status ?? "draft") as ContentStatus,
+  });
 
   if (isEdit && resourceQuery.isLoading) {
     return (
@@ -301,7 +316,14 @@ const AdminResourceEdit = () => {
         }
       />
 
+      {!permissions.canEdit && (
+        <p role="status" className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          Published content is read-only for editors. Ask an administrator to return it to draft.
+        </p>
+      )}
+
       <form className="grid gap-6 lg:grid-cols-3" onSubmit={(e) => e.preventDefault()}>
+        <fieldset disabled={!permissions.canEdit} className="contents">
         {/* Main column */}
         <div className="space-y-6 lg:col-span-2">
           <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
@@ -392,7 +414,7 @@ const AdminResourceEdit = () => {
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={field.onChange} disabled={!isAdmin}>
                     <SelectTrigger id="status">
                       <SelectValue />
                     </SelectTrigger>
@@ -447,13 +469,13 @@ const AdminResourceEdit = () => {
             </div>
 
             <div className="flex flex-col gap-2 pt-2">
-              <Button type="button" onClick={onPublish} disabled={busy}>
+              {permissions.canPublish && <Button type="button" onClick={onPublish} disabled={busy}>
                 {busy ? "Saving…" : "Publish"}
-              </Button>
-              <Button type="button" variant="outline" onClick={onSaveDraft} disabled={busy}>
+              </Button>}
+              {permissions.canSaveDraft && <Button type="button" variant="outline" onClick={onSaveDraft} disabled={busy}>
                 Save as draft
-              </Button>
-              {isEdit && status !== "draft" && status !== "published" && (
+              </Button>}
+              {permissions.canEdit && isEdit && status !== "draft" && status !== "published" && (
                 <Button type="button" variant="ghost" onClick={onSave} disabled={busy}>
                   Save changes
                 </Button>
@@ -563,6 +585,7 @@ const AdminResourceEdit = () => {
             </div>
           </section>
         </div>
+        </fieldset>
       </form>
     </div>
   );

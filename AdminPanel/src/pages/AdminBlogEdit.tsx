@@ -6,6 +6,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { useAuth } from "@shared/hooks/useAuth";
+import { useRole } from "@shared/hooks/useRole";
+import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
 import { slugify } from "@shared/lib/analytics";
 import { Markdown } from "@shared/lib/markdown";
 import FileUpload from "@/components/FileUpload";
@@ -92,6 +94,7 @@ const AdminBlogEdit = () => {
   const isNew = !id;
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin, isEditor } = useRole();
 
   const { data: existing, isLoading, isError, refetch } = useAdminBlogPost(id);
   const save = useSaveBlogPost();
@@ -152,6 +155,10 @@ const AdminBlogEdit = () => {
   }, [title, slugTouched, setValue]);
 
   const persist = async (values: FormValues, targetStatus: BlogStatus) => {
+    const rowStatus = (existing?.status ?? "draft") as ContentStatus;
+    const permissions = contentPermissions({ isAdmin, isEditor, status: rowStatus });
+    if (!permissions.canEdit || (targetStatus === "published" && !permissions.canPublish)) return;
+    if (!isAdmin) targetStatus = "draft";
     const tags = parseTags(values.tags);
     const willPublish = targetStatus === "published";
     const nextPublishedAt =
@@ -239,6 +246,11 @@ const AdminBlogEdit = () => {
   }
 
   const isPublished = status === "published";
+  const permissions = contentPermissions({
+    isAdmin,
+    isEditor,
+    status: (existing?.status ?? "draft") as ContentStatus,
+  });
 
   return (
     <div className="space-y-6">
@@ -262,20 +274,27 @@ const AdminBlogEdit = () => {
                 </a>
               </Button>
             )}
-            <Button variant="outline" onClick={onSaveDraft} disabled={busy}>
+            {permissions.canSaveDraft && <Button variant="outline" onClick={onSaveDraft} disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />} Save draft
-            </Button>
-            <Button onClick={onPublish} disabled={busy}>
+            </Button>}
+            {permissions.canPublish && <Button onClick={onPublish} disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />} Publish
-            </Button>
+            </Button>}
           </div>
         }
       />
+
+      {!permissions.canEdit && (
+        <p role="status" className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          Published content is read-only for editors. Ask an administrator to return it to draft.
+        </p>
+      )}
 
       <form
         onSubmit={(e) => e.preventDefault()}
         className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"
       >
+        <fieldset disabled={!permissions.canEdit} className="contents">
         {/* Main column */}
         <div className="space-y-6">
           <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
@@ -409,6 +428,7 @@ const AdminBlogEdit = () => {
               <Select
                 value={status}
                 onValueChange={(v) => setValue("status", v as BlogStatus)}
+                disabled={!isAdmin}
               >
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -478,6 +498,7 @@ const AdminBlogEdit = () => {
             </div>
           </section>
         </aside>
+        </fieldset>
       </form>
     </div>
   );

@@ -1,8 +1,17 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminFundingSources from "./AdminFundingSources";
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <AdminFundingSources />
+    </MemoryRouter>,
+  );
+}
 
 const recheckMutate = vi.fn();
 const refreshDueMutate = vi.fn();
@@ -74,14 +83,14 @@ describe("AdminFundingSources", () => {
   });
 
   it("shows failed source health with error class and last success", () => {
-    render(<AdminFundingSources />);
-    expect(screen.getByText(/fetch_timeout/i)).toBeInTheDocument();
-    expect(screen.getByText(/3 consecutive failures/i)).toBeInTheDocument();
+    renderPage();
+    expect(screen.getAllByText(/fetch_timeout/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/3 consecutive failures/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/last success/i).length).toBeGreaterThan(0);
   });
 
   it("shows conflicts as unknown and never exposes a force-open control", () => {
-    render(<AdminFundingSources />);
+    renderPage();
     expect(screen.getByText(/conflicts \/ unknown/i)).toBeInTheDocument();
     expect(screen.getByText(/women innovators award/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /force open/i })).toBeNull();
@@ -89,20 +98,20 @@ describe("AdminFundingSources", () => {
   });
 
   it("rechecks one opportunity through individual refresh mode", () => {
-    render(<AdminFundingSources />);
+    renderPage();
     const buttons = screen.getAllByRole("button", { name: /recheck/i });
     fireEvent.click(buttons[0]);
     expect(recheckMutate).toHaveBeenCalledWith("opp-failed");
   });
 
   it("can request a bounded due refresh", () => {
-    render(<AdminFundingSources />);
+    renderPage();
     fireEvent.click(screen.getByRole("button", { name: /refresh due/i }));
     expect(refreshDueMutate).toHaveBeenCalled();
   });
 
   it("edits source metadata through the invalidating source-registry mutation", () => {
-    render(<AdminFundingSources />);
+    renderPage();
     fireEvent.click(screen.getByRole("button", { name: /edit source/i }));
     expect(screen.getByRole("dialog", { name: /edit funding source/i })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/base url/i), { target: { value: "https://example.org/funding" } });

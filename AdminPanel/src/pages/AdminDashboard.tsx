@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -36,10 +36,13 @@ import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { CardSkeleton, DashboardSkeleton } from "@shared/components/common/LoadingState";
 import { cn } from "@shared/lib/utils";
+import { Button } from "@shared/components/ui/button";
 import {
   useAdminStats,
   useAdminTimeseries,
   useProfilesBySector,
+  useAdminReportingSummary,
+  useAdminContentPerformance,
   type AdminStats,
   type TimeseriesPoint,
 } from "@/hooks/queries/adminDashboard";
@@ -250,9 +253,12 @@ function KpiGrid({ s }: { s: AdminStats }) {
 // Page
 // ---------------------------------------------------------------------------
 const AdminDashboard = () => {
+  const [period, setPeriod] = useState<7 | 30 | 90>(30);
   const statsQuery = useAdminStats();
-  const signupsQuery = useAdminTimeseries("signups", 30);
-  const searchesQuery = useAdminTimeseries("funding_search", 30);
+  const reportingQuery = useAdminReportingSummary(period);
+  const performanceQuery = useAdminContentPerformance(period, 10);
+  const signupsQuery = useAdminTimeseries("signups", period);
+  const searchesQuery = useAdminTimeseries("funding_search", period);
   const sectorsQuery = useProfilesBySector(6);
 
   const signups = useMemo<TimeseriesPoint[]>(
@@ -271,7 +277,16 @@ const AdminDashboard = () => {
   const header = (
     <PageHeader
       title="Dashboard"
-      subtitle="An overview of activity across Cresciva."
+      subtitle="Audience, content, revenue and operational health."
+      actions={
+        <div className="flex rounded-lg border border-border bg-card p-1" aria-label="Reporting period">
+          {([7, 30, 90] as const).map((days) => (
+            <Button key={days} size="sm" variant={period === days ? "default" : "ghost"} onClick={() => setPeriod(days)}>
+              {days} days
+            </Button>
+          ))}
+        </div>
+      }
     />
   );
 
@@ -309,6 +324,62 @@ const AdminDashboard = () => {
 
       {/* KPI grid */}
       <KpiGrid s={s} />
+
+      {reportingQuery.isError ? (
+        <ErrorState title="Couldn't load reporting" onRetry={() => reportingQuery.refetch()} />
+      ) : reportingQuery.isLoading || !reportingQuery.data ? (
+        <DashboardSkeleton />
+      ) : (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <section className="rounded-xl border border-border bg-card p-5 shadow-soft">
+            <h2 className="font-display text-lg font-semibold text-ink-strong">Audience</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Last {period} days</p>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div><dt className="text-sm text-muted-foreground">Page views</dt><dd className="text-2xl font-bold">{fmt(reportingQuery.data.audience.page_views)}</dd></div>
+              <div><dt className="text-sm text-muted-foreground">Unique sessions</dt><dd className="text-2xl font-bold">{fmt(reportingQuery.data.audience.unique_sessions)}</dd></div>
+              <div><dt className="text-sm text-muted-foreground">New users</dt><dd className="text-2xl font-bold">{fmt(reportingQuery.data.audience.new_users)}</dd></div>
+              <div><dt className="text-sm text-muted-foreground">Funding searches</dt><dd className="text-2xl font-bold">{fmt(reportingQuery.data.audience.funding_searches)}</dd></div>
+            </dl>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-soft">
+            <h2 className="font-display text-lg font-semibold text-ink-strong">Revenue</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Verified successful payments, kept separate by currency.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {Object.entries(reportingQuery.data.revenue.byCurrency).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No successful payments in this period.</p>
+              ) : Object.entries(reportingQuery.data.revenue.byCurrency).map(([currency, amount]) => (
+                <div key={currency} className="rounded-lg bg-surface-muted p-4">
+                  <p className="text-sm text-muted-foreground">{currency}</p>
+                  <p className="text-2xl font-bold text-ink-strong">{new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount / 100)}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">{fmt(reportingQuery.data.revenue.successfulPayments)} successful · {fmt(reportingQuery.data.revenue.failedPayments)} failed or abandoned</p>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-soft xl:col-span-2">
+            <h2 className="font-display text-lg font-semibold text-ink-strong">Content performance</h2>
+            {performanceQuery.isError ? <ErrorState compact onRetry={() => performanceQuery.refetch()} /> : performanceQuery.isLoading ? <CardSkeleton lines={4} /> : (performanceQuery.data ?? []).length === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">No content performance data yet.</p>
+            ) : (
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full min-w-[36rem] text-left text-sm">
+                  <thead className="text-muted-foreground"><tr><th className="pb-3">Content</th><th className="pb-3">Type</th><th className="pb-3 text-right">Views</th><th className="pb-3 text-right">Downloads</th></tr></thead>
+                  <tbody>{performanceQuery.data?.map((row) => <tr key={`${row.contentType}-${row.contentId}`} className="border-t border-border"><td className="py-3 font-medium">{row.title}</td><td className="py-3 capitalize text-muted-foreground">{row.contentType}</td><td className="py-3 text-right">{fmt(row.views)}</td><td className="py-3 text-right">{fmt(row.downloads)}</td></tr>)}</tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-soft xl:col-span-2">
+            <h2 className="font-display text-lg font-semibold text-ink-strong">Operations</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {Object.entries(reportingQuery.data.operations).map(([key, value]) => <div key={key} className="rounded-lg bg-surface-muted p-4"><p className="text-sm capitalize text-muted-foreground">{key.replace(/_/g, " ")}</p><p className="text-2xl font-bold">{fmt(value)}</p></div>)}
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* Time-series charts */}
       <div className="grid gap-6 lg:grid-cols-2">
