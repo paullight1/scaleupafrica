@@ -57,28 +57,33 @@ describe("OpportunityCard", () => {
     expect(screen.queryByText(/^Verified source$/i)).toBeNull();
   });
 
-  it("shows Apply now only for a trusted fresh open recommendation", () => {
-    render(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="open" statusCheckedAt="2026-08-22T10:00:00Z" applicationUrl="https://alpha.example/apply" primaryApplyEligible />);
+  it("shows Apply on official site only for a trusted fresh open eligible recommendation", () => {
+    render(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="open" statusCheckedAt="2026-08-22T10:00:00Z" applicationUrl="https://alpha.example/apply" primaryApplyEligible eligibilityStatus="eligible" />);
     expect(screen.getByText(/^Open now$/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /apply now/i })).toHaveAttribute("href", "https://alpha.example/apply");
+    expect(screen.getByRole("link", { name: /apply on official site/i })).toHaveAttribute("href", "https://alpha.example/apply");
   });
 
-  it("never shows Apply now for closed or unknown status", () => {
-    const { rerender } = render(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="closed" applicationUrl="https://alpha.example/apply" primaryApplyEligible={false} />);
+  it("never shows the application CTA for closed or unknown status", () => {
+    const { rerender } = render(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="closed" applicationUrl="https://alpha.example/apply" primaryApplyEligible={false} eligibilityStatus="eligible" />);
     expect(screen.getByText(/^Closed$/i)).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /apply now/i })).toBeNull();
-    rerender(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="unknown" applicationUrl="https://alpha.example/apply" primaryApplyEligible={false} />);
+    expect(screen.queryByRole("link", { name: /apply on official site/i })).toBeNull();
+    rerender(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="unknown" applicationUrl="https://alpha.example/apply" primaryApplyEligible={false} eligibilityStatus="eligible" />);
     expect(screen.getByText(/current status unconfirmed/i)).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /apply now/i })).toBeNull();
+    expect(screen.queryByRole("link", { name: /apply on official site/i })).toBeNull();
+  });
+
+  it("never enables the application CTA when hard eligibility has not passed", () => {
+    render(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} verificationStatus="verified" applicationStatus="open" statusCheckedAt="2026-08-22T10:00:00Z" applicationUrl="https://alpha.example/apply" primaryApplyEligible eligibilityStatus="insufficient_information" />);
+    expect(screen.queryByRole("link", { name: /apply on official site/i })).toBeNull();
   });
 
   it("labels AI-assisted results unknown even if model data tries to claim open", () => {
     const [ai] = parseOpportunities([{ title: "AI Candidate", funder: "Possible Funder", url: "https://possible.example", discovery_source: "ai_assisted", verification_status: "unverified", application_status: "open", application_url: "https://possible.example/apply" }]);
-    render(<OpportunityCard opportunity={ai} open={false} onToggle={() => {}} applicationStatus="open" applicationUrl="https://possible.example/apply" primaryApplyEligible />);
+    render(<OpportunityCard opportunity={ai} open={false} onToggle={() => {}} applicationStatus="open" applicationUrl="https://possible.example/apply" primaryApplyEligible eligibilityStatus="eligible" />);
     expect(screen.getByText(/AI discovery · unverified/i)).toBeInTheDocument();
     expect(screen.getByText(/current status unconfirmed/i)).toBeInTheDocument();
     expect(screen.queryByText(/^Open now$/i)).toBeNull();
-    expect(screen.queryByRole("link", { name: /apply now/i })).toBeNull();
+    expect(screen.queryByRole("link", { name: /apply on official site/i })).toBeNull();
   });
 
   it("shows a deadline as confirmed only when current-cycle deadline provenance is confirmed", () => {
