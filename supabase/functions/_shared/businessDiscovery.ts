@@ -103,8 +103,11 @@ export async function discoverBusinessCandidates(input: {
   );
   if (!extracted.ok) return extracted;
 
+  // AI may only cite final URLs that Cresciva successfully fetched. Search-result
+  // snippets and model-invented links are never allowed to become persisted evidence.
+  const allowedEvidenceUrls = new Set(evidence.map((page) => page.url));
   const candidates = extracted.candidates
-    .map(normalizeExtractedCandidate)
+    .map((candidate) => normalizeExtractedCandidate(candidate, allowedEvidenceUrls))
     .filter((candidate): candidate is EnrichedBusinessCandidate => candidate !== null)
     .slice(0, MAX_SEARCH_RESULTS);
 
@@ -164,7 +167,7 @@ async function extractCandidatesFromEvidence(
   evidence: EvidencePage[],
   apiKey: string,
 ): Promise<{ ok: true; candidates: AiCandidate[] } | { ok: false; error: BusinessDiscoveryError }> {
-  const system = `You extract structured organisation facts for Cresciva funding intelligence.\n\nCRITICAL EVIDENCE RULES:\n- Use only the supplied public evidence.\n- Do not use model memory, outside knowledge, or assumptions.\n- Return null or [] for unsupported fields.\n- Every non-null factual field must be traceable in field_evidence to one or more supplied source_urls.\n- Search-result snippets are discovery hints only; only supplied fetched evidence may support facts.\n- Never infer sensitive personal characteristics, including religion, ethnicity, sexual orientation, health, political beliefs, trade-union membership, criminal history, or sex life.\n- Do not infer founder demographics from names, photos, pronouns, geography, or organisation mission.\n- Return only JSON with a candidates array.\n- Candidate fields: canonical_name, website, country, summary, organisation_type, sectors[], operating_countries[], founding_year, keywords[], source_urls[], field_evidence{}.\n- Prefer one candidate when evidence clearly identifies one organisation; multiple candidates are allowed only when the supplied pages genuinely conflict on identity.`;
+  const system = `You extract structured organisation facts for Cresciva funding intelligence.\n\nCRITICAL EVIDENCE RULES:\n- Use only the supplied public evidence.\n- Do not use model memory, outside knowledge, or assumptions.\n- Return null or [] for unsupported fields.\n- Every non-null factual field must be traceable in field_evidence to one or more supplied source_urls.\n- field_evidence keys must use the exact candidate field names: canonical_name, website, country, summary, organisation_type, sectors, operating_countries, founding_year, keywords.\n- source_urls may contain only URLs from the supplied fetched evidence.\n- Search-result snippets are discovery hints only; only supplied fetched evidence may support facts.\n- Never infer sensitive personal characteristics, including religion, ethnicity, sexual orientation, health, political beliefs, trade-union membership, criminal history, or sex life.\n- Do not infer founder demographics from names, photos, pronouns, geography, or organisation mission.\n- Return only JSON with a candidates array.\n- Candidate fields: canonical_name, website, country, summary, organisation_type, sectors[], operating_countries[], founding_year, keywords[], source_urls[], field_evidence{}.\n- Prefer one candidate when evidence clearly identifies one organisation; multiple candidates are allowed only when the supplied pages genuinely conflict on identity.`;
 
   const user = JSON.stringify({
     requested_business_name: businessName,
@@ -210,20 +213,36 @@ async function extractCandidatesFromEvidence(
   }
 }
 
-function normalizeExtractedCandidate(raw: AiCandidate): EnrichedBusinessCandidate | null {
-  const canonicalName = safeString(raw.canonical_name, 200);
-  const sourceUrls = stringArray(raw.source_urls, 10).map(validHttpUrl).filter((v): v is string => Boolean(v));
+function normalizeExtractedCandidate(
+  raw: AiCandidate,
+  allowedEvidenceUrls: ReadonlySet<string>,
+): EnrichedBusinessCandidate | null {
+  const sourceUrls = stringArray(raw.source_urls, 10)
+    .map(validHttpUrl)
+    .filter((url): url is string => Boolean(url && allowedEvidenceUrls.has(url)));
+  if (!sourceUrls.length) return null;
+
+  const fieldEvidence = isRecord(raw.field_evidence)
+    ? sanitizeEvidenceMap(raw.field_evidence, sourceUrls)
+    : {};
+
+  const canonicalName = hasFieldEvidence(fieldEvidence, "canonical_name")
+    ? safeString(raw.canonical_name, 200)
+    : "";
   if (!canonicalName || !sourceUrls.length) return null;
 
-  const website = validHttpUrl(raw.website);
-  const country = nullableString(raw.country, 120);
-  const summary = nullableString(raw.summary, 1000);
-  const organisationType = nullableString(raw.organisation_type, 80);
-  const sectors = stringArray(raw.sectors, 12, 80);
-  const operatingCountries = stringArray(raw.operating_countries, 30, 120);
-  const keywords = stringArray(raw.keywords, 20, 80);
-  const foundingYear = normalizeYear(raw.founding_year);
-  const fieldEvidence = isRecord(raw.field_evidence) ? sanitizeEvidenceMap(raw.field_evidence, sourceUrls) : {};
+  const website = hasFieldEvidence(fieldEvidence, "website") ? validHttpUrl(raw.website) : null;
+  const country = hasFieldEvidence(fieldEvidence, "country") ? nullableString(raw.country, 120) : null;
+  const summary = hasFieldEvidence(fieldEvidence, "summary") ? nullableString(raw.summary, 1000) : null;
+  const organisationType = hasFieldEvidence(fieldEvidence, "organisation_type")
+    ? nullableString(raw.organisation_type, 80)
+    : null;
+  const sectors = hasFieldEvidence(fieldEvidence, "sectors") ? stringArray(raw.sectors, 12, 80) : [];
+  const operatingCountries = hasFieldEvidence(fieldEvidence, "operating_countries")
+    ? stringArray(raw.operating_countries, 30, 120)
+    : [];
+  const foundingYear = hasFieldEvidence(fieldEvidence, "founding_year") ? normalizeYear(raw.founding_year) : null;
+  const keywords = hasFieldEvidence(fieldEvidence, "keywords") ? stringArray(raw.keywords, 20, 80) : [];
 
   return {
     id: crypto.randomUUID(),
@@ -251,10 +270,16 @@ function sanitizeEvidenceMap(value: Record<string, unknown>, allowedUrls: string
   const out: Record<string, unknown> = {};
   for (const [key, raw] of Object.entries(value).slice(0, 30)) {
     if (!/^[a-z0-9_]{1,80}$/i.test(key)) continue;
-    const urls = stringArray(raw, 10).map(validHttpUrl).filter((url): url is string => Boolean(url && allowed.has(url)));
+    const urls = stringArray(raw, 10)
+      .map(validHttpUrl)
+      .filter((url): url is string => Boolean(url && allowed.has(url)));
     if (urls.length) out[key] = urls;
   }
   return out;
+}
+
+function hasFieldEvidence(fieldEvidence: Record<string, unknown>, key: string): boolean {
+  return Array.isArray(fieldEvidence[key]) && (fieldEvidence[key] as unknown[]).length > 0;
 }
 
 function compactEvidence(raw: string): string {
