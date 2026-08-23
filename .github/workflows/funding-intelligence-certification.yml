@@ -74,6 +74,7 @@ jobs:
             src/lib/funding/recommendationEngine.test.ts \
             src/components/funding/FundingRadarTabs.test.tsx \
             src/components/funding/FundingWorkspace.test.tsx \
+            src/components/funding/FundingSearch.test.tsx \
             src/components/funding/OpportunityCard.test.tsx \
             src/components/funding/OpportunityCard.member.test.tsx \
             src/hooks/queries/memberOpportunityState.test.ts \
@@ -109,4 +110,6 @@ jobs:
           grep -q 'FUNDING_NOTIFICATION_SECRET' supabase/functions/funding-notifications/index.ts
           grep -q 'funding-alert:${event.id}' supabase/functions/funding-notifications/index.ts
           grep -q 'safeExternalFetch' scripts/funding-intelligence-eval.ts
+          grep -q 'Verified current matches' Frontend/src/components/funding/FundingSearch.tsx
+          grep -q 'AI discoveries' Frontend/src/components/funding/FundingSearch.tsx
           grep -q 'You’re not currently eligible for any verified open opportunities.' Frontend/src/components/funding/FundingWorkspace.tsx
