@@ -7,6 +7,7 @@ import {
   fundingSourcesRegistry,
   fundingSourceChecks,
   memberOpportunityState,
+  notificationEvents,
 } from "./funding-intelligence-schema";
 
 /**
@@ -25,6 +26,7 @@ export const dbSchema = {
   fundingSourcesRegistry,
   fundingSourceChecks,
   memberOpportunityState,
+  notificationEvents,
 };
 export type Db = ReturnType<typeof drizzle<typeof dbSchema>>;
 
