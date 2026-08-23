@@ -253,7 +253,7 @@ export function OpportunityCard({
         </Button>
         {canApplyNow && resolvedApplicationUrl && (
           <Button asChild variant="default" size="sm">
-            <a href={resolvedApplicationUrl} target="_blank" rel="noopener noreferrer nofollow" onClick={trackApplyClick}>Apply now <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" /></a>
+            <a href={resolvedApplicationUrl} target="_blank" rel="noopener noreferrer nofollow" onClick={trackApplyClick}>Apply on official site <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" /></a>
           </Button>
         )}
         {o.url && (
@@ -267,8 +267,9 @@ export function OpportunityCard({
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
           <Button type="button" variant={memberState === "saved" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("saved")}><Bookmark className="mr-1.5 h-4 w-4" />Save</Button>
           <Button type="button" variant={memberState === "preparing" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("preparing")}><ClipboardCheck className="mr-1.5 h-4 w-4" />I'm preparing</Button>
-          <Button type="button" variant={memberState === "applied" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("applied")}>Mark applied</Button>
-          {memberState === "applied" ? <><Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("won")}><Trophy className="mr-1.5 h-4 w-4" />Won</Button><Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("rejected")}><XCircle className="mr-1.5 h-4 w-4" />Rejected</Button></> : null}
+          <Button type="button" variant={memberState === "applied" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("applied")}>Applied</Button>
+          <Button type="button" variant={memberState === "won" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("won")}><Trophy className="mr-1.5 h-4 w-4" />Won</Button>
+          <Button type="button" variant={memberState === "rejected" ? "secondary" : "ghost"} size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("rejected")}><XCircle className="mr-1.5 h-4 w-4" />Rejected</Button>
           <Button type="button" variant="ghost" size="sm" disabled={memberStatePending} onClick={() => onMemberStateChange("dismissed")}>Not relevant</Button>
         </div>
       ) : null}
