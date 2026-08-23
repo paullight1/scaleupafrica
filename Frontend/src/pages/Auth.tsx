@@ -10,7 +10,6 @@ import { adminUrl, isAdminPath } from "@shared/lib/crossApp";
 import { SEO } from "@shared/components/common/SEO";
 import { AuthShell } from "@/components/common/AuthShell";
 import { AuthAlert } from "@/components/auth/AuthAlert";
-import { GoogleButton } from "@/components/auth/GoogleButton";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { CheckEmailPanel } from "@/components/auth/CheckEmailPanel";
 import { useResendCooldown } from "@/hooks/useResendCooldown";
@@ -27,7 +26,7 @@ const signInSchema = z.object({
 });
 
 /**
- * Sign-in — password, Google, or a passwordless link/code — plus the second
+ * Sign-in — password or a passwordless link/code — plus the second
  * factor step-up. Account creation lives at /auth/signup.
  */
 const Auth = () => {
@@ -38,7 +37,6 @@ const Auth = () => {
     user,
     loading,
     signIn,
-    signInWithGoogle,
     signInWithOtp,
     verifyEmailOtp,
     signOut,
@@ -105,17 +103,6 @@ const Auth = () => {
     } finally {
       setBusy(false);
     }
-  };
-
-  const handleGoogle = async () => {
-    setFormError(null);
-    setBusy(true);
-    const { error } = await signInWithGoogle(next);
-    if (error) {
-      setFormError(mapAuthError(error));
-      setBusy(false);
-    }
-    // On success the browser redirects away; leave busy set.
   };
 
   const handleMagicLink = async () => {
@@ -245,15 +232,6 @@ const Auth = () => {
         <p className="mb-6 text-muted-foreground">
           Sign in to manage your directory profile and funding leads.
         </p>
-
-        <GoogleButton onClick={handleGoogle} busy={busy} />
-
-        <div className="relative my-5 text-center">
-          <span className="relative z-10 bg-background px-3 text-xs text-muted-foreground">
-            or with email
-          </span>
-          <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
-        </div>
 
         <AuthAlert error={formError ?? callbackError} />
 

@@ -29,12 +29,11 @@ const AuthSignUp = () => {
   const [params] = useSearchParams();
   const next = sanitizeNext(params.get("next"));
 
-  const { user, loading, signInWithGoogle, resendConfirmation } = useAuth();
+  const { user, loading, resendConfirmation } = useAuth();
   const callbackError = useCallbackError();
   const { cooldown, start: startCooldown } = useResendCooldown();
 
   const [confirmEmail, setConfirmEmail] = useState<string | null>(null);
-  const [googleBusy, setGoogleBusy] = useState(false);
   const [panelError, setPanelError] = useState<FriendlyError | null>(null);
 
   const onConfirmationRequired = useCallback(
@@ -61,17 +60,6 @@ const AuthSignUp = () => {
   }, [user, loading, navigate, next]);
 
   const signInHref = `/auth?next=${encodeURIComponent(next)}`;
-
-  const handleGoogle = async () => {
-    wizard.setFormError(null);
-    setGoogleBusy(true);
-    const { error } = await signInWithGoogle(next);
-    if (error) {
-      wizard.setFormError(mapAuthError(error));
-      setGoogleBusy(false);
-    }
-    // On success the browser navigates away; leave the button busy.
-  };
 
   const handleResend = async () => {
     if (!confirmEmail || cooldown > 0) return;
@@ -149,8 +137,6 @@ const AuthSignUp = () => {
             error={wizard.errors.email}
             onChange={(v) => wizard.setValue("email", v)}
             onSubmit={wizard.submitStep}
-            onGoogle={handleGoogle}
-            googleBusy={googleBusy}
             signInHref={signInHref}
           />
         )}
