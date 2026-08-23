@@ -33,20 +33,16 @@ describe("Business Enrichment contracts", () => {
   });
 
   it("rejects unexpected request fields", () => {
-    expect(() =>
-      BusinessEnrichmentRequestSchema.parse({ businessName: "Acme", confirmed: true }),
-    ).toThrow();
+    expect(() => BusinessEnrichmentRequestSchema.parse({ businessName: "Acme", confirmed: true })).toThrow();
   });
 
   it("bounds identity confidence and source evidence", () => {
-    expect(() =>
-      BusinessIdentityCandidateSchema.parse({
-        id: "candidate-1",
-        canonicalName: "Acme",
-        identityConfidence: 101,
-        sourceUrls: ["https://example.com"],
-      }),
-    ).toThrow();
+    expect(() => BusinessIdentityCandidateSchema.parse({
+      id: "candidate-1",
+      canonicalName: "Acme",
+      identityConfidence: 101,
+      sourceUrls: ["https://example.com"],
+    })).toThrow();
   });
 
   it("allows ambiguous responses without inventing a selected candidate", () => {
@@ -89,6 +85,14 @@ describe("business enrichment Edge trust boundary", () => {
     expect(sharedSource).toContain("evidence.map((page) => page.url)");
     expect(sharedSource).toContain("allowedEvidenceUrls.has(url)");
     expect(sharedSource).toContain("if (!canonicalName || !sourceUrls.length) return null");
+  });
+
+  it("requires exact quote evidence from fetched text before a field can survive", () => {
+    expect(sharedSource).toContain("evidenceByUrl");
+    expect(sharedSource).toContain("Exact quote");
+    expect(sharedSource).toContain("pageText.includes(quote)");
+    expect(sharedSource).toContain("url: evidenceUrl");
+    expect(sharedSource).toContain("quote");
   });
 
   it("drops unsupported enriched facts instead of trusting model output without field evidence", () => {
