@@ -1,173 +1,127 @@
 # Cresciva Production Launch Roadmap
 
 > **Baseline:** `main` at `8603e5ec2db6830263c97d0d556ac31e390d51ac` on 2026-08-20.  
-> **Design:** `docs/superpowers/specs/2026-08-20-cresciva-production-readiness-design.md`  
-> **Purpose:** harden and certify the existing Cresciva platform for a public paid launch.
+> **Working branch:** `docs/cresciva-production-readiness`  
+> **Purpose:** harden the existing Cresciva platform for a public paid launch while keeping deployment/merge as explicit operator gates.
 
 ## 1. Current verdict
 
-Cresciva is a substantial production candidate, not an early prototype. The repository already includes four npm workspaces, Supabase/Auth/Postgres/Storage/Edge Functions, a NestJS + Drizzle API, Bachs hosted payments, a member dashboard, a scalable SME directory, funding intelligence, an admin panel, email infrastructure, legal/content pages, route-level lazy loading, SEO infrastructure, and broad automated test coverage.
+Cresciva is a substantial production candidate. Repository-side implementation now covers the payment ledger/Bachs flow, funding recommendation and source-intelligence engines, account lifecycle/data rights, security contracts, release checks, Backend cutover controls, web-quality budgets, observability primitives, support workflows and launch/incident runbooks.
 
-The remaining risk is concentrated in **operational correctness and release proof**, not missing product screens.
+The remaining blockers are **live/operator evidence**, not missing core repository features: production Supabase/Vercel/provider configuration, real Bachs checks, browser/device/performance validation, Funding Intelligence live-source certification, monitoring activation, legal/entity sign-off and final production smoke/rollback evidence.
 
-### Launch-blocking findings
+## 2. Phase status
 
-| Severity | Finding | Why it blocks launch |
-| --- | --- | --- |
-| P0 | Bachs payment path is implemented but has not been certified against the real Cresciva sandbox/live products, signing secret and Supabase deployment | Payment code cannot be called production-certified without real provider/deployment evidence |
-| P0/P1 | GitHub Actions workflow exists but `main` is still externally reported unprotected and no required CI status is enforced | Broken code can still reach production without a mandatory repository gate |
-| P1 | Connected Supabase scope cannot see Cresciva project `dwyglydswegyvjowzdot` | Source cannot prove migrations/functions/secrets/OAuth/backups are actually live |
-| P1 | Connected Vercel team currently exposes zero projects | Production domain/env/preview/rollback configuration cannot be independently inspected |
-| P1 | Funding Deep Search still needs source provenance/freshness before “verified/current” can be a high-trust claim | Model memory is not authoritative current funding data |
-| P1/P2 | TypeScript strictness remains globally relaxed | Type safety is improving but still permits broader regression classes |
-| P2 | License/support-contact ownership remains unresolved in operations | Paid public product needs a real support/legal identity |
+| Phase | Repository status | Live/operator status |
+| ---: | --- | --- |
+| 1 Payment Reliability | **COMPLETE** | Bachs/Supabase real sandbox/live certification deferred |
+| 2 CI & Release Governance | **COMPLETE** | required-status/main protection/rate-limited hosted CI proof deferred |
+| 3 Production Environment | **COMPLETE** | real Supabase/Vercel/Bachs/OAuth/email topology verification deferred |
+| 4 Supabase Security & Data Integrity | **COMPLETE** | live advisors/query-plan/restore rehearsal deferred |
+| 5 Funding Provenance & Verification | **COMPLETE** | live source population/schedules/certification corpus execution deferred |
+| 6 Backend/API Cutover | **COMPLETE** | Backend deployment/domain parity observation deferred; launch remains Supabase-first by default |
+| 7 Web Quality/A11y/Performance/SEO | **COMPLETE** | real browser/device/Lighthouse/Web Vitals/crawler matrix deferred |
+| 8 Observability/Analytics/Abuse/Cost | **COMPLETE** | monitoring projects, alert destinations and fire drills deferred |
+| 9 Legal/Privacy/Support | **COMPLETE** | qualified counsel/entity/provider-support identity sign-off deferred |
+| 10 Launch Certification/DR | **COMPLETE (repository package)** | final production GO/NO-GO remains deferred until operator live checklist is evidenced |
 
-## 2. What is already solved or implemented on the production-readiness branch
+## 3. Repository capabilities now implemented
 
 Do not reopen these as missing unless regression evidence appears:
 
-- Cresciva branding in package metadata, README, runtime/static metadata, OG assets and admin identity.
-- Forgot/reset password routes.
-- Authenticated dashboard and global layout.
-- Public profile detail pages.
-- Database-backed directory search/facets/pagination.
-- Anonymous contact-field restrictions and contact visibility controls.
-- Bachs product-based hosted checkout with server-owned Cresciva pricing expectations.
-- One-time annual Bachs product mapping for NGN/USD; no auto-renew semantics.
-- Bachs signed webhook verification, timestamp replay window, bounded request body, event-ID dedupe and retry-safe unprocessed duplicate handling.
-- Cresciva internal-reference callback verification backed by server-side Bachs retrieval.
-- Atomic annual-access grant routine and payment audit/reconciliation surfaces.
-- Legacy active Paystack payment code removed from the production-readiness branch.
-- Funding subscription gate, cache, rate limit, timeout and output validation.
-- Transactional email validation/throttling/audit.
-- Legal/content routes.
-- Route-level lazy loading and reduced-motion handling.
-- Admin role RPC with explicit authorization/MFA step-up when enrolled.
-- Root `npm run verify`, explicit workspace typechecks and GitHub Actions CI workflow.
-- Single public-origin contract in `config/site-origin.js` shared by runtime metadata, Vite HTML and sitemap/robots.
+- Cresciva branding and one canonical public-origin contract.
+- Full auth/account recovery/dashboard lifecycle and contact visibility controls.
+- Bachs one-time annual checkout, signed webhooks, replay/idempotency controls, verified callback, atomic access grant and reconciliation.
+- Verified-first Funding Radar, Business Enrichment, current-cycle status engine, deterministic eligibility/ranking, AI discoveries kept unverified, member workflow/alerts and certification/evaluation harnesses.
+- Funding source registry/refresh and in-product funding correction reports with staff triage.
+- Database-backed scalable directory and public profile pages.
+- Supabase authorization matrix, privileged-function contract, retention model and restore runbook.
+- Backend fail-fast production CORS and dependency-aware readiness; Supabase-first API-domain rollback strategy.
+- Route lazy-loading, reduced-motion/SEO/sitemap/OG infrastructure and built-output gzip/metadata quality budgets.
+- Redacting structured log primitives plus payment/funding/email operational alert contract.
+- Account data export and recent-auth destructive deletion with profile-media cleanup, operational-data sanitization and detached minimal payment ledger retention.
+- Current Terms/Privacy copy aligned to Bachs, funding trust semantics and data rights.
+- Payment/funding-correction/support/release/incident-response runbooks.
+- `npm run verify:release` static launch-invariant check.
 
-## 3. Phase sequence
+## 4. Phase files
 
-| Phase | File | Gate | Launch severity |
-| ---: | --- | --- | --- |
-| 1 | `01-PAYMENT-RELIABILITY-LEDGER.md` | Bachs settlement cannot be silently lost; payments/access reconcile; real sandbox configuration proven | P0 |
-| 2 | `02-CI-RELEASE-GOVERNANCE.md` | Every change passes web/admin/shared/backend/edge checks and `main` requires the status | P0/P1 |
-| 3 | `03-PRODUCTION-ENV-DOMAINS-SECRETS.md` | Live topology, origin, Bachs products/callbacks, functions, secrets, OAuth/email and rollback are evidenced | P1 |
-| 4 | `04-SUPABASE-SECURITY-DATA-INTEGRITY.md` | RLS, grants, migrations, advisors, backup/restore and data boundaries pass | P1 |
-| 5 | `05-FUNDING-PROVENANCE-VERIFICATION.md` | Verified opportunities have source provenance/freshness and review workflow | P1 |
-| 6 | `06-BACKEND-API-PRODUCTION-CUTOVER.md` | Enabled API domains have deploy/health/rollback evidence; disabled domains remain safe | P1 |
-| 7 | `07-WEB-QUALITY-A11Y-PERFORMANCE-SEO.md` | Critical web journeys pass mobile, accessibility, SEO and performance budgets | P1/P2 |
-| 8 | `08-OBSERVABILITY-ANALYTICS-ABUSE-COST.md` | Payments, AI, email, errors and uptime are observable with actionable alerts | P1 |
-| 9 | `09-LEGAL-PRIVACY-SUPPORT-OPERATIONS.md` | Company/support/legal/data-rights/payment-support operations are real | P1/P2 |
-| 10 | `10-LAUNCH-CERTIFICATION-DR-GO-NO-GO.md` | End-to-end, failure, restore, rollback and launch smoke tests pass | Final gate |
+| Phase | Plan |
+| ---: | --- |
+| 1 | `01-PAYMENT-RELIABILITY-LEDGER.md` |
+| 2 | `02-CI-RELEASE-GOVERNANCE.md` |
+| 3 | `03-PRODUCTION-ENV-DOMAINS-SECRETS.md` |
+| 4 | `04-SUPABASE-SECURITY-DATA-INTEGRITY.md` |
+| 5 | `05-FUNDING-PROVENANCE-VERIFICATION.md` |
+| 6 | `06-BACKEND-API-PRODUCTION-CUTOVER.md` |
+| 7 | `07-WEB-QUALITY-A11Y-PERFORMANCE-SEO.md` |
+| 8 | `08-OBSERVABILITY-ANALYTICS-ABUSE-COST.md` |
+| 9 | `09-LEGAL-PRIVACY-SUPPORT-OPERATIONS.md` |
+| 10 | `10-LAUNCH-CERTIFICATION-DR-GO-NO-GO.md` |
 
-## 4. Execution rules
-
-1. **Work from the current accepted baseline.** Rebase/merge before each phase and record SHA in evidence.
-2. **Evidence before completion claims.** Code present is not the same as a passing release gate.
-3. **Never mark environment work complete from source alone.** Record live deploy/config/smoke evidence.
-4. **No direct production entitlement mutation.** Paid access changes only through the canonical grant routine.
-5. **No broad service-role exposure.** Browser bundles contain only publishable client configuration.
-6. **No unverified “current funding” claim.** Verified status requires source/freshness evidence.
-7. **One production origin contract.** Canonical/OG/sitemap/robots/Bachs `APP_URL`/OAuth/email/CORS must agree.
-8. **Bachs webhooks are fulfillment authority.** Browser redirect and `checkout.completed` never grant access.
-9. **Cresciva annual membership is one-time.** Bachs products used for membership must have no billing cycle.
-10. **A green Vercel deployment is not the CI gate.** Repository checks are independent and required.
-11. **Backend is never exempt from repository health.** Disabled API domains still require build/test/typecheck/lint health.
-12. **No P0 waiver.** P1 exceptions require written mitigation, owner and expiry.
+Funding Intelligence P0 and engine documentation live under `docs/product/`, `docs/superpowers/specs/` and `docs/superpowers/plans/` and are part of Phase 5's completed repository scope.
 
 ## 5. Repository verification contract
 
-Authoritative repository command:
+Primary command:
 
 ```bash
 npm run verify
 ```
 
-It expands to at least:
+It covers workspace lint/typecheck/tests, production web/admin assembly, built-output web-quality budgets, Backend build and repository release invariants.
 
-```bash
-npm run lint
-npm run typecheck
-npm run test
-npm run build
-npm run build:api
-```
+Funding Intelligence changes also have dedicated certification/evaluation workflows and benchmark scripts in the repository.
 
-GitHub Actions runs `npm ci` before this command, Deno-checks active Edge Function entry points, asserts built artifacts, scans history for secrets and surfaces the production dependency audit.
+The operator chose to skip hosted CI/Vercel rate-limit delays during implementation. A hosted check that is missing/rate-limited is therefore **not** treated as repository implementation work, but it must be run/replaced with equivalent clean-checkout evidence before a real production GO.
 
-## 6. Release evidence directory
+## 6. Non-negotiable trust rules
 
-```text
-docs/production-readiness/evidence/
-  README.md
-  environment-inventory.md
-  payment-certification.md
-  supabase-security-review.md
-  funding-provenance-review.md
-  backend-cutover.md
-  web-quality-report.md
-  observability-alerts.md
-  legal-support-readiness.md
-  launch-decision.md
-```
+1. Browser redirects/screenshots never grant paid access; verified provider settlement + Cresciva ledger do.
+2. AI discoveries never self-promote to verified/current funding.
+3. `Apply now` requires verified/fresh source evidence, current open/closing-soon/rolling state, eligible member state and official application URL.
+4. Unknown/stale funding state cannot masquerade as Open.
+5. Member funding corrections trigger staff/source review, not direct truth mutation.
+6. Public directory paths cannot expose private contact/payment/member data.
+7. Production Backend domains are opt-in and reversible; disabled domains remain on the Supabase path.
+8. Privileged account deletion/payment/security actions remain server-side.
 
-Evidence contains outcomes/identifiers, never secret values, tokens, private keys, full payment payloads or personal user data.
+## 7. Evidence directory
 
-## 7. Definition of a completed phase
+Key records now include:
 
-A phase is complete only when:
+- `environment-inventory.md`
+- `payment-certification.md`
+- `supabase-security-review.md`
+- `funding-provenance-review.md`
+- `funding-intelligence-certification.md`
+- `backend-cutover.md`
+- `web-quality-report.md`
+- `observability-alerts.md`
+- `legal-support-readiness.md`
+- `restore-runbook.md`
+- `launch-decision.md`
 
-- planned repository work is implemented;
-- all new/existing automated checks relevant to the phase pass in fresh evidence;
-- phase-specific failure cases pass;
-- required live-environment checks are executed when applicable;
-- evidence is recorded without secrets/PII;
-- newly discovered P0/P1 findings are fixed before progression;
-- release gate is explicitly marked `PASS`.
+Evidence contains outcomes/identifiers, never secret values, private keys, raw credentials or unnecessary PII.
 
-If repository work is complete but required external access is unavailable, use `BLOCKED_EXTERNAL`, not `PASS`.
+## 8. Operator live checklist
 
-## 8. Parallelism
+The authoritative remaining work is in `docs/production-readiness/evidence/launch-decision.md` and `docs/operations/RELEASE.md`. It includes:
 
-Safe parallel work after Phase 2 establishes CI:
+- clean-checkout verification;
+- live migrations/advisors/backups;
+- Bachs/payment checks;
+- domain/OAuth/email configuration;
+- funding source/scheduler population and accuracy thresholds;
+- browser/performance/accessibility checks;
+- monitoring/on-call activation;
+- legal/entity/support identity review;
+- production smoke and rollback evidence.
 
-- Phase 3 environment inventory and Phase 7 web quality can proceed in parallel.
-- Phase 4 data security and Phase 6 backend topology can proceed in parallel after the production target is known.
-- Phase 5 funding provenance starts once Phase 4 confirms database security boundaries.
-- Phase 8 observability follows final topology, though frontend analytics can start earlier.
-- Phase 9 legal/support can proceed once real production identity/contact channels are selected.
+## 9. Final launch state
 
-Phase 10 remains serial and starts only after all prior phases are PASS or have an explicitly approved non-P0 exception.
+Repository implementation/hardening for Phases 1–10: **COMPLETE**.
 
-## 9. Final launch scorecard
+Production deployment/certification: **NO-GO / DEFERRED TO OPERATOR** until the live checklist has evidence.
 
-The final decision log scores each area `PASS`, `EXCEPTION` or `FAIL`:
-
-- Payment correctness
-- Authentication/account lifecycle
-- Supabase/RLS/data privacy
-- Directory/profile privacy and scale
-- Funding data provenance
-- Backend/API health
-- Frontend/admin build and route health
-- Accessibility
-- Performance/mobile readiness
-- SEO/canonical/social sharing
-- Email deliverability/abuse controls
-- Observability/alerting
-- Security controls
-- Backup/restore
-- Legal/privacy/support
-- CI/release governance
-- Production smoke tests
-
-`FAIL` in any P0/P1 area means **NO-GO**.
-
-## 10. Current Phase 1–3 state
-
-- **Phase 1 repository work:** implemented; external Bachs/Supabase sandbox certification still required.
-- **Phase 2 repository work:** implemented; real PR CI + `main` protection + Vercel promotion/rollback proof still required.
-- **Phase 3 repository work:** implemented; actual Cresciva Supabase/Vercel/Bachs/OAuth/email environment verification still required.
-
-The corresponding evidence files deliberately remain `BLOCKED_EXTERNAL` until those live checks can be performed.
+Do not change the final decision to GO because code exists or because a deployment reports green. Change it only after the live checks in `launch-decision.md` pass for the release being shipped.
