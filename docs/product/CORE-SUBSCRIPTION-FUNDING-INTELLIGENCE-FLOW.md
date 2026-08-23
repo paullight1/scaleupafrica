@@ -1,415 +1,434 @@
 # Cresciva Core Subscription Funding Intelligence Flow
 
-## The subscription promise
+## Purpose
 
-The core paid experience is not simply a searchable database and it is not an AI list generator.
+This document defines the end-to-end process behind Cresciva's core paid promise:
 
-Cresciva should deliver:
+> **Understand my organisation, continuously monitor authoritative funding sources, and show me funding I am actually likely to qualify for and can apply to now.**
 
-> **Understand my organisation, continuously monitor real funding sources, and show me funding I am actually likely to qualify for and can apply to now.**
+Funding Intelligence is not one AI prompt. It is a chain of engines with separate truth responsibilities.
 
-This document explains how all Cresciva funding engines combine to deliver that promise.
-
----
-
-## The complete engine chain
+## End-to-end engine chain
 
 ```text
-1. BUSINESS INPUT
-   "Top100 Africa Future Leaders"
-          |
-          v
-2. BUSINESS ENRICHMENT ENGINE
-   Resolve identity -> retrieve evidence -> extract facts -> member confirms
-          |
-          v
-3. CONFIRMED FUNDING PROFILE
-   country / sector / organisation type / stage / themes /
-   funding target / preferred funding types / readiness
-          |
-          +-----------------------------------------+
-                                                    |
-4. OPPORTUNITY SOURCE REGISTRY                     |
-   official funder/programme sources               |
-          |                                         |
-          v                                         |
-5. SOURCE REFRESH + PROVENANCE                     |
-   fetch -> fingerprint -> source evidence          |
-          |                                         |
-          v                                         |
-6. OPPORTUNITY STATUS ENGINE                       |
-   current cycle -> open / rolling / upcoming ...  |
-          |                                         |
-          +-------------------+---------------------+
-                              |
-                              v
-7. HARD ELIGIBILITY ENGINE
-   country / stage / type / explicit criteria
-                              |
-                              v
-8. MATCH + RANK ENGINE
-   fit score / confidence / readiness / reasons
-                              |
-                              v
-9. PAID FUNDING RADAR
-   Open for you / Closing soon / Watchlist / Explore
-                              |
-                              v
-10. FEEDBACK LOOP
-    save / not relevant / applied / result
+Business name / member profile
+        ↓
+Business Enrichment Engine
+identity resolution → bounded public evidence → member confirmation
+        ↓
+Confirmed funding profile
+country / sector / organisation type / stage / themes /
+funding target / preferred funding types / readiness
+        ↓
+Opportunity Source Registry
+        ↓
+Bounded source refresh + provenance
+        ↓
+Opportunity Status Engine
+verified existence ≠ current-cycle availability
+        ↓
+Hard Eligibility Engine
+        ↓
+Recommendation Engine
+fit / confidence / readiness / reasons
+        ↓
+Primary Funding Gate
+verified + fresh + current + eligible
+        ↓
+Funding Radar
+Open for you / Closing soon / Watchlist / Explore
+        ↓
+Member workflow + notifications + evaluation
 ```
-
----
 
 ## Engine ownership
 
-| Question | Owner |
+| Question | Authoritative owner |
 | --- | --- |
 | Which real organisation is this? | Business Enrichment Engine |
-| What does the organisation do? | Business Enrichment + member confirmation |
-| Does this funding programme exist? | Opportunity Provenance |
-| Is the current round accepting applications? | Opportunity Status Engine |
+| What does the organisation do? | Evidence-backed enrichment + member confirmation |
+| Does a funding programme exist? | Opportunity provenance/source registry |
+| Is the current cycle accepting applications? | Opportunity Status Engine |
 | Is this member eligible? | Hard Eligibility Engine |
-| How strong is the fit? | Recommendation Engine |
-| What did the member ask to explore? | Opportunity Search Engine |
-| Why does Cresciva recommend it? | Deterministic evidence + optional AI explanation |
+| How relevant is it? | Recommendation Engine |
+| What did the member explicitly search for? | Opportunity Search Engine |
+| Which results may show an application CTA? | Primary Funding Gate |
+| What is the member doing with it? | Member opportunity workflow |
+| Should a transition notify the member? | Funding notification decision + delivery workers |
 
 No engine is allowed to silently take over another engine's truth responsibility.
 
----
+## 1. Business-name-first entry
 
-## Paid result classes
-
-## 1. Open for you
-
-This is the core paid list.
-
-A record enters only when:
+A member may begin with only an organisation name:
 
 ```text
-source verification = verified
-AND application status = open | closing_soon | rolling
-AND member eligibility = eligible
-AND source freshness SLA is satisfied
+Top100 Africa Future Leaders
 ```
 
-Then it is ranked by match score.
+The enrichment flow:
 
-Example:
+1. normalises the supplied identity hints;
+2. performs bounded public discovery;
+3. retrieves evidence through the SSRF-safe fetch boundary;
+4. extracts public organisation facts only from supplied evidence;
+5. deterministically scores identity candidates;
+6. withholds automatic selection when candidates are ambiguous;
+7. asks the member to confirm the resolved organisation;
+8. persists the confirmed evidence/provenance atomically;
+9. fills only missing profile fields — manual member values remain authoritative.
+
+Unconfirmed research results do **not** affect recommendations.
+
+## 2. Funding profile
+
+Funding matching uses known/confirmed fields such as:
+
+- operating country;
+- sector/subsector;
+- business description and keywords;
+- business stage;
+- preferred funding types;
+- funding target;
+- application readiness;
+- confirmed public organisation evidence.
+
+Private funding preferences remain private and are not exposed through public-directory profile contracts.
+
+### Profile-completion UX
+
+Cresciva asks only for missing decision-critical facts. It may say:
 
 ```text
-94% MATCH · OPEN NOW
-Verified 4 hours ago
-
-Youth Leadership Innovation Fund
-$50k-$150k
-
-Why it matches Top100 Africa Future Leaders
-✓ Nigeria / Pan-African eligibility confirmed
-✓ Youth leadership focus matches
-✓ Nonprofit organisations accepted
-✓ Funding type matches your grant preference
-
-Deadline: 30 Sep 2026
-
-[Official source] [Save] [I've applied]
+Add your business stage to confirm stage eligibility.
+Add your funding target to compare award ranges.
+Choose the funding types you prefer.
 ```
 
-## 2. Closing soon
+It must **not** claim invented improvements such as `+8% precision` unless a measured experiment supports that number.
 
-A view of eligible/open records with a confirmed deadline inside the urgency window.
+## 3. Opportunity provenance
 
-It never includes unverified or current-status-unknown records.
+Every primary opportunity must have controlled source evidence independent of model output.
 
-## 3. Watchlist
+Key fields include:
 
-Legitimate opportunities that are not Apply Now yet.
+```text
+source_url
+source_name
+source_retrieved_at
+source_fingerprint
+verification_status
+last_verified_at
+```
 
-Examples:
+Changing authoritative source evidence invalidates prior verification/current-cycle trust until fresh checks succeed.
 
-- upcoming next cycle;
-- verified recurring programme whose next opening is not confirmed;
-- strong profile fit needing one member detail to confirm eligibility;
-- verified opportunity whose current status temporarily became unknown.
+AI output cannot promote itself to verified.
 
-The Watchlist should support later notifications when a meaningful status changes.
+## 4. Current-cycle status
 
-## 4. Explore
+Verification and current application status are separate facts.
 
-Discovery surface for:
+Application status is one of:
 
-- verified opportunities that are not primary recommendations;
-- explicit keyword search;
+```text
+open
+closing_soon
+rolling
+upcoming
+closed
+paused
+unknown
+```
+
+The source-refresh process is:
+
+```text
+registered source
+   ↓
+safeExternalFetch
+   ↓
+HTTP/content/body limits
+   ↓
+source fingerprint
+   ↓
+evidence-only AI signal extraction
+   ↓
+deterministic conflict detection
+   ↓
+deterministic status classification
+   ↓
+append-only source check
+   ↓
+canonical current-cycle update
+```
+
+A future deadline alone does not prove OPEN. Missing deadline does not mean ROLLING. Conflicting source signals fail closed to UNKNOWN.
+
+### Freshness windows
+
+| State | Maximum age before effective UNKNOWN |
+| --- | ---: |
+| Closing soon | 6h |
+| Open | 24h |
+| Rolling | 48h |
+| Upcoming | 24h |
+| Closed | 7d |
+| Paused | 24h |
+| Unknown | 12h |
+
+Read paths recompute effective freshness; an old stored `open` value cannot remain Open for you because a scheduler stopped.
+
+## 5. Eligibility
+
+Eligibility is evaluated before the primary paid application gate.
+
+```text
+eligible
+possibly_eligible
+insufficient_information
+ineligible
+```
+
+Known hard failures such as geography/stage mismatch exclude the record from primary recommendations. Unknown criteria cause abstention or Watchlist treatment rather than optimistic eligibility.
+
+## 6. Recommendation scoring
+
+Match score, source confidence and application readiness are separate concepts.
+
+- **Match score:** relevance to the member.
+- **Confidence:** quality/freshness of the underlying opportunity evidence.
+- **Readiness:** how prepared the member is to apply.
+
+A closed programme can still be a high conceptual match. Availability does not change the underlying fit score.
+
+## 7. Primary paid gate
+
+A record enters `Open for you` only when:
+
+```text
+discovery_source = verified_feed
+AND verification_status = verified
+AND current-cycle status is fresh
+AND application_status IN (open, closing_soon, rolling)
+AND eligibility_status = eligible
+```
+
+Only after those gates pass does match score determine ranking.
+
+The application CTA additionally requires a valid source-derived `application_url`.
+
+## 8. Funding Radar surfaces
+
+### Open for you
+
+The core paid list: verified, fresh, currently accepting applications, and deterministically eligible.
+
+### Closing soon
+
+A subset of Open for you whose source-confirmed current deadline is inside the 14-day urgency window.
+
+### Watchlist
+
+Verified records worth monitoring but unsafe for Apply now, including:
+
+- upcoming programmes;
+- paused programmes;
+- stale or status-unknown programmes;
+- open programmes requiring missing eligibility facts.
+
+### Explore
+
+Intentional discovery space for:
+
+- verified closed/ineligible/non-primary records;
+- explicit search;
 - AI-assisted discoveries.
 
-AI discoveries are always visibly unverified until the source pipeline upgrades the canonical opportunity record.
+AI discovery remains Explore-only until authoritative verification upgrades the canonical record.
 
----
+## 9. Opportunity Search
 
-## Business-name-first onboarding
+Search is verified-first and secondary to automatic recommendations.
 
-The first-time funding experience should support:
-
-```text
-Tell us your organisation
-[ Top100 Africa Future Leaders ]
-
-[Find my organisation]
-```
-
-Cresciva then proposes a profile rather than forcing the user to complete a long form first.
-
-### Resolved identity
+The current result UI separates exactly:
 
 ```text
-We found your organisation
-
-Top100 Africa Future Leaders
-Nigeria · Pan-African youth leadership
-https://...
-
-[Use this profile]
-[Edit details]
-[This isn't mine]
+Verified current matches
+Other verified records
+AI discoveries
 ```
 
-### Ambiguous identity
+`Verified current matches` requires verified source provenance plus a fresh Open/Closing-soon/Rolling cycle.
 
-Show up to a small bounded number of likely matches.
+`Other verified records` contains curated records outside that current trust class.
 
-### Not found
+`AI discoveries` are forcibly unverified/current-status-unknown in the UI even if model-shaped data tries to claim OPEN.
 
-Offer website input + manual profile fallback.
+Search cards never receive primary application eligibility automatically; the member-specific Funding Radar gate owns that decision.
 
----
+## 10. Card truth hierarchy
 
-## Profile completeness behaviour
-
-Funding Radar should distinguish public-business understanding from private funding preferences.
-
-Example:
-
-```text
-Cresciva understands 78% of your funding profile.
-
-Add your target funding amount
-+8% recommendation precision
-
-Confirm your business stage
-+10% eligibility precision
-```
-
-Do not fabricate missing private information during enrichment.
-
----
-
-## Recommendation card hierarchy
-
-Collapsed cards should lead with decision-critical information.
+A paid recommendation card keeps the following concepts visually separate:
 
 1. match score;
-2. current application status;
-3. verification freshness;
-4. title/funder;
-5. amount/range;
-6. 2-4 match reasons;
-7. deadline/urgency;
-8. possible blocker;
-9. official source and save/apply actions.
+2. deterministic eligibility;
+3. current application status;
+4. source verification/freshness;
+5. title/funder and award information;
+6. match reasons;
+7. confirmed current deadline or rolling status;
+8. missing eligibility facts/blockers;
+9. workflow state;
+10. official actions.
 
-Long funder descriptions, recipient history and application tips belong in expanded details.
+### Application CTA
 
----
-
-## Apply CTA rules
-
-### `Apply on official site`
-
-Allowed only for verified/currently open or rolling opportunities.
-
-### `View official source`
-
-Available for verified, upcoming, closed or watchlist items with a source.
-
-### `Check this discovery`
-
-Used for AI-assisted/unverified results.
-
-Do not label an unverified AI result `Apply now` simply because it contains a URL.
-
----
-
-## Member eligibility states
-
-### Eligible
-
-All known hard requirements pass.
-
-### Possibly eligible
-
-No known blocker, but the opportunity itself lacks enough structured criteria.
-
-### Insufficient information
-
-The opportunity has a hard criterion but the member profile lacks the corresponding fact.
-
-Example:
+The primary action is:
 
 ```text
-Strong match — confirm your business stage to check eligibility.
+Apply on official site
 ```
 
-### Ineligible
+It is shown only after the full primary gate passes. `Official source` remains available for source inspection when a safe source URL exists.
 
-A known hard criterion fails.
+## 11. Truthful zero state
 
-Never show in Open for you.
+Zero primary recommendations is valid.
 
----
+The current Funding Radar copy is:
 
-## Trust language
+> **You’re not currently eligible for any verified open opportunities.**
+>
+> We’ll keep checking verified sources. Review Watchlist for upcoming programs or missing profile details.
 
-Cresciva should use precise language.
+Cresciva must not pad this state with closed, stale, unverified or AI-generated records.
 
-### Good
+## 12. Member workflow
 
-- `Official source verified 4h ago`
-- `Applications open`
-- `Deadline confirmed from official source`
-- `Likely eligible based on your confirmed profile`
-- `Current application status not confirmed`
-- `AI discovery · not yet verified`
-
-### Avoid
-
-- `Guaranteed funding`
-- `You will qualify`
-- `Verified` when only a URL exists
-- `Open now` based on a model-generated deadline
-- `We checked dozens of funders` unless live retrieval actually happened
-
----
-
-## Zero-result experience
-
-Zero is valid.
-
-If no verified/open/eligible opportunity exists:
+`member_opportunity_state` is member-local under owner-only RLS:
 
 ```text
-No verified open opportunities match your confirmed profile today.
-
-We are watching 8 relevant programmes:
-- 3 upcoming
-- 4 awaiting the next cycle
-- 1 needs one profile detail
-
-[View Watchlist]
+saved
+preparing
+applied
+won
+rejected
+dismissed
 ```
 
-This is more trustworthy than padding the result set with uncertain AI results.
+This state never mutates canonical verification, application status or eligibility.
 
----
+The first `applied` transition stamps `applied_at`. Later won/rejected/saved/preparing/dismissed updates preserve that original application timestamp.
 
-## Search within the paid experience
+## 13. Funding notifications
 
-Search remains useful but it is secondary to automatic recommendations.
-
-User query:
+High-signal notification events are:
 
 ```text
-climate grant for expansion to Kenya
+watchlist_opened
+closing_soon
+deadline_changed
 ```
 
-Flow:
+The authoritative source-refresh worker enqueues transition events only after successful deterministic status persistence, using the source-check UUID as the transition/dedupe key.
 
-1. search verified knowledge base;
-2. status-filter current opportunities;
-3. apply profile eligibility when available;
-4. return verified results first;
-5. AI-assisted long-tail discoveries remain separate.
+The delivery worker:
 
-Search should not bypass the Open/Verified gates just because a user explicitly asked for a programme.
+1. authenticates the scheduler with `FUNDING_NOTIFICATION_SECRET`;
+2. leases at most 25 queue rows with `FOR UPDATE SKIP LOCKED`;
+3. re-checks member state (`saved|preparing`);
+4. re-checks notification preferences;
+5. re-checks the opportunity is published, verified and current-status fresh;
+6. suppresses events that are no longer relevant;
+7. dispatches through the existing Resend/email funnel;
+8. uses `funding-alert:<event-id>` as the transport idempotency key;
+9. retries bounded failures and records attempt/error state.
 
----
+Raw source bodies are never notification payloads.
 
-## Feedback and application state
+## 14. Analytics/privacy
 
-The paid experience should capture:
+Funding lifecycle events include:
 
 ```text
 recommendation_impression
 recommendation_open
 recommendation_save
 recommendation_not_relevant
+recommendation_apply_click
 application_started
 application_submitted
 application_won
 application_rejected
 opportunity_source_click
+funding_search
 ```
 
-These signals are initially analytics and personal workflow state.
+The shared analytics boundary removes blocked raw-content keys, bounds strings/arrays/object depth, and is intended for identifiers, scores, statuses and aggregate counts — not raw search text or fetched third-party page bodies.
 
-They must not immediately mutate deterministic eligibility. Later, sufficient real data can support learning-to-rank experiments behind evaluation gates.
+## 15. Accuracy certification
 
----
+Repository evaluation has two modes.
 
-## Notification behaviour
+### Engineering mode
 
-Future notification eligibility comes from state transitions, not repeated generic emails.
+Synthetic/fixed fixtures exercise deterministic identity, status, eligibility, ranking, provenance and anti-gaming rules.
 
-Useful triggers:
+### Production certification mode
 
-- Watchlist -> Open;
-- Open -> Closing soon;
-- deadline changed;
-- source conflict resolved;
-- member becomes eligible after profile update;
-- new high-fit verified/open opportunity appears.
+Requires the full human-adjudicated corpus and, when explicitly requested, live authoritative-link checks.
 
-Do not send alerts for unchanged source refreshes.
-
----
-
-## Core paid-product service levels
-
-Target production guarantees:
-
-- primary recommendations have authoritative evidence >=95%;
-- Open/Closing soon/Rolling correctness >=98% on benchmark;
-- confirmed deadline source coverage = 100%;
-- hard eligibility false positives <2%;
-- AI discoveries promoted directly to primary recommendations = 0;
-- primary open links broken <1%;
-- Open source freshness <=24h;
-- Closing-soon source freshness <=6h.
-
-These are release gates and ongoing operational metrics.
-
----
-
-## Example: Top100 Africa Future Leaders
-
-Ideal subscriber experience:
+Live-link checks require:
 
 ```text
-Top100 Africa Future Leaders
-        ↓
-Cresciva resolves the organisation
-        ↓
-Member confirms:
-Pan-African youth leadership / education / nonprofit-social-impact profile
-        ↓
-Cresciva monitors authoritative funding sources
-        ↓
-Filters to current open/rolling cycles
-        ↓
-Checks country, organisation type, stage and other hard criteria
-        ↓
-Ranks relevant grants/partnerships/sponsorship opportunities
-        ↓
-Shows only verified + open + eligible opportunities in Open for you
+--certification --live-links
+ALLOW_FUNDING_LIVE_EVAL=1
 ```
 
-This is the experience the membership price should primarily pay for.
+They reuse the production `safeExternalFetch` boundary with Node DNS injected, preserving the same HTTP(S), redirect, DNS/private-network, timeout, content-type and body-size controls.
+
+The release thresholds remain:
+
+- current-open precision >=98%;
+- confirmed-deadline source coverage =100%;
+- hard eligibility false positives <2%;
+- Precision@5 >=80%;
+- AI promotion to verified/open =0;
+- stale OPEN leakage =0;
+- primary authoritative source coverage >=95%;
+- broken primary authoritative links <1% in live certification.
+
+## Implementation status
+
+### Repository
+
+Implemented:
+
+- Business Enrichment Engine and member confirmation;
+- provenance/source registry;
+- deterministic Opportunity Status Engine and freshness;
+- deterministic eligibility/matching;
+- Funding Radar four-surface gate;
+- trust-separated Opportunity Search;
+- member workflow state;
+- notification preferences, transition queue and delivery worker;
+- analytics/privacy events;
+- deterministic evaluation + explicit live-link evaluation mode;
+- targeted CI/certification workflows.
+
+### Still external / not production-certified
+
+- migrations and functions deployed to the real Cresciva Supabase project `dwyglydswegyvjowzdot`;
+- real provider/scheduler secrets configured;
+- source-refresh and notification schedules exercised in staging/live;
+- real Resend funding-alert delivery smoke tests;
+- human-adjudicated production corpus at required minimum size;
+- live authoritative-link certification over real source records;
+- current GitHub Actions execution on the final branch head (Actions is presently failing before checkout with `steps: null`);
+- production merge/cutover.
+
+Therefore the correct release claim is:
+
+> **Repository implementation is substantially complete; live Funding Intelligence remains BLOCKED_EXTERNAL and is not production-certified.**
