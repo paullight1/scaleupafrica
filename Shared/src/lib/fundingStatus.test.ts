@@ -3,6 +3,7 @@ import {
   classifyFundingStatus,
   effectiveFundingStatus,
   freshnessWindowMs,
+  hasFundingStatusConflict,
   isStatusFresh,
   type FundingStatusSignals,
 } from "./fundingStatus";
@@ -63,6 +64,22 @@ const classificationCases: ClassificationCase[] = [
   ["invalid check timestamp fails closed", { checkedAt:new Date("invalid"),explicitOpen:true,applicationCtaActive:true }, "unknown"],
   ["empty evidence with verified source stays unknown", { cycleLabel:null }, "unknown"],
 ];
+
+describe("funding status conflict detection", () => {
+  it.each([
+    [{ explicitOpen: true, explicitClosed: true }, true],
+    [{ explicitOpen: true, explicitPaused: true }, true],
+    [{ explicitRolling: true, explicitClosed: true }, true],
+    [{ explicitRolling: true, explicitPaused: true }, true],
+    [{ explicitClosed: true, explicitPaused: true }, true],
+    [{ explicitOpen: true }, false],
+    [{ explicitClosed: true }, false],
+    [{ explicitPaused: true }, false],
+    [{ explicitRolling: true }, false],
+  ] as const)("returns %s for %j", (input, expected) => {
+    expect(hasFundingStatusConflict(input)).toBe(expected);
+  });
+});
 
 describe("classifyFundingStatus — certification truth table", () => {
   it.each(classificationCases)("%s", (_name, input, expected) => {
