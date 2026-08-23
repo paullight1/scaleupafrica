@@ -53,11 +53,18 @@ describe("Funding source extraction trust boundary", () => {
   it("requires an active authoritative source-registry match before verification or canonical status refresh", () => {
     expect(provenanceMigrationSource).toContain("funding_source_is_registered");
     expect(provenanceMigrationSource).toContain("Source URL must match an active authoritative funding source");
+    expect(provenanceMigrationSource).toContain("target_path");
+    expect(provenanceMigrationSource).toContain("base_path");
     expect(refreshSource).toContain("source_not_registered");
     expect(refreshSource).toContain("if(!sourceId)");
     expect(applicationStatusMigrationSource).toContain("Canonical funding status requires an active registered source");
     expect(applicationStatusMigrationSource).toContain("_source_id IS NULL");
     expect(applicationStatusMigrationSource).toContain("funding_source_is_registered(_source_url)");
+  });
+
+  it("requires a fresh verification timestamp to transition an invalidated record back to verified", () => {
+    expect(provenanceMigrationSource).toContain("Verified transition requires a fresh verification timestamp");
+    expect(provenanceMigrationSource).toContain("NEW.last_verified_at IS NOT DISTINCT FROM OLD.last_verified_at");
   });
 
   it("revokes dependent verification and cycle trust when a registered source is disabled", () => {
@@ -67,6 +74,10 @@ describe("Funding source extraction trust boundary", () => {
     expect(applicationStatusMigrationSource).toContain("AFTER UPDATE OF base_url, active ON public.funding_sources");
     expect(applicationStatusMigrationSource).toContain("application_status = 'unknown'");
     expect(applicationStatusMigrationSource).toContain("verification_status = 'unverified'");
+  });
+
+  it("keeps authoritative source history by disallowing member-facing source deletion", () => {
+    expect(provenanceMigrationSource).toContain("REVOKE DELETE ON public.funding_sources FROM authenticated");
   });
 
   it("forces AI and non-verified cached discovery to unknown application status", () => {
