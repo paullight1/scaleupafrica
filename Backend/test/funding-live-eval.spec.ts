@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const source = readFileSync(resolve(process.cwd(), "../scripts/funding-intelligence-eval.ts"), "utf8");
+const safeFetchSource = readFileSync(resolve(process.cwd(), "../supabase/functions/_shared/safeExternalFetch.ts"), "utf8");
 
 describe("Funding Intelligence live-link certification boundary", () => {
   it("requires explicit certification and environment opt-in before live requests", () => {
@@ -16,6 +17,11 @@ describe("Funding Intelligence live-link certification boundary", () => {
     expect(source).toContain("safeExternalFetch");
     expect(source).toContain('node:dns/promises');
     expect(source).toContain("resolveDns");
+  });
+
+  it("keeps the imported safe-fetch helper compatible with Node strip-types mode", () => {
+    expect(safeFetchSource).not.toContain("constructor(readonly");
+    expect(safeFetchSource).toContain("this.code = code");
   });
 
   it("reports actual live checks and broken-link rate", () => {
