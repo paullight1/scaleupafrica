@@ -7,10 +7,12 @@ const signalPath = resolve(process.cwd(), "../supabase/functions/_shared/funding
 const refreshPath = resolve(process.cwd(), "../supabase/functions/funding-source-refresh/index.ts");
 const aggregatePath = resolve(process.cwd(), "../supabase/functions/aggregate-funding/index.ts");
 const provenanceMigrationPath = resolve(process.cwd(), "../supabase/migrations/20260822023000_funding_intelligence_v2.sql");
+const applicationStatusMigrationPath = resolve(process.cwd(), "../supabase/migrations/20260822050000_opportunity_application_status.sql");
 const signalSource = existsSync(signalPath) ? readFileSync(signalPath, "utf8") : "";
 const refreshSource = existsSync(refreshPath) ? readFileSync(refreshPath, "utf8") : "";
 const aggregateSource = existsSync(aggregatePath) ? readFileSync(aggregatePath, "utf8") : "";
 const provenanceMigrationSource = existsSync(provenanceMigrationPath) ? readFileSync(provenanceMigrationPath, "utf8") : "";
+const applicationStatusMigrationSource = existsSync(applicationStatusMigrationPath) ? readFileSync(applicationStatusMigrationPath, "utf8") : "";
 
 describe("Funding application status contracts", () => {
   it("keeps application status bounded", () => {
@@ -53,6 +55,13 @@ describe("Funding source extraction trust boundary", () => {
     expect(provenanceMigrationSource).toContain("Source URL must match an active authoritative funding source");
     expect(refreshSource).toContain("source_not_registered");
     expect(refreshSource).toContain("if(!sourceId)");
+  });
+
+  it("revokes dependent verification and cycle trust when a registered source is disabled", () => {
+    expect(applicationStatusMigrationSource).toContain("new_source.active IS DISTINCT FROM old_source.active");
+    expect(applicationStatusMigrationSource).toContain("new_source.active = false");
+    expect(applicationStatusMigrationSource).toContain("application_status = 'unknown'");
+    expect(applicationStatusMigrationSource).toContain("verification_status = 'unverified'");
   });
 
   it("forces AI and non-verified cached discovery to unknown application status", () => {
