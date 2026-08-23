@@ -20,12 +20,12 @@ import {
 import { SEO } from "@shared/components/common/SEO";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { CardSkeleton } from "@shared/components/common/LoadingState";
-import { storagePathFromUrl } from "@/components/ImageUploadCrop";
+import { storagePathFromUrl } from "@/components/imageUploadCrop.utils";
 import {
   ProfileSectionFields,
   ProfileImageSetterProvider,
-  SECTION_FIELDS,
 } from "@/components/dashboard/ProfileFields";
+import { SECTION_FIELDS } from "@/components/dashboard/profileFields.config";
 import { useOwnProfile, useSaveProfile } from "@/hooks/queries/directory";
 import { qk } from "@/hooks/queries/dashboard";
 import { useQueryClient } from "@tanstack/react-query";

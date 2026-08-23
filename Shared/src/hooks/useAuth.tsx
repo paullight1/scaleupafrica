@@ -44,6 +44,41 @@ type AuthContextValue = {
 };
 
 const noopAsync = async () => ({ error: null });
+const SESSION_BOOTSTRAP_TIMEOUT_MS = 10_000;
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+
+function toAuthError(error: unknown): AuthError {
+  if (error instanceof AuthError) return error;
+  if (error instanceof Error) return new AuthError(error.message, undefined, "auth_request_failed");
+  return new AuthError("Authentication request failed.", undefined, "auth_request_failed");
+}
+
+function withAuthTimeout<T>(request: PromiseLike<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(
+        new AuthError(
+          "Authentication request timed out. Please try again.",
+          504,
+          "auth_request_timeout"
+        )
+      );
+    }, AUTH_REQUEST_TIMEOUT_MS);
+
+    Promise.resolve(request).then(resolve, reject).finally(() => clearTimeout(timeoutId));
+  });
+}
+
+async function runAuthRequest(
+  request: PromiseLike<{ error: AuthError | null }>,
+): Promise<{ error: AuthError | null }> {
+  try {
+    const { error } = await withAuthTimeout(request);
+    return { error };
+  } catch (error) {
+    return { error: toAuthError(error) };
+  }
+}
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
@@ -66,24 +101,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    let active = true;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const applySession = (nextSession: Session | null) => {
+      if (!active) return;
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
       setLoading(false);
+    };
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      applySession(nextSession);
     });
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
+    timeoutId = setTimeout(() => {
+      if (active) {
+        console.warn("Supabase did not emit an initial auth state; continuing signed out.");
+        setLoading(false);
+      }
+    }, SESSION_BOOTSTRAP_TIMEOUT_MS);
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn: AuthContextValue["signIn"] = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    return runAuthRequest(supabase.auth.signInWithPassword({ email, password }));
   };
 
   const signUp: AuthContextValue["signUp"] = async (email, password, opts) => {
@@ -93,14 +141,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       Object.entries(opts?.metadata ?? {}).filter(([, v]) => !!v && v.trim() !== "")
     );
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: opts?.emailRedirectTo,
-        ...(Object.keys(metadata).length ? { data: metadata } : {}),
-      },
-    });
+    let response;
+    try {
+      response = await withAuthTimeout(
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: opts?.emailRedirectTo,
+            ...(Object.keys(metadata).length ? { data: metadata } : {}),
+          },
+        })
+      );
+    } catch (error) {
+      return { error: toAuthError(error), confirmationRequired: false };
+    }
+    const { data, error } = response;
     if (error) return { error, confirmationRequired: false };
 
     // Supabase returns a user with an empty identities array when the email is
@@ -121,63 +177,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle: AuthContextValue["signInWithGoogle"] = async (next) => {
     const redirectTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-        queryParams: {
-          // Without this Google silently reuses the only signed-in account, so
-          // anyone on a shared device can never pick a different one.
-          prompt: "select_account",
-        },
-      },
-    });
-    // NOTE: supabase-js builds the /authorize URL locally and navigates to it —
-    // it does not fetch it — so a provider that is enabled but misconfigured
-    // (no client secret) cannot surface here. GoTrue answers that navigation
-    // with a raw 400 JSON body instead. The only fix is configuring the
-    // provider; see docs/AUTH.md § "Google sign-in".
-    return { error };
+    // Supabase builds the OAuth URL locally; provider configuration errors can
+    // only surface after the browser navigates to the Auth service.
+    return runAuthRequest(
+      supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo,
+            queryParams: {
+              prompt: "select_account",
+            },
+          },
+      }),
+    );
   };
 
   const signInWithOtp: AuthContextValue["signInWithOtp"] = async (email, next) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // Same sanitised `next` contract as password + OAuth sign-in.
-        emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
-        shouldCreateUser: false,
-      },
-    });
-    return { error };
+    return runAuthRequest(
+      supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
+            shouldCreateUser: false,
+          },
+      }),
+    );
   };
 
   const verifyEmailOtp: AuthContextValue["verifyEmailOtp"] = async (email, token) => {
-    const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
-    return { error };
+    return runAuthRequest(supabase.auth.verifyOtp({ email, token, type: "email" }));
   };
 
   const resetPassword: AuthContextValue["resetPassword"] = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset`,
-    });
-    return { error };
+    return runAuthRequest(
+      supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/reset`,
+      }),
+    );
   };
 
   const updatePassword: AuthContextValue["updatePassword"] = async (newPassword) => {
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    return { error };
+    return runAuthRequest(supabase.auth.updateUser({ password: newPassword }));
   };
 
   const resendConfirmation: AuthContextValue["resendConfirmation"] = async (email) => {
-    const { error } = await supabase.auth.resend({ type: "signup", email });
-    return { error };
+    return runAuthRequest(supabase.auth.resend({ type: "signup", email }));
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    // App-registered teardown (e.g. per-user caches in localStorage on shared devices).
-    runSignOutCleanup();
+    try {
+      await withAuthTimeout(supabase.auth.signOut());
+    } catch (error) {
+      console.warn("Supabase sign-out request did not complete; local cleanup continued.", toAuthError(error));
+    } finally {
+      runSignOutCleanup();
+    }
   };
 
   return (

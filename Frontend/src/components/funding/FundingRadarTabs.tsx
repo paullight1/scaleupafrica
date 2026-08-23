@@ -1,9 +1,5 @@
-import { classifyFundingSurface, type FundingSurface, type PrimaryFundingGateInput } from "@/lib/funding/primaryFundingGate";
-
-export interface FundingRadarTabItem {
-  id: string;
-  gate: PrimaryFundingGateInput;
-}
+import type { FundingSurface } from "@/lib/funding/primaryFundingGate";
+import { fundingSurfaceCounts, type FundingRadarTabItem } from "./fundingRadarTabs.utils";
 
 const TABS: Array<{ id: FundingSurface; label: string }> = [
   { id: "open_for_you", label: "Open for you" },
@@ -11,19 +7,6 @@ const TABS: Array<{ id: FundingSurface; label: string }> = [
   { id: "watchlist", label: "Watchlist" },
   { id: "explore", label: "Explore" },
 ];
-
-export function fundingSurfaceCounts(items: FundingRadarTabItem[]) {
-  const counts: Record<FundingSurface, number> = {
-    open_for_you: 0,
-    closing_soon: 0,
-    watchlist: 0,
-    explore: 0,
-  };
-  for (const item of items) {
-    for (const surface of classifyFundingSurface(item.gate)) counts[surface] += 1;
-  }
-  return counts;
-}
 
 export function FundingRadarTabs({
   items,

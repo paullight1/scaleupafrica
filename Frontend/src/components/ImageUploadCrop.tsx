@@ -6,6 +6,7 @@ import { Slider } from "@shared/components/ui/slider";
 import { supabase } from "@shared/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
+import { storagePathFromUrl } from "@/components/imageUploadCrop.utils";
 
 type Props = {
   label: string;
@@ -17,13 +18,6 @@ type Props = {
   shape?: "round" | "rect";
   folder: string;
 };
-
-/** Derive the storage object path from a public URL, e.g. `.../profile-media/<uid>/logo-1.jpg`. */
-export function storagePathFromUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  const parts = url.split("/profile-media/");
-  return parts.length > 1 ? decodeURIComponent(parts[1]) : null;
-}
 
 /**
  * Decode a file to an oriented data URL.

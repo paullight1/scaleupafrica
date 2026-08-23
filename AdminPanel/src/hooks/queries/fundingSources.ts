@@ -60,15 +60,16 @@ export function useFundingSourceHealth() {
       if (sourcesResult.error) throw sourcesResult.error;
       if (checksResult.error) throw checksResult.error;
 
-      const recentChecks: FundingSourceCheckRow[] = (checksResult.data ?? []).map((row: any) => ({ id:String(row.id),opportunityId:String(row.opportunity_id),sourceId:row.source_id?String(row.source_id):null,sourceUrl:text(row.source_url),checkedAt:text(row.checked_at),classifiedStatus:normalizeApplicationStatus(row.classified_status),errorClass:nullableText(row.error_class),extractedSignals:record(row.extracted_signals) }));
+      const recentChecks: FundingSourceCheckRow[] = (checksResult.data ?? []).map((raw) => { const row=record(raw);return { id:String(row.id),opportunityId:String(row.opportunity_id),sourceId:row.source_id?String(row.source_id):null,sourceUrl:text(row.source_url),checkedAt:text(row.checked_at),classifiedStatus:normalizeApplicationStatus(row.classified_status),errorClass:nullableText(row.error_class),extractedSignals:record(row.extracted_signals) }; });
       const checksByOpportunity = new Map<string, FundingSourceCheckRow[]>();
       for (const check of recentChecks) { const list=checksByOpportunity.get(check.opportunityId)??[];list.push(check);checksByOpportunity.set(check.opportunityId,list); }
       const now = new Date();
-      const opportunities: FundingSourceHealthOpportunity[] = (oppsResult.data ?? []).map((row: any) => {
+      const opportunities: FundingSourceHealthOpportunity[] = (oppsResult.data ?? []).map((raw) => {
+        const row=record(raw);
         const id=String(row.id);const status=normalizeApplicationStatus(row.application_status);const checks=checksByOpportunity.get(id)??[];const latest=checks[0]??null;const lastSuccess=checks.find((check)=>!check.errorClass)??null;let consecutiveFailures=0;for(const check of checks){if(!check.errorClass)break;consecutiveFailures+=1;}
         return { id,title:text(row.title),funder:text(row.funder),sourceUrl:nullableText(row.source_url),verificationStatus:normalizeVerificationStatus(row.verification_status),applicationStatus:status,statusCheckedAt:nullableText(row.status_checked_at),lastError:latest?.errorClass??null,lastSuccessAt:lastSuccess?.checkedAt??null,consecutiveFailures,due:!isStatusFresh(status,nullableText(row.status_checked_at),now),conflict:latest?hasConflict(latest.extractedSignals):false };
       });
-      const sources: FundingSourceRow[] = (sourcesResult.data ?? []).map((row: any) => ({ id:String(row.id),name:text(row.name),baseUrl:text(row.base_url),active:Boolean(row.active),lastCheckedAt:nullableText(row.last_checked_at),lastSuccessAt:nullableText(row.last_success_at),lastError:nullableText(row.last_error) }));
+      const sources: FundingSourceRow[] = (sourcesResult.data ?? []).map((raw) => { const row=record(raw);return { id:String(row.id),name:text(row.name),baseUrl:text(row.base_url),active:Boolean(row.active),lastCheckedAt:nullableText(row.last_checked_at),lastSuccessAt:nullableText(row.last_success_at),lastError:nullableText(row.last_error) }; });
       return { opportunities, sources, recentChecks };
     },
   });
@@ -88,7 +89,7 @@ export function useRecheckFundingOpportunity() {
 export function useRefreshDueFunding() {
   const qc=useQueryClient();
   return useMutation({
-    mutationFn:async()=>{const{data,error}=await db.from("funding_opportunities").select("id,application_status,status_checked_at").eq("status","published").limit(100);if(error)throw error;const now=new Date();const due=(data??[]).filter((row:any)=>!isStatusFresh(normalizeApplicationStatus(row.application_status),nullableText(row.status_checked_at),now)).slice(0,10);for(const row of due as any[])await invokeIndividualRecheck(String(row.id));return{checked:due.length};},
+    mutationFn:async()=>{const{data,error}=await db.from("funding_opportunities").select("id,application_status,status_checked_at").eq("status","published").limit(100);if(error)throw error;const now=new Date();const due=(data??[]).map(record).filter((row)=>!isStatusFresh(normalizeApplicationStatus(row.application_status),nullableText(row.status_checked_at),now)).slice(0,10);for(const row of due)await invokeIndividualRecheck(String(row.id));return{checked:due.length};},
     onSuccess:(result)=>{void qc.invalidateQueries({queryKey:fundingSourceKeys.all});void qc.invalidateQueries({queryKey:["admin","funding"]});void logAdminAction("recheck_due_funding_status",{details:{checked:result.checked}});toast.success(result.checked?`Rechecked ${result.checked} due opportunities`:"No due opportunities");},
     onError:()=>toast.error("Could not refresh due opportunities"),
   });
@@ -98,7 +99,7 @@ export function useCreateFundingSource() {
   const qc=useQueryClient();
   return useMutation({
     mutationFn:async(input:{name:string;baseUrl:string})=>{const{data,error}=await db.from("funding_sources").insert({name:input.name.trim(),base_url:input.baseUrl.trim(),active:true}).select("id,name,base_url,active,last_checked_at,last_success_at,last_error").single();if(error)throw error;return data;},
-    onSuccess:(row:any)=>{void qc.invalidateQueries({queryKey:fundingSourceKeys.all});void logAdminAction("create_funding_source",{entityType:"funding_source",entityId:String(row.id)});toast.success("Funding source added");},
+    onSuccess:(value)=>{const row=record(value);void qc.invalidateQueries({queryKey:fundingSourceKeys.all});void logAdminAction("create_funding_source",{entityType:"funding_source",entityId:String(row.id)});toast.success("Funding source added");},
     onError:()=>toast.error("Could not add funding source"),
   });
 }

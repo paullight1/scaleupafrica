@@ -64,6 +64,25 @@ export function analyticsEventForMemberState(state: MemberOpportunityStateName):
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function parseMemberOpportunityState(value: unknown): MemberOpportunityState {
+  const row = isRecord(value) ? value : {};
+  const state = MEMBER_OPPORTUNITY_STATES.includes(row.state as MemberOpportunityStateName)
+    ? row.state as MemberOpportunityStateName
+    : "saved";
+  return {
+    userId: String(row.user_id ?? ""),
+    opportunityId: String(row.opportunity_id ?? ""),
+    state,
+    note: typeof row.note === "string" ? row.note : null,
+    appliedAt: typeof row.applied_at === "string" ? row.applied_at : null,
+    updatedAt: String(row.updated_at ?? ""),
+  };
+}
+
 export function useMemberOpportunityStates() {
   const { user } = useAuth();
   const userId = user?.id;
@@ -78,16 +97,7 @@ export function useMemberOpportunityStates() {
         .eq("user_id", userId as string)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((row: any) => ({
-        userId: String(row.user_id),
-        opportunityId: String(row.opportunity_id),
-        state: MEMBER_OPPORTUNITY_STATES.includes(row.state as MemberOpportunityStateName)
-          ? row.state as MemberOpportunityStateName
-          : "saved",
-        note: typeof row.note === "string" ? row.note : null,
-        appliedAt: typeof row.applied_at === "string" ? row.applied_at : null,
-        updatedAt: String(row.updated_at),
-      }));
+      return (Array.isArray(data) ? data : []).map(parseMemberOpportunityState);
     },
   });
 }
@@ -106,14 +116,7 @@ export function useSetMemberOpportunityState() {
         .select("user_id,opportunity_id,state,note,applied_at,updated_at")
         .single();
       if (error) throw error;
-      return {
-        userId: String((data as any).user_id),
-        opportunityId: String((data as any).opportunity_id),
-        state: (data as any).state as MemberOpportunityStateName,
-        note: typeof (data as any).note === "string" ? (data as any).note : null,
-        appliedAt: typeof (data as any).applied_at === "string" ? (data as any).applied_at : null,
-        updatedAt: String((data as any).updated_at),
-      };
+      return parseMemberOpportunityState(data);
     },
     onSuccess: (row) => {
       void qc.invalidateQueries({ queryKey: memberOpportunityStateKeys.all(userId) });

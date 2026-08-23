@@ -47,6 +47,13 @@ describe("mapAuthError", () => {
     );
   });
 
+  it("maps an authentication request timeout", () => {
+    expect(mapAuthError({ code: "auth_request_timeout" })).toEqual({
+      title: "Authentication unavailable",
+      message: "The authentication service is taking too long to respond. Please try again shortly.",
+    });
+  });
+
   it("falls back to a message substring when no code is present", () => {
     expect(
       mapAuthError({ message: "Invalid login credentials" }).message

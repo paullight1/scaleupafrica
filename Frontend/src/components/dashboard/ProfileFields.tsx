@@ -19,25 +19,6 @@ type ImageField = "logo_url" | "founder_photo_url";
 type ImageSetter = (field: ImageField) => (url: string) => void;
 const ImageSetterContext = createContext<ImageSetter | null>(null);
 
-export const SECTION_FIELDS: Record<ProfileSection, (keyof ProfileFormValues)[]> = {
-  identity: ["business_name", "founder_name", "country", "sector", "logo_url", "founder_photo_url"],
-  story: ["short_description", "long_description"],
-  matching: [
-    "keywords",
-    "business_stage",
-    "funding_target_usd",
-    "preferred_funding_types",
-    "application_readiness",
-    "organisation_type",
-    "operating_countries",
-    "founding_year",
-  ],
-  contact: [
-    "website", "email", "phone", "whatsapp", "show_email", "show_phone", "show_whatsapp",
-    "instagram", "linkedin", "twitter",
-  ],
-};
-
 function Field({ label, error, name, hint, children }: { label: string; error?: string; name: string; hint?: string; children: React.ReactNode }) {
   return <div><Label className="mb-1.5 block">{label}</Label>{children}{hint && !error && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}{error && <p id={`err-${name}`} className="mt-1 text-sm text-destructive-strong">{error}</p>}</div>;
 }

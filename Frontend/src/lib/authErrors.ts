@@ -15,6 +15,10 @@ const GENERIC: FriendlyError = {
 };
 
 const BY_CODE: Record<string, FriendlyError> = {
+  auth_request_timeout: {
+    title: "Authentication unavailable",
+    message: "The authentication service is taking too long to respond. Please try again shortly.",
+  },
   invalid_credentials: {
     title: "Check your details",
     message:

@@ -9,7 +9,8 @@ import { OpportunityCardSkeletonList } from "@/components/funding/OpportunityCar
 import { FundingIssueReport } from "@/components/funding/FundingIssueReport";
 import { FundingSearch } from "@/components/funding/FundingSearch";
 import { BusinessEnrichmentPanel } from "@/components/funding/BusinessEnrichmentPanel";
-import { FundingRadarTabs, type FundingRadarTabItem } from "@/components/funding/FundingRadarTabs";
+import { FundingRadarTabs } from "@/components/funding/FundingRadarTabs";
+import type { FundingRadarTabItem } from "@/components/funding/fundingRadarTabs.utils";
 import { FundingProfilePrompt } from "@/components/funding/FundingProfilePrompt";
 import { FundingNotificationPreferences } from "@/components/funding/FundingNotificationPreferences";
 import { useFundingFeed, useFundingProfile, type FeedItem } from "@/hooks/queries/funding";

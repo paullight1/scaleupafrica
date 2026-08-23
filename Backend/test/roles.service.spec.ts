@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { RolesService } from "../src/auth/roles.service";
 import type { Db } from "../src/db/client";
 

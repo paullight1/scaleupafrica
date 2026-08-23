@@ -3,11 +3,14 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FundingWorkspace } from "./FundingWorkspace";
+import type { Opportunity } from "@/lib/fundingSchema";
+import type { FeedItem, FundingProfile } from "@/hooks/queries/funding";
+import type { BusinessIdentityCandidate } from "@/lib/api/types";
 
 const state = vi.hoisted(() => ({
-  feed: [] as any[],
-  profile: null as any,
-  identity: null as any,
+  feed: [] as FeedItem[],
+  profile: null as FundingProfile | null,
+  identity: null as BusinessIdentityCandidate | null,
 }));
 const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
 
@@ -34,10 +37,10 @@ vi.mock("@/components/funding/FundingNotificationPreferences", () => ({
 }));
 vi.mock("@/components/funding/FundingSearch", () => ({ FundingSearch: () => <div>Funding search</div> }));
 vi.mock("@/components/funding/OpportunityCard", () => ({
-  OpportunityCard: ({ opportunity, primaryApplyEligible }: any) => <div><span>{opportunity.title}</span><span>{primaryApplyEligible ? "primary-apply" : "not-primary"}</span></div>,
+  OpportunityCard: ({ opportunity, primaryApplyEligible }: { opportunity: Opportunity; primaryApplyEligible: boolean }) => <div><span>{opportunity.title}</span><span>{primaryApplyEligible ? "primary-apply" : "not-primary"}</span></div>,
 }));
 
-function item(id: string, overrides: Record<string, unknown> = {}) {
+function item(id: string, overrides: Partial<FeedItem> = {}): FeedItem {
   return {
     id,
     title: `Opportunity ${id}`,
@@ -77,7 +80,7 @@ function item(id: string, overrides: Record<string, unknown> = {}) {
   };
 }
 
-const profile = {
+const profile: FundingProfile = {
   business_name: "Acme",
   country: "Nigeria",
   operating_countries: [] as string[],
@@ -98,7 +101,17 @@ describe("FundingWorkspace paid surfaces", () => {
     analytics.trackEvent.mockReset();
     state.feed = [];
     state.profile = { ...profile, operating_countries: [] };
-    state.identity = { country: "Nigeria", summary: "Agritech climate business", enrichedProfile: {} };
+    state.identity = {
+      id: "business-1",
+      canonicalName: "Acme",
+      country: "Nigeria",
+      summary: "Agritech climate business",
+      identityConfidence: 100,
+      sourceUrls: [],
+      enrichedProfile: {},
+      fieldEvidence: {},
+      memberState: "confirmed",
+    };
   });
 
   it("shows only verified fresh eligible open records in the default primary view", () => {

@@ -3,8 +3,10 @@ import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FundingSearch } from "./FundingSearch";
+import type { Opportunity } from "@/lib/fundingSchema";
+import type { FundingResult } from "@/hooks/queries/funding";
 
-const state = vi.hoisted(() => ({ result: null as any }));
+const state = vi.hoisted(() => ({ result: null as FundingResult | null }));
 
 vi.mock("@/hooks/queries/funding", () => ({
   useFundingProfile: () => ({ data: null }),
@@ -16,11 +18,11 @@ vi.mock("@/hooks/queries/funding", () => ({
 }));
 vi.mock("@shared/lib/analytics", () => ({ trackEvent: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/components/funding/OpportunityCard", () => ({
-  OpportunityCard: ({ opportunity, primaryApplyEligible }: any) => <div data-testid="opportunity-card"><span>{opportunity.title}</span><span>{primaryApplyEligible?"apply-enabled":"apply-disabled"}</span></div>,
+  OpportunityCard: ({ opportunity, primaryApplyEligible }: { opportunity: Opportunity; primaryApplyEligible: boolean }) => <div data-testid="opportunity-card"><span>{opportunity.title}</span><span>{primaryApplyEligible?"apply-enabled":"apply-disabled"}</span></div>,
 }));
 vi.mock("@/components/funding/OpportunityCardSkeleton", () => ({ OpportunityCardSkeletonList: () => <div>loading</div> }));
 
-function opportunity(title:string,overrides:Record<string,unknown>={}){return{title,funder:"Example Funder",summary:"Funding for African businesses",url:"https://example.org/program",tags:[],sdg_focus:[],past_recipients:[],application_tips:[],match_reasons:[],discovery_source:"verified_feed",verification_status:"verified",source_checked_at:new Date().toISOString(),application_status:"open",status_checked_at:new Date().toISOString(),deadline_status:"unknown",...overrides};}
+function opportunity(title:string,overrides:Partial<Opportunity>={}):Opportunity{return{title,funder:"Example Funder",summary:"Funding for African businesses",url:"https://example.org/program",tags:[],sdg_focus:[],past_recipients:[],application_tips:[],match_reasons:[],discovery_source:"verified_feed",verification_status:"verified",source_checked_at:new Date().toISOString(),application_status:"open",status_checked_at:new Date().toISOString(),deadline_status:"unknown",...overrides};}
 
 describe("FundingSearch trust groups",()=>{
   beforeEach(()=>{state.result={opportunities:[

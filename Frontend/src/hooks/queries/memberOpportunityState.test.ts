@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMemberOpportunityMutation,
   analyticsEventForMemberState,
+  parseMemberOpportunityState,
   type MemberOpportunityStateName,
 } from "./memberOpportunityState";
 
@@ -12,6 +13,24 @@ function payload(state: MemberOpportunityStateName) {
 }
 
 describe("member opportunity workflow mutation contract", () => {
+  it("parses an unknown database row without leaking untyped values", () => {
+    expect(parseMemberOpportunityState({
+      user_id: "user-1",
+      opportunity_id: opportunityId,
+      state: "applied",
+      note: "Submitted",
+      applied_at: "2026-08-22T12:00:00.000Z",
+      updated_at: "2026-08-22T12:00:00.000Z",
+    })).toEqual({
+      userId: "user-1",
+      opportunityId,
+      state: "applied",
+      note: "Submitted",
+      appliedAt: "2026-08-22T12:00:00.000Z",
+      updatedAt: "2026-08-22T12:00:00.000Z",
+    });
+  });
+
   it.each(["saved", "preparing", "won", "rejected", "dismissed"] as const)(
     "%s leaves the original applied_at untouched",
     (state) => {

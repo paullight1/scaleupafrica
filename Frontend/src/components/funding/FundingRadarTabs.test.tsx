@@ -2,7 +2,8 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { FundingRadarTabs, type FundingRadarTabItem } from "./FundingRadarTabs";
+import { FundingRadarTabs } from "./FundingRadarTabs";
+import type { FundingRadarTabItem } from "./fundingRadarTabs.utils";
 
 const items: FundingRadarTabItem[] = [
   { id: "open", gate: { verificationStatus:"verified",applicationStatus:"open",eligibilityStatus:"eligible",statusFresh:true,discoverySource:"verified_feed" } },
