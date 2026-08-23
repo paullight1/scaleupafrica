@@ -10,6 +10,29 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-22-business-to-funding-intelligence-design.md`
 
+## Current execution status — 23 August 2026
+
+| Phase | Repository behavior | Fresh repository verification | Live/production |
+| --- | --- | --- | --- |
+| P0-A Business Enrichment | **Implemented** | **BLOCKED_EXTERNAL** — GitHub Actions jobs currently fail before checkout (`steps: null`) | **BLOCKED_EXTERNAL** — real Supabase/provider deployment unavailable |
+| P0-B Opportunity Status | **Implemented** | **BLOCKED_EXTERNAL** — same Actions runner/setup failure | **BLOCKED_EXTERNAL** — source registry/scheduler/live checks not deployed |
+| P0-C Core Funding Subscription | **Implemented for the approved core paid flow** | **BLOCKED_EXTERNAL** — same Actions runner/setup failure | **BLOCKED_EXTERNAL** — migrations/functions/notification schedule/real email smoke not deployed |
+| P0-D Accuracy Certification | **Engineering + human/live certification machinery implemented** | **BLOCKED_EXTERNAL** — workflow cannot execute current head | **BLOCKED_EXTERNAL** — required human corpus and live authoritative-source run do not exist |
+
+**Important:** `Implemented` is not `PASS`. The checkboxes below remain evidence-gated until fresh commands/workflows actually execute. Repository implementation has continued under an external CI-runner blocker, but no final PASS claim is made from code inspection alone.
+
+### P0-C notification scope decision
+
+The safe P0 notification foundation now covers source-truth transitions that can be derived without inventing recommendation history:
+
+```text
+upcoming/unknown/closed/paused -> open      => watchlist_opened
+open -> closing_soon                       => closing_soon
+source-confirmed deadline changes          => deadline_changed
+```
+
+The earlier plan also listed `member_became_eligible` and `new_high_fit_open_opportunity`. Those require persisted recommendation snapshots/change detection across profile and opportunity updates. They are explicitly **post-P0 extensions**, not approximated with SQL heuristics, because doing so would weaken the deterministic eligibility/recommendation boundary.
+
 ## Mandatory plan set
 
 Execute these in order:
@@ -32,6 +55,7 @@ Engine manuals:
 - `docs/product/RECOMMENDATION-ENGINE.md`
 - `docs/product/OPPORTUNITY-SEARCH-ENGINE.md`
 - `docs/product/CORE-SUBSCRIPTION-FUNDING-INTELLIGENCE-FLOW.md`
+- `docs/product/FUNDING-INTELLIGENCE-ENGINE-INDEX.md`
 
 ---
 
@@ -42,9 +66,9 @@ Engine manuals:
 - Business ambiguity requires member confirmation.
 - Verification, application status, eligibility, match score, source confidence and readiness remain separate values.
 - Zero primary recommendations is valid.
-- Do not merge or deploy a subsystem whose own gate is red.
+- Do not merge or deploy a subsystem whose own gate is red or unexecuted.
 - External provider/live deployment gaps are `BLOCKED_EXTERNAL`, not silently waived.
-- Every behavior change follows test-first RED -> GREEN -> relevant type/Deno checks -> review -> commit.
+- Every behavior change follows test-first RED -> GREEN -> relevant type/Deno checks -> review -> commit where the execution environment is available.
 
 ---
 
@@ -86,12 +110,14 @@ member corrections -> preserved
 sensitive traits -> never inferred
 ```
 
+Repository implementation now includes deterministic identity scoring, evidence caps, bounded public discovery/fetch, member confirmation, owner/staff RLS, private funding-profile persistence and manual fallback. Provider credentials/live deployment remain external.
+
 - [ ] Execute every task in `2026-08-22-business-enrichment-engine.md` plus its exact-command overrides in the clarification file.
 - [ ] Confirm `npm ci && npm run verify` exits 0.
 - [ ] Confirm every active Edge Function, including `business-enrichment`, passes `deno check`.
 - [ ] Confirm acceptance fixtures include same-name ambiguity, no-public-footprint and malicious/private-URL cases.
 - [ ] Confirm false automatic identity selections = 0 in the acceptance fixture set.
-- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before P0-B.
+- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before production release.
 
 **Exit artifact:** confirmed structured organisation profile suitable for deterministic eligibility/recommendation.
 
@@ -111,13 +137,15 @@ conflict -> unknown
 stale open -> effective unknown
 ```
 
+Repository implementation now includes source registry/provenance, reusable SSRF-safe fetch, evidence-only extraction, shared deterministic conflict/status logic, append-only checks, freshness downgrades, admin source-health/recheck operations and authoritative transition queuing.
+
 - [ ] Execute every task in `2026-08-22-open-opportunity-verification-engine.md` plus clarification overrides.
 - [ ] Confirm the current-cycle status truth table is green.
 - [ ] Confirm source refresh uses bounded SSRF-safe retrieval.
 - [ ] Confirm AI extraction cannot persist trusted `application_status` directly.
 - [ ] Confirm Admin has no evidence-free `Force open` path.
 - [ ] Confirm `npm ci && npm run verify` exits 0 and every active Edge Function passes `deno check`.
-- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before P0-C.
+- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before production release.
 
 **Exit artifact:** canonical opportunity records with source-backed verification and effective application status/freshness.
 
@@ -136,14 +164,29 @@ verification = verified
 + eligibility = eligible
 ```
 
-- [ ] Execute every task in `2026-08-22-core-funding-subscription-experience.md`.
+Repository implementation now includes:
+
+- Open for you / Closing soon / Watchlist / Explore;
+- `Apply on official site` hard gate;
+- trust-separated Opportunity Search (`Verified current matches / Other verified records / AI discoveries`);
+- truthful zero primary state;
+- member saved/preparing/applied/won/rejected/dismissed workflow;
+- preserved original `applied_at`;
+- profile-completion reranking prompts;
+- funding notification preferences;
+- deduplicated transition queue;
+- retry-safe delivery worker through existing email/Resend infrastructure;
+- analytics privacy and lifecycle events.
+
+- [ ] Execute every task in `2026-08-22-core-funding-subscription-experience.md` subject to the notification-scope decision above.
 - [ ] Verify Open for you / Closing soon / Watchlist / Explore truth-table tests.
-- [ ] Verify an AI discovery never receives Apply Now treatment.
+- [ ] Verify an AI discovery never receives application CTA treatment.
 - [ ] Verify zero-result state never pads with uncertain results.
-- [ ] Verify member workflow state does not mutate hard eligibility.
+- [ ] Verify member workflow state does not mutate hard eligibility/current source truth.
 - [ ] Verify Business Enrichment is the first-class funding-profile entry point with manual fallback.
+- [ ] Verify source refresh -> notification queue -> delivery worker boundary.
 - [ ] Confirm full repository verification and all Edge checks green.
-- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before P0-D.
+- [ ] Record repository `PASS`, `FAIL`, or exact `BLOCKED_EXTERNAL` reason before production release.
 
 **Exit artifact:** subscription UX implementing engine truth boundaries instead of reinterpreting them client-side.
 
@@ -153,12 +196,14 @@ verification = verified
 
 **Purpose:** Measure whether the paid claim is good enough to launch.
 
+Repository machinery now includes engineering fixtures, anti-gaming tests, corpus-size/human-review validation, deterministic metrics, targeted certification workflow and explicit live-link mode using the same `safeExternalFetch` boundary with Node DNS injection.
+
 - [ ] Execute every task in `2026-08-22-funding-intelligence-accuracy-certification.md`.
 - [ ] Reach >=100 organisation identity fixtures.
 - [ ] Reach >=200 opportunity-cycle fixtures.
 - [ ] Reach >=150 labelled eligibility pairs and >=50 ranking candidate pools.
 - [ ] Record two-human-reviewer labels for every P0 identity/status/eligibility fixture.
-- [ ] Run `npm ci`, `npm run verify`, and `npm run eval:funding`.
+- [ ] Run `npm ci`, `npm run verify`, and `npm run eval:funding` on the exact release head.
 - [ ] Run live/staging source/link checks when the deployed provider/environment is available.
 - [ ] Publish exact metric-by-metric PASS/FAIL in `docs/production-readiness/evidence/funding-intelligence-certification.md`.
 
@@ -176,13 +221,13 @@ AI discoveries promoted to verified/open: 0
 Stale OPEN records in primary output: 0
 ```
 
-Any P0 failure keeps the paid claim gated.
+Any P0 failure or unexecuted production gate keeps the paid claim gated.
 
 ---
 
 ## Approval policy for execution
 
-The user explicitly authorised approvals wherever necessary for this phase. The implementation agent may therefore proceed through routine internal design/reviewer gates without asking for repeated confirmation when all are true:
+The user explicitly authorised approvals wherever necessary for this phase. The implementation agent may proceed through routine internal design/reviewer gates without asking for repeated confirmation when all are true:
 
 - the change is inside these approved plans;
 - it preserves the trust boundaries in the spec;
@@ -207,7 +252,7 @@ For every behavior task:
 
 ```text
 write focused test first
--> run it and observe the expected RED
+-> run it and observe the expected RED when runner access exists
 -> implement minimum behavior
 -> rerun focused test GREEN
 -> run relevant typecheck / Deno check
@@ -227,4 +272,4 @@ plan-specific acceptance fixtures
 engine-manual/evidence update
 ```
 
-Do not move forward because a task merely looks complete. Move forward only on fresh verification evidence.
+Do not turn an implementation-complete state into PASS without fresh execution evidence.
