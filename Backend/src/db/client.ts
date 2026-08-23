@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as coreSchema from "./schema";
+import { payments, paymentWebhookEvents } from "./payment-schema";
 import {
   businessEnrichmentRuns,
   businessEnrichmentCandidates,
@@ -18,9 +19,14 @@ import {
  * `prepare: false` is mandatory with Supavisor transaction pooling.
  * Same-table projections (`profileFundingIntelligence`, `fundingOpportunityStatus`)
  * are intentionally not registered because coreSchema already owns those SQL tables.
+ *
+ * The current Bachs/data-rights payment projections intentionally override the
+ * historical payment definitions in coreSchema.
  */
 export const dbSchema = {
   ...coreSchema,
+  payments,
+  paymentWebhookEvents,
   businessEnrichmentRuns,
   businessEnrichmentCandidates,
   fundingSourcesRegistry,
