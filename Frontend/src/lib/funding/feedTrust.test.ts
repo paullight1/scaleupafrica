@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveFeedVerificationStatus } from "./feedTrust";
+import {
+  resolveFeedApplicationStatus,
+  resolveFeedVerificationStatus,
+} from "./feedTrust";
 
 const FRESH = "2026-08-22T12:00:00Z";
 const NOW = new Date("2026-08-23T00:00:00Z");
@@ -21,5 +24,21 @@ describe("resolveFeedVerificationStatus", () => {
 
   it("treats unknown stored trust as unverified", () => {
     expect(resolveFeedVerificationStatus("something-else", "https://funder.example/program", FRESH, NOW)).toBe("unverified");
+  });
+});
+
+describe("resolveFeedApplicationStatus", () => {
+  it("forces unverified and stale source state to current-status unknown", () => {
+    expect(resolveFeedApplicationStatus("unverified", "open", FRESH, NOW)).toBe("unknown");
+    expect(resolveFeedApplicationStatus("stale", "open", FRESH, NOW)).toBe("unknown");
+  });
+
+  it("keeps a verified application status only while its own freshness window is valid", () => {
+    expect(resolveFeedApplicationStatus("verified", "open", FRESH, NOW)).toBe("open");
+    expect(resolveFeedApplicationStatus("verified", "open", "2026-08-20T12:00:00Z", NOW)).toBe("unknown");
+  });
+
+  it("normalizes unknown stored application values to unknown", () => {
+    expect(resolveFeedApplicationStatus("verified", "made-up", FRESH, NOW)).toBe("unknown");
   });
 });
