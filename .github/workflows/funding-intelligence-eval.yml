@@ -4,17 +4,31 @@ on:
   pull_request:
     paths:
       - "Frontend/src/lib/funding/**"
+      - "Frontend/src/lib/__tests__/safe-external-fetch-contract.test.ts"
       - "Shared/src/lib/businessIdentity.ts"
       - "Shared/src/lib/fundingStatus.ts"
       - "Shared/src/lib/fundingEvaluation.ts"
+      - "Backend/test/funding-live-eval.spec.ts"
       - "evaluation/funding/**"
       - "scripts/funding-intelligence-eval.ts"
+      - "supabase/functions/_shared/safeExternalFetch.ts"
       - "supabase/functions/aggregate-funding/**"
       - "supabase/functions/funding-source-refresh/**"
       - ".github/workflows/funding-intelligence-eval.yml"
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      certification:
+        description: "Require the full human-adjudicated certification corpus"
+        required: true
+        type: boolean
+        default: false
+      live_links:
+        description: "Perform bounded live checks of primary authoritative links"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,14 +51,32 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Validate evaluation helpers
-        run: npm run test --workspace Shared -- src/lib/fundingEvaluation.test.ts
+      - name: Validate evaluation helpers and live-link boundary
+        run: |
+          npm run test --workspace Shared -- src/lib/fundingEvaluation.test.ts
+          npm run test --workspace Frontend -- src/lib/__tests__/safe-external-fetch-contract.test.ts
+          npm run test --workspace Backend -- test/funding-live-eval.spec.ts
 
-      - name: Run deterministic funding benchmark
-        run: npm run eval:funding
+      - name: Run funding benchmark
+        env:
+          MANUAL_CERTIFICATION: ${{ inputs.certification || 'false' }}
+          MANUAL_LIVE_LINKS: ${{ inputs.live_links || 'false' }}
+        run: |
+          args=""
+          if [ "$MANUAL_CERTIFICATION" = "true" ] || [ "$MANUAL_LIVE_LINKS" = "true" ]; then
+            args="$args --certification"
+          fi
+          if [ "$MANUAL_LIVE_LINKS" = "true" ]; then
+            args="$args --live-links"
+            ALLOW_FUNDING_LIVE_EVAL=1 npm run eval:funding -- $args
+          else
+            npm run eval:funding -- $args
+          fi
 
       - name: Upload evaluation report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: funding-intelligence-eval
           path: artifacts/funding-intelligence-eval.json
+          if-no-files-found: error
