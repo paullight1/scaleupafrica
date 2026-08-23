@@ -4,11 +4,20 @@ on:
   pull_request:
     paths:
       - "Shared/contracts/funding.ts"
+      - "Shared/src/lib/analytics.ts"
+      - "Shared/src/lib/analytics.test.ts"
+      - "Shared/src/lib/businessIdentity.ts"
+      - "Shared/src/lib/businessIdentity.test.ts"
       - "Shared/src/lib/fundingStatus.ts"
+      - "Shared/src/lib/fundingTrust.ts"
       - "Shared/src/lib/fundingCertification.ts"
       - "Shared/src/lib/fundingNotifications.ts"
       - "Frontend/src/lib/funding/**"
+      - "Frontend/src/lib/fundingCache.ts"
+      - "Frontend/src/lib/fundingCache.test.ts"
       - "Frontend/src/components/funding/**"
+      - "Frontend/src/pages/dashboard/DashboardAccount.tsx"
+      - "Frontend/src/pages/dashboard/DashboardAccount.test.tsx"
       - "Frontend/src/hooks/queries/funding*.ts"
       - "Frontend/src/hooks/queries/memberOpportunityState*.ts"
       - "Frontend/src/hooks/queries/fundingNotificationPreferences*.ts"
@@ -18,13 +27,18 @@ on:
       - "Backend/src/funding/**"
       - "Backend/src/db/funding-intelligence-schema.ts"
       - "Backend/test/funding*.spec.ts"
+      - "Backend/test/business-enrichment-contracts.spec.ts"
       - "supabase/functions/aggregate-funding/**"
+      - "supabase/functions/business-enrichment/**"
       - "supabase/functions/funding-source-refresh/**"
       - "supabase/functions/funding-notifications/**"
+      - "supabase/functions/_shared/businessDiscovery.ts"
       - "supabase/functions/_shared/funding*.ts"
       - "supabase/functions/_shared/safeExternalFetch.ts"
       - "supabase/functions/_shared/email/config.ts"
       - "supabase/functions/_shared/email/templates.ts"
+      - "supabase/migrations/2026082202*.sql"
+      - "supabase/migrations/2026082204*.sql"
       - "supabase/migrations/2026082205*.sql"
       - "supabase/migrations/2026082206*.sql"
       - "supabase/migrations/2026082207*.sql"
@@ -61,9 +75,11 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Shared status and certification gates
+      - name: Shared identity, status, privacy and certification gates
         run: |
           npm run test --workspace Shared -- \
+            src/lib/analytics.test.ts \
+            src/lib/businessIdentity.test.ts \
             src/lib/fundingStatus.test.ts \
             src/lib/fundingCertification.test.ts \
             src/lib/fundingCertificationBenchmark.test.ts \
@@ -73,22 +89,26 @@ jobs:
       - name: Paid Funding Radar trust gates
         run: |
           npm run test --workspace Frontend -- \
+            src/lib/funding/feedTrust.test.ts \
             src/lib/funding/primaryFundingGate.test.ts \
             src/lib/funding/recommendationEngine.test.ts \
+            src/lib/fundingCache.test.ts \
             src/components/funding/FundingRadarTabs.test.tsx \
             src/components/funding/FundingWorkspace.test.tsx \
             src/components/funding/FundingSearch.test.tsx \
             src/components/funding/OpportunityCard.test.tsx \
             src/components/funding/OpportunityCard.member.test.tsx \
+            src/pages/dashboard/DashboardAccount.test.tsx \
             src/hooks/queries/memberOpportunityState.test.ts \
             src/hooks/queries/fundingNotificationPreferences.test.ts \
             src/lib/__tests__/email-config.test.ts \
             src/lib/__tests__/email-templates.test.ts \
             src/lib/__tests__/safe-external-fetch-contract.test.ts
 
-      - name: Backend funding parity gates
+      - name: Backend funding and enrichment parity gates
         run: |
           npm run test --workspace Backend -- \
+            test/business-enrichment-contracts.spec.ts \
             test/funding-status.spec.ts \
             test/funding-verified-first.spec.ts \
             test/funding-search-ranking.spec.ts \
@@ -111,8 +131,17 @@ jobs:
           grep -q 'application_status:"unknown"' supabase/functions/aggregate-funding/index.ts
           grep -q 'verification_status:"unverified"' supabase/functions/aggregate-funding/index.ts
           grep -q 'MAX_BATCH=25' supabase/functions/funding-source-refresh/index.ts
+          grep -q 'source_not_registered' supabase/functions/funding-source-refresh/index.ts
+          grep -q 'funding_source_is_registered' supabase/migrations/20260822023000_funding_intelligence_v2.sql
+          grep -q 'REVOKE DELETE ON public.funding_sources FROM service_role' supabase/migrations/20260822023000_funding_intelligence_v2.sql
+          grep -q 'Canonical funding status requires an active registered source' supabase/migrations/20260822050000_opportunity_application_status.sql
           grep -q 'Do not output a trusted application_status' supabase/functions/_shared/fundingSourceSignals.ts
+          grep -q 'allowedEvidenceUrls' supabase/functions/_shared/businessDiscovery.ts
+          grep -q 'hasFieldEvidence' supabase/functions/_shared/businessDiscovery.ts
+          grep -q 'sua:funding:v2:' Frontend/src/lib/fundingCache.ts
+          grep -q 'resolveFeedVerificationStatus' Frontend/src/hooks/queries/funding.ts
           grep -q 'FUNDING_NOTIFICATION_SECRET' supabase/functions/funding-notifications/index.ts
+          grep -q 'delivery_attempts_exhausted' supabase/migrations/20260822071000_funding_notification_delivery.sql
           grep -q 'email_new_funding,email_new_matches,email_deadline_alerts' supabase/functions/funding-notifications/index.ts
           grep -q 'funding-alert:${event.id}' supabase/functions/funding-notifications/index.ts
           grep -q 'safeExternalFetch' scripts/funding-intelligence-eval.ts
