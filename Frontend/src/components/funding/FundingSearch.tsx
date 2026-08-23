@@ -3,6 +3,7 @@ import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
+import { isStatusFresh } from "@shared/lib/fundingStatus";
 import { trackEvent } from "@shared/lib/analytics";
 import { OpportunityCard } from "@/components/funding/OpportunityCard";
 import { OpportunityCardSkeletonList } from "@/components/funding/OpportunityCardSkeleton";
@@ -14,7 +15,7 @@ import {
   fundingErrorMessage,
   FundingError,
 } from "@/hooks/queries/funding";
-import type { Opportunity } from "@/lib/fundingSchema";
+import type { ApplicationStatus, Opportunity } from "@/lib/fundingSchema";
 import { Search } from "lucide-react";
 
 function relativeTime(iso: string): string {
@@ -36,7 +37,8 @@ function keyOf(o: Opportunity) {
 
 /**
  * Older cached searches predate trust metadata and were AI-generated. Treat them
- * conservatively as AI-assisted rather than letting missing metadata look neutral.
+ * conservatively as AI-assisted and current-status unknown rather than letting
+ * missing/legacy metadata look authoritative.
  */
 function withConservativeTrust(opportunity: Opportunity): Opportunity {
   if (opportunity.discovery_source) return opportunity;
@@ -44,7 +46,74 @@ function withConservativeTrust(opportunity: Opportunity): Opportunity {
     ...opportunity,
     discovery_source: "ai_assisted",
     verification_status: "unverified",
+    source_checked_at: undefined,
+    application_status: "unknown",
+    status_checked_at: undefined,
+    application_url: null,
+    deadline_at: undefined,
+    deadline_status: "unknown",
   };
+}
+
+function normalizedStatus(value: Opportunity["application_status"]): ApplicationStatus {
+  return value === "open" || value === "closing_soon" || value === "rolling" || value === "upcoming" || value === "closed" || value === "paused"
+    ? value
+    : "unknown";
+}
+
+function isVerifiedCurrent(opportunity: Opportunity, now = new Date()): boolean {
+  if (opportunity.discovery_source !== "verified_feed" || opportunity.verification_status !== "verified") return false;
+  const status = normalizedStatus(opportunity.application_status);
+  if (status !== "open" && status !== "closing_soon" && status !== "rolling") return false;
+  return isStatusFresh(status, opportunity.status_checked_at, now);
+}
+
+function SearchGroup({
+  title,
+  description,
+  opportunities,
+  openKeys,
+  toggle,
+}: {
+  title: string;
+  description: string;
+  opportunities: Opportunity[];
+  openKeys: Set<string>;
+  toggle: (key: string) => void;
+}) {
+  if (!opportunities.length) return null;
+  return (
+    <section className="space-y-4" aria-labelledby={`search-group-${title.replace(/\W+/g, "-").toLowerCase()}`}>
+      <div>
+        <h3 id={`search-group-${title.replace(/\W+/g, "-").toLowerCase()}`} className="font-display text-lg font-semibold text-ink-strong">
+          {title}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="grid gap-6">
+        {opportunities.map((opportunity) => {
+          const key = keyOf(opportunity);
+          return (
+            <OpportunityCard
+              key={key}
+              opportunity={opportunity}
+              open={openKeys.has(key)}
+              onToggle={() => toggle(key)}
+              lastVerifiedAt={opportunity.source_checked_at}
+              verificationStatus={opportunity.verification_status}
+              applicationStatus={normalizedStatus(opportunity.application_status)}
+              statusCheckedAt={opportunity.status_checked_at}
+              applicationUrl={opportunity.application_url}
+              deadlineAt={opportunity.deadline_at}
+              deadlineStatus={opportunity.deadline_status}
+              primaryApplyEligible={false}
+              matchReasons={opportunity.match_reasons}
+            />
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 export function FundingSearch() {
@@ -90,8 +159,32 @@ export function FundingSearch() {
     () => (result?.opportunities ?? []).map(withConservativeTrust),
     [result?.opportunities],
   );
-  const verifiedCount = opps.filter((o) => o.discovery_source === "verified_feed").length;
-  const aiCount = opps.filter((o) => o.discovery_source === "ai_assisted").length;
+
+  const groups = useMemo(() => {
+    const current: Opportunity[] = [];
+    const verifiedWatchlist: Opportunity[] = [];
+    const ai: Opportunity[] = [];
+    const now = new Date();
+    for (const opportunity of opps) {
+      if (opportunity.discovery_source === "ai_assisted") {
+        ai.push({
+          ...opportunity,
+          verification_status: "unverified",
+          application_status: "unknown",
+          status_checked_at: undefined,
+          application_url: null,
+        });
+      } else if (isVerifiedCurrent(opportunity, now)) {
+        current.push(opportunity);
+      } else {
+        verifiedWatchlist.push(opportunity);
+      }
+    }
+    return { current, verifiedWatchlist, ai };
+  }, [opps]);
+
+  const verifiedCount = groups.current.length + groups.verifiedWatchlist.length;
+  const aiCount = groups.ai.length;
 
   useEffect(() => {
     if (!generate.isSuccess || !result?.generatedAt) return;
@@ -101,12 +194,14 @@ export function FundingSearch() {
       entityType: "funding_search",
       metadata: {
         result_count: opps.length,
+        verified_current_count: groups.current.length,
+        verified_watchlist_count: groups.verifiedWatchlist.length,
         verified_count: verifiedCount,
         ai_count: aiCount,
         cached: result.cached,
       },
     });
-  }, [aiCount, generate.isSuccess, opps.length, result?.cached, result?.generatedAt, verifiedCount]);
+  }, [aiCount, generate.isSuccess, groups.current.length, groups.verifiedWatchlist.length, opps.length, result?.cached, result?.generatedAt, verifiedCount]);
 
   const errorMessage =
     generate.error instanceof FundingError
@@ -167,11 +262,7 @@ export function FundingSearch() {
           )
         ) : opps.length > 0 && !generate.isError ? (
           <span>
-            {opps.length} opportunities found
-            {verifiedCount > 0 || aiCount > 0
-              ? ` · ${verifiedCount} verified · ${aiCount} AI ${aiCount === 1 ? "discovery" : "discoveries"}`
-              : ""}
-            .
+            {opps.length} {opps.length === 1 ? "result" : "results"} · {groups.current.length} verified current · {groups.verifiedWatchlist.length} verified watchlist · {aiCount} AI {aiCount === 1 ? "discovery" : "discoveries"}
           </span>
         ) : null}
       </div>
@@ -185,7 +276,7 @@ export function FundingSearch() {
           onRetry={() => runSearch(lastKeywords.current || keywords)}
         />
       ) : opps.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-8">
           {result?.generatedAt && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
               <span>
@@ -197,22 +288,27 @@ export function FundingSearch() {
               </Button>
             </div>
           )}
-          <div className="grid gap-6">
-            {opps.map((o) => {
-              const k = keyOf(o);
-              return (
-                <OpportunityCard
-                  key={k}
-                  opportunity={o}
-                  open={openKeys.has(k)}
-                  onToggle={() => toggle(k)}
-                  lastVerifiedAt={o.source_checked_at}
-                  verificationStatus={o.verification_status}
-                  matchReasons={o.match_reasons}
-                />
-              );
-            })}
-          </div>
+          <SearchGroup
+            title="Verified current matches"
+            description="Source-verified Cresciva records with a fresh open, closing-soon or rolling current cycle. Search results remain exploratory until your eligibility profile is applied in Funding Radar."
+            opportunities={groups.current}
+            openKeys={openKeys}
+            toggle={toggle}
+          />
+          <SearchGroup
+            title="Other verified records"
+            description="Curated Cresciva records that are upcoming, closed, stale, status-unknown or otherwise outside the verified-current search group."
+            opportunities={groups.verifiedWatchlist}
+            openKeys={openKeys}
+            toggle={toggle}
+          />
+          <SearchGroup
+            title="AI discoveries"
+            description="Long-tail candidates discovered with AI. Cresciva has not verified these records or their current application cycle."
+            opportunities={groups.ai}
+            openKeys={openKeys}
+            toggle={toggle}
+          />
         </div>
       ) : result ? (
         <EmptyState
