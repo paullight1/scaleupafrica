@@ -95,7 +95,7 @@ async function deliverEvent(
       .eq("opportunity_id", event.opportunity_id)
       .maybeSingle(),
     admin.from("user_preferences")
-      .select("email_new_matches,email_deadline_alerts")
+      .select("email_new_funding,email_new_matches,email_deadline_alerts")
       .eq("user_id", event.user_id)
       .maybeSingle(),
     admin.from("funding_opportunities")
@@ -116,8 +116,13 @@ async function deliverEvent(
   }
 
   const prefs = preferenceResult.data ?? {};
-  const emailNewMatches = prefs.email_new_matches !== false;
-  const emailDeadlineAlerts = prefs.email_deadline_alerts !== false;
+  const masterFundingConsent = prefs.email_new_funding !== false;
+  if (!masterFundingConsent) {
+    await finalize(admin, event.id, "suppressed", "member_funding_email_opted_out");
+    return "suppressed";
+  }
+  const emailNewMatches = (prefs.email_new_matches ?? masterFundingConsent) !== false;
+  const emailDeadlineAlerts = (prefs.email_deadline_alerts ?? masterFundingConsent) !== false;
   if (
     (event.event_type === "watchlist_opened" && !emailNewMatches) ||
     (event.event_type !== "watchlist_opened" && !emailDeadlineAlerts)
