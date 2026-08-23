@@ -125,6 +125,21 @@ BEGIN
     RAISE EXCEPTION 'Invalid deadline status';
   END IF;
 
+  IF _apply_canonical AND (
+    _source_id IS NULL
+    OR NOT public.funding_source_is_registered(_source_url)
+    OR NOT EXISTS (
+      SELECT 1
+      FROM public.funding_sources source
+      WHERE source.id = _source_id
+        AND source.active = true
+        AND substring(lower(btrim(source.base_url)) FROM '^(https?://[^/?#]+)') =
+            substring(lower(btrim(_source_url)) FROM '^(https?://[^/?#]+)')
+    )
+  ) THEN
+    RAISE EXCEPTION 'Canonical funding status requires an active registered source';
+  END IF;
+
   INSERT INTO public.funding_source_checks (
     check_key, opportunity_id, source_id, source_url, checked_at, http_status,
     content_type, content_bytes, source_fingerprint, extracted_signals,
@@ -170,7 +185,7 @@ GRANT EXECUTE ON FUNCTION public.record_funding_status_check(
 
 -- Source registry edits are privileged operations. If a base URL changes, or a
 -- source is disabled, all opportunities tied to the old trusted scope lose
--- verification and current-cycle trust until fresh evidence is collected.
+-- verification and current-cycle trust until fresh source evidence is collected.
 CREATE OR REPLACE FUNCTION public.update_funding_source_and_invalidate(
   _source_id UUID,
   _name TEXT,
