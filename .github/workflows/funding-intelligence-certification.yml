@@ -11,6 +11,7 @@ on:
       - "Frontend/src/components/funding/**"
       - "Frontend/src/hooks/queries/funding*.ts"
       - "Frontend/src/hooks/queries/memberOpportunityState*.ts"
+      - "Frontend/src/hooks/queries/fundingNotificationPreferences*.ts"
       - "Frontend/src/lib/__tests__/email-config.test.ts"
       - "Frontend/src/lib/__tests__/email-templates.test.ts"
       - "Frontend/src/lib/__tests__/safe-external-fetch-contract.test.ts"
@@ -80,6 +81,7 @@ jobs:
             src/components/funding/OpportunityCard.test.tsx \
             src/components/funding/OpportunityCard.member.test.tsx \
             src/hooks/queries/memberOpportunityState.test.ts \
+            src/hooks/queries/fundingNotificationPreferences.test.ts \
             src/lib/__tests__/email-config.test.ts \
             src/lib/__tests__/email-templates.test.ts \
             src/lib/__tests__/safe-external-fetch-contract.test.ts
@@ -111,6 +113,7 @@ jobs:
           grep -q 'MAX_BATCH=25' supabase/functions/funding-source-refresh/index.ts
           grep -q 'Do not output a trusted application_status' supabase/functions/_shared/fundingSourceSignals.ts
           grep -q 'FUNDING_NOTIFICATION_SECRET' supabase/functions/funding-notifications/index.ts
+          grep -q 'email_new_funding,email_new_matches,email_deadline_alerts' supabase/functions/funding-notifications/index.ts
           grep -q 'funding-alert:${event.id}' supabase/functions/funding-notifications/index.ts
           grep -q 'safeExternalFetch' scripts/funding-intelligence-eval.ts
           grep -q 'Verified current matches' Frontend/src/components/funding/FundingSearch.tsx
