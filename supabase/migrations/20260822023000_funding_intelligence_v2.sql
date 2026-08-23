@@ -120,6 +120,7 @@ REVOKE ALL ON public.funding_sources FROM anon;
 GRANT SELECT, INSERT, UPDATE ON public.funding_sources TO authenticated;
 REVOKE DELETE ON public.funding_sources FROM authenticated;
 GRANT ALL ON public.funding_sources TO service_role;
+REVOKE DELETE ON public.funding_sources FROM service_role;
 
 DROP POLICY IF EXISTS "Staff manage funding sources" ON public.funding_sources;
 CREATE POLICY "Staff manage funding sources"
