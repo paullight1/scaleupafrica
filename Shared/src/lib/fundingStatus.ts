@@ -15,9 +15,35 @@ export interface FundingStatusSignals {
   conflict: boolean;
 }
 
+export interface FundingStatusConflictSignals {
+  explicitOpen?: boolean;
+  explicitClosed?: boolean;
+  explicitPaused?: boolean;
+  explicitRolling?: boolean;
+}
+
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const CLOSING_SOON_DAYS = 14;
+
+/**
+ * Any pair of mutually incompatible current-cycle states is a conflict.
+ * This helper is shared by source refresh and admin health views so staff see
+ * the same fail-closed decision that the classifier used.
+ */
+export function hasFundingStatusConflict(signals: FundingStatusConflictSignals): boolean {
+  const open = Boolean(signals.explicitOpen);
+  const closed = Boolean(signals.explicitClosed);
+  const paused = Boolean(signals.explicitPaused);
+  const rolling = Boolean(signals.explicitRolling);
+  return (
+    (open && closed) ||
+    (open && paused) ||
+    (rolling && closed) ||
+    (rolling && paused) ||
+    (closed && paused)
+  );
+}
 
 export function classifyFundingStatus(
   signals: FundingStatusSignals,
