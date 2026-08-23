@@ -142,9 +142,32 @@ export const memberOpportunityState = pgTable(
   ],
 );
 
+export const notificationEvents = pgTable(
+  "notification_events",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    userId: uuid("user_id").notNull(),
+    opportunityId: uuid("opportunity_id"),
+    eventType: text("event_type").notNull(),
+    dedupeKey: text("dedupe_key").notNull().unique(),
+    status: text("status").notNull().default("pending"),
+    metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    lastError: text("last_error"),
+    processingAt: timestamp("processing_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("notification_events_user_created_idx").on(t.userId, t.createdAt),
+    index("notification_events_claim_idx").on(t.status, t.processingAt, t.createdAt),
+  ],
+);
+
 export type BusinessEnrichmentRunRow = typeof businessEnrichmentRuns.$inferSelect;
 export type BusinessEnrichmentCandidateRow = typeof businessEnrichmentCandidates.$inferSelect;
 export type ProfileFundingIntelligenceRow = typeof profileFundingIntelligence.$inferSelect;
 export type FundingOpportunityStatusRow = typeof fundingOpportunityStatus.$inferSelect;
 export type FundingSourceCheckRow = typeof fundingSourceChecks.$inferSelect;
 export type MemberOpportunityStateRow = typeof memberOpportunityState.$inferSelect;
+export type NotificationEventRow = typeof notificationEvents.$inferSelect;
