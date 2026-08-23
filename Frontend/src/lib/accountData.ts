@@ -9,6 +9,19 @@ export type AccountExport = {
   [key: string]: unknown;
 };
 
+type FunctionErrorLike = Error & { context?: Response };
+
+async function functionErrorCode(error: unknown): Promise<string | null> {
+  const context = (error as FunctionErrorLike | null)?.context;
+  if (!context || typeof context.clone !== "function") return null;
+  try {
+    const payload = await context.clone().json() as { error?: unknown };
+    return typeof payload?.error === "string" ? payload.error : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function exportAccountData(): Promise<AccountExport> {
   const { data, error } = await supabase.functions.invoke("account-data", {
     body: { action: "export" },
@@ -25,7 +38,18 @@ export async function deleteAccount(confirmation: string): Promise<void> {
   const { data, error } = await supabase.functions.invoke("account-data", {
     body: { action: "delete", confirmation },
   });
-  if (error) throw error;
+
+  if (error) {
+    const code = await functionErrorCode(error);
+    if (code === "recent_auth_required") {
+      throw new Error("For your security, sign out and sign back in before deleting your account.");
+    }
+    if (code === "confirmation_required") {
+      throw new Error("Type the confirmation phrase exactly before deleting your account.");
+    }
+    throw error;
+  }
+
   if (data?.error === "recent_auth_required") {
     throw new Error("For your security, sign out and sign back in before deleting your account.");
   }
