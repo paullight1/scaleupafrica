@@ -1,13 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
+import { trackEvent } from "@shared/lib/analytics";
 import { OpportunityCard } from "@/components/funding/OpportunityCard";
 import { OpportunityCardSkeletonList } from "@/components/funding/OpportunityCardSkeleton";
 import { FundingSearch } from "@/components/funding/FundingSearch";
 import { BusinessEnrichmentPanel } from "@/components/funding/BusinessEnrichmentPanel";
 import { FundingRadarTabs, type FundingRadarTabItem } from "@/components/funding/FundingRadarTabs";
+import { FundingProfilePrompt } from "@/components/funding/FundingProfilePrompt";
+import { FundingNotificationPreferences } from "@/components/funding/FundingNotificationPreferences";
 import { useFundingFeed, useFundingProfile, type FeedItem } from "@/hooks/queries/funding";
 import { useConfirmedBusinessIdentity } from "@/hooks/queries/businessEnrichment";
 import {
@@ -26,7 +29,7 @@ import {
   type FundingSurface,
   type PrimaryFundingGateInput,
 } from "@/lib/funding/primaryFundingGate";
-import { Telescope } from "lucide-react";
+import { Bell, Telescope } from "lucide-react";
 
 function matches(item: FeedItem, q: string): boolean {
   if (!q) return true;
@@ -106,6 +109,7 @@ export function FundingWorkspace() {
   const identityQuery = useConfirmedBusinessIdentity();
   const memberStateQuery = useMemberOpportunityStates();
   const setMemberState = useSetMemberOpportunityState();
+  const impressionKeys = useRef(new Set<string>());
   const [filter, setFilter] = useState("");
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
   const [showDeepSearch, setShowDeepSearch] = useState(false);
@@ -176,6 +180,27 @@ export function FundingWorkspace() {
     [surfaceItems, filter],
   );
 
+  useEffect(() => {
+    for (const { item, recommendation } of filtered) {
+      const key = `${surface}:${item.id}`;
+      if (impressionKeys.current.has(key)) continue;
+      impressionKeys.current.add(key);
+      void trackEvent("recommendation_impression", {
+        entityType: "funding_opportunity",
+        entityId: item.id,
+        metadata: {
+          surface,
+          match_score: recommendation.matchScore,
+          confidence_score: recommendation.confidenceScore,
+          verification_status: item.verificationStatus,
+          application_status: recommendation.applicationStatus,
+          eligibility_status: recommendation.eligibilityStatus,
+          primary_apply_eligible: recommendation.primaryApplyEligible,
+        },
+      });
+    }
+  }, [filtered, surface]);
+
   const toggle = (key: string) => setOpenKeys((previous) => {
     const next = new Set(previous);
     if (next.has(key)) next.delete(key); else next.add(key);
@@ -211,6 +236,18 @@ export function FundingWorkspace() {
       {enrichmentPrompt}
 
       <FundingRadarTabs items={tabItems} active={surface} onChange={setSurface} />
+
+      <FundingProfilePrompt profile={effectiveProfile} />
+
+      <details className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 font-medium text-ink-strong">
+          <Bell className="h-4 w-4 text-primary-dark" aria-hidden="true" />
+          Funding alerts
+        </summary>
+        <div className="mt-4">
+          <FundingNotificationPreferences />
+        </div>
+      </details>
 
       <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
