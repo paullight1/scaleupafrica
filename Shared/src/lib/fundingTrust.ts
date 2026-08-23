@@ -46,6 +46,26 @@ export function fundingVerificationStatus(
   if (!hasUsableFundingSource(sourceUrl) || !checkedAt) return "unverified";
   const checked = new Date(checkedAt).getTime();
   if (Number.isNaN(checked)) return "unverified";
-  const ageDays = Math.max(0, (now.getTime() - checked) / 86_400_000);
+  const ageMs = now.getTime() - checked;
+  if (ageMs < 0) return "unverified";
+  const ageDays = ageMs / 86_400_000;
   return ageDays <= verifiedWindowDays ? "verified" : "stale";
+}
+
+/**
+ * Explicit canonical state is authoritative. A timestamp heuristic may only
+ * downgrade a stored `verified` row as it ages; it must never promote a row the
+ * database explicitly invalidated after source/provenance changes.
+ */
+export function effectiveFundingVerificationStatus(
+  storedStatus: unknown,
+  sourceUrl: string | null | undefined,
+  checkedAt: string | null | undefined,
+  now = new Date(),
+  verifiedWindowDays = 7,
+): FundingVerificationStatus {
+  if (storedStatus === "unverified") return "unverified";
+  if (storedStatus === "stale") return "stale";
+  if (storedStatus !== "verified") return "unverified";
+  return fundingVerificationStatus(sourceUrl, checkedAt, now, verifiedWindowDays);
 }
