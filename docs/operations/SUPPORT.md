@@ -21,21 +21,20 @@ For requests that change private account data, payment entitlement or deletion s
 
 ## Data export
 
-Signed-in members can request the JSON export from Account settings. The export is generated server-side and contains account/profile/preferences, member funding activity and the portable payment-ledger fields without raw gateway payloads.
+Signed-in members can request the JSON export from Account settings. The export is generated server-side and contains account/profile/preferences, member funding activity, business-enrichment evidence/candidates, funding-correction history and the portable payment-ledger fields without raw gateway payloads.
 
 If export fails, troubleshoot the authenticated `account-data` Edge Function; do not assemble exports manually from screenshots or expose service-role database dumps.
 
 ## Account deletion
 
-The product requires the exact confirmation phrase plus recent authentication. The privileged server path:
+The product requires the exact confirmation phrase plus recent authentication.
 
-1. removes account-linked raw webhook/direct-email operational data;
-2. anonymizes account-linked analytics;
-3. detaches and sanitizes the minimal payment ledger required for reconciliation/accounting;
-4. removes the member's `profile-media` objects;
-5. deletes the Supabase Auth user so owner-linked records with `ON DELETE CASCADE` are removed.
+Deletion has two safety boundaries:
 
-If any pre-delete sanitization or media deletion step fails, the server stops before deleting the Auth user. Investigate the failure rather than completing a partial manual deletion.
+1. the Edge Function removes the member's `profile-media` objects first; if storage cleanup fails, the account/database graph remains unchanged;
+2. deleting `auth.users` then runs the database sanitization trigger in the **same database transaction** as the Auth deletion. That trigger removes direct-email/raw-webhook operational data, anonymises analytics and sanitises/detaches the minimum payment ledger retained for accounting/reconciliation. Owner-linked rows then cascade according to their foreign keys.
+
+A failed Auth/database deletion transaction therefore does not leave a successfully deleted account with half-applied database sanitization. Investigate the returned failure rather than completing a manual partial cascade.
 
 ## Profile/privacy correction
 
