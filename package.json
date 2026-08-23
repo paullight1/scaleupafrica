@@ -28,7 +28,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "eval:funding": "node --experimental-strip-types scripts/funding-intelligence-eval.ts",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run build:api",
+    "verify:web-quality": "node scripts/check-web-quality.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run verify:web-quality && npm run build:api",
     "assets": "bash scripts/generate-assets.sh"
   },
   "overrides": {
