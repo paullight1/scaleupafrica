@@ -34,6 +34,64 @@ export const ANALYTICS_EVENT_TYPES = [
 
 export type AnalyticsEventType = (typeof ANALYTICS_EVENT_TYPES)[number];
 
+const MAX_METADATA_DEPTH = 3;
+const MAX_METADATA_KEYS = 40;
+const MAX_ARRAY_ITEMS = 20;
+const MAX_STRING_LENGTH = 240;
+const BLOCKED_METADATA_KEYS = new Set([
+  "raw_query",
+  "query_text",
+  "search_text",
+  "source_text",
+  "source_body",
+  "raw_body",
+  "response_body",
+  "page_text",
+  "page_content",
+  "fetched_content",
+  "raw_content",
+]);
+
+function normalizeMetadataKey(key: string): string {
+  return key.trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function sanitizeMetadataValue(value: unknown, depth: number): unknown {
+  if (depth > MAX_METADATA_DEPTH) return undefined;
+  if (value === null || typeof value === "boolean" || typeof value === "number") return value;
+  if (typeof value === "string") return value.slice(0, MAX_STRING_LENGTH);
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, MAX_ARRAY_ITEMS)
+      .map((item) => sanitizeMetadataValue(item, depth + 1))
+      .filter((item) => item !== undefined);
+  }
+  if (!value || typeof value !== "object") return undefined;
+
+  const out: Record<string, unknown> = {};
+  let retained = 0;
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (retained >= MAX_METADATA_KEYS) break;
+    if (BLOCKED_METADATA_KEYS.has(normalizeMetadataKey(key))) continue;
+    const sanitized = sanitizeMetadataValue(raw, depth + 1);
+    if (sanitized === undefined) continue;
+    out[key.slice(0, 80)] = sanitized;
+    retained += 1;
+  }
+  return out;
+}
+
+/**
+ * Analytics retains identifiers, statuses, scores, counts and bounded labels only.
+ * Raw searches, source bodies, provider responses and page content are discarded.
+ */
+export function sanitizeAnalyticsMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
+  const sanitized = sanitizeMetadataValue(metadata, 0);
+  return sanitized && typeof sanitized === "object" && !Array.isArray(sanitized)
+    ? sanitized as Record<string, unknown>
+    : {};
+}
+
 function getSessionId(): string {
   try {
     const key = "sua_session_id";
@@ -48,11 +106,7 @@ function getSessionId(): string {
   }
 }
 
-/**
- * Fire-and-forget product analytics. Never throws and never blocks the UI.
- * Funding events must use aggregate/identifier metadata only — do not duplicate
- * raw business/search text or fetched third-party source bodies into analytics.
- */
+/** Fire-and-forget product analytics. Never throws and never blocks the UI. */
 export async function trackEvent(
   eventType: AnalyticsEventType,
   opts: {
@@ -71,7 +125,7 @@ export async function trackEvent(
       entity_id: opts.entityId ?? null,
       user_id: data.user?.id ?? null,
       session_id: getSessionId(),
-      metadata: (opts.metadata ?? {}) as never,
+      metadata: sanitizeAnalyticsMetadata(opts.metadata ?? {}) as never,
     });
   } catch {
     /* analytics must never break the app */
