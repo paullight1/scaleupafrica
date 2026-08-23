@@ -3,18 +3,18 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@shared/components/ui/button";
 import { Section, SectionHeading, BrowserFrame, Reveal } from "@shared/components/marketing";
 import { DirectoryCard } from "@/components/directory/DirectoryCard";
-import { SAMPLE_PROFILES } from "@/content/homepage";
+import { useDirectorySearch } from "@/hooks/queries/directory";
+import { CardSkeleton } from "@shared/components/common/LoadingState";
 
 /**
- * The directory shown with the REAL card component and static sample rows.
- *
- * Static rather than live-queried on purpose: the homepage must not depend on
- * a network round-trip or degrade when the query fails. `BrowserFrame` makes
- * the stage inert because the sample slugs don't resolve — the CTA below is
- * the only real link.
+ * The homepage preview uses the same live directory query and card component
+ * as the full directory page, so visitors see current published listings.
  */
-const DirectoryPreview = () => (
-  <Section tone="light">
+const DirectoryPreview = () => {
+  const { data, isLoading } = useDirectorySearch({ q: "", country: null, sector: null });
+  const profiles = data?.pages[0]?.rows.slice(0, 3) ?? [];
+
+  return <Section tone="light">
     <SectionHeading
       eyebrow="The directory"
       title="A profile that does the finding for you"
@@ -23,11 +23,19 @@ const DirectoryPreview = () => (
 
     <Reveal className="mt-14">
       <BrowserFrame label="cresciva.com/directory">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {SAMPLE_PROFILES.map((profile) => (
-            <DirectoryCard key={profile.id} profile={profile} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => <CardSkeleton key={index} lines={3} />)}
+          </div>
+        ) : profiles.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {profiles.map((profile) => <DirectoryCard key={profile.id} profile={profile} />)}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border px-6 py-12 text-center text-muted-foreground">
+            Directory listings will appear here as founders publish their profiles.
+          </div>
+        )}
       </BrowserFrame>
     </Reveal>
 
@@ -39,10 +47,10 @@ const DirectoryPreview = () => (
         </Link>
       </Button>
       <p className="mt-3 text-sm text-muted-foreground">
-        Illustrative listings. Browse the directory for live profiles.
+        Browse the directory for more live profiles.
       </p>
     </div>
   </Section>
-);
+};
 
 export default DirectoryPreview;
