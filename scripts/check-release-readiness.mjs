@@ -71,9 +71,7 @@ function requireAbsent(label, source, pattern) {
 function requireOrder(label, source, first, second) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
-  if (firstIndex < 0 || secondIndex < 0 || firstIndex >= secondIndex) {
-    failures.push(`${label} must contain ${first} before ${second}`);
-  }
+  if (firstIndex < 0 || secondIndex < 0 || firstIndex >= secondIndex) failures.push(`${label} must contain ${first} before ${second}`);
 }
 
 requireContains("package.json", pkg, '"node": ">=22"');
@@ -98,17 +96,21 @@ requireContains("Backend env", backendEnv, "production origins must be explicit 
 requireContains("Backend health", health, "ServiceUnavailableException");
 
 requireContains("Account deletion", accountData, "DELETE MY ACCOUNT");
-requireContains("Account deletion", accountData, "prepare_account_deletion");
 requireContains("Account deletion", accountData, "removeProfileMedia");
-requireOrder("Account deletion", accountData, "await removeProfileMedia(service, user.id)", 'service.rpc("prepare_account_deletion"');
+requireContains("Account deletion", accountData, "auth.admin.deleteUser");
+requireAbsent("Account deletion", accountData, /prepare_account_deletion/);
+requireOrder("Account deletion", accountData, "await removeProfileMedia(service, user.id)", "auth.admin.deleteUser(user.id)");
 requireContains("Account export", accountData, 'selectRows(service, "profiles", "user_id", user.id)');
+requireContains("Account export", accountData, "business_enrichment_candidates");
 requireContains("Account export", accountData, "funding_correction_reports");
 
 requireContains("Account-rights migration", accountRightsMigration, "ON DELETE SET NULL");
+requireContains("Account-rights migration", accountRightsMigration, "sanitize_account_before_auth_delete");
+requireContains("Account-rights migration", accountRightsMigration, "BEFORE DELETE ON auth.users");
 requireContains("Account-rights migration", accountRightsMigration, "gateway_response = NULL");
 requireContains("Account-rights migration", accountRightsMigration, "UPDATE public.analytics_events SET user_id = NULL");
 requireContains("Account-rights migration", accountRightsMigration, "DELETE FROM public.email_events");
-requireContains("Account-rights migration", accountRightsMigration, "REVOKE EXECUTE ON FUNCTION public.prepare_account_deletion");
+requireContains("Account-rights migration", accountRightsMigration, "REVOKE EXECUTE ON FUNCTION public.sanitize_account_before_auth_delete");
 
 requireContains("Funding corrections", fundingWorkspace, "FundingIssueReport");
 requireContains("Funding-report migration", fundingReportsMigration, "CREATE TABLE IF NOT EXISTS public.funding_opportunity_reports");
