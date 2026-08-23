@@ -6,14 +6,18 @@ const required = [
   "docs/operations/PAYMENT_SUPPORT.md",
   "docs/operations/FUNDING_CORRECTIONS.md",
   "docs/operations/SUPPORT.md",
+  "docs/operations/RELEASE.md",
+  "docs/operations/INCIDENT_RESPONSE.md",
   "docs/production-readiness/evidence/backend-cutover.md",
   "docs/production-readiness/evidence/web-quality-report.md",
   "docs/production-readiness/evidence/observability-alerts.md",
   "docs/production-readiness/evidence/legal-support-readiness.md",
   "docs/production-readiness/evidence/supabase-security-review.md",
   "docs/production-readiness/evidence/funding-intelligence-certification.md",
+  "docs/production-readiness/evidence/launch-decision.md",
   "supabase/migrations/20260823093000_account_data_rights.sql",
   "supabase/migrations/20260823094500_funding_corrections.sql",
+  "supabase/migrations/20260823095500_bachs_provider_defaults.sql",
   "supabase/functions/account-data/index.ts",
   "Frontend/src/components/dashboard/DataRightsCard.tsx",
   "Frontend/src/components/funding/FundingIssueReport.tsx",
@@ -32,7 +36,19 @@ for (const file of required) {
   catch { failures.push(`missing required release artifact: ${file}`); }
 }
 
-const [pkg, config, terms, privacy, backendEnv, health, accountData, fundingWorkspace] = await Promise.all([
+const [
+  pkg,
+  config,
+  terms,
+  privacy,
+  backendEnv,
+  health,
+  accountData,
+  fundingWorkspace,
+  accountRightsMigration,
+  fundingReportsMigration,
+  providerDefaultsMigration,
+] = await Promise.all([
   text("package.json"),
   text("supabase/config.toml"),
   text("Frontend/src/pages/Terms.tsx"),
@@ -41,6 +57,9 @@ const [pkg, config, terms, privacy, backendEnv, health, accountData, fundingWork
   text("Backend/src/health/health.controller.ts"),
   text("supabase/functions/account-data/index.ts"),
   text("Frontend/src/components/funding/FundingWorkspace.tsx"),
+  text("supabase/migrations/20260823093000_account_data_rights.sql"),
+  text("supabase/migrations/20260823094500_funding_corrections.sql"),
+  text("supabase/migrations/20260823095500_bachs_provider_defaults.sql"),
 ]);
 
 function requireContains(label, source, needle) {
@@ -49,9 +68,18 @@ function requireContains(label, source, needle) {
 function requireAbsent(label, source, pattern) {
   if (pattern.test(source)) failures.push(`${label} contains forbidden ${pattern}`);
 }
+function requireOrder(label, source, first, second) {
+  const firstIndex = source.indexOf(first);
+  const secondIndex = source.indexOf(second);
+  if (firstIndex < 0 || secondIndex < 0 || firstIndex >= secondIndex) {
+    failures.push(`${label} must contain ${first} before ${second}`);
+  }
+}
 
 requireContains("package.json", pkg, '"node": ">=22"');
 requireContains("package.json", pkg, '"verify:web-quality"');
+requireContains("package.json", pkg, '"verify:release"');
+
 requireContains("supabase/config.toml", config, "[functions.bachs-webhook]");
 requireContains("supabase/config.toml", config, "[functions.account-data]");
 requireContains("supabase/config.toml", config, "[functions.funding-source-refresh]");
@@ -63,13 +91,33 @@ requireContains("Terms", terms, "does not auto-renew");
 requireAbsent("Terms", terms, /Paystack/i);
 requireContains("Privacy", privacy, "Bachs");
 requireContains("Privacy", privacy, "Account settings provide a portable data export");
+requireContains("Privacy", privacy, "minimal detached payment");
 requireAbsent("Privacy", privacy, /Paystack/i);
 
 requireContains("Backend env", backendEnv, "production origins must be explicit non-local HTTPS origins");
 requireContains("Backend health", health, "ServiceUnavailableException");
+
 requireContains("Account deletion", accountData, "DELETE MY ACCOUNT");
 requireContains("Account deletion", accountData, "prepare_account_deletion");
+requireContains("Account deletion", accountData, "removeProfileMedia");
+requireOrder("Account deletion", accountData, "await removeProfileMedia(service, user.id)", 'service.rpc("prepare_account_deletion"');
+requireContains("Account export", accountData, 'selectRows(service, "profiles", "user_id", user.id)');
+requireContains("Account export", accountData, "funding_correction_reports");
+
+requireContains("Account-rights migration", accountRightsMigration, "ON DELETE SET NULL");
+requireContains("Account-rights migration", accountRightsMigration, "gateway_response = NULL");
+requireContains("Account-rights migration", accountRightsMigration, "UPDATE public.analytics_events SET user_id = NULL");
+requireContains("Account-rights migration", accountRightsMigration, "DELETE FROM public.email_events");
+requireContains("Account-rights migration", accountRightsMigration, "REVOKE EXECUTE ON FUNCTION public.prepare_account_deletion");
+
 requireContains("Funding corrections", fundingWorkspace, "FundingIssueReport");
+requireContains("Funding-report migration", fundingReportsMigration, "CREATE TABLE IF NOT EXISTS public.funding_opportunity_reports");
+requireContains("Funding-report migration", fundingReportsMigration, 'CREATE POLICY "Members submit own funding reports"');
+requireContains("Funding-report migration", fundingReportsMigration, 'CREATE POLICY "Staff update funding reports"');
+requireContains("Funding-report migration", fundingReportsMigration, "funding_opportunity_reports_active_user_opp_idx");
+
+requireContains("Provider defaults", providerDefaultsMigration, "ALTER COLUMN provider SET DEFAULT 'bachs'");
+requireAbsent("Provider defaults", providerDefaultsMigration, /SET DEFAULT 'paystack'/i);
 
 if (failures.length) {
   console.error("release-readiness: FAIL");
@@ -77,4 +125,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`release-readiness: PASS (${required.length} required artifacts + trust invariants)`);
+console.log(`release-readiness: PASS (${required.length} required artifacts + trust/data-rights invariants)`);
