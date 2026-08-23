@@ -55,6 +55,9 @@ describe("Funding source extraction trust boundary", () => {
     expect(provenanceMigrationSource).toContain("Source URL must match an active authoritative funding source");
     expect(refreshSource).toContain("source_not_registered");
     expect(refreshSource).toContain("if(!sourceId)");
+    expect(applicationStatusMigrationSource).toContain("Canonical funding status requires an active registered source");
+    expect(applicationStatusMigrationSource).toContain("_source_id IS NULL");
+    expect(applicationStatusMigrationSource).toContain("funding_source_is_registered(_source_url)");
   });
 
   it("revokes dependent verification and cycle trust when a registered source is disabled", () => {
