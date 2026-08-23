@@ -183,6 +183,46 @@ GRANT EXECUTE ON FUNCTION public.record_funding_status_check(
   TEXT, TEXT, BOOLEAN, TEXT, TIMESTAMPTZ, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT
 ) TO service_role;
 
+-- Database-level invalidation guard for direct registry updates. This protects
+-- against future staff/service code bypassing the higher-level admin RPC.
+CREATE OR REPLACE FUNCTION public.invalidate_funding_trust_on_source_registry_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.base_url IS DISTINCT FROM OLD.base_url
+     OR (NEW.active IS DISTINCT FROM OLD.active AND NEW.active = false) THEN
+    UPDATE public.funding_opportunities
+    SET verification_status = 'unverified',
+        last_verified_at = NULL,
+        verified_by = NULL,
+        source_retrieved_at = NULL,
+        application_status = 'unknown',
+        status_checked_at = NULL,
+        status_evidence_url = NULL,
+        opens_at = NULL,
+        deadline_at = NULL,
+        deadline_timezone = NULL,
+        deadline_status = 'unknown',
+        current_cycle_label = NULL,
+        application_url = NULL,
+        updated_at = now()
+    WHERE source_url LIKE OLD.base_url || '%';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS funding_sources_trust_invalidation ON public.funding_sources;
+CREATE TRIGGER funding_sources_trust_invalidation
+AFTER UPDATE OF base_url, active ON public.funding_sources
+FOR EACH ROW EXECUTE FUNCTION public.invalidate_funding_trust_on_source_registry_change();
+
+REVOKE ALL ON FUNCTION public.invalidate_funding_trust_on_source_registry_change()
+  FROM PUBLIC, anon, authenticated;
+
 -- Source registry edits are privileged operations. If a base URL changes, or a
 -- source is disabled, all opportunities tied to the old trusted scope lose
 -- verification and current-cycle trust until fresh source evidence is collected.
@@ -218,26 +258,6 @@ BEGIN
       updated_at = now()
   WHERE id = _source_id
   RETURNING * INTO new_source;
-
-  IF new_source.base_url IS DISTINCT FROM old_source.base_url
-     OR (new_source.active IS DISTINCT FROM old_source.active AND new_source.active = false) THEN
-    UPDATE public.funding_opportunities
-    SET verification_status = 'unverified',
-        last_verified_at = NULL,
-        verified_by = NULL,
-        source_retrieved_at = NULL,
-        application_status = 'unknown',
-        status_checked_at = NULL,
-        status_evidence_url = NULL,
-        opens_at = NULL,
-        deadline_at = NULL,
-        deadline_timezone = NULL,
-        deadline_status = 'unknown',
-        current_cycle_label = NULL,
-        application_url = NULL,
-        updated_at = now()
-    WHERE source_url LIKE old_source.base_url || '%';
-  END IF;
 
   INSERT INTO public.admin_audit_log(actor_id, action, entity_type, entity_id, details)
   VALUES (
