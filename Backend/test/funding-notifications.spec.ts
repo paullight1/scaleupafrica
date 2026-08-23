@@ -3,9 +3,11 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const workerPath = resolve(process.cwd(), "../supabase/functions/funding-notifications/index.ts");
+const refreshPath = resolve(process.cwd(), "../supabase/functions/funding-source-refresh/index.ts");
 const migrationPath = resolve(process.cwd(), "../supabase/migrations/20260822071000_funding_notification_delivery.sql");
 const schemaPath = resolve(process.cwd(), "src/db/funding-intelligence-schema.ts");
 const workerSource = existsSync(workerPath) ? readFileSync(workerPath, "utf8") : "";
+const refreshSource = existsSync(refreshPath) ? readFileSync(refreshPath, "utf8") : "";
 const migrationSource = existsSync(migrationPath) ? readFileSync(migrationPath, "utf8") : "";
 const schemaSource = existsSync(schemaPath) ? readFileSync(schemaPath, "utf8") : "";
 
@@ -29,6 +31,15 @@ describe("Funding notification delivery trust boundary", () => {
     expect(workerSource).toContain('kind: "funding_alert"');
     expect(workerSource).toContain("funding-alert:${event.id}");
     expect(workerSource).toContain("notification_events");
+  });
+
+  it("queues authoritative status/deadline transitions from the source refresh worker", () => {
+    expect(refreshSource).toContain("enqueue_funding_transition_notifications");
+    expect(refreshSource).toContain("_previous_status");
+    expect(refreshSource).toContain("_next_status");
+    expect(refreshSource).toContain("_previous_deadline_at");
+    expect(refreshSource).toContain("_next_deadline_at");
+    expect(refreshSource).toContain("_transition_key");
   });
 
   it("adds retry metadata without weakening queue status constraints", () => {
