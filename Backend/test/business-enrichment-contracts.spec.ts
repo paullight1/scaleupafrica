@@ -84,6 +84,13 @@ describe("business enrichment Edge trust boundary", () => {
     expect(sharedSource).toContain("source_urls");
   });
 
+  it("persists only evidence URLs Cresciva actually fetched", () => {
+    expect(sharedSource).toContain("allowedEvidenceUrls");
+    expect(sharedSource).toContain("evidence.map((page) => page.url)");
+    expect(sharedSource).toContain("allowedEvidenceUrls.has(url)");
+    expect(sharedSource).toContain("if (!canonicalName || !sourceUrls.length) return null");
+  });
+
   it("forbids sensitive demographic inference", () => {
     expect(sharedSource).toContain("Never infer sensitive personal characteristics");
     expect(sharedSource).toContain("religion");
