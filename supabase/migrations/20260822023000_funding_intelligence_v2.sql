@@ -41,9 +41,8 @@ SET verification_status = CASE
   ELSE 'unverified'
 END;
 
--- DB-enforced verification invariant. Existing admin code only stamps
--- last_verified_at; this trigger upgrades that action into a controlled provenance
--- transition and refuses a verification without authoritative URL evidence.
+-- Initial URL/timestamp guard. A stricter registry-backed version replaces this
+-- function after funding_sources exists later in this migration.
 CREATE OR REPLACE FUNCTION public.enforce_funding_provenance()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -129,9 +128,97 @@ CREATE POLICY "Staff manage funding sources"
   USING (public.is_staff(auth.uid()))
   WITH CHECK (public.is_staff(auth.uid()));
 
+-- Domain-level trust gate used by the DB verification trigger. funding_sources is
+-- the staff-approved allowlist for authoritative funding origins. Path-level
+-- refresh scoping remains enforced by the Edge worker when a registry base_url
+-- contains a path prefix.
+CREATE OR REPLACE FUNCTION public.funding_source_is_registered(_url TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SET search_path = public
+AS $$
+  SELECT CASE
+    WHEN _url IS NULL OR btrim(_url) !~* '^https?://' THEN false
+    ELSE EXISTS (
+      SELECT 1
+      FROM public.funding_sources source
+      WHERE source.active = true
+        AND substring(lower(btrim(source.base_url)) FROM '^(https?://[^/?#]+)') IS NOT NULL
+        AND substring(lower(btrim(source.base_url)) FROM '^(https?://[^/?#]+)') =
+            substring(lower(btrim(_url)) FROM '^(https?://[^/?#]+)')
+    )
+  END;
+$$;
+
+-- Replace the earlier trigger function now that the authoritative registry exists.
+-- A syntactically valid URL is not enough: the source origin must be explicitly
+-- admitted to the active funding source registry before a record can be verified.
+CREATE OR REPLACE FUNCTION public.enforce_funding_provenance()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' AND NEW.url IS DISTINCT FROM OLD.url THEN
+    IF NEW.source_url IS NOT DISTINCT FROM OLD.source_url THEN
+      NEW.source_url := NULL;
+    END IF;
+    NEW.verification_status := 'unverified';
+    NEW.last_verified_at := NULL;
+    NEW.verified_by := NULL;
+    NEW.source_retrieved_at := NULL;
+  END IF;
+
+  IF TG_OP = 'UPDATE' AND NEW.source_url IS DISTINCT FROM OLD.source_url THEN
+    NEW.verification_status := 'unverified';
+    NEW.last_verified_at := NULL;
+    NEW.verified_by := NULL;
+    NEW.source_retrieved_at := NULL;
+  END IF;
+
+  IF NEW.last_verified_at IS NOT NULL
+     AND (TG_OP = 'INSERT' OR NEW.last_verified_at IS DISTINCT FROM OLD.last_verified_at) THEN
+    IF NEW.source_url IS NULL AND NEW.url ~* '^https?://' THEN
+      NEW.source_url := NEW.url;
+    END IF;
+    IF NEW.source_url IS NULL OR NEW.source_url !~* '^https?://' THEN
+      RAISE EXCEPTION 'A valid official source URL is required before verification';
+    END IF;
+    IF NOT public.funding_source_is_registered(NEW.source_url) THEN
+      RAISE EXCEPTION 'Source URL must match an active authoritative funding source';
+    END IF;
+    NEW.verification_status := 'verified';
+    NEW.source_retrieved_at := COALESCE(NEW.source_retrieved_at, NEW.last_verified_at);
+  END IF;
+
+  IF NEW.verification_status = 'verified' AND (
+    NEW.source_url IS NULL
+    OR NEW.source_url !~* '^https?://'
+    OR NEW.last_verified_at IS NULL
+    OR NOT public.funding_source_is_registered(NEW.source_url)
+  ) THEN
+    RAISE EXCEPTION 'Verified funding opportunities require a registry-backed source and verification timestamp';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- Fail closed on migration: legacy rows that had an HTTP URL + timestamp but no
+-- active staff-approved source are not allowed to keep a verified label. Staff
+-- can register the authoritative source and re-verify/recheck them deliberately.
+UPDATE public.funding_opportunities
+SET verification_status = 'unverified',
+    last_verified_at = NULL,
+    verified_by = NULL,
+    source_retrieved_at = NULL
+WHERE verification_status = 'verified'
+  AND NOT public.funding_source_is_registered(source_url);
+
 COMMENT ON COLUMN public.funding_opportunities.source_url IS
-  'Authoritative source evidence used for verification.';
+  'Authoritative source evidence used for verification; verified state requires an active funding_sources registry match.';
 COMMENT ON COLUMN public.funding_opportunities.verification_status IS
-  'Controlled trust state. verified requires source evidence plus a recent verification timestamp.';
+  'Controlled trust state. verified requires a registry-backed source plus a verification timestamp.';
 COMMENT ON TABLE public.funding_sources IS
   'Staff-managed registry of authoritative funding sources used for scheduled retrieval and verification.';
