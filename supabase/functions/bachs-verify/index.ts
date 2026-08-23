@@ -1,21 +1,18 @@
 // bachs-verify — POST, user JWT required.
 //
 // The callback carries Cresciva's random internal payment reference, not proof of
-// payment. We load the caller-owned ledger row, recover the provider checkout_id
-// persisted at initialization, retrieve Bachs server-side, and revalidate exact
-// settlement before the same atomic grant routine used by the webhook.
+// payment. Recurring access is granted by invoice.paid in bachs-webhook; this
+// endpoint only reports the checkout state while that webhook is being delivered.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   bachsFetch,
   crescivaReferenceFromCheckout,
-  decideBachsGrant,
   isBachsTerminalSuccess,
   resolveBachsBaseUrl,
   safeBachsCheckoutSummary,
   type BachsCheckout,
 } from "../_shared/bachs.ts";
-import { sendPaymentReceipt } from "../_shared/email/receipt.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -118,13 +115,6 @@ Deno.serve(async (req) => {
       return json({ status: "failed" satisfies VerifyStatus }, 200);
     }
 
-    const decision = decideBachsGrant(checkout, payment);
-    if (decision.action === "mismatch") {
-      console.error("bachs-verify: amount/currency mismatch", reference);
-      return json({ status: "failed" satisfies VerifyStatus, code: "MISMATCH" }, 200);
-    }
-    if (decision.action === "ignore") return json({ status: "pending" satisfies VerifyStatus }, 200);
-
     const { error: summaryWriteError } = await admin
       .from("payments")
       .update({
@@ -138,18 +128,10 @@ Deno.serve(async (req) => {
       return json({ status: "pending" satisfies VerifyStatus }, 200);
     }
 
-    if (decision.action === "grant") {
-      const { error: grantError } = await admin.rpc("grant_membership_access", {
-        _payment_id: payment.id,
-      });
-      if (grantError) {
-        console.error("bachs-verify: grant_membership_access failed", reference, grantError.message);
-        return json({ status: "pending" satisfies VerifyStatus }, 200);
-      }
-      await sendPaymentReceipt(admin as never, payment.id, Deno.env.toObject());
-    }
-
-    return json({ status: "success" satisfies VerifyStatus }, 200);
+    // The hosted checkout can be paid before Bachs has delivered invoice.paid.
+    // Do not grant from this browser-triggered backstop; let the signed webhook
+    // perform the atomic recurring settlement.
+    return json({ status: "pending" satisfies VerifyStatus }, 200);
   } catch (error) {
     console.error("bachs-verify error", error instanceof Error ? error.message : error);
     return json({ error: "Unexpected error. Please try again.", code: "UNEXPECTED" }, 500);

@@ -4,9 +4,7 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { conciergeWhatsappUrl } from "@/lib/billing";
 
 /**
- * Permanent, first-class concierge lane (Plan 06 §5.7). Covers users Paystack's
- * card rails can't serve — mobile-money outside Nigeria, bank transfer — via a
- * human on WhatsApp. Honest: activation within 12 hours, not "instant".
+ * Billing support lane for questions about recurring Bachs membership payments.
  */
 export function ConciergeCard() {
   const { user } = useAuth();
@@ -23,11 +21,10 @@ export function ConciergeCard() {
         </div>
         <div>
           <h3 id="concierge-heading" className="font-display text-lg font-semibold text-ink-strong">
-            Prefer bank transfer or mobile money?
+            Need help with billing?
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Message us on WhatsApp with your payment. A human confirms it and activates your membership
-            within 12 hours — no card required.
+            Message us on WhatsApp if you have a question about your recurring membership or Bachs billing.
           </p>
         </div>
       </div>
@@ -43,8 +40,7 @@ export function ConciergeCard() {
       <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
         <Landmark className="mt-0.5 h-4 w-4 shrink-0 text-navy" />
         <span>
-          We'll reply with bank-transfer or mobile-money details. Never pay anyone claiming to be us
-          outside these official channels.
+          Never share card details in chat. We will help you use the official Bachs checkout or billing portal.
         </span>
       </p>
     </section>

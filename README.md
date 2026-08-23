@@ -1,13 +1,13 @@
 # Cresciva
 
-Cresciva is a Pan-African SME platform: a public, searchable directory where founders publish one credible business profile, plus membership-gated funding intelligence for African SMEs. Browsing the directory is free and open; the Funding Radar is available to members with an active annual entitlement.
+Cresciva is a Pan-African SME platform: a public, searchable directory where founders publish one credible business profile, plus membership-gated funding intelligence for African SMEs. Browsing the directory is free and open; the Funding Radar is available to members with an active recurring membership.
 
 ## Stack
 
 - **Frontend:** Vite + React 18 + TypeScript, shadcn/ui (Radix + Tailwind CSS), React Router, TanStack Query, Framer Motion.
 - **Admin:** a separate Vite/React app assembled under `/admin/` in the production artifact.
 - **Backend today:** Supabase Auth, Postgres/RLS, Storage and Deno Edge Functions.
-- **Payments:** Bachs product-based hosted checkout, signed webhooks, and a Cresciva-owned payment/entitlement ledger. Membership is a one-time annual purchase and does not auto-renew.
+- **Payments:** Bachs recurring product checkout, signed lifecycle webhooks, customer billing portal, and a Cresciva-owned payment/entitlement ledger. Plans are $10/month, $25/3 months, or $90/year and renew automatically until canceled.
 - **Funding intelligence:** deterministic profile recommendations over the curated feed, verified-first opportunity search, and AI-assisted long-tail discovery that is always labelled unverified until source verification upgrades it.
 - **API server:** NestJS + Drizzle under `Backend/`, introduced behind domain-by-domain cutover flags.
 - **Testing:** Vitest + Testing Library; GitHub Actions also typechecks Supabase Edge Functions with Deno.
@@ -116,8 +116,9 @@ BACHS_SECRET_KEY
 BACHS_BASE_URL
 BACHS_WEBHOOK_SIGNING_SECRET
 BACHS_ORGANIZATION_ID       # recommended provider/account pin
-BACHS_ANNUAL_PRODUCT_NGN    # one-time product, exact Cresciva NGN annual price
-BACHS_ANNUAL_PRODUCT_USD    # one-time product, exact Cresciva USD annual price
+BACHS_MONTHLY_PRODUCT_USD   # recurring product, exact $10/month price
+BACHS_QUARTERLY_PRODUCT_USD # recurring product, exact $25/3 months price
+BACHS_ANNUAL_PRODUCT_USD    # recurring product, exact $90/year price
 APP_URL                     # official Cresciva web origin used for checkout return/cancel URLs
 LOVABLE_API_KEY             # current funding AI gateway key; verified-only search still works without it
 RESEND_API_KEY
@@ -133,7 +134,7 @@ Bachs environments must not be mixed:
 
 The code rejects a Bachs key/base-URL environment mismatch.
 
-`BACHS_ANNUAL_PRODUCT_NGN` and `BACHS_ANNUAL_PRODUCT_USD` must each point to a **one-time Bachs product with no billing cycle**. Their configured prices must exactly match Cresciva's canonical annual prices. Sandbox/live product IDs may differ and must be deployed with the matching Bachs key environment.
+Each `BACHS_*_PRODUCT_USD` variable must point to a **recurring Bachs product** with the matching billing cycle and exact Cresciva price. Sandbox/live product IDs may differ and must be deployed with the matching Bachs key environment. Bachs recurring billing currently settles these memberships in USD.
 
 ### NestJS Backend (when deployed)
 
@@ -173,15 +174,16 @@ docs/production-readiness launch-hardening plans and evidence
 
 ## Payment flow
 
-1. A signed-in user selects the annual plan/currency.
-2. `bachs-init` resolves the canonical Cresciva annual amount and selects the configured one-time Bachs product for that currency.
-3. Cresciva creates the internal `payments` row first, then creates a Bachs hosted checkout with `product_cart`, `billing_currency`, a stable idempotency key, and metadata containing the internal reference.
+1. A signed-in user selects the monthly, quarterly, or annual USD plan.
+2. `bachs-init` resolves the canonical $10/$25/$90 amount and selects the configured recurring Bachs product.
+3. Cresciva creates the internal `payments` row first, then creates a Bachs hosted checkout with `product_cart`, `billing_currency`, a stable idempotency key, and metadata containing the internal reference/user/plan.
 4. The browser redirects to Bachs.
 5. Bachs returns to `<APP_URL>/payment/callback?reference=<crv_…>`. The reference is only a lookup key; the redirect is not payment proof.
-6. The callback posts `{ reference }` to `bachs-verify`. The server loads the caller-owned payment row, recovers its persisted Bachs `checkout_id`, retrieves Bachs state and revalidates settlement/amount/currency.
-7. `bachs-webhook` is the authoritative asynchronous settlement path. `collection.succeeded` may grant access only after server-side checkout retrieval and exact ledger validation; `checkout.completed` cannot grant access.
-8. `grant_annual_access(_payment_id)` is the only path that changes paid membership access.
-9. `/admin/payments` exposes read-only reconciliation of provider settlement, ledger status, entitlement state, webhook processing and receipt delivery.
+6. The callback posts `{ reference }` to `bachs-verify`, which reports checkout state but never grants access from the browser redirect.
+7. `bachs-webhook` syncs subscription lifecycle events and treats `invoice.paid` as the authoritative asynchronous settlement path. It validates exact USD amount/status before extending access.
+8. `record_bachs_invoice_paid(...)` atomically records the invoice and extends access through the paid period; failed invoices never extend access.
+9. `bachs-portal` creates a hosted Bachs billing-management session for authenticated members.
+10. `/admin/payments` exposes read-only reconciliation of provider settlement, ledger status, entitlement state, webhook processing and receipt delivery.
 
 ## Deployment
 
@@ -206,7 +208,7 @@ npm run build:api
 
 Supabase database migrations and Edge Function deployment must target the Cresciva project declared in `supabase/config.toml`. Do not substitute another project when the intended project is unavailable to the current credentials.
 
-Current active payment functions are `bachs-init`, `bachs-verify`, `bachs-webhook`, plus the admin-only `payment-reconciliation` function.
+Current active payment functions are `bachs-init`, `bachs-verify`, `bachs-webhook`, `bachs-portal`, plus the admin-only `payment-reconciliation` function.
 
 ## Operations
 

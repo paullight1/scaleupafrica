@@ -4,7 +4,7 @@
 
 **Goal:** Run Cresciva monthly, quarterly, and annual membership checkout on Bachs while keeping settlement retry-safe, idempotent, reconcilable, bounded against hostile input, and incapable of silently losing a paid-access grant.
 
-**Architecture:** Cresciva owns pricing expectations, the `payments` ledger, and entitlement state. Bachs provides product-based hosted checkout and signed settlement events. Each supported plan/currency pair maps to a preconfigured **one-time Bachs product** whose configured price must equal Cresciva's canonical price. Bachs is never trusted to grant membership directly: final provider amount/currency is revalidated against the internal payment row and only `grant_membership_access(_payment_id)` can change paid access.
+**Architecture:** Cresciva owns pricing expectations, the `payments` ledger, and entitlement state. Bachs provides product-based recurring checkout and signed subscription/invoice events. Each supported plan maps to a preconfigured recurring USD Bachs product whose configured price must equal Cresciva's canonical price. Bachs is never trusted to grant membership directly: `invoice.paid` is revalidated against the internal price ledger and only the atomic invoice settlement routine can extend paid access.
 
 **Tech Stack:** Supabase Edge Functions (Deno), Supabase Postgres/RLS, Bachs Checkout/API/webhooks, TypeScript, Vitest, Resend.
 
@@ -15,20 +15,19 @@
 - Sandbox: `https://sandbox-api.bachs.io` with `sk_sandbox_…` keys.
 - Production: `https://api.bachs.io` with `sk_live_…` keys.
 - Checkout Session creation is product-based using `product_cart` + `billing_currency`.
-- Cresciva uses one-time products only. A Bachs product used for membership must have **no `billing_cycle`**.
+- Cresciva uses recurring products: monthly $10, quarterly $25, and annual $90, all in USD.
 - Required product env mapping:
   - `BACHS_MONTHLY_PRODUCT_USD`
   - `BACHS_QUARTERLY_PRODUCT_USD`
-  - `BACHS_ANNUAL_PRODUCT_NGN`
   - `BACHS_ANNUAL_PRODUCT_USD`
 - Bachs money values are decimal strings at currency precision; Cresciva keeps integer subunits internally.
 - `Idempotency-Key` is stable across retries of the same checkout initialization.
 - `return_url` carries Cresciva's random internal `reference`; the browser redirect is not payment proof.
 - Checkout metadata also carries `cresciva_reference` as a server-side correlation backstop.
-- Fulfillment signal is `collection.succeeded`. `checkout.completed` explicitly does not prove collection.
+- Fulfillment signal is `invoice.paid`. `checkout.completed` and subscription-created events explicitly do not prove a settled invoice.
 - Webhook authenticity is timestamped HMAC-SHA256 over `${timestamp}.${raw_body}` using `X-Bachs-Timestamp` + `X-Bachs-Signature`.
 - Webhook delivery is at-least-once; top-level Bachs event `id` is the idempotency key.
-- Cresciva membership remains a one-time monthly, quarterly, or annual entitlement and does not auto-renew.
+- Cresciva membership renews automatically at the selected Bachs billing interval until canceled.
 
 ## Global constraints
 
@@ -74,7 +73,7 @@ Required flow and state:
 
 1. [x] Require authenticated Supabase user with email.
 2. [x] Validate `{ plan_code, currency }` against canonical server pricing.
-3. [x] Select the configured one-time Bachs product for the requested currency.
+3. [x] Select the configured recurring Bachs product for the requested plan.
 4. [x] Reject accidental double-purchase while >30 days of active membership remain.
 5. [x] Create internal `payments` row first with `provider='bachs'`, `reference='crv_<uuid>'`, canonical integer amount and `initialized` status.
 6. [x] POST `/v1/checkout-sessions` with `product_cart`, `billing_currency`, customer, return/cancel URLs and minimal metadata.
@@ -85,14 +84,13 @@ Required flow and state:
 
 ### Required external product setup
 
-Before sandbox/live certification, create or identify four Bachs **one-time** products:
+Before sandbox/live certification, create or identify three Bachs **recurring USD** products:
 
 | Environment variable | Required product price | Billing cycle |
 | --- | ---: | --- |
-| `BACHS_MONTHLY_PRODUCT_USD` | must equal $10 / `PLANS.monthly.prices.USD` | none |
-| `BACHS_QUARTERLY_PRODUCT_USD` | must equal $25 / `PLANS.quarterly.prices.USD` | none |
-| `BACHS_ANNUAL_PRODUCT_NGN` | must equal `PLANS.annual.prices.NGN` | none |
-| `BACHS_ANNUAL_PRODUCT_USD` | must equal $90 / `PLANS.annual.prices.USD` | none |
+| `BACHS_MONTHLY_PRODUCT_USD` | must equal $10 / `PLANS.monthly.prices.USD` | monthly |
+| `BACHS_QUARTERLY_PRODUCT_USD` | must equal $25 / `PLANS.quarterly.prices.USD` | every 3 months |
+| `BACHS_ANNUAL_PRODUCT_USD` | must equal $90 / `PLANS.annual.prices.USD` | yearly |
 
 The sandbox and live environments may have different product IDs; deploy the IDs appropriate to that Bachs environment.
 
@@ -113,7 +111,7 @@ The sandbox and live environments may have different product IDs; deploy the IDs
 - [x] Duplicate with `processed=false` -> resume processing instead of falsely acknowledging.
 - [x] Non-duplicate database/infrastructure failure -> 5xx.
 - [x] `checkout.completed` -> audit only, no grant.
-- [x] `collection.succeeded` -> retrieve checkout, resolve Cresciva reference, validate ledger and grant atomically.
+- [x] `invoice.paid` -> resolve the subscription, validate the invoice and extend access atomically.
 - [x] `collection.failed`, `collection.underpaid`, `checkout.expired` -> never grant.
 - [x] Every critical settlement write inspects errors.
 - [x] Receipt delivery remains best-effort/idempotent and cannot reverse payment success.
@@ -183,7 +181,7 @@ Required failure matrix:
 13. grant RPC failure -> no false success;
 14. receipt failure -> membership remains granted;
 15. reconciliation after success -> healthy ledger/access/event state;
-16. recurring Bachs product accidentally configured -> sandbox certification fails; product must be one-time.
+16. non-recurring Bachs product accidentally configured -> sandbox certification fails; products must have the required billing cycle.
 
 ## Phase 1 release state
 

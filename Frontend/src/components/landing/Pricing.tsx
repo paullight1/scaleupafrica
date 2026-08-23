@@ -1,17 +1,12 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ArrowRight, MessageCircle } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@shared/components/ui/button";
 import { Section, SectionHeading } from "@shared/components/marketing";
 import { useAuth } from "@shared/hooks/useAuth";
 import { CheckoutButton } from "@/components/billing/CheckoutButton";
-import { CurrencyToggle } from "@/components/billing/CurrencyToggle";
 import {
-  defaultCurrency,
   formatPlanPrice,
   MEMBERSHIP_FEATURES,
-  WHATSAPP_CONCIERGE_URL,
-  type Currency,
   type PlanCode,
 } from "@/lib/billing";
 
@@ -44,7 +39,7 @@ const PLAN_CARDS: Array<{
 /** Membership pricing and plan selection. Prices are resolved by the server at checkout. */
 const Pricing = () => {
   const { user } = useAuth();
-  const [currency, setCurrency] = useState<Currency>(defaultCurrency());
+  const currency = "USD" as const;
 
   return (
     <Section id="pricing" tone="light">
@@ -60,10 +55,9 @@ const Pricing = () => {
 
       <div className="mx-auto max-w-3xl text-center">
         <div className="mt-8 flex flex-col items-center justify-center gap-3">
-          <CurrencyToggle value={currency} onChange={setCurrency} />
           <p className="max-w-md text-xs text-muted-foreground">
-            Monthly and quarterly plans are currently available in USD. Paying by card from outside
-            Nigeria? Your bank may convert the charge at its prevailing rate.
+            All plans renew automatically in USD through Bachs. Your bank may apply its own currency
+            conversion rate or charges.
           </p>
         </div>
       </div>
@@ -118,17 +112,6 @@ const Pricing = () => {
                 </Button>
               )}
 
-              {plan.code === "annual" && (
-                <a
-                  href={WHATSAPP_CONCIERGE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mb-8 flex items-center justify-center gap-2 text-sm font-medium text-navy underline-offset-4 hover:text-navy-light hover:underline"
-                >
-                  <MessageCircle className="h-4 w-4" /> Pay by transfer or mobile money
-                </a>
-              )}
-
               <ul className="mt-auto space-y-4">
                 {MEMBERSHIP_FEATURES.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
@@ -143,8 +126,8 @@ const Pricing = () => {
       </div>
 
       <p className="mx-auto mt-12 max-w-xl text-center text-sm text-muted-foreground">
-        Access is activated automatically once payment is confirmed — usually under a minute. Membership
-        does not auto-renew; renew manually whenever you need to extend access.{" "}
+        Access is activated automatically once payment is confirmed — usually under a minute. Plans renew
+        automatically until you cancel them in the Bachs billing portal.{" "}
         <Link
           to="/disclaimer"
           className="font-semibold text-navy underline-offset-4 hover:underline"

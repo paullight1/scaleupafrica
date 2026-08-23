@@ -36,14 +36,14 @@ export const FAQS: Faq[] = [
     id: "access-radar",
     question: "How do I access the Funding Radar?",
     answer:
-      "The Funding Radar is available exclusively to active Collective members. Choose a monthly, quarterly, or annual membership; once it expires, access is revoked until you renew.",
+      "The Funding Radar is available exclusively to active Collective members. Choose a monthly, quarterly, or annual recurring membership; access continues while your subscription is paid and active.",
     homepage: false,
   },
   {
     id: "payment",
     question: "How do I pay, and in which currency?",
     answer:
-      "Online payments use Bachs hosted checkout. Monthly, quarterly, and annual plans are available in US Dollars (USD); the existing annual plan is also available in Nigerian Naira (NGN). Bachs shows the payment methods available for your checkout. If your bank performs a currency conversion, its own rate and charges may apply. If you need help paying, contact our WhatsApp concierge.",
+      "Online payments use Bachs hosted checkout. Monthly, quarterly, and annual recurring plans are available in US Dollars (USD). Bachs shows the payment methods available for your checkout, and your bank may apply its own conversion rate or charges.",
     homepage: true,
   },
   {
@@ -64,7 +64,7 @@ export const FAQS: Faq[] = [
     id: "renewal",
     question: "Does my membership auto-renew? Can I cancel?",
     answer:
-      "Cresciva memberships do not auto-renew. Payment details are handled by Bachs, and Cresciva does not receive your card details. Your access runs until its expiry date and you can renew manually; renewing early extends your existing expiry by the purchased plan term. Any refund rights are governed by our Terms.",
+      "Memberships renew automatically through Bachs. Payment details are handled by Bachs, and Cresciva does not receive your card details. You can manage or cancel your subscription in the Bachs billing portal; access remains available through the paid period. Any refund rights are governed by our Terms.",
     homepage: true,
   },
   {

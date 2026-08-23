@@ -33,6 +33,7 @@ export type BachsSubscriptionStatus =
 export interface BachsSubscriptionSnapshot {
   subscription_id: string;
   customer_id: string | null;
+  customer_email: string | null;
   product_id: string | null;
   status: BachsSubscriptionStatus;
   collection_method: string | null;
@@ -58,6 +59,23 @@ export interface BachsInvoiceSnapshot {
   period_start: string | null;
   period_end: string | null;
   metadata: Record<string, unknown>;
+}
+
+export type BachsRecurringEventAction = "subscription_sync" | "invoice_paid" | "invoice_failed" | "ignore";
+
+export function classifyBachsRecurringEvent(eventType: string): BachsRecurringEventAction {
+  switch (eventType) {
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      return "subscription_sync";
+    case "invoice.paid":
+      return "invoice_paid";
+    case "invoice.payment_failed":
+      return "invoice_failed";
+    default:
+      return "ignore";
+  }
 }
 
 export interface BachsResult<T = unknown> {
@@ -124,6 +142,7 @@ export function parseBachsSubscriptionSnapshot(value: unknown): BachsSubscriptio
   return {
     subscription_id: subscriptionId,
     customer_id: customer ? stringOrNull(customer.customer_id ?? customer.id) : null,
+    customer_email: customer ? stringOrNull(customer.email) : null,
     product_id: stringOrNull(value.product_id),
     status,
     collection_method: stringOrNull(value.collection_method),
@@ -202,7 +221,7 @@ function stringOrNull(value: unknown): string | null {
 export type GrantAction = "grant" | "already" | "mismatch" | "ignore";
 export type WebhookInsertOutcome = "duplicate" | "retry" | "none";
 
-/** Select the configured one-time Bachs product for the charge currency. */
+/** Select a configured Bachs product for the charge currency. */
 export function resolveBachsProductId(currency: string, products: BachsProductMap): string | null {
   const normalized = currency.toUpperCase() as BachsSupportedCurrency;
   if (!(normalized in CURRENCY_DECIMALS)) return null;
@@ -210,7 +229,7 @@ export function resolveBachsProductId(currency: string, products: BachsProductMa
   return /^prod_[A-Za-z0-9_-]{3,120}$/.test(productId) ? productId : null;
 }
 
-/** Select a configured one-time Bachs product for a specific plan and currency. */
+/** Select a configured Bachs product for a specific plan and currency. */
 export function resolveBachsPlanProductId(
   plan: string,
   currency: string,
@@ -221,6 +240,19 @@ export function resolveBachsPlanProductId(
   if (!(normalized in CURRENCY_DECIMALS)) return null;
   const productId = products[plan]?.[normalized]?.trim() ?? "";
   return /^prod_[A-Za-z0-9_-]{3,120}$/.test(productId) ? productId : null;
+}
+
+/** Resolve a recurring plan from one of the configured Bachs product IDs. */
+export function planCodeFromBachsProductId(
+  productId: string | null | undefined,
+  products: Partial<Record<BachsPlanCode, string | null | undefined>>,
+): BachsPlanCode | null {
+  const normalized = productId?.trim();
+  if (!normalized) return null;
+  for (const plan of ["monthly", "quarterly", "annual"] as const) {
+    if (products[plan]?.trim() === normalized) return plan;
+  }
+  return null;
 }
 
 /**

@@ -31,7 +31,7 @@ Do not reopen these as missing unless regression evidence appears:
 
 - Cresciva branding and one canonical public-origin contract.
 - Full auth/account recovery/dashboard lifecycle and contact visibility controls.
-- Bachs one-time annual checkout, signed webhooks, replay/idempotency controls, verified callback, atomic access grant and reconciliation.
+- Bachs recurring monthly/quarterly/annual checkout, signed lifecycle webhooks, replay/idempotency controls, verified callback, atomic invoice settlement and reconciliation.
 - Verified-first Funding Radar, Business Enrichment, current-cycle status engine, deterministic eligibility/ranking, AI discoveries kept unverified, member workflow/alerts and certification/evaluation harnesses.
 - Funding source registry/refresh and in-product funding correction reports with staff triage.
 - Database-backed scalable directory and public profile pages.

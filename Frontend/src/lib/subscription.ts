@@ -15,7 +15,18 @@ import { useAuth } from "@shared/hooks/useAuth";
  * `isSubscriptionActive` from here — do NOT reimplement the rule.
  */
 
-export type SubscriptionRow = { has_access: boolean; expires_at: string | null } | null;
+export type SubscriptionRow = {
+  has_access: boolean;
+  expires_at: string | null;
+  plan_code?: "monthly" | "quarterly" | "annual" | null;
+  billing_status?: string | null;
+  auto_renew?: boolean;
+  billing_email?: string | null;
+  next_payment_at?: string | null;
+  bachs_subscription_id?: string | null;
+  current_period_start?: string | null;
+  cancel_at_period_end?: boolean;
+} | null;
 
 export function isSubscriptionActive(sub: SubscriptionRow, now: Date = new Date()): boolean {
   return !!sub?.has_access && (!sub.expires_at || new Date(sub.expires_at) > now);
@@ -50,11 +61,11 @@ export function useSubscription(): UseSubscriptionResult {
     queryFn: async (): Promise<SubscriptionRow> => {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("has_access, expires_at")
+        .select("has_access, expires_at, plan_code, billing_status, auto_renew, billing_email, next_payment_at, bachs_subscription_id, current_period_start, cancel_at_period_end")
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error; // <-- errors become status:"error", never "no access"
-      return data ?? null; // null row (trigger should create one) = inactive
+      return (data ?? null) as SubscriptionRow; // null row (trigger should create one) = inactive
     },
   });
 

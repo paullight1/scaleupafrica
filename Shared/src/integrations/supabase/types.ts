@@ -810,6 +810,9 @@ export type Database = {
           id: string
           paid_at: string | null
           plan_code: string
+          provider_charge_id: string | null
+          provider_invoice_id: string | null
+          provider_subscription_id: string | null
           provider: string
           reference: string
           status: string
@@ -825,6 +828,9 @@ export type Database = {
           id?: string
           paid_at?: string | null
           plan_code: string
+          provider_charge_id?: string | null
+          provider_invoice_id?: string | null
+          provider_subscription_id?: string | null
           provider?: string
           reference: string
           status?: string
@@ -840,6 +846,9 @@ export type Database = {
           id?: string
           paid_at?: string | null
           plan_code?: string
+          provider_charge_id?: string | null
+          provider_invoice_id?: string | null
+          provider_subscription_id?: string | null
           provider?: string
           reference?: string
           status?: string
@@ -1117,12 +1126,18 @@ export type Database = {
       subscriptions: {
         Row: {
           auto_renew: boolean
+          bachs_customer_id: string | null
+          bachs_initial_reference: string | null
+          bachs_subscription_id: string | null
           billing_email: string | null
           billing_status: string
+          cancel_at_period_end: boolean
+          current_period_start: string | null
           created_at: string
           expires_at: string | null
           has_access: boolean
           id: string
+          last_bachs_event_at: string | null
           next_payment_at: string | null
           paystack_customer_code: string | null
           paystack_email_token: string | null
@@ -1133,12 +1148,18 @@ export type Database = {
         }
         Insert: {
           auto_renew?: boolean
+          bachs_customer_id?: string | null
+          bachs_initial_reference?: string | null
+          bachs_subscription_id?: string | null
           billing_email?: string | null
           billing_status?: string
+          cancel_at_period_end?: boolean
+          current_period_start?: string | null
           created_at?: string
           expires_at?: string | null
           has_access?: boolean
           id?: string
+          last_bachs_event_at?: string | null
           next_payment_at?: string | null
           paystack_customer_code?: string | null
           paystack_email_token?: string | null
@@ -1149,12 +1170,18 @@ export type Database = {
         }
         Update: {
           auto_renew?: boolean
+          bachs_customer_id?: string | null
+          bachs_initial_reference?: string | null
+          bachs_subscription_id?: string | null
           billing_email?: string | null
           billing_status?: string
+          cancel_at_period_end?: boolean
+          current_period_start?: string | null
           created_at?: string
           expires_at?: string | null
           has_access?: boolean
           id?: string
+          last_bachs_event_at?: string | null
           next_payment_at?: string | null
           paystack_customer_code?: string | null
           paystack_email_token?: string | null

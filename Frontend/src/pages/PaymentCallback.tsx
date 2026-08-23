@@ -46,7 +46,7 @@ export default function PaymentCallback() {
     }
 
     // Provider settlement may lag the browser redirect. Poll briefly; the signed
-    // collection.succeeded webhook remains the authoritative fulfillment path.
+    // invoice.paid webhook remains the authoritative fulfillment path.
     if (pollsRef.current < MAX_POLLS) {
       pollsRef.current += 1;
       setState("verifying");

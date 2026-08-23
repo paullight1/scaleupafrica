@@ -3,19 +3,19 @@
 Date: 2026-08-20
 Branch: `docs/cresciva-production-readiness`
 Provider: **Bachs**
-Membership model: one-time monthly, quarterly, or annual entitlement purchase; no automatic renewal.
+Membership model: recurring monthly ($10), quarterly ($25), or annual ($90) USD subscription.
 
 ## Repository implementation evidence
 
 - [x] Active frontend checkout uses `bachs-init` and Bachs hosted checkout.
 - [x] Checkout creation uses the current **product-based** Bachs session contract (`product_cart` + `billing_currency`).
-- [x] NGN/USD each map to a configured one-time Bachs product ID.
+- [x] USD monthly/quarterly/annual map to configured recurring Bachs product IDs.
 - [x] Bachs product IDs are server-only environment configuration; the browser never selects an arbitrary product.
 - [x] Browser return URL carries Cresciva's random internal `reference`; redirect state is never treated as proof of payment.
 - [x] `bachs-verify` loads the caller-owned internal payment, recovers its persisted `checkout_id`, re-fetches Bachs state and validates exact amount/currency.
 - [x] `bachs-webhook` verifies `X-Bachs-Timestamp` + `X-Bachs-Signature` using HMAC-SHA256 over `timestamp.raw_body` with a 300-second replay window.
 - [x] Webhook body is bounded to 256 KiB before parsing.
-- [x] `collection.succeeded` is the fulfillment event; `checkout.completed` is audit-only and cannot grant access.
+- [x] `invoice.paid` is the fulfillment event; `checkout.completed` and subscription-created events cannot grant access.
 - [x] Provider state is re-fetched before grant; `SUCCEEDED` and alternative terminal `ACCEPTED` charge states are supported.
 - [x] Internal ledger keeps integer subunits; Bachs money values are converted at the provider boundary without floating-point arithmetic.
 - [x] Amount and currency must exactly match the server-created Cresciva payment row.
@@ -39,7 +39,7 @@ The current Bachs documentation index states that:
 - production uses `https://api.bachs.io` with `sk_live_…` keys;
 - checkout sessions are product-based;
 - products become recurring only when a `billing_cycle` is configured, so all Cresciva membership products must omit it;
-- webhooks such as `collection.succeeded` are the source of truth for fulfillment;
+- `invoice.paid` is the source of truth for recurring fulfillment;
 - IDs use resource prefixes including `prod_` and `chk_`;
 - POST idempotency is supported through `Idempotency-Key`.
 
@@ -47,21 +47,20 @@ Repository code is aligned to those boundaries.
 
 ## Required Bachs product configuration
 
-Before sandbox certification, the Bachs merchant account must expose four one-time membership products:
+Before sandbox certification, the Bachs merchant account must expose three recurring USD membership products:
 
 | Variable | Expected price | Required recurrence |
 | --- | ---: | --- |
-| `BACHS_MONTHLY_PRODUCT_USD` | $10 | none |
-| `BACHS_QUARTERLY_PRODUCT_USD` | $25 | none |
-| `BACHS_ANNUAL_PRODUCT_NGN` | exact Cresciva NGN annual price | none |
-| `BACHS_ANNUAL_PRODUCT_USD` | $90 | none |
+| `BACHS_MONTHLY_PRODUCT_USD` | $10 | monthly |
+| `BACHS_QUARTERLY_PRODUCT_USD` | $25 | every 3 months |
+| `BACHS_ANNUAL_PRODUCT_USD` | $90 | yearly |
 
-A product with a billing cycle would create subscription semantics Cresciva does not currently offer and therefore fails certification.
+A product without a billing cycle would not create the automatic renewal behavior required by Cresciva and therefore fails certification.
 
 ## Automated coverage added
 
 - Bachs decimal-string ↔ integer-subunit conversion.
-- Bachs one-time product-ID mapping/validation.
+- Bachs recurring product-ID mapping/validation.
 - HMAC-SHA256 webhook signature verification.
 - stale webhook timestamp rejection.
 - tampered-body and wrong-key rejection.
@@ -91,7 +90,7 @@ Required sandbox matrix once those credentials are available:
 
 1. normal successful checkout → one annual access extension;
 2. callback before webhook → pending or success after server verification, never redirect trust;
-3. duplicate `collection.succeeded` → one grant only;
+3. duplicate `invoice.paid` → one settlement only;
 4. retry after event row inserted but before grant → resumes and grants exactly once;
 5. malformed body → rejected;
 6. invalid signature → rejected;
@@ -104,7 +103,7 @@ Required sandbox matrix once those credentials are available:
 13. grant RPC failure → 5xx/pending, never false success;
 14. receipt failure → membership remains successful;
 15. reconciliation after success → healthy ledger/access/event state;
-16. intentionally recurring test product → rejected as launch configuration; Cresciva products must be one-time.
+16. intentionally non-recurring test product → rejected as launch configuration; Cresciva products must have the required billing cycle.
 
 ## Gate
 

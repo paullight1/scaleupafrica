@@ -98,7 +98,7 @@ If an opportunity is described as verified, the legal/trust copy should explain 
 
 - [ ] **Step 3: Align payment/membership terms with actual billing model**
 
-State annual term, activation, renewal behavior actually implemented, cancellation/refund process actually offered, supported currencies and support route. Do not claim automatic recurring billing if the Paystack implementation is a one-time annual purchase.
+State plan term, activation, automatic renewal behavior, cancellation/refund process actually offered, supported currency and support route. The current Bachs implementation uses recurring USD subscriptions.
 
 ### Task 4: Add explicit consent at account/marketing collection points
 

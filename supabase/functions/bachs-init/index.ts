@@ -1,8 +1,8 @@
 // bachs-init — POST, user JWT required (verify_jwt=true in supabase/config.toml).
 //
 // Bachs' current checkout contract is product-based. Cresciva owns the expected
-// plan price in its ledger and selects a preconfigured one-time Bachs product
-// per plan and settlement currency. The Bachs product must be configured to the same price;
+// plan price in its ledger and selects a preconfigured recurring Bachs product
+// per plan. The Bachs product must be configured to the same recurring price;
 // settlement still cannot grant access unless provider amount/currency match the
 // server-created Cresciva payment row exactly.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -21,7 +21,6 @@ const BACHS_SECRET_KEY = Deno.env.get("BACHS_SECRET_KEY") ?? "";
 const BACHS_BASE_URL_CONFIG = Deno.env.get("BACHS_BASE_URL");
 const BACHS_MONTHLY_PRODUCT_USD = Deno.env.get("BACHS_MONTHLY_PRODUCT_USD") ?? "";
 const BACHS_QUARTERLY_PRODUCT_USD = Deno.env.get("BACHS_QUARTERLY_PRODUCT_USD") ?? "";
-const BACHS_ANNUAL_PRODUCT_NGN = Deno.env.get("BACHS_ANNUAL_PRODUCT_NGN") ?? "";
 const BACHS_ANNUAL_PRODUCT_USD = Deno.env.get("BACHS_ANNUAL_PRODUCT_USD") ?? "";
 const APP_URL_CONFIG = Deno.env.get("APP_URL") ?? "";
 
@@ -66,7 +65,10 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const planCode = body.plan_code;
     const currency = body.currency;
-    if (!isPlanCode(planCode) || !isCurrency(currency)) {
+    if (!isPlanCode(planCode) || !isCurrency(currency) || currency !== "USD") {
+      if (currency === "NGN") {
+        return json({ error: "Recurring memberships are currently available in USD only.", code: "USD_REQUIRED" }, 400);
+      }
       return json({ error: "Invalid plan or currency.", code: "INVALID_PLAN" }, 400);
     }
 
@@ -74,10 +76,7 @@ Deno.serve(async (req) => {
     const productId = resolveBachsPlanProductId(planCode, currency, {
       monthly: { USD: BACHS_MONTHLY_PRODUCT_USD },
       quarterly: { USD: BACHS_QUARTERLY_PRODUCT_USD },
-      annual: {
-        NGN: BACHS_ANNUAL_PRODUCT_NGN,
-        USD: BACHS_ANNUAL_PRODUCT_USD,
-      },
+      annual: { USD: BACHS_ANNUAL_PRODUCT_USD },
     });
     if (amount == null || !productId) {
       console.error("bachs-init: missing/invalid product configuration", planCode, currency);
@@ -88,16 +87,18 @@ Deno.serve(async (req) => {
 
     const { data: subscription, error: subErr } = await admin
       .from("subscriptions")
-      .select("has_access, expires_at")
+      .select("has_access, expires_at, bachs_subscription_id, billing_status")
       .eq("user_id", user.id)
       .maybeSingle();
     if (subErr) {
       console.error("bachs-init: subscription read failed", subErr.message);
       return json({ error: "Could not confirm membership status. Please retry.", code: "DB_ERROR" }, 500);
     }
-    if (subscription?.has_access && subscription.expires_at) {
-      const daysRemaining = (new Date(subscription.expires_at).getTime() - Date.now()) / 86_400_000;
-      if (daysRemaining > 30) {
+    if (subscription?.bachs_subscription_id && ["trialing", "active", "past_due", "unpaid"].includes(subscription.billing_status)) {
+      return json({ error: "You already have an active recurring membership.", code: "ALREADY_ACTIVE" }, 409);
+    }
+    if (subscription?.has_access && subscription.expires_at && new Date(subscription.expires_at).getTime() > Date.now()) {
+      if (!subscription.bachs_subscription_id) {
         return json(
           {
             error: "You already have an active membership.",
@@ -107,6 +108,7 @@ Deno.serve(async (req) => {
           409,
         );
       }
+      return json({ error: "You already have an active recurring membership.", code: "ALREADY_ACTIVE", expires_at: subscription.expires_at }, 409);
     }
 
     const reference = `crv_${crypto.randomUUID()}`;
@@ -142,6 +144,8 @@ Deno.serve(async (req) => {
         cresciva_reference: reference,
         internal_payment_id: payment.id,
         plan_code: planCode,
+        cresciva_user_id: user.id,
+        recurring: "true",
       },
     };
 
@@ -164,6 +168,7 @@ Deno.serve(async (req) => {
             status: providerResult.status,
             error_code: checkout.error_code ?? null,
             product_id: productId,
+            reference,
           },
         })
         .eq("id", payment.id);
@@ -194,6 +199,7 @@ Deno.serve(async (req) => {
           status: checkout.status ?? "open",
           expires_at: checkout.expires_at ?? null,
           product_id: productId,
+          reference,
         },
       })
       .eq("id", payment.id);
@@ -208,6 +214,7 @@ Deno.serve(async (req) => {
         checkout_url: checkout.checkout_url,
         checkout_id: checkout.checkout_id,
         reference,
+        recurring: true,
       },
       200,
     );

@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@shared/integrations/supabase/client";
 import { useAuth } from "@shared/hooks/useAuth";
-import { defaultCurrency, type Currency, type PlanCode } from "@/lib/billing";
+import { type Currency, type PlanCode } from "@/lib/billing";
 
 export type VerifyStatus = "success" | "pending" | "failed";
 
@@ -28,6 +28,13 @@ interface InitResponse {
   error?: string;
   code?: string;
   expires_at?: string;
+  recurring?: boolean;
+}
+
+export interface PortalResponse {
+  portal_url?: string;
+  error?: string;
+  code?: string;
 }
 
 export async function initCheckout(params: {
@@ -65,6 +72,18 @@ export async function verifyPayment(reference: string): Promise<VerifyStatus> {
   return data.status;
 }
 
+export async function createPortalSession(): Promise<PortalResponse> {
+  const { data, error } = await supabase.functions.invoke<PortalResponse>("bachs-portal", { body: {} });
+  if (error) {
+    const context = (error as { context?: Response }).context;
+    if (context && typeof context.json === "function") {
+      try { return await context.json(); } catch { /* use generic error below */ }
+    }
+    return { error: error.message };
+  }
+  return data ?? {};
+}
+
 export function useBachsCheckout() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -81,7 +100,7 @@ export function useBachsCheckout() {
         return;
       }
 
-      const chargeCurrency = currency ?? defaultCurrency();
+      const chargeCurrency = "USD" as const;
       setIsPending(true);
       try {
         const result = await initCheckout({ plan_code, currency: chargeCurrency });

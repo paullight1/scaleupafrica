@@ -12,6 +12,9 @@ verify_jwt = true
 [functions.bachs-webhook]
 verify_jwt = false
 
+[functions.bachs-portal]
+verify_jwt = true
+
 # Admin-only payment reconciliation. JWT is required at the edge and the
 # function performs an explicit administrator-role check before service-role reads.
 [functions.payment-reconciliation]

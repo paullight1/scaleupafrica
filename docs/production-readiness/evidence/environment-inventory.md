@@ -17,7 +17,7 @@ This file records identifiers and verification state only. **No secret values be
 | Production Git branch | `main` | Repository default branch verified |
 | Supabase project ref | `fqragjhmunphhdnmvpgs` | Repository + publishable frontend config agree; read-only CLI verification succeeded |
 | Payment provider | Bachs | Source integration + current public Bachs docs verified; Bachs merchant account not connected |
-| Bachs membership model | one-time monthly/quarterly/annual entitlement | Source verified; no auto-renew |
+| Bachs membership model | recurring monthly/quarterly/annual subscription | Source verified; auto-renews until canceled |
 | NestJS API | optional/domain-by-domain cutover | Source verified; deployment status unverified |
 | Repository name | `paullight1/scaleupafrica` | Verified; product is Cresciva |
 
@@ -62,7 +62,7 @@ Tracked `Frontend/.env` and `AdminPanel/.env` contain only the Supabase publisha
 
 ## 4. Supabase Edge Function secret/config contract
 
-Required/potential variables; Supabase CLI verification reached the configured project. Bachs secret/product variable names were not present in the remote secret list at verification time.
+Required/potential variables; Supabase CLI verification reached the configured project. Bachs recurring secret/product names are present in the remote secret list; values remain secret and product prices/cycles still require merchant-side verification.
 
 | Variable | Required by | Verification |
 | --- | --- | --- |
@@ -73,10 +73,9 @@ Required/potential variables; Supabase CLI verification reached the configured p
 | `BACHS_BASE_URL` | sandbox/live origin selection | unverified live |
 | `BACHS_WEBHOOK_SIGNING_SECRET` | webhook HMAC | unverified live |
 | `BACHS_ORGANIZATION_ID` | optional account pin | unverified live |
-| `BACHS_MONTHLY_PRODUCT_USD` | one-time USD monthly membership product priced at $10 | unverified live |
-| `BACHS_QUARTERLY_PRODUCT_USD` | one-time USD quarterly membership product priced at $25 | unverified live |
-| `BACHS_ANNUAL_PRODUCT_NGN` | one-time NGN annual membership product | unverified live |
-| `BACHS_ANNUAL_PRODUCT_USD` | one-time USD annual membership product priced at $90 | unverified live |
+| `BACHS_MONTHLY_PRODUCT_USD` | recurring USD monthly membership product priced at $10 | unverified live |
+| `BACHS_QUARTERLY_PRODUCT_USD` | recurring USD quarterly membership product priced at $25 | unverified live |
+| `BACHS_ANNUAL_PRODUCT_USD` | recurring USD annual membership product priced at $90 | unverified live |
 | `APP_URL` | Bachs return/cancel origin | unverified live |
 | `LOVABLE_API_KEY` | current funding AI gateway | unverified live |
 | `RESEND_API_KEY` | email | unverified live |
@@ -86,7 +85,7 @@ Required/potential variables; Supabase CLI verification reached the configured p
 
 ### Bachs product requirements
 
-All configured Bachs product IDs must reference **one-time products with no billing cycle**. Their configured prices must exactly match Cresciva's canonical plan prices. Sandbox/live product IDs may differ and must be paired with the corresponding Bachs key environment.
+All configured Bachs product IDs must reference recurring products with the correct billing cycle. Their configured prices must exactly match Cresciva's canonical plan prices. Sandbox/live product IDs may differ and must be paired with the corresponding Bachs key environment.
 
 ## 5. Active Supabase function contract
 
@@ -97,6 +96,7 @@ Repository `supabase/config.toml` currently declares:
 | `bachs-init` | deployed 2026-08-23; JWT required |
 | `bachs-verify` | deployed 2026-08-23; JWT required |
 | `bachs-webhook` | deployed 2026-08-23; JWT disabled; authenticates Bachs via signed raw-body webhook |
+| `bachs-portal` | deployed 2026-08-23; JWT required |
 | `payment-reconciliation` | required + explicit admin-role check |
 | `send-email` | disabled; function owns public-form validation/throttle |
 | `email-unsubscribe` | disabled; token-authenticated |
@@ -112,14 +112,14 @@ Repository implementation follows the current Bachs public integration contract:
 - sandbox base URL: `https://sandbox-api.bachs.io` with `sk_sandbox_…` key;
 - live base URL: `https://api.bachs.io` with `sk_live_…` key;
 - checkout sessions are product-based (`product_cart` + `billing_currency`);
-- membership product is one-time/non-recurring;
+- membership products are recurring USD products: $10/month, $25/3 months, and $90/year;
 - provider money values are decimal strings; Cresciva retains integer subunits internally;
 - POST checkout creation uses a stable `Idempotency-Key`;
 - return URL contains Cresciva's internal `reference`;
 - Bachs checkout metadata also carries `cresciva_reference` as a server-side correlation backstop;
 - webhook verification uses timestamp + exact raw body with HMAC-SHA256;
-- fulfillment authority is `collection.succeeded`, not browser redirect and not `checkout.completed`;
-- internal ledger revalidates exact amount/currency before `grant_membership_access`.
+- fulfillment authority is `invoice.paid`, not browser redirect and not `checkout.completed`;
+- internal ledger revalidates exact amount/currency before extending access.
 
 ### Required Bachs dashboard configuration (not connected here)
 
@@ -132,10 +132,12 @@ https://fqragjhmunphhdnmvpgs.supabase.co/functions/v1/bachs-webhook
 Required settlement/audit events:
 
 ```text
-collection.succeeded
-collection.failed
-collection.underpaid
-checkout.expired
+customer.subscription.created
+customer.subscription.updated
+customer.subscription.deleted
+invoice.created
+invoice.paid
+invoice.payment_failed
 checkout.completed   # audit only; never fulfillment
 ```
 
@@ -158,7 +160,7 @@ Read-only findings:
 - the duration-aware `grant_membership_access` RPC is present and service-role executable;
 - the payment/subscription/webhook tables have the required plan fields;
 - Bachs functions were deployed on 2026-08-23;
-- Bachs secret/product names were absent from the remote secret list;
+- Bachs recurring secret/product names are present in the remote secret list; values remain secret and product prices/cycles still require merchant-side verification;
 - remote migration history contains versions missing from this checkout, so normal migration push is blocked pending reconciliation.
 
 ## 8. Vercel connector evidence

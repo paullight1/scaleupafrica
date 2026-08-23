@@ -24,10 +24,7 @@ export const PLANS: Record<
     term_months: 3,
     prices: { USD: 2_500 },
   },
-  annual: {
-    term_months: 12,
-    prices: { NGN: 9_500_000, USD: 9_000 },
-  },
+    annual: { term_months: 12, prices: { USD: 9_000 } },
 };
 
 export const PLAN_TERM_MONTHS: Record<PlanCode, number> = {
@@ -81,15 +78,9 @@ export function formatMoney(subunits: number, currency: string): string {
   }
 }
 
-/** Default charge currency by the browser region: NG → NGN, everything else → USD. */
+/** Recurring Bachs memberships currently settle in USD. */
 export function defaultCurrency(): Currency {
-  try {
-    const lang = typeof navigator !== "undefined" ? navigator.language : "";
-    const region = lang.includes("-") ? lang.split("-")[1] : lang;
-    return region.toUpperCase() === "NG" ? "NGN" : "USD";
-  } catch {
-    return "USD";
-  }
+  return "USD";
 }
 
 /** Where upgrade / renew CTAs point — the Membership section of the account page. */

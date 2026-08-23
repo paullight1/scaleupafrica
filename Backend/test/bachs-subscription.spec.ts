@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  classifyBachsRecurringEvent,
   invoiceMatchesExpected,
   isSubscriptionAccessValid,
   parseBachsInvoiceSnapshot,
@@ -9,6 +10,13 @@ import {
 const PERIOD_END = "2026-09-23T00:00:00.000Z";
 
 describe("Bachs recurring subscription snapshots", () => {
+  it("routes only recurring lifecycle and invoice events", () => {
+    expect(classifyBachsRecurringEvent("customer.subscription.updated")).toBe("subscription_sync");
+    expect(classifyBachsRecurringEvent("invoice.paid")).toBe("invoice_paid");
+    expect(classifyBachsRecurringEvent("invoice.payment_failed")).toBe("invoice_failed");
+    expect(classifyBachsRecurringEvent("collection.succeeded")).toBe("ignore");
+  });
+
   it("extracts a subscription lifecycle payload", () => {
     expect(
       parseBachsSubscriptionSnapshot({

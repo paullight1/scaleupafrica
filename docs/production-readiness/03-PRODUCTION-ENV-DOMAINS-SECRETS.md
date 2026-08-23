@@ -30,7 +30,7 @@
 - [x] Declared public origin recorded.
 - [x] Admin path recorded as `/admin/` on the same production artifact.
 - [x] Supabase project ref recorded.
-- [x] Bachs is recorded as payment provider and monthly, quarterly, and annual memberships are one-time/non-recurring.
+- [x] Bachs is recorded as payment provider and monthly, quarterly, and annual memberships are recurring.
 - [x] Optional NestJS API cutover is recorded.
 - [x] Repository rename decision is recorded: defer until after launch certification.
 - [ ] Actual Vercel project ID/domain mapping is externally unverified.
@@ -60,10 +60,9 @@ BACHS_SECRET_KEY
 BACHS_BASE_URL
 BACHS_WEBHOOK_SIGNING_SECRET
 BACHS_ORGANIZATION_ID        # recommended merchant pin
-BACHS_MONTHLY_PRODUCT_USD    # one-time product, exact $10 monthly price
-BACHS_QUARTERLY_PRODUCT_USD  # one-time product, exact $25 quarterly price
-BACHS_ANNUAL_PRODUCT_NGN     # one-time product, exact canonical NGN annual price
-BACHS_ANNUAL_PRODUCT_USD     # one-time product, exact $90 annual price
+BACHS_MONTHLY_PRODUCT_USD    # recurring product, exact $10 monthly price
+BACHS_QUARTERLY_PRODUCT_USD  # recurring product, exact $25 quarterly price
+BACHS_ANNUAL_PRODUCT_USD     # recurring product, exact $90 annual price
 APP_URL                      # official Cresciva origin for this environment
 LOVABLE_API_KEY              # current funding gateway until later funding phase replaces it
 RESEND_API_KEY
@@ -142,17 +141,16 @@ Current repository contract:
 - live: `https://api.bachs.io` + `sk_live_…`;
 - key environment and base URL must agree;
 - checkout is product-based;
-- membership products are one-time products with **no billing cycle**;
-- settlement/callback money is revalidated against the internal Cresciva price ledger;
-- fulfillment authority is signed `collection.succeeded`.
+- membership products are recurring products with monthly, quarterly, or annual billing cycles;
+- invoice amount/currency is revalidated against the internal Cresciva price ledger;
+- fulfillment authority is signed `invoice.paid`.
 
 Required external checks:
 
 - [ ] Bachs sandbox key present in staging only.
-- [ ] `BACHS_MONTHLY_PRODUCT_USD` points to a one-time product priced at $10.
-- [ ] `BACHS_QUARTERLY_PRODUCT_USD` points to a one-time product priced at $25.
-- [ ] `BACHS_ANNUAL_PRODUCT_NGN` points to one-time product with exact Cresciva NGN annual price.
-- [ ] `BACHS_ANNUAL_PRODUCT_USD` points to a one-time product priced at $90.
+- [ ] `BACHS_MONTHLY_PRODUCT_USD` points to a recurring product priced at $10/month.
+- [ ] `BACHS_QUARTERLY_PRODUCT_USD` points to a recurring product priced at $25/3 months.
+- [ ] `BACHS_ANNUAL_PRODUCT_USD` points to a recurring product priced at $90/year.
 - [ ] Live product IDs are separately verified before key swap/go-live.
 - [ ] Webhook endpoint is exactly:
 
@@ -163,10 +161,12 @@ https://fqragjhmunphhdnmvpgs.supabase.co/functions/v1/bachs-webhook
 - [ ] Webhook subscribes to at least:
 
 ```text
-collection.succeeded
-collection.failed
-collection.underpaid
-checkout.expired
+customer.subscription.created
+customer.subscription.updated
+customer.subscription.deleted
+invoice.created
+invoice.paid
+invoice.payment_failed
 checkout.completed   # audit only, never fulfillment
 ```
 

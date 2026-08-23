@@ -7,7 +7,7 @@
 
 ### User-facing legal/trust copy
 
-- Terms describe the current one-time monthly, quarterly, and annual Bachs membership model rather than Paystack/automatic renewal.
+- Terms describe the current recurring monthly, quarterly, and annual Bachs membership model, including cancellation through the Bachs billing portal.
 - Funding language distinguishes source verification/current-cycle evidence from any guarantee of award success.
 - Privacy policy reflects Bachs, business enrichment, funding-preference/activity data, conditional contact visibility, data export/deletion and minimal detached payment retention.
 - User-facing data-rights contact routes through the monitored contact page rather than assuming ownership of an unverified `@cresciva.com` mailbox.

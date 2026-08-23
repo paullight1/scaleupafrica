@@ -33,7 +33,6 @@ export const PLANS: Record<
   annual: {
     term_months: 12,
     prices: {
-      NGN: 9_500_000, // ₦95,000 in kobo
       USD: 9_000, //     $90 in cents
     },
   },

@@ -41,8 +41,8 @@ describe("resolvePlanAmount (server never trusts a client amount)", () => {
     expect(resolvePlanAmount("annual", "USD")).toBe(9_000);
   });
 
-  it("keeps the legacy NGN annual price and rejects unsupported NGN tiers", () => {
-    expect(resolvePlanAmount("annual", "NGN")).toBe(9_500_000);
+  it("rejects NGN because recurring memberships settle in USD", () => {
+    expect(resolvePlanAmount("annual", "NGN")).toBeNull();
     expect(resolvePlanAmount("monthly", "NGN")).toBeNull();
     expect(resolvePlanAmount("quarterly", "NGN")).toBeNull();
   });
