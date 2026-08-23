@@ -6,7 +6,7 @@ Cresciva's paid funding intelligence is built to answer:
 
 > **Who is this organisation, which real funding programmes are current, which ones can this organisation actually apply for, and why are they a strong match?**
 
-No single model owns that answer. Cresciva separates identity, source truth, current-cycle status, eligibility, ranking, search, member workflow, notifications and certification into independently testable layers.
+No single model owns that answer. Cresciva separates identity, source authority, source truth, current-cycle status, eligibility, ranking, search, member workflow, notifications and certification into independently testable layers.
 
 ## Engine map
 
@@ -18,7 +18,8 @@ identity + public evidence + member confirmation
         ↓
 CONFIRMED FUNDING PROFILE
         ↓
-AUTHORITATIVE FUNDING SOURCES
+AUTHORITATIVE SOURCE REGISTRY
+active staff-approved origins
         ↓
 PROVENANCE + SOURCE REFRESH
         ↓
@@ -57,6 +58,14 @@ engineering benchmark + human/live certification mode
 Owns organisation identity resolution, bounded public evidence, structured public-business fact extraction, ambiguity handling and member confirmation.
 
 Does **not** recommend funding or infer sensitive personal facts.
+
+### Authoritative Source Registry
+
+`docs/product/AUTHORITATIVE-SOURCE-REGISTRY.md`
+
+Owns the allowlist of staff-approved funding-source origins that may participate in verification/current-cycle truth.
+
+A valid HTTP(S) URL is not sufficient. `verified` requires an active registry-backed source plus opportunity-specific evidence and a verification timestamp. Disabling/changing a source revokes dependent verification/current-cycle trust and requires a fresh recheck.
 
 ### Opportunity Search
 
@@ -121,7 +130,8 @@ Delivery then:
 5. suppresses stale/irrelevant transitions;
 6. sends through the existing email dispatch/Resend funnel;
 7. uses `funding-alert:<event-id>` transport idempotency;
-8. records bounded retry state.
+8. records bounded retry state;
+9. terminalizes an abandoned exhausted lease instead of leaving a pending zombie row.
 
 Notification state never changes opportunity truth.
 
@@ -131,6 +141,7 @@ An opportunity can enter **Open for you** only when all are true:
 
 ```text
 discovery_source = verified_feed
+AND source_url matches an active authoritative funding_sources registry origin
 AND verification_status = verified
 AND source/current-status evidence is fresh
 AND application_status IN (open, closing_soon, rolling)
@@ -194,4 +205,4 @@ The production paid claim remains gated until the live certification proves:
 0 stale OPEN records in primary output
 ```
 
-Repository implementation/tests do not certify live source accuracy. Live/staging deployment, human adjudication, source freshness and link checks are required before production PASS.
+Repository implementation/tests do not certify live source accuracy. Live/staging deployment, active registry population, human adjudication, source freshness and link checks are required before production PASS.
