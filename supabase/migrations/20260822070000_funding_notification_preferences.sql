@@ -1,8 +1,22 @@
 -- P0-C high-signal Funding Radar notifications.
+-- Existing `email_new_funding` is the master funding-email consent. Granular
+-- alert preferences inherit that value on migration so historical opt-outs stay
+-- opted out.
 
 ALTER TABLE public.user_preferences
-  ADD COLUMN IF NOT EXISTS email_new_matches BOOLEAN NOT NULL DEFAULT true,
-  ADD COLUMN IF NOT EXISTS email_deadline_alerts BOOLEAN NOT NULL DEFAULT true;
+  ADD COLUMN IF NOT EXISTS email_new_matches BOOLEAN,
+  ADD COLUMN IF NOT EXISTS email_deadline_alerts BOOLEAN;
+
+UPDATE public.user_preferences
+SET email_new_matches = COALESCE(email_new_matches, email_new_funding),
+    email_deadline_alerts = COALESCE(email_deadline_alerts, email_new_funding)
+WHERE email_new_matches IS NULL OR email_deadline_alerts IS NULL;
+
+ALTER TABLE public.user_preferences
+  ALTER COLUMN email_new_matches SET DEFAULT true,
+  ALTER COLUMN email_new_matches SET NOT NULL,
+  ALTER COLUMN email_deadline_alerts SET DEFAULT true,
+  ALTER COLUMN email_deadline_alerts SET NOT NULL;
 
 CREATE TABLE IF NOT EXISTS public.notification_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -35,7 +49,8 @@ CREATE POLICY "Members read own notification events"
   USING (auth.uid() = user_id);
 
 -- Queue transition notifications for saved/preparing opportunities only. Delivery
--- remains transport-owned; this RPC is deterministic, preference-aware and idempotent.
+-- remains transport-owned; this RPC is deterministic, master-consent aware and
+-- idempotent. `email_new_funding=false` suppresses every Funding Radar email.
 CREATE OR REPLACE FUNCTION public.enqueue_funding_transition_notifications(
   _opportunity_id UUID,
   _previous_status TEXT,
@@ -64,16 +79,19 @@ BEGIN
     CASE
       WHEN _next_status = 'open'
        AND _previous_status NOT IN ('open','closing_soon','rolling')
-       AND COALESCE(pref.email_new_matches, true)
+       AND COALESCE(pref.email_new_funding, true)
+       AND COALESCE(pref.email_new_matches, COALESCE(pref.email_new_funding, true))
         THEN 'watchlist_opened'
       WHEN _next_status = 'closing_soon'
        AND _previous_status <> 'closing_soon'
-       AND COALESCE(pref.email_deadline_alerts, true)
+       AND COALESCE(pref.email_new_funding, true)
+       AND COALESCE(pref.email_deadline_alerts, COALESCE(pref.email_new_funding, true))
         THEN 'closing_soon'
       WHEN _previous_deadline_at IS NOT NULL
        AND _next_deadline_at IS NOT NULL
        AND _previous_deadline_at IS DISTINCT FROM _next_deadline_at
-       AND COALESCE(pref.email_deadline_alerts, true)
+       AND COALESCE(pref.email_new_funding, true)
+       AND COALESCE(pref.email_deadline_alerts, COALESCE(pref.email_new_funding, true))
         THEN 'deadline_changed'
       ELSE NULL
     END,
@@ -87,10 +105,11 @@ BEGIN
   LEFT JOIN public.user_preferences pref ON pref.user_id = state.user_id
   WHERE state.opportunity_id = _opportunity_id
     AND state.state IN ('saved','preparing')
+    AND COALESCE(pref.email_new_funding, true)
     AND (
-      (_next_status = 'open' AND _previous_status NOT IN ('open','closing_soon','rolling') AND COALESCE(pref.email_new_matches, true))
-      OR (_next_status = 'closing_soon' AND _previous_status <> 'closing_soon' AND COALESCE(pref.email_deadline_alerts, true))
-      OR (_previous_deadline_at IS NOT NULL AND _next_deadline_at IS NOT NULL AND _previous_deadline_at IS DISTINCT FROM _next_deadline_at AND COALESCE(pref.email_deadline_alerts, true))
+      (_next_status = 'open' AND _previous_status NOT IN ('open','closing_soon','rolling') AND COALESCE(pref.email_new_matches, COALESCE(pref.email_new_funding, true)))
+      OR (_next_status = 'closing_soon' AND _previous_status <> 'closing_soon' AND COALESCE(pref.email_deadline_alerts, COALESCE(pref.email_new_funding, true)))
+      OR (_previous_deadline_at IS NOT NULL AND _next_deadline_at IS NOT NULL AND _previous_deadline_at IS DISTINCT FROM _next_deadline_at AND COALESCE(pref.email_deadline_alerts, COALESCE(pref.email_new_funding, true)))
     )
   ON CONFLICT (dedupe_key) DO NOTHING;
 
