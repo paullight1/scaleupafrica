@@ -12,12 +12,21 @@ function payload(state: MemberOpportunityStateName) {
 }
 
 describe("member opportunity workflow mutation contract", () => {
-  it.each(["saved", "preparing"] as const)("%s does not stamp applied_at", (state) => {
-    expect(payload(state)).toMatchObject({ opportunity_id: opportunityId, state, note: "My note", applied_at: null });
-  });
+  it.each(["saved", "preparing", "won", "rejected", "dismissed"] as const)(
+    "%s leaves the original applied_at untouched",
+    (state) => {
+      const result = payload(state);
+      expect(result).toMatchObject({ opportunity_id: opportunityId, state, note: "My note" });
+      expect(result).not.toHaveProperty("applied_at");
+    },
+  );
 
-  it.each(["applied", "won", "rejected"] as const)("%s stamps the application timeline", (state) => {
-    expect(payload(state).applied_at).toBe("2026-08-22T12:00:00.000Z");
+  it("applied stamps the application timeline exactly once at the transition boundary", () => {
+    expect(payload("applied")).toMatchObject({
+      opportunity_id: opportunityId,
+      state: "applied",
+      applied_at: "2026-08-22T12:00:00.000Z",
+    });
   });
 
   it("dismissed remains a member-state mutation and cannot contain canonical funding fields", () => {
