@@ -17,6 +17,10 @@ const CURRENCY_DECIMALS = {
 
 export type BachsSupportedCurrency = keyof typeof CURRENCY_DECIMALS;
 export type BachsProductMap = Partial<Record<BachsSupportedCurrency, string>>;
+export type BachsPlanCode = "monthly" | "quarterly" | "annual";
+export type BachsPlanProductMap = Partial<
+  Record<BachsPlanCode, Partial<Record<BachsSupportedCurrency, string>>>
+>;
 
 export interface BachsResult<T = unknown> {
   ok: boolean;
@@ -66,6 +70,19 @@ export function resolveBachsProductId(currency: string, products: BachsProductMa
   const normalized = currency.toUpperCase() as BachsSupportedCurrency;
   if (!(normalized in CURRENCY_DECIMALS)) return null;
   const productId = products[normalized]?.trim() ?? "";
+  return /^prod_[A-Za-z0-9_-]{3,120}$/.test(productId) ? productId : null;
+}
+
+/** Select a configured one-time Bachs product for a specific plan and currency. */
+export function resolveBachsPlanProductId(
+  plan: string,
+  currency: string,
+  products: BachsPlanProductMap,
+): string | null {
+  if (plan !== "monthly" && plan !== "quarterly" && plan !== "annual") return null;
+  const normalized = currency.toUpperCase() as BachsSupportedCurrency;
+  if (!(normalized in CURRENCY_DECIMALS)) return null;
+  const productId = products[plan]?.[normalized]?.trim() ?? "";
   return /^prod_[A-Za-z0-9_-]{3,120}$/.test(productId) ? productId : null;
 }
 

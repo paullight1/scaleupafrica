@@ -5,6 +5,7 @@ import {
   crescivaReferenceFromCheckout,
   decimalToSubunits,
   decideBachsGrant,
+  resolveBachsPlanProductId,
   resolveBachsProductId,
   subunitsToDecimal,
   verifyBachsSignature,
@@ -55,6 +56,19 @@ describe("Bachs product checkout configuration", () => {
   it("rejects missing or malformed product IDs", () => {
     expect(resolveBachsProductId("USD", { NGN: "prod_ngn", USD: "" })).toBeNull();
     expect(resolveBachsProductId("NGN", { NGN: "price_not_product", USD: "prod_usd" })).toBeNull();
+  });
+
+  it("selects products by both plan and currency", () => {
+    const products = {
+      monthly: { USD: "prod_monthly_usd" },
+      quarterly: { USD: "prod_quarterly_usd" },
+      annual: { NGN: "prod_annual_ngn", USD: "prod_annual_usd" },
+    };
+
+    expect(resolveBachsPlanProductId("monthly", "USD", products)).toBe("prod_monthly_usd");
+    expect(resolveBachsPlanProductId("quarterly", "USD", products)).toBe("prod_quarterly_usd");
+    expect(resolveBachsPlanProductId("annual", "USD", products)).toBe("prod_annual_usd");
+    expect(resolveBachsPlanProductId("monthly", "NGN", products)).toBeNull();
   });
 
   it("recovers Cresciva reference from checkout metadata without trusting redirects", () => {

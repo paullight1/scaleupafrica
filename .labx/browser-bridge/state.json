@@ -1,10 +1,18 @@
 {
   "version": 1,
   "projectPath": "/Users/MAC/Desktop/Desktop/app-projects/Cresciva",
-  "updatedAt": "2026-08-03T11:21:04.419969+00:00",
+  "updatedAt": "2026-08-23T10:13:36.283921+00:00",
   "state": {
     "activeTabId": "tab_mq790wlz_d904z1ht",
     "agentContext": [
+      {
+        "body": "https://supabase.com/dashboard/project/fqragjhmunphhdnmvpgs",
+        "createdAt": "2026-08-23T10:13:36.160Z",
+        "id": "ctx_mt5ng7j4_2l7pvod6",
+        "sourceId": null,
+        "title": "Current browser URL",
+        "type": "url"
+      },
       {
         "body": "http://localhost:8080/",
         "createdAt": "2026-08-02T03:35:48.241Z",
@@ -316,14 +324,6 @@
         "sourceId": null,
         "title": "Current browser URL",
         "type": "url"
-      },
-      {
-        "body": "http://127.0.0.1:4173/",
-        "createdAt": "2026-06-08T18:32:54.715Z",
-        "id": "ctx_mq5jtl17_4xc3n7fx",
-        "sourceId": null,
-        "title": "Current browser URL",
-        "type": "url"
       }
     ],
     "annotations": [
@@ -362,11 +362,11 @@
       }
     ],
     "currentInspection": null,
-    "currentUrl": "http://localhost:8080/",
+    "currentUrl": "https://supabase.com/dashboard/project/fqragjhmunphhdnmvpgs",
     "isRecording": false,
     "mode": "browse",
     "previewMessage": null,
-    "previewRevision": 70,
+    "previewRevision": 71,
     "previewStatus": "ready",
     "recordedActions": [],
     "selectedAnnotationId": null,
@@ -375,18 +375,19 @@
         "createdAt": "2026-06-09T23:06:12.885Z",
         "history": [
           "http://localhost:5173/",
-          "http://localhost:8080/"
+          "http://localhost:8080/",
+          "https://supabase.com/dashboard/project/fqragjhmunphhdnmvpgs"
         ],
-        "historyIndex": 1,
+        "historyIndex": 2,
         "id": "tab_mq790wlz_d904z1ht",
         "previewMessage": null,
         "previewStatus": "ready",
-        "title": "localhost",
-        "updatedAt": "2026-08-02T03:35:48.239Z",
-        "url": "http://localhost:8080/"
+        "title": "supabase.com",
+        "updatedAt": "2026-08-23T10:13:36.157Z",
+        "url": "https://supabase.com/dashboard/project/fqragjhmunphhdnmvpgs"
       }
     ],
-    "urlInput": "http://localhost:8080/",
+    "urlInput": "https://supabase.com/dashboard/project/fqragjhmunphhdnmvpgs",
     "viewportId": "responsive"
   }
 }

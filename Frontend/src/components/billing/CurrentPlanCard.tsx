@@ -4,7 +4,13 @@ import { Badge } from "@shared/components/ui/badge";
 import { LoadingState } from "@shared/components/common/LoadingState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { useSubscription } from "@/lib/subscription";
-import { defaultCurrency, formatPlanPrice, MEMBERSHIP_FEATURES, PLAN_TERM_YEARS, type Currency } from "@/lib/billing";
+import {
+  defaultCurrency,
+  formatPlanPrice,
+  MEMBERSHIP_FEATURES,
+  PLAN_TERM_MONTHS,
+  type Currency,
+} from "@/lib/billing";
 import { CheckoutButton } from "@/components/billing/CheckoutButton";
 import { CurrencyToggle } from "@/components/billing/CurrencyToggle";
 
@@ -47,7 +53,7 @@ export function CurrentPlanCard() {
   const expiringSoon = active && daysLeft !== null && daysLeft <= 60;
   const neverSubscribed = !data?.has_access && !expiresAt;
 
-  const price = formatPlanPrice(currency);
+  const price = formatPlanPrice("annual", currency);
   const renewLabel = active ? "Renew membership" : "Become a member";
 
   return (
@@ -85,7 +91,7 @@ export function CurrentPlanCard() {
             Radar.
           </p>
         ) : (
-          <p>You're not a member yet. Join to unlock the Funding Radar for a full year.</p>
+          <p>You're not a member yet. Choose a plan to unlock the Funding Radar.</p>
         )}
       </div>
 
@@ -107,12 +113,12 @@ export function CurrentPlanCard() {
               <p className="font-display text-xl font-bold text-ink-strong">
                 {price}
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  / {PLAN_TERM_YEARS} year
+                  / {PLAN_TERM_MONTHS.annual / 12} year
                 </span>
               </p>
               {active && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Renewing early adds a year to your current expiry — you don't lose remaining days.
+                  Renewing early adds the annual term to your current expiry — you don't lose remaining days.
                 </p>
               )}
             </div>
@@ -129,7 +135,7 @@ export function CurrentPlanCard() {
       <p className="mt-6 flex items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          Cresciva's current annual membership <strong>does not auto-renew</strong>. Payment details are
+          Cresciva memberships <strong>do not auto-renew</strong>. Payment details are
           handled by Bachs; Cresciva does not receive your card details. Access runs until the displayed
           expiry date, and you can renew manually at any time.
         </span>

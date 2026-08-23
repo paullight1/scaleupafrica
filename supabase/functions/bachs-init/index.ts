@@ -1,8 +1,8 @@
 // bachs-init — POST, user JWT required (verify_jwt=true in supabase/config.toml).
 //
 // Bachs' current checkout contract is product-based. Cresciva owns the expected
-// annual price in its ledger and selects a preconfigured one-time Bachs product
-// per settlement currency. The Bachs product must be configured to the same price;
+// plan price in its ledger and selects a preconfigured one-time Bachs product
+// per plan and settlement currency. The Bachs product must be configured to the same price;
 // settlement still cannot grant access unless provider amount/currency match the
 // server-created Cresciva payment row exactly.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -11,7 +11,7 @@ import { isCurrency, isPlanCode, resolvePlanAmount } from "../_shared/billing.ts
 import {
   bachsFetch,
   resolveBachsBaseUrl,
-  resolveBachsProductId,
+  resolveBachsPlanProductId,
 } from "../_shared/bachs.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -19,6 +19,8 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BACHS_SECRET_KEY = Deno.env.get("BACHS_SECRET_KEY") ?? "";
 const BACHS_BASE_URL_CONFIG = Deno.env.get("BACHS_BASE_URL");
+const BACHS_MONTHLY_PRODUCT_USD = Deno.env.get("BACHS_MONTHLY_PRODUCT_USD") ?? "";
+const BACHS_QUARTERLY_PRODUCT_USD = Deno.env.get("BACHS_QUARTERLY_PRODUCT_USD") ?? "";
 const BACHS_ANNUAL_PRODUCT_NGN = Deno.env.get("BACHS_ANNUAL_PRODUCT_NGN") ?? "";
 const BACHS_ANNUAL_PRODUCT_USD = Deno.env.get("BACHS_ANNUAL_PRODUCT_USD") ?? "";
 const APP_URL_CONFIG = Deno.env.get("APP_URL") ?? "";
@@ -69,13 +71,17 @@ Deno.serve(async (req) => {
     }
 
     const amount = resolvePlanAmount(planCode, currency);
-    const productId = resolveBachsProductId(currency, {
-      NGN: BACHS_ANNUAL_PRODUCT_NGN,
-      USD: BACHS_ANNUAL_PRODUCT_USD,
+    const productId = resolveBachsPlanProductId(planCode, currency, {
+      monthly: { USD: BACHS_MONTHLY_PRODUCT_USD },
+      quarterly: { USD: BACHS_QUARTERLY_PRODUCT_USD },
+      annual: {
+        NGN: BACHS_ANNUAL_PRODUCT_NGN,
+        USD: BACHS_ANNUAL_PRODUCT_USD,
+      },
     });
     if (amount == null || !productId) {
-      console.error("bachs-init: missing/invalid product configuration", currency);
-      return json({ error: "Payments are not configured for this currency.", code: "NOT_CONFIGURED" }, 500);
+      console.error("bachs-init: missing/invalid product configuration", planCode, currency);
+      return json({ error: "Payments are not configured for this plan and currency.", code: "NOT_CONFIGURED" }, 500);
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);

@@ -22,7 +22,7 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-import { verifyPayment } from "@/lib/bachs";
+import { initCheckout, verifyPayment } from "@/lib/bachs";
 
 describe("Bachs callback verification client", () => {
   beforeEach(() => {
@@ -42,5 +42,16 @@ describe("Bachs callback verification client", () => {
     invoke.mockResolvedValue({ data: null, error: new Error("network") });
 
     await expect(verifyPayment("crv_12345678")).resolves.toBe("pending");
+  });
+
+  it("passes the selected plan code to the server-priced checkout function", async () => {
+    invoke.mockResolvedValue({ data: { checkout_url: "https://checkout.example" }, error: null });
+
+    await expect(initCheckout({ plan_code: "quarterly", currency: "USD" })).resolves.toEqual({
+      checkout_url: "https://checkout.example",
+    });
+    expect(invoke).toHaveBeenCalledWith("bachs-init", {
+      body: { plan_code: "quarterly", currency: "USD" },
+    });
   });
 });

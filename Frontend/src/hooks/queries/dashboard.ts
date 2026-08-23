@@ -54,7 +54,9 @@ export function useMyProfile(): UseQueryResult<Profile | null> {
       if (viaApi) return (await getMyProfile()) as unknown as Profile | null;
       const { data, error } = await supabase.from("profiles").select("*").eq("user_id", uid).maybeSingle();
       if (error) throw error;
-      return data ?? null;
+      // PostgREST's generated type keeps CHECK-constrained text columns broad;
+      // the database constraints and profile form validation enforce this domain shape.
+      return (data ?? null) as Profile | null;
     },
   });
 }

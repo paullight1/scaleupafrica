@@ -50,7 +50,7 @@ const Privacy = () => (
             <li>operate authentication, profiles, directory search and membership access;</li>
             <li>enrich a business profile using public evidence when a member requests that feature and asks the member to confirm identity where appropriate;</li>
             <li>match businesses to funding opportunities, check eligibility/status evidence and provide funding notifications;</li>
-            <li>process and reconcile annual membership payments and issue receipts;</li>
+            <li>process and reconcile membership payments and issue receipts;</li>
             <li>respond to support/contact requests and deliver requested resources or opted-in communications;</li>
             <li>protect the Service from abuse and diagnose reliability/security failures;</li>
             <li>measure aggregate product performance and improve the Service;</li>

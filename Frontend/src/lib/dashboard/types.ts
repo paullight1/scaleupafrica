@@ -1,14 +1,13 @@
 import type { Tables } from "@shared/integrations/supabase/types";
 import type { ProfileSection } from "./routes";
 
-/**
- * Domain type aliases for the dashboard. The generated Supabase snapshot predates
- * several profile/funding columns from later migrations, so the dashboard extends
- * those row types locally until the production project is available for a trustworthy
- * type regeneration.
- */
+/** Domain aliases keep database rows aligned with the dashboard's validated unions. */
 type GeneratedProfile = Tables<"profiles">;
-export type Profile = GeneratedProfile & {
+type ProfileRow = Omit<
+  GeneratedProfile,
+  "application_readiness" | "business_stage" | "preferred_funding_types" | "funding_target_usd"
+>;
+export type Profile = ProfileRow & {
   business_stage?: string | null;
   funding_target_usd?: number | null;
   preferred_funding_types?: string[] | null;

@@ -40,7 +40,7 @@ export interface PaymentReconciliationResult {
 /**
  * Pure payment-ledger invariant check used by the admin reconciliation endpoint.
  * It never mutates access. Remediation must flow through provider verification +
- * grant_annual_access(), never a direct subscription update.
+ * grant_membership_access(), never a direct subscription update.
  */
 export function reconcilePayment({
   payment,

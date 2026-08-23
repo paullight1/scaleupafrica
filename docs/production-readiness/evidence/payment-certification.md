@@ -3,7 +3,7 @@
 Date: 2026-08-20
 Branch: `docs/cresciva-production-readiness`
 Provider: **Bachs**
-Membership model: one-time annual entitlement purchase; no automatic renewal.
+Membership model: one-time monthly, quarterly, or annual entitlement purchase; no automatic renewal.
 
 ## Repository implementation evidence
 
@@ -19,7 +19,7 @@ Membership model: one-time annual entitlement purchase; no automatic renewal.
 - [x] Provider state is re-fetched before grant; `SUCCEEDED` and alternative terminal `ACCEPTED` charge states are supported.
 - [x] Internal ledger keeps integer subunits; Bachs money values are converted at the provider boundary without floating-point arithmetic.
 - [x] Amount and currency must exactly match the server-created Cresciva payment row.
-- [x] Only `grant_annual_access(_payment_id)` grants membership access.
+- [x] Only `grant_membership_access(_payment_id)` grants membership access.
 - [x] Bachs event IDs provide idempotency through the existing webhook-event table.
 - [x] Duplicate events with `processed=true` are acknowledged; duplicates with `processed=false` resume settlement.
 - [x] Non-duplicate persistence/infrastructure failures return 5xx so Bachs can retry.
@@ -38,7 +38,7 @@ The current Bachs documentation index states that:
 - sandbox uses `https://sandbox-api.bachs.io` with `sk_sandbox_…` keys;
 - production uses `https://api.bachs.io` with `sk_live_…` keys;
 - checkout sessions are product-based;
-- products become recurring only when a `billing_cycle` is configured, so Cresciva annual-entitlement products must omit it;
+- products become recurring only when a `billing_cycle` is configured, so all Cresciva membership products must omit it;
 - webhooks such as `collection.succeeded` are the source of truth for fulfillment;
 - IDs use resource prefixes including `prod_` and `chk_`;
 - POST idempotency is supported through `Idempotency-Key`.
@@ -47,12 +47,14 @@ Repository code is aligned to those boundaries.
 
 ## Required Bachs product configuration
 
-Before sandbox certification, the Bachs merchant account must expose two one-time membership products:
+Before sandbox certification, the Bachs merchant account must expose four one-time membership products:
 
 | Variable | Expected price | Required recurrence |
 | --- | ---: | --- |
+| `BACHS_MONTHLY_PRODUCT_USD` | $10 | none |
+| `BACHS_QUARTERLY_PRODUCT_USD` | $25 | none |
 | `BACHS_ANNUAL_PRODUCT_NGN` | exact Cresciva NGN annual price | none |
-| `BACHS_ANNUAL_PRODUCT_USD` | exact Cresciva USD annual price | none |
+| `BACHS_ANNUAL_PRODUCT_USD` | $90 | none |
 
 A product with a billing cycle would create subscription semantics Cresciva does not currently offer and therefore fails certification.
 
@@ -78,7 +80,7 @@ The Phase 2 GitHub Actions gate is the intended fresh execution proof for these 
 
 The following proof requires access not connected in this ChatGPT session:
 
-- Cresciva Supabase project `dwyglydswegyvjowzdot` deployment access;
+- Cresciva Supabase project `fqragjhmunphhdnmvpgs` deployment access;
 - Bachs sandbox API key (`sk_sandbox_…`);
 - Bachs webhook signing secret;
 - Bachs sandbox product IDs for NGN and USD;

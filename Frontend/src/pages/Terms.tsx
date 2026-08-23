@@ -36,7 +36,7 @@ const Terms = () => (
 
           <h2>2. Membership and payments</h2>
           <p>
-            Funding Radar and other premium features require an active annual membership. Cresciva currently sells a one-time annual access period rather than an automatically recurring subscription. The amount, currency and access term shown at checkout control your purchase.
+            Funding Radar and other premium features require an active membership. Cresciva currently sells one-time monthly, quarterly, and annual access periods rather than an automatically recurring subscription. The amount, currency and access term shown at checkout control your purchase.
           </p>
           <ul>
             <li><strong>Payments.</strong> Checkout is processed by Bachs. Cresciva does not store full card or bank-account credentials.</li>

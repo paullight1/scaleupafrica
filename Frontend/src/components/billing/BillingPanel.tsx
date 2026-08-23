@@ -22,7 +22,7 @@ export function BillingPanel({ showHeader = true, className }: BillingPanelProps
       {showHeader && (
         <PageHeader
           title="Membership & billing"
-          subtitle="Manage your annual membership, renew, and review your payment history."
+          subtitle="Manage your membership, renew, and review your payment history."
           className="mb-8"
         />
       )}

@@ -139,11 +139,11 @@ Deno.serve(async (req) => {
     }
 
     if (decision.action === "grant") {
-      const { error: grantError } = await admin.rpc("grant_annual_access", {
+      const { error: grantError } = await admin.rpc("grant_membership_access", {
         _payment_id: payment.id,
       });
       if (grantError) {
-        console.error("bachs-verify: grant_annual_access failed", reference, grantError.message);
+        console.error("bachs-verify: grant_membership_access failed", reference, grantError.message);
         return json({ status: "pending" satisfies VerifyStatus }, 200);
       }
       await sendPaymentReceipt(admin as never, payment.id, Deno.env.toObject());

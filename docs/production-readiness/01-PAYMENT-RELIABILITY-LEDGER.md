@@ -2,9 +2,9 @@
 
 > **For agentic workers:** use the Superpowers executing-plans/TDD workflow for further payment changes.
 
-**Goal:** Run Cresciva annual-membership checkout on Bachs while keeping settlement retry-safe, idempotent, reconcilable, bounded against hostile input, and incapable of silently losing a paid-access grant.
+**Goal:** Run Cresciva monthly, quarterly, and annual membership checkout on Bachs while keeping settlement retry-safe, idempotent, reconcilable, bounded against hostile input, and incapable of silently losing a paid-access grant.
 
-**Architecture:** Cresciva owns pricing expectations, the `payments` ledger, and entitlement state. Bachs provides product-based hosted checkout and signed settlement events. Each supported settlement currency maps to a preconfigured **one-time Bachs product** whose configured price must equal Cresciva's canonical annual price. Bachs is never trusted to grant membership directly: final provider amount/currency is revalidated against the internal payment row and only `grant_annual_access(_payment_id)` can change paid access.
+**Architecture:** Cresciva owns pricing expectations, the `payments` ledger, and entitlement state. Bachs provides product-based hosted checkout and signed settlement events. Each supported plan/currency pair maps to a preconfigured **one-time Bachs product** whose configured price must equal Cresciva's canonical price. Bachs is never trusted to grant membership directly: final provider amount/currency is revalidated against the internal payment row and only `grant_membership_access(_payment_id)` can change paid access.
 
 **Tech Stack:** Supabase Edge Functions (Deno), Supabase Postgres/RLS, Bachs Checkout/API/webhooks, TypeScript, Vitest, Resend.
 
@@ -17,6 +17,8 @@
 - Checkout Session creation is product-based using `product_cart` + `billing_currency`.
 - Cresciva uses one-time products only. A Bachs product used for membership must have **no `billing_cycle`**.
 - Required product env mapping:
+  - `BACHS_MONTHLY_PRODUCT_USD`
+  - `BACHS_QUARTERLY_PRODUCT_USD`
   - `BACHS_ANNUAL_PRODUCT_NGN`
   - `BACHS_ANNUAL_PRODUCT_USD`
 - Bachs money values are decimal strings at currency precision; Cresciva keeps integer subunits internally.
@@ -26,14 +28,14 @@
 - Fulfillment signal is `collection.succeeded`. `checkout.completed` explicitly does not prove collection.
 - Webhook authenticity is timestamped HMAC-SHA256 over `${timestamp}.${raw_body}` using `X-Bachs-Timestamp` + `X-Bachs-Signature`.
 - Webhook delivery is at-least-once; top-level Bachs event `id` is the idempotency key.
-- Cresciva membership remains a one-time one-year entitlement and does not auto-renew.
+- Cresciva membership remains a one-time monthly, quarterly, or annual entitlement and does not auto-renew.
 
 ## Global constraints
 
 - [x] Browser cannot supply or override a charge amount.
 - [x] `BACHS_SECRET_KEY` and `BACHS_WEBHOOK_SIGNING_SECRET` are server-only.
 - [x] Bachs API host is restricted to official sandbox/live origins and key environment must match origin.
-- [x] Only `grant_annual_access(_payment_id)` may grant paid access.
+- [x] Only `grant_membership_access(_payment_id)` may grant paid access.
 - [x] Redirect/callback state never grants access by itself.
 - [x] Successful provider state must match Cresciva amount/currency before access is granted.
 - [x] Only PostgreSQL `23505` is classified as a duplicate event insert; other persistence failures are retryable.
@@ -83,12 +85,14 @@ Required flow and state:
 
 ### Required external product setup
 
-Before sandbox/live certification, create or identify two Bachs **one-time** products:
+Before sandbox/live certification, create or identify four Bachs **one-time** products:
 
 | Environment variable | Required product price | Billing cycle |
 | --- | ---: | --- |
+| `BACHS_MONTHLY_PRODUCT_USD` | must equal $10 / `PLANS.monthly.prices.USD` | none |
+| `BACHS_QUARTERLY_PRODUCT_USD` | must equal $25 / `PLANS.quarterly.prices.USD` | none |
 | `BACHS_ANNUAL_PRODUCT_NGN` | must equal `PLANS.annual.prices.NGN` | none |
-| `BACHS_ANNUAL_PRODUCT_USD` | must equal `PLANS.annual.prices.USD` | none |
+| `BACHS_ANNUAL_PRODUCT_USD` | must equal $90 / `PLANS.annual.prices.USD` | none |
 
 The sandbox and live environments may have different product IDs; deploy the IDs appropriate to that Bachs environment.
 
@@ -159,7 +163,7 @@ The sandbox and live environments may have different product IDs; deploy the IDs
 
 - Bachs sandbox key and webhook signing secret.
 - Bachs sandbox product IDs for NGN/USD.
-- Access to Cresciva Supabase project `dwyglydswegyvjowzdot` or a safe staging branch.
+- Access to Cresciva Supabase project `fqragjhmunphhdnmvpgs` or a safe staging branch.
 - Reachable staging `APP_URL`.
 
 Required failure matrix:

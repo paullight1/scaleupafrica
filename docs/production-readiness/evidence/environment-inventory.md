@@ -1,6 +1,6 @@
 # Cresciva Production Environment & Release Inventory
 
-Verified/updated: 2026-08-20
+Verified/updated: 2026-08-23
 Repository: `paullight1/scaleupafrica`
 Implementation branch: `docs/cresciva-production-readiness`
 Default branch baseline at review: `main` → `8603e5ec2db6830263c97d0d556ac31e390d51ac`
@@ -15,9 +15,9 @@ This file records identifiers and verification state only. **No secret values be
 | Public origin | `https://cresciva.vercel.app` | Single-source repository contract; actual Vercel project not visible to connected Vercel account |
 | Admin | same origin, `/admin/` | Source/build routing verified; live deployment not independently verified |
 | Production Git branch | `main` | Repository default branch verified |
-| Supabase project ref | `dwyglydswegyvjowzdot` | Repository + publishable frontend config agree; connected Supabase account cannot see this project |
+| Supabase project ref | `fqragjhmunphhdnmvpgs` | Repository + publishable frontend config agree; read-only CLI verification succeeded |
 | Payment provider | Bachs | Source integration + current public Bachs docs verified; Bachs merchant account not connected |
-| Bachs membership model | one-time annual entitlement | Source verified; no auto-renew |
+| Bachs membership model | one-time monthly/quarterly/annual entitlement | Source verified; no auto-renew |
 | NestJS API | optional/domain-by-domain cutover | Source verified; deployment status unverified |
 | Repository name | `paullight1/scaleupafrica` | Verified; product is Cresciva |
 
@@ -62,7 +62,7 @@ Tracked `Frontend/.env` and `AdminPanel/.env` contain only the Supabase publisha
 
 ## 4. Supabase Edge Function secret/config contract
 
-Required/potential variables; **presence cannot be verified with the currently connected Supabase account** because it does not expose project `dwyglydswegyvjowzdot`.
+Required/potential variables; Supabase CLI verification reached the configured project. Bachs secret/product variable names were not present in the remote secret list at verification time.
 
 | Variable | Required by | Verification |
 | --- | --- | --- |
@@ -73,8 +73,10 @@ Required/potential variables; **presence cannot be verified with the currently c
 | `BACHS_BASE_URL` | sandbox/live origin selection | unverified live |
 | `BACHS_WEBHOOK_SIGNING_SECRET` | webhook HMAC | unverified live |
 | `BACHS_ORGANIZATION_ID` | optional account pin | unverified live |
+| `BACHS_MONTHLY_PRODUCT_USD` | one-time USD monthly membership product priced at $10 | unverified live |
+| `BACHS_QUARTERLY_PRODUCT_USD` | one-time USD quarterly membership product priced at $25 | unverified live |
 | `BACHS_ANNUAL_PRODUCT_NGN` | one-time NGN annual membership product | unverified live |
-| `BACHS_ANNUAL_PRODUCT_USD` | one-time USD annual membership product | unverified live |
+| `BACHS_ANNUAL_PRODUCT_USD` | one-time USD annual membership product priced at $90 | unverified live |
 | `APP_URL` | Bachs return/cancel origin | unverified live |
 | `LOVABLE_API_KEY` | current funding AI gateway | unverified live |
 | `RESEND_API_KEY` | email | unverified live |
@@ -84,7 +86,7 @@ Required/potential variables; **presence cannot be verified with the currently c
 
 ### Bachs product requirements
 
-Both configured Bachs product IDs must reference **one-time products with no billing cycle**. Their configured prices must exactly match Cresciva's canonical annual prices for NGN and USD respectively. Sandbox/live product IDs may differ and must be paired with the corresponding Bachs key environment.
+All configured Bachs product IDs must reference **one-time products with no billing cycle**. Their configured prices must exactly match Cresciva's canonical plan prices. Sandbox/live product IDs may differ and must be paired with the corresponding Bachs key environment.
 
 ## 5. Active Supabase function contract
 
@@ -92,9 +94,9 @@ Repository `supabase/config.toml` currently declares:
 
 | Function | JWT |
 | --- | --- |
-| `bachs-init` | required |
-| `bachs-verify` | required |
-| `bachs-webhook` | disabled; function authenticates Bachs via signed raw-body webhook |
+| `bachs-init` | deployed 2026-08-23; JWT required |
+| `bachs-verify` | deployed 2026-08-23; JWT required |
+| `bachs-webhook` | deployed 2026-08-23; JWT disabled; authenticates Bachs via signed raw-body webhook |
 | `payment-reconciliation` | required + explicit admin-role check |
 | `send-email` | disabled; function owns public-form validation/throttle |
 | `email-unsubscribe` | disabled; token-authenticated |
@@ -117,14 +119,14 @@ Repository implementation follows the current Bachs public integration contract:
 - Bachs checkout metadata also carries `cresciva_reference` as a server-side correlation backstop;
 - webhook verification uses timestamp + exact raw body with HMAC-SHA256;
 - fulfillment authority is `collection.succeeded`, not browser redirect and not `checkout.completed`;
-- internal ledger revalidates exact amount/currency before `grant_annual_access`.
+- internal ledger revalidates exact amount/currency before `grant_membership_access`.
 
 ### Required Bachs dashboard configuration (not connected here)
 
 Webhook endpoint:
 
 ```text
-https://dwyglydswegyvjowzdot.supabase.co/functions/v1/bachs-webhook
+https://fqragjhmunphhdnmvpgs.supabase.co/functions/v1/bachs-webhook
 ```
 
 Required settlement/audit events:
@@ -149,21 +151,15 @@ Status: **merchant/dashboard/product configuration unverified**.
 
 ## 7. Supabase connector evidence
 
-Connected Supabase account visible in this conversation currently exposes only:
+The configured Cresciva project `fqragjhmunphhdnmvpgs` was reachable through the Supabase CLI on 2026-08-23.
 
-- `turnpay` (`gkpueopmdlqlfbvrzuqh`)
-- `edutu.ai` (`sioxocmrjmdevsdlzjns`)
+Read-only findings:
 
-It does **not** expose Cresciva project `dwyglydswegyvjowzdot`.
-
-Consequences:
-
-- migration history cannot be compared to production from this connector;
-- Edge Function deployment/version cannot be verified or changed safely;
-- production advisors cannot be run against Cresciva;
-- Bachs/Resend/Auth secrets or product IDs cannot be checked.
-
-Do not substitute either visible project for Cresciva.
+- the duration-aware `grant_membership_access` RPC is present and service-role executable;
+- the payment/subscription/webhook tables have the required plan fields;
+- Bachs functions were deployed on 2026-08-23;
+- Bachs secret/product names were absent from the remote secret list;
+- remote migration history contains versions missing from this checkout, so normal migration push is blocked pending reconciliation.
 
 ## 8. Vercel connector evidence
 
@@ -255,7 +251,7 @@ Repository implementation: **implemented**.
 
 External proof required:
 
-- authorized access to Supabase project `dwyglydswegyvjowzdot`;
+- authorized access to Supabase project `fqragjhmunphhdnmvpgs`;
 - migration and Edge Function deployment comparison;
 - Bachs sandbox/live dashboard, products, webhook and secret alignment;
 - actual Vercel project/domain/env inventory;

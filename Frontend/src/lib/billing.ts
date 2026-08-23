@@ -8,17 +8,38 @@
 // exclusively at the server/provider boundary in _shared/bachs.ts.
 // =============================================================================
 
-export type PlanCode = "annual";
+export type PlanCode = "monthly" | "quarterly" | "annual";
 export type Currency = "NGN" | "USD";
 
-/** Integer subunits (kobo / cents) — mirror of PLANS.annual.prices on the server. */
-export const PLAN_PRICES: Record<Currency, number> = {
-  NGN: 9_500_000, // ₦95,000
-  USD: 20_000, //    $200
+/** Display-only mirror of the server's canonical plan metadata. */
+export const PLANS: Record<
+  PlanCode,
+  { term_months: number; prices: Partial<Record<Currency, number>> }
+> = {
+  monthly: {
+    term_months: 1,
+    prices: { USD: 1_000 },
+  },
+  quarterly: {
+    term_months: 3,
+    prices: { USD: 2_500 },
+  },
+  annual: {
+    term_months: 12,
+    prices: { NGN: 9_500_000, USD: 9_000 },
+  },
 };
 
-export const PLAN_TERM_YEARS = 1;
+export const PLAN_TERM_MONTHS: Record<PlanCode, number> = {
+  monthly: 1,
+  quarterly: 3,
+  annual: 12,
+};
 export const SUPPORTED_CURRENCIES: Currency[] = ["NGN", "USD"];
+
+export function isPlanCode(value: unknown): value is PlanCode {
+  return value === "monthly" || value === "quarterly" || value === "annual";
+}
 
 export const CURRENCY_META: Record<Currency, { symbol: string; label: string; subunit: number; locale: string }> = {
   NGN: { symbol: "₦", label: "Nigerian Naira", subunit: 100, locale: "en-NG" },
@@ -33,9 +54,15 @@ export const MEMBERSHIP_FEATURES = [
   "Member resources and playbooks",
 ];
 
-/** Format a whole plan price for a charge currency, e.g. "₦95,000" / "$200". */
-export function formatPlanPrice(currency: Currency): string {
-  return formatMoney(PLAN_PRICES[currency], currency);
+/** Return a plan's integer price for a currency, or null when not offered. */
+export function getPlanPrice(plan: PlanCode, currency: Currency): number | null {
+  return PLANS[plan].prices[currency] ?? null;
+}
+
+/** Format a plan price for a charge currency, e.g. "₦95,000" / "$90". */
+export function formatPlanPrice(plan: PlanCode, currency: Currency): string | null {
+  const amount = getPlanPrice(plan, currency);
+  return amount === null ? null : formatMoney(amount, currency);
 }
 
 /** Format an arbitrary internal subunit amount (used by Payment History). */
@@ -74,7 +101,7 @@ const WHATSAPP_CONCIERGE_NUMBER = "2340000000000";
 
 export function conciergeWhatsappUrl(email?: string): string {
   const message =
-    "Hi Cresciva — I'd like help with my annual membership payment." +
+    "Hi Cresciva — I'd like help with my membership payment." +
     (email ? ` My account email is ${email}.` : "");
   return `https://wa.me/${WHATSAPP_CONCIERGE_NUMBER}?text=${encodeURIComponent(message)}`;
 }

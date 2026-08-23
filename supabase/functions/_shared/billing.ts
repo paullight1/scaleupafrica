@@ -11,18 +11,30 @@
 // conversion happens only in _shared/bachs.ts at the provider boundary.
 // =============================================================================
 
-export type PlanCode = "annual";
+export type PlanCode = "monthly" | "quarterly" | "annual";
 export type Currency = "NGN" | "USD";
 
 export const PLANS: Record<
   PlanCode,
-  { term_years: number; prices: Record<Currency, number> }
+  { term_months: number; prices: Partial<Record<Currency, number>> }
 > = {
+  monthly: {
+    term_months: 1,
+    prices: {
+      USD: 1_000, // $10 in cents
+    },
+  },
+  quarterly: {
+    term_months: 3,
+    prices: {
+      USD: 2_500, // $25 in cents
+    },
+  },
   annual: {
-    term_years: 1,
+    term_months: 12,
     prices: {
       NGN: 9_500_000, // ₦95,000 in kobo
-      USD: 20_000, //    $200 in cents
+      USD: 9_000, //     $90 in cents
     },
   },
 };
@@ -40,5 +52,5 @@ export function isCurrency(value: unknown): value is Currency {
 /** Resolve the integer subunit amount for a plan+currency, or null if invalid. */
 export function resolvePlanAmount(plan: unknown, currency: unknown): number | null {
   if (!isPlanCode(plan) || !isCurrency(currency)) return null;
-  return PLANS[plan].prices[currency];
+  return PLANS[plan].prices[currency] ?? null;
 }

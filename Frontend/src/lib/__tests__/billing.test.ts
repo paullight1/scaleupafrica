@@ -4,15 +4,19 @@ import {
   SUPPORTED_CURRENCIES as SERVER_CURRENCIES,
   resolvePlanAmount,
 } from "../../../../supabase/functions/_shared/billing";
-import { PLAN_PRICES, PLAN_TERM_YEARS, SUPPORTED_CURRENCIES } from "@/lib/billing";
+import {
+  PLANS as CLIENT_PLANS,
+  PLAN_TERM_MONTHS,
+  SUPPORTED_CURRENCIES,
+} from "@/lib/billing";
 
 describe("plan price parity (client mirror ⇄ server source of truth)", () => {
-  it("client PLAN_PRICES equals the server PLANS.annual.prices", () => {
-    expect(PLAN_PRICES).toEqual(PLANS.annual.prices);
+  it("client plan metadata equals the server plan metadata", () => {
+    expect(CLIENT_PLANS).toEqual(PLANS);
   });
 
-  it("client term matches the server term", () => {
-    expect(PLAN_TERM_YEARS).toBe(PLANS.annual.term_years);
+  it("exposes monthly, quarterly, and annual terms in months", () => {
+    expect(PLAN_TERM_MONTHS).toEqual({ monthly: 1, quarterly: 3, annual: 12 });
   });
 
   it("both sides support exactly NGN + USD", () => {
@@ -21,21 +25,29 @@ describe("plan price parity (client mirror ⇄ server source of truth)", () => {
   });
 
   it("all canonical amounts are positive integer subunits, never floats", () => {
-    for (const amount of Object.values(PLANS.annual.prices)) {
-      expect(Number.isInteger(amount)).toBe(true);
-      expect(amount).toBeGreaterThan(0);
+    for (const plan of Object.values(PLANS)) {
+      for (const amount of Object.values(plan.prices)) {
+        expect(Number.isInteger(amount)).toBe(true);
+        expect(amount).toBeGreaterThan(0);
+      }
     }
   });
 });
 
 describe("resolvePlanAmount (server never trusts a client amount)", () => {
-  it("resolves valid plan+currency", () => {
+  it("resolves the requested USD tier", () => {
+    expect(resolvePlanAmount("monthly", "USD")).toBe(1_000);
+    expect(resolvePlanAmount("quarterly", "USD")).toBe(2_500);
+    expect(resolvePlanAmount("annual", "USD")).toBe(9_000);
+  });
+
+  it("keeps the legacy NGN annual price and rejects unsupported NGN tiers", () => {
     expect(resolvePlanAmount("annual", "NGN")).toBe(9_500_000);
-    expect(resolvePlanAmount("annual", "USD")).toBe(20_000);
+    expect(resolvePlanAmount("monthly", "NGN")).toBeNull();
+    expect(resolvePlanAmount("quarterly", "NGN")).toBeNull();
   });
 
   it("rejects unknown plan or currency", () => {
-    expect(resolvePlanAmount("monthly", "NGN")).toBeNull();
     expect(resolvePlanAmount("annual", "EUR")).toBeNull();
     expect(resolvePlanAmount("annual", "eu")).toBeNull();
   });

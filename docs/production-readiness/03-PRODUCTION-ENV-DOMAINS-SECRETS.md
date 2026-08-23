@@ -11,7 +11,7 @@
 ## Global constraints
 
 - [x] Secret values are excluded from source/evidence.
-- [x] Repository identifies intended Supabase project as `dwyglydswegyvjowzdot`.
+- [x] Repository identifies intended Supabase project as `fqragjhmunphhdnmvpgs`.
 - [x] One public-origin contract drives canonical links, static metadata, sitemap/robots and the Bachs `APP_URL` rule.
 - [x] Current default public origin is `https://cresciva.vercel.app` until an owned production domain is intentionally selected.
 - [x] `cresciva.com` is **not** assumed/used; public research shows that hostname belongs to an unrelated organization.
@@ -30,7 +30,7 @@
 - [x] Declared public origin recorded.
 - [x] Admin path recorded as `/admin/` on the same production artifact.
 - [x] Supabase project ref recorded.
-- [x] Bachs is recorded as payment provider and annual membership is one-time/non-recurring.
+- [x] Bachs is recorded as payment provider and monthly, quarterly, and annual memberships are one-time/non-recurring.
 - [x] Optional NestJS API cutover is recorded.
 - [x] Repository rename decision is recorded: defer until after launch certification.
 - [ ] Actual Vercel project ID/domain mapping is externally unverified.
@@ -60,8 +60,10 @@ BACHS_SECRET_KEY
 BACHS_BASE_URL
 BACHS_WEBHOOK_SIGNING_SECRET
 BACHS_ORGANIZATION_ID        # recommended merchant pin
+BACHS_MONTHLY_PRODUCT_USD    # one-time product, exact $10 monthly price
+BACHS_QUARTERLY_PRODUCT_USD  # one-time product, exact $25 quarterly price
 BACHS_ANNUAL_PRODUCT_NGN     # one-time product, exact canonical NGN annual price
-BACHS_ANNUAL_PRODUCT_USD     # one-time product, exact canonical USD annual price
+BACHS_ANNUAL_PRODUCT_USD     # one-time product, exact $90 annual price
 APP_URL                      # official Cresciva origin for this environment
 LOVABLE_API_KEY              # current funding gateway until later funding phase replaces it
 RESEND_API_KEY
@@ -111,12 +113,9 @@ Payment fulfillment remains intentionally single-homed in Supabase Edge Function
 
 ## Task 3 — Certify live Supabase schema and Edge Functions
 
-Connected Supabase scope in this chat currently exposes only:
+The configured Cresciva project is `fqragjhmunphhdnmvpgs`. Read-only CLI checks reached it successfully on 2026-08-23.
 
-- `turnpay` (`gkpueopmdlqlfbvrzuqh`)
-- `edutu.ai` (`sioxocmrjmdevsdlzjns`)
-
-It does not expose Cresciva project `dwyglydswegyvjowzdot`, so no substitute project may be used.
+The remote migration history contains several versions missing from this checkout, so `supabase db push` must not be run until the histories are reconciled. The duration-aware membership RPC is already present remotely.
 
 Once authorized access exists:
 
@@ -150,13 +149,15 @@ Current repository contract:
 Required external checks:
 
 - [ ] Bachs sandbox key present in staging only.
+- [ ] `BACHS_MONTHLY_PRODUCT_USD` points to a one-time product priced at $10.
+- [ ] `BACHS_QUARTERLY_PRODUCT_USD` points to a one-time product priced at $25.
 - [ ] `BACHS_ANNUAL_PRODUCT_NGN` points to one-time product with exact Cresciva NGN annual price.
-- [ ] `BACHS_ANNUAL_PRODUCT_USD` points to one-time product with exact Cresciva USD annual price.
+- [ ] `BACHS_ANNUAL_PRODUCT_USD` points to a one-time product priced at $90.
 - [ ] Live product IDs are separately verified before key swap/go-live.
 - [ ] Webhook endpoint is exactly:
 
 ```text
-https://dwyglydswegyvjowzdot.supabase.co/functions/v1/bachs-webhook
+https://fqragjhmunphhdnmvpgs.supabase.co/functions/v1/bachs-webhook
 ```
 
 - [ ] Webhook subscribes to at least:

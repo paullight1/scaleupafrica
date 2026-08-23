@@ -36,14 +36,14 @@ export const FAQS: Faq[] = [
     id: "access-radar",
     question: "How do I access the Funding Radar?",
     answer:
-      "The Funding Radar is available exclusively to active Collective members with an annual membership. Once your membership expires, access is revoked until you renew.",
+      "The Funding Radar is available exclusively to active Collective members. Choose a monthly, quarterly, or annual membership; once it expires, access is revoked until you renew.",
     homepage: false,
   },
   {
     id: "payment",
     question: "How do I pay, and in which currency?",
     answer:
-      "Online payments use Bachs hosted checkout. Cresciva prices annual membership in Nigerian Naira (NGN) or US Dollars (USD); Bachs shows the payment methods available for the selected currency and your checkout. If your bank performs a currency conversion, its own rate and charges may apply. If you need help paying, contact our WhatsApp concierge.",
+      "Online payments use Bachs hosted checkout. Monthly, quarterly, and annual plans are available in US Dollars (USD); the existing annual plan is also available in Nigerian Naira (NGN). Bachs shows the payment methods available for your checkout. If your bank performs a currency conversion, its own rate and charges may apply. If you need help paying, contact our WhatsApp concierge.",
     homepage: true,
   },
   {
@@ -57,14 +57,14 @@ export const FAQS: Faq[] = [
     id: "monthly",
     question: "Is there a monthly plan?",
     answer:
-      "We offer an annual membership only. This keeps the community focused, committed, and easier to serve deeply throughout the year.",
+      "Yes. You can choose monthly, quarterly, or annual membership in USD. The annual plan offers the lowest monthly equivalent.",
     homepage: false,
   },
   {
     id: "renewal",
     question: "Does my membership auto-renew? Can I cancel?",
     answer:
-      "Cresciva's current annual membership does not auto-renew. Payment details are handled by Bachs, and Cresciva does not receive your card details. Your access runs until its expiry date and you can renew manually; renewing early adds a year to your existing expiry. Any refund rights are governed by our Terms.",
+      "Cresciva memberships do not auto-renew. Payment details are handled by Bachs, and Cresciva does not receive your card details. Your access runs until its expiry date and you can renew manually; renewing early extends your existing expiry by the purchased plan term. Any refund rights are governed by our Terms.",
     homepage: true,
   },
   {

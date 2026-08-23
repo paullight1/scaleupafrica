@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { Checkbox } from "@shared/components/ui/checkbox";
 import { Lock, AlertTriangle, ShieldAlert } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { useBachsCheckout } from "@/hooks/useBachs";
+import { isPlanCode, type PlanCode } from "@/lib/billing";
 
 interface FundingPaywallProps {
   userEmail?: string;
@@ -19,7 +21,10 @@ interface FundingPaywallProps {
  */
 export function FundingPaywall({ userEmail }: FundingPaywallProps) {
   const [acknowledged, setAcknowledged] = useState(false);
+  const [params] = useSearchParams();
   const { startCheckout, isPending } = useBachsCheckout();
+  const requestedPlan = params.get("plan");
+  const planCode: PlanCode = isPlanCode(requestedPlan) ? requestedPlan : "annual";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -71,7 +76,7 @@ export function FundingPaywall({ userEmail }: FundingPaywallProps) {
           <Button
             size="lg"
             disabled={!acknowledged || isPending}
-            onClick={() => startCheckout({ next: "/dashboard/funding" })}
+            onClick={() => startCheckout({ plan_code: planCode, next: "/dashboard/funding?plan=" + planCode })}
           >
             {isPending ? "Starting checkout…" : "See membership"}
           </Button>

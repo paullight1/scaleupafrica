@@ -1,0 +1,148 @@
+{
+  "benchmark_version": "funding-intelligence-v1",
+  "mode": "engineering",
+  "commit_sha": null,
+  "run_date": "2026-08-23T11:38:32.451Z",
+  "fixture_counts": {
+    "organisations": 20,
+    "opportunityCycles": 40,
+    "eligibility": 20,
+    "relevance": 10
+  },
+  "identity": {
+    "auto_proposed": 14,
+    "correct_auto_proposed": 14,
+    "precision": 1,
+    "ambiguous_expected": 4,
+    "ambiguous_withheld_rate": 1,
+    "wrong_auto_selections": 0
+  },
+  "status": {
+    "primary_precision": 1,
+    "predicted_primary": 18,
+    "historical_cycle_contamination": 0,
+    "stale_primary_records": 0,
+    "per_class_precision": {
+      "open": 1,
+      "closing_soon": 1,
+      "rolling": 1,
+      "upcoming": 1,
+      "closed": 1,
+      "paused": 1,
+      "unknown": 1
+    }
+  },
+  "eligibility": {
+    "labelled_ineligible": 7,
+    "false_eligible": 0,
+    "false_positive_rate": 0,
+    "predicted_eligible": 10,
+    "predicted_ineligible": 7,
+    "abstentions": 3
+  },
+  "ranking": {
+    "precision_at_5": 0.8,
+    "ndcg_at_5": 0.9458290385074408,
+    "pools": 10,
+    "segments": {
+      "country:Nigeria": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.8592395637645646
+      },
+      "organisation_type:company": {
+        "sample_count": 6,
+        "precision_at_5": 0.7999999999999999,
+        "ndcg_at_5": 0.9285068822829663
+      },
+      "business_stage:growth": {
+        "sample_count": 6,
+        "precision_at_5": 0.7999999999999999,
+        "ndcg_at_5": 0.9220015503316789
+      },
+      "preferred_funding_type:grant": {
+        "sample_count": 6,
+        "precision_at_5": 0.7999999999999999,
+        "ndcg_at_5": 0.940793368435577
+      },
+      "country:Kenya": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.9631405415421672
+      },
+      "preferred_funding_type:investment": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.9631405415421672
+      },
+      "country:Ghana": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 1
+      },
+      "organisation_type:nonprofit": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 1
+      },
+      "business_stage:early": {
+        "sample_count": 4,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.9815702707710836
+      },
+      "country:Rwanda": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.9631405415421672
+      },
+      "country:Uganda": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.943624545688305
+      },
+      "organisation_type:social_enterprise": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.943624545688305
+      },
+      "preferred_funding_type:development finance": {
+        "sample_count": 2,
+        "precision_at_5": 0.8,
+        "ndcg_at_5": 0.943624545688305
+      }
+    }
+  },
+  "provenance": {
+    "predicted_primary_records": 18,
+    "primary_authoritative_source_coverage": 1,
+    "confirmed_deadlines": 12,
+    "confirmed_deadline_source_coverage": 1
+  },
+  "live_links": {
+    "ran": false,
+    "links_checked": 0,
+    "broken_links": 0,
+    "broken_link_rate": 0,
+    "failures": []
+  },
+  "thresholds": {
+    "identity_wrong_auto_selections_max": 0,
+    "ambiguous_withheld_rate_min": 1,
+    "current_open_precision_min": 0.98,
+    "historical_cycle_contamination_max": 0,
+    "stale_primary_records_max": 0,
+    "hard_eligibility_false_positive_rate_max_exclusive": 0.02,
+    "precision_at_5_min": 0.8,
+    "primary_authoritative_source_coverage_min": 0.95,
+    "confirmed_deadline_source_coverage_min": 1,
+    "broken_primary_link_rate_max_exclusive": 0.01
+  },
+  "pass": true,
+  "failures": [],
+  "live_checks_ran": false,
+  "external_blockers": [
+    "Engineering fixtures are synthetic and do not count as human adjudication.",
+    "Production certification requires >=100/200/150/50 dual-human-labelled corpus.",
+    "Live/staging authoritative-link checks have not run."
+  ]
+}
