@@ -109,6 +109,7 @@ jobs:
         run: |
           npm run test --workspace Backend -- \
             test/business-enrichment-contracts.spec.ts \
+            test/funding-source-signals.spec.ts \
             test/funding-status.spec.ts \
             test/funding-verified-first.spec.ts \
             test/funding-search-ranking.spec.ts \
@@ -136,8 +137,12 @@ jobs:
           grep -q 'REVOKE DELETE ON public.funding_sources FROM service_role' supabase/migrations/20260822023000_funding_intelligence_v2.sql
           grep -q 'Canonical funding status requires an active registered source' supabase/migrations/20260822050000_opportunity_application_status.sql
           grep -q 'Do not output a trusted application_status' supabase/functions/_shared/fundingSourceSignals.ts
+          grep -q 'normalizeFundingSignalsForSource' supabase/functions/_shared/fundingSourceSignals.ts
+          grep -q 'source_links' supabase/functions/_shared/fundingSourceSignals.ts
+          grep -q 'dateQuoteSupportsCalendarDate' supabase/functions/_shared/fundingSourceSignals.ts
           grep -q 'allowedEvidenceUrls' supabase/functions/_shared/businessDiscovery.ts
           grep -q 'hasFieldEvidence' supabase/functions/_shared/businessDiscovery.ts
+          grep -q 'pageText.includes(quote)' supabase/functions/_shared/businessDiscovery.ts
           grep -q 'sua:funding:v2:' Frontend/src/lib/fundingCache.ts
           grep -q 'resolveFeedVerificationStatus' Frontend/src/hooks/queries/funding.ts
           grep -q 'FUNDING_NOTIFICATION_SECRET' supabase/functions/funding-notifications/index.ts
