@@ -17,6 +17,12 @@ verify_jwt = false
 [functions.payment-reconciliation]
 verify_jwt = true
 
+# Authenticated data-rights operations. The function verifies the user again,
+# requires recent authentication for destructive deletion, and performs all
+# cascading/sanitization work server-side.
+[functions.account-data]
+verify_jwt = true
+
 # Business-name enrichment is a paid/member intelligence workflow. The caller's
 # JWT identifies the owner; public evidence writes are service-role only.
 [functions.business-enrichment]
