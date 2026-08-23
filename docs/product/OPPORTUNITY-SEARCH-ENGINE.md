@@ -33,7 +33,7 @@ deterministic relevance scoring
         ↓
 UI trust grouping
    ├─ Verified current matches
-   ├─ Other verified records
+   ├─ Other Cresciva records
    └─ AI discoveries
 ```
 
@@ -45,7 +45,7 @@ Search and recommendations answer different questions.
 
 ```text
 Search:
-explicit query → relevance → verified/AI discovery groups
+explicit query → relevance → current/curated/AI discovery groups
 
 Recommendation:
 confirmed member profile → hard eligibility → fit/confidence/readiness
@@ -55,20 +55,13 @@ Search **never** grants the member-specific primary application CTA. Even a veri
 
 ## Query handling
 
-Queries are:
-
-- trimmed;
-- capped at 200 characters;
-- normalized for deterministic cache identity;
-- tokenized for curated relevance scoring.
+Queries are trimmed, capped at 200 characters, normalized for deterministic cache identity, and tokenized for curated relevance scoring.
 
 Raw query text may exist in the member-owned search/cache record because it is needed to reproduce that interaction. General analytics stores aggregate result/trust counts, not raw query text.
 
 ## Curated relevance scoring
 
 Search examines published Cresciva opportunity records before considering AI.
-
-Current field weights include:
 
 | Evidence | Weight |
 | --- | ---: |
@@ -84,7 +77,7 @@ Strong phrase matches receive additional boosts. Zero-overlap records are exclud
 
 ## Source and current-cycle truth
 
-P0-B now provides controlled provenance/current-cycle fields such as:
+P0-B provides controlled provenance/current-cycle fields such as:
 
 ```text
 source_url
@@ -110,9 +103,16 @@ AND application_status IN (open, closing_soon, rolling)
 AND status_checked_at is inside that status's freshness window
 ```
 
-### Other verified record
+### Other Cresciva record
 
-Curated records outside that current class are grouped separately, including upcoming, closed, paused, stale and current-status-unknown records.
+Every non-AI curated record outside the verified-current class is shown under **Other Cresciva records**. This group may contain:
+
+- verified upcoming/closed/paused records;
+- stale records whose source needs recheck;
+- curated records whose verification was invalidated after a source change;
+- current-status-unknown curated records.
+
+The card itself continues to display the exact `verified / stale / unverified` trust badge. The group name deliberately does **not** imply every row is currently verified.
 
 ### AI discovery
 
@@ -132,21 +132,13 @@ This overwrite happens in code after model output. A model cannot promote itself
 
 AI is called only when curated search is insufficient and the AI path is available within quota.
 
-The discovery contract permits:
-
-- 0–10 candidates;
-- zero results as a valid outcome;
-- no minimum-result padding;
-- no fabricated funder/program/amount/URL/deadline/recipient;
-- unknown current deadline -> empty/unknown;
-- no historical/typical deadline substitution;
-- no trusted verification/current/open claim.
+The discovery contract permits 0–10 candidates, allows zero results, forbids filler/fabricated fields, forbids historical deadline substitution, and forbids trusted verification/current/open claims.
 
 If useful curated matches already exist, Cresciva returns them rather than failing the entire search when AI is unavailable, rate-limited, timed out or malformed.
 
 ## Cache behavior
 
-AI-assisted search uses the existing normalized per-user cache and quota ledger.
+AI-assisted search uses the normalized per-user cache and quota ledger.
 
 Legacy cached rows that predate provenance are treated conservatively. If `discovery_source` is absent, the UI normalizes them to:
 
@@ -157,18 +149,11 @@ current status unknown
 no primary application URL
 ```
 
-This prevents old model output from becoming a verified-looking result after a code upgrade.
-
 ## Deduplication
 
-Curated records are inserted into dedupe before AI results, so verified records win collisions.
+Curated records enter dedupe before AI results, so canonical Cresciva records win collisions.
 
-Identity uses:
-
-1. canonical program URL when available;
-2. otherwise normalized `title + funder`.
-
-Tracking parameters/fragments are removed, while meaningful parameters such as `?program=a` versus `?program=b` remain distinct.
+Identity uses canonical program URL when available, otherwise normalized `title + funder`. Tracking parameters/fragments are removed while meaningful program parameters remain distinct.
 
 ## User-facing groups
 
@@ -176,31 +161,27 @@ Tracking parameters/fragments are removed, while meaningful parameters such as `
 
 Source-verified Cresciva records with a fresh current Open/Closing-soon/Rolling cycle.
 
-### Other verified records
+### Other Cresciva records
 
-Curated Cresciva records that may be useful but are not in the current primary search class.
+Curated records outside the verified-current class. Trust remains visible per card and is never upgraded by the group heading.
 
 ### AI discoveries
 
 Long-tail candidates that have not yet passed authoritative-source verification/current-cycle checks.
 
-The result summary reports the trust/status mix, for example:
+Example result summary:
 
 ```text
-9 results · 4 verified current · 2 verified watchlist · 3 AI discoveries
+9 results · 4 verified current · 2 other Cresciva · 3 AI discoveries
 ```
 
-The three groups render in that order.
+Only records with `verification_status=verified` contribute to `verified_count` analytics; stale/unverified curated records no longer inflate that metric.
 
 ## Search UI rules
 
 The input asks:
 
 > **What kind of opportunity are you looking for?**
-
-Example:
-
-> `climate grant for Nigerian agritech expansion`
 
 Loading copy is truthful:
 
@@ -218,7 +199,7 @@ primaryApplyEligible = false
 
 Therefore Search results can expose `Official source` for inspection but cannot independently show the paid **Apply on official site** treatment.
 
-To get the member-specific application CTA, the canonical record must pass the full Funding Radar gate:
+To get the member-specific application CTA, the canonical record must pass:
 
 ```text
 verified + fresh + current + hard eligible + valid application URL
@@ -226,12 +207,12 @@ verified + fresh + current + hard eligible + valid application URL
 
 ## Analytics/privacy
 
-`funding_search` records aggregate metadata such as:
+`funding_search` records aggregate metadata including:
 
 ```text
 result_count
 verified_current_count
-verified_watchlist_count
+other_curated_count
 verified_count
 ai_count
 cached
@@ -249,20 +230,11 @@ The shared analytics sanitizer drops raw-query/source-body/page-content keys and
 6. Free-form details cannot promote trust.
 7. Stale current-cycle state cannot remain “verified current.”
 8. Search cannot bypass member eligibility/application gating.
-9. The UI visibly separates current verified records, other curated records and AI discoveries.
+9. Stale/unverified curated rows are never labelled “verified” merely because they are in Cresciva's database.
 
 ## Tests and certification
 
-Targeted repository tests cover:
-
-- deterministic search ranking;
-- verified-first AI bypass;
-- deduplication/canonical URL behavior;
-- AI prompt/trust invariants;
-- stale/cache trust normalization;
-- three-group Search UI ordering/counts;
-- AI result claiming OPEN still remaining unverified/unknown;
-- primary application CTA disabled in Search.
+Targeted repository tests cover deterministic search ranking, verified-first AI bypass, deduplication, AI prompt/trust invariants, stale/cache normalization, three-group ordering/counts, stale curated labelling, model-shaped OPEN suppression and primary application CTA disablement inside Search.
 
 These tests are included in the Funding Intelligence Certification workflow.
 
@@ -270,8 +242,8 @@ These tests are included in the Funding Intelligence Certification workflow.
 
 **Repository behavior:** implemented.
 
-**Fresh executable verification:** `BLOCKED_EXTERNAL` at the time of this update because GitHub Actions jobs on the current P0 branch fail before checkout/setup (`steps: null`).
+**Fresh executable verification:** `BLOCKED_EXTERNAL` because GitHub Actions jobs on the current P0 branch fail before checkout/setup (`steps: null`) and produce no downloadable job log blob.
 
-**Live source certification:** also `BLOCKED_EXTERNAL` until the real Cresciva Supabase source registry/refresh scheduler and human/live certification environment are deployed.
+**Live source certification:** `BLOCKED_EXTERNAL` until the real Cresciva Supabase source registry/refresh scheduler and human/live certification environment are deployed.
 
 Do not interpret repository implementation as proof that every live funding result is current until those external gates pass.
