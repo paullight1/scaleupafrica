@@ -29,6 +29,12 @@ verify_jwt = true
 [functions.funding-source-refresh]
 verify_jwt = false
 
+# Funding notification delivery is scheduler-only. It authenticates a dedicated
+# X-Cresciva-Notification-Secret before leasing queue rows; recipients, member
+# state, preferences and opportunity trust are rechecked immediately before send.
+[functions.funding-notifications]
+verify_jwt = false
+
 # Transactional email (Resend). Both are called by SIGNED-OUT visitors — the
 # contact form, the newsletter box, the gated-resource form, and the
 # List-Unsubscribe link in every bulk email — so neither can require a JWT.
