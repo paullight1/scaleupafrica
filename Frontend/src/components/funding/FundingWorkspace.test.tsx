@@ -53,7 +53,7 @@ function item(id: string, overrides: Record<string, unknown> = {}) {
     countryFocus: ["Nigeria"],
     featured: false,
     details: {},
-    lastVerifiedAt: "2026-08-22T10:00:00Z",
+    lastVerifiedAt: new Date().toISOString(),
     verificationStatus: "verified",
     sourceUrl: `https://example.org/${id}`,
     sourceName: "Example Funder",
@@ -80,6 +80,9 @@ function item(id: string, overrides: Record<string, unknown> = {}) {
 const profile = {
   business_name: "Acme",
   country: "Nigeria",
+  operating_countries: [] as string[],
+  organisation_type: null as string | null,
+  founding_year: null as number | null,
   sector: "Agritech",
   keywords: ["agritech", "climate"],
   short_description: "Agritech climate business",
@@ -94,7 +97,7 @@ describe("FundingWorkspace paid surfaces", () => {
   beforeEach(() => {
     analytics.trackEvent.mockReset();
     state.feed = [];
-    state.profile = profile;
+    state.profile = { ...profile, operating_countries: [] };
     state.identity = { country: "Nigeria", summary: "Agritech climate business", enrichedProfile: {} };
   });
 
@@ -109,6 +112,22 @@ describe("FundingWorkspace paid surfaces", () => {
     expect(screen.getByText("primary-apply")).toBeInTheDocument();
     expect(screen.queryByText("Opportunity closed")).toBeNull();
     expect(screen.queryByText("Opportunity ai")).toBeNull();
+  });
+
+  it("uses confirmed operating countries in hard geographic eligibility", () => {
+    state.profile = { ...profile, operating_countries: ["Kenya"] };
+    state.feed = [item("kenya", { countryFocus: ["Kenya"] })];
+    render(<FundingWorkspace />);
+    expect(screen.getByText("Opportunity kenya")).toBeInTheDocument();
+    expect(screen.getByText("primary-apply")).toBeInTheDocument();
+  });
+
+  it("uses confirmed founding year for structured company-age eligibility", () => {
+    state.profile = { ...profile, founding_year: 2020 };
+    state.feed = [item("age", { details: { min_company_age_years: 3 } })];
+    render(<FundingWorkspace />);
+    expect(screen.getByText("Opportunity age")).toBeInTheDocument();
+    expect(screen.getByText("primary-apply")).toBeInTheDocument();
   });
 
   it("renders the exact truthful zero state instead of padding primary recommendations", () => {
