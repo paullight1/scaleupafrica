@@ -4,11 +4,13 @@ import { describe, expect, it } from "vitest";
 
 const workerPath = resolve(process.cwd(), "../supabase/functions/funding-notifications/index.ts");
 const refreshPath = resolve(process.cwd(), "../supabase/functions/funding-source-refresh/index.ts");
-const migrationPath = resolve(process.cwd(), "../supabase/migrations/20260822071000_funding_notification_delivery.sql");
+const preferenceMigrationPath = resolve(process.cwd(), "../supabase/migrations/20260822070000_funding_notification_preferences.sql");
+const deliveryMigrationPath = resolve(process.cwd(), "../supabase/migrations/20260822071000_funding_notification_delivery.sql");
 const schemaPath = resolve(process.cwd(), "src/db/funding-intelligence-schema.ts");
 const workerSource = existsSync(workerPath) ? readFileSync(workerPath, "utf8") : "";
 const refreshSource = existsSync(refreshPath) ? readFileSync(refreshPath, "utf8") : "";
-const migrationSource = existsSync(migrationPath) ? readFileSync(migrationPath, "utf8") : "";
+const preferenceMigrationSource = existsSync(preferenceMigrationPath) ? readFileSync(preferenceMigrationPath, "utf8") : "";
+const deliveryMigrationSource = existsSync(deliveryMigrationPath) ? readFileSync(deliveryMigrationPath, "utf8") : "";
 const schemaSource = existsSync(schemaPath) ? readFileSync(schemaPath, "utf8") : "";
 
 describe("Funding notification delivery trust boundary", () => {
@@ -24,6 +26,14 @@ describe("Funding notification delivery trust boundary", () => {
     expect(workerSource).toContain("saved");
     expect(workerSource).toContain("preparing");
     expect(workerSource).toContain("suppressed");
+  });
+
+  it("preserves the legacy broad funding-email opt-out at queue and delivery time", () => {
+    expect(preferenceMigrationSource).toContain("email_new_funding");
+    expect(preferenceMigrationSource).toContain("email_new_matches = COALESCE(email_new_matches, email_new_funding)");
+    expect(workerSource).toContain("email_new_funding,email_new_matches,email_deadline_alerts");
+    expect(workerSource).toContain("masterFundingConsent");
+    expect(workerSource).toContain("member_funding_email_opted_out");
   });
 
   it("sends through the existing dispatch funnel with event-id idempotency", () => {
@@ -43,11 +53,11 @@ describe("Funding notification delivery trust boundary", () => {
   });
 
   it("adds retry metadata without weakening queue status constraints", () => {
-    expect(migrationSource).toContain("attempt_count");
-    expect(migrationSource).toContain("last_error");
-    expect(migrationSource).toContain("processing_at");
-    expect(migrationSource).toContain("pending");
-    expect(migrationSource).toContain("failed");
+    expect(deliveryMigrationSource).toContain("attempt_count");
+    expect(deliveryMigrationSource).toContain("last_error");
+    expect(deliveryMigrationSource).toContain("processing_at");
+    expect(deliveryMigrationSource).toContain("pending");
+    expect(deliveryMigrationSource).toContain("failed");
   });
 
   it("mirrors notification delivery state in the Backend schema", () => {
