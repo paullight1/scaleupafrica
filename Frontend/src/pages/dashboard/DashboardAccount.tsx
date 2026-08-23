@@ -5,6 +5,7 @@ import BillingPanel from "@/components/billing/BillingPanel";
 import { SecurityCard } from "@/components/dashboard/SecurityCard";
 import { MfaCard } from "@/components/dashboard/MfaCard";
 import { NotificationPrefsCard } from "@/components/dashboard/NotificationPrefsCard";
+import { FundingNotificationPreferences } from "@/components/funding/FundingNotificationPreferences";
 import { SignOutCard } from "@/components/dashboard/SignOutCard";
 
 function Section({
@@ -34,21 +35,12 @@ function Section({
 
 /**
  * Account — membership, security, preferences.
- *
- * Previously "/dashboard/billing", where five cards of unrelated weight sat in a
- * flat grid: a payment panel next to a notification toggle next to a sign-out
- * button. Now each concern is a labelled section in descending order of
- * consequence, and sign-out is a quiet footer action rather than a card
- * competing with billing for the eye.
  */
 export function DashboardAccount() {
   useEffect(() => {
     document.title = "Account — Cresciva";
   }, []);
 
-  // Client-side navigation doesn't honour a hash, and /dashboard/billing#billing
-  // redirects here — so the anchor has to be applied by hand or the redirect
-  // silently drops the user at the top of the page.
   const { hash } = useLocation();
   useEffect(() => {
     if (!hash) return;
@@ -84,7 +76,10 @@ export function DashboardAccount() {
         title="Notifications"
         description="What we're allowed to email you about."
       >
-        <NotificationPrefsCard />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <NotificationPrefsCard />
+          <FundingNotificationPreferences />
+        </div>
       </Section>
 
       <div className="border-t border-border pt-6">
