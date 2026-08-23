@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { supabase } from "@shared/integrations/supabase/client";
-import { isStatusFresh } from "@shared/lib/fundingStatus";
+import { hasFundingStatusConflict, isStatusFresh } from "@shared/lib/fundingStatus";
 import { logAdminAction } from "@shared/lib/audit";
 
 const db = supabase as unknown as SupabaseClient;
@@ -37,7 +37,14 @@ function normalizeVerificationStatus(value: unknown): VerificationStatus { retur
 function text(value: unknown): string { return typeof value === "string" ? value : ""; }
 function nullableText(value: unknown): string | null { const valueText = text(value).trim(); return valueText || null; }
 function record(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
-function hasConflict(signals: Record<string, unknown>): boolean { const open=Boolean(nullableText(signals.explicit_open_text));const closed=Boolean(nullableText(signals.explicit_closed_text));const paused=Boolean(nullableText(signals.explicit_paused_text));const rolling=Boolean(nullableText(signals.rolling_text));return(open&&closed)||(open&&paused)||(rolling&&closed)||(rolling&&paused); }
+function hasConflict(signals: Record<string, unknown>): boolean {
+  return hasFundingStatusConflict({
+    explicitOpen: Boolean(nullableText(signals.explicit_open_text)),
+    explicitClosed: Boolean(nullableText(signals.explicit_closed_text)),
+    explicitPaused: Boolean(nullableText(signals.explicit_paused_text)),
+    explicitRolling: Boolean(nullableText(signals.rolling_text)),
+  });
+}
 
 export function useFundingSourceHealth() {
   return useQuery<FundingSourceHealthData>({
