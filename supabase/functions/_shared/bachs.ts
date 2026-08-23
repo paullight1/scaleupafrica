@@ -22,6 +22,44 @@ export type BachsPlanProductMap = Partial<
   Record<BachsPlanCode, Partial<Record<BachsSupportedCurrency, string>>>
 >;
 
+export type BachsSubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "unpaid"
+  | "canceled"
+  | "paused";
+
+export interface BachsSubscriptionSnapshot {
+  subscription_id: string;
+  customer_id: string | null;
+  product_id: string | null;
+  status: BachsSubscriptionStatus;
+  collection_method: string | null;
+  currency: string | null;
+  amount: string | null;
+  billing_cycle: { interval: string; frequency: number } | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  next_billed_at: string | null;
+  cancel_at_period_end: boolean;
+  canceled_at: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface BachsInvoiceSnapshot {
+  invoice_id: string;
+  subscription_id: string | null;
+  customer_id: string | null;
+  status: string;
+  currency: string | null;
+  total: string | null;
+  amount_paid: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  metadata: Record<string, unknown>;
+}
+
 export interface BachsResult<T = unknown> {
   ok: boolean;
   status: number;
@@ -60,6 +98,105 @@ export interface CrescivaPaymentLite {
   amount: number | string;
   currency: string;
   status: string;
+}
+
+const BACHS_SUBSCRIPTION_STATUSES = new Set<BachsSubscriptionStatus>([
+  "trialing",
+  "active",
+  "past_due",
+  "unpaid",
+  "canceled",
+  "paused",
+]);
+
+export function parseBachsSubscriptionSnapshot(value: unknown): BachsSubscriptionSnapshot | null {
+  if (!isRecord(value)) return null;
+  const subscriptionId = stringValue(value.subscription_id);
+  const status = stringValue(value.status) as BachsSubscriptionStatus;
+  if (!/^sub_[A-Za-z0-9_-]{4,120}$/.test(subscriptionId) || !BACHS_SUBSCRIPTION_STATUSES.has(status)) {
+    return null;
+  }
+
+  const customer = isRecord(value.customer) ? value.customer : null;
+  const billingCycle = isRecord(value.billing_cycle) ? value.billing_cycle : null;
+  const frequency = billingCycle ? Number(billingCycle.frequency) : NaN;
+
+  return {
+    subscription_id: subscriptionId,
+    customer_id: customer ? stringOrNull(customer.customer_id ?? customer.id) : null,
+    product_id: stringOrNull(value.product_id),
+    status,
+    collection_method: stringOrNull(value.collection_method),
+    currency: stringOrNull(value.currency)?.toUpperCase() ?? null,
+    amount: stringOrNull(value.amount),
+    billing_cycle:
+      billingCycle && typeof billingCycle.interval === "string" && Number.isSafeInteger(frequency) && frequency > 0
+        ? { interval: billingCycle.interval, frequency }
+        : null,
+    current_period_start: stringOrNull(value.current_period_start),
+    current_period_end: stringOrNull(value.current_period_end),
+    next_billed_at: stringOrNull(value.next_billed_at),
+    cancel_at_period_end: value.cancel_at_period_end === true,
+    canceled_at: stringOrNull(value.canceled_at),
+    metadata: isRecord(value.metadata) ? value.metadata : {},
+  };
+}
+
+export function parseBachsInvoiceSnapshot(value: unknown): BachsInvoiceSnapshot | null {
+  if (!isRecord(value)) return null;
+  const invoiceId = stringValue(value.invoice_id);
+  if (!/^inv_[A-Za-z0-9_-]{4,120}$/.test(invoiceId)) return null;
+  const subscription = isRecord(value.subscription) ? value.subscription : null;
+  const customer = isRecord(value.customer) ? value.customer : null;
+
+  return {
+    invoice_id: invoiceId,
+    subscription_id: subscription ? stringOrNull(subscription.subscription_id ?? subscription.id) : null,
+    customer_id: customer ? stringOrNull(customer.customer_id ?? customer.id) : null,
+    status: stringValue(value.status),
+    currency: stringOrNull(value.currency)?.toUpperCase() ?? null,
+    total: stringOrNull(value.total),
+    amount_paid: stringOrNull(value.amount_paid),
+    period_start: stringOrNull(value.period_start),
+    period_end: stringOrNull(value.period_end),
+    metadata: isRecord(value.metadata) ? value.metadata : {},
+  };
+}
+
+export function invoiceMatchesExpected(
+  invoice: BachsInvoiceSnapshot,
+  expectedAmount: number,
+  expectedCurrency: string,
+): boolean {
+  if (invoice.status.toLowerCase() !== "paid") return false;
+  const currency = String(expectedCurrency).toUpperCase();
+  if (invoice.currency !== currency) return false;
+  const total = invoice.total ? decimalToSubunits(invoice.total, currency) : null;
+  const paid = invoice.amount_paid ? decimalToSubunits(invoice.amount_paid, currency) : null;
+  return total === expectedAmount && paid === expectedAmount;
+}
+
+export function isSubscriptionAccessValid(
+  status: BachsSubscriptionStatus | string,
+  currentPeriodEnd: string | null | undefined,
+  nowMs = Date.now(),
+): boolean {
+  if (!["trialing", "active", "past_due", "unpaid"].includes(String(status).toLowerCase())) return false;
+  const periodEndMs = currentPeriodEnd ? Date.parse(currentPeriodEnd) : NaN;
+  return Number.isFinite(periodEndMs) && periodEndMs > nowMs;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function stringOrNull(value: unknown): string | null {
+  const normalized = stringValue(value);
+  return normalized || null;
 }
 
 export type GrantAction = "grant" | "already" | "mismatch" | "ignore";
