@@ -9,7 +9,9 @@ const state = vi.hoisted(() => ({
   profile: null as any,
   identity: null as any,
 }));
+const analytics = vi.hoisted(() => ({ trackEvent: vi.fn() }));
 
+vi.mock("@shared/lib/analytics", () => ({ trackEvent: analytics.trackEvent }));
 vi.mock("@/hooks/queries/funding", () => ({
   useFundingFeed: () => ({ data: state.feed, isPending: false, isError: false, refetch: vi.fn() }),
   useFundingProfile: () => ({ data: state.profile, isPending: false, isError: false }),
@@ -23,6 +25,12 @@ vi.mock("@/hooks/queries/memberOpportunityState", () => ({
 }));
 vi.mock("@/components/funding/BusinessEnrichmentPanel", () => ({
   BusinessEnrichmentPanel: () => <div>Tell Cresciva your organisation</div>,
+}));
+vi.mock("@/components/funding/FundingProfilePrompt", () => ({
+  FundingProfilePrompt: () => <div>Funding profile prompt</div>,
+}));
+vi.mock("@/components/funding/FundingNotificationPreferences", () => ({
+  FundingNotificationPreferences: () => <div>Funding alert preferences</div>,
 }));
 vi.mock("@/components/funding/FundingSearch", () => ({ FundingSearch: () => <div>Funding search</div> }));
 vi.mock("@/components/funding/OpportunityCard", () => ({
@@ -84,6 +92,7 @@ const profile = {
 
 describe("FundingWorkspace paid surfaces", () => {
   beforeEach(() => {
+    analytics.trackEvent.mockReset();
     state.feed = [];
     state.profile = profile;
     state.identity = { country: "Nigeria", summary: "Agritech climate business", enrichedProfile: {} };
@@ -125,5 +134,31 @@ describe("FundingWorkspace paid surfaces", () => {
     expect(screen.getByText("Tell Cresciva your organisation")).toBeInTheDocument();
     expect(screen.getByText(/Confirm your organisation or enter your business details/i)).toBeInTheDocument();
     expect(screen.queryByText("Opportunity open")).toBeNull();
+  });
+
+  it("mounts profile and funding-alert controls without turning the unit test into a Supabase integration test", () => {
+    state.feed = [item("open")];
+    render(<FundingWorkspace />);
+    expect(screen.getByText("Funding profile prompt")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Funding alerts"));
+    expect(screen.getByText("Funding alert preferences")).toBeInTheDocument();
+  });
+
+  it("emits one bounded impression per visible opportunity and surface", () => {
+    state.feed = [item("open")];
+    render(<FundingWorkspace />);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      "recommendation_impression",
+      expect.objectContaining({
+        entityType: "funding_opportunity",
+        entityId: "open",
+        metadata: expect.objectContaining({
+          surface: "open_for_you",
+          verification_status: "verified",
+          application_status: "open",
+          primary_apply_eligible: true,
+        }),
+      }),
+    );
   });
 });
