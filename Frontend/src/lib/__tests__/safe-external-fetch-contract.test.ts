@@ -33,6 +33,11 @@ describe("safeExternalFetch source contract", () => {
     }
   });
 
+  it("accepts an injected DNS resolver so Node certification uses the same SSRF boundary", () => {
+    expect(source).toContain("resolveDns?:");
+    expect(source).toContain("options.resolveDns ?? resolvePublicAddresses");
+  });
+
   it("validates redirects manually and caps them at five", () => {
     expect(source).toContain("DEFAULT_MAX_REDIRECTS = 5");
     expect(source).toContain('redirect: "manual"');
