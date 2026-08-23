@@ -168,9 +168,9 @@ GRANT EXECUTE ON FUNCTION public.record_funding_status_check(
   TEXT, TEXT, BOOLEAN, TEXT, TIMESTAMPTZ, TIMESTAMPTZ, TEXT, TEXT, TEXT, TEXT
 ) TO service_role;
 
--- Source registry edits are privileged operations. If a base URL changes, all
--- opportunities tied to the previous base lose verification and current-cycle
--- trust until fresh source evidence is collected.
+-- Source registry edits are privileged operations. If a base URL changes, or a
+-- source is disabled, all opportunities tied to the old trusted scope lose
+-- verification and current-cycle trust until fresh evidence is collected.
 CREATE OR REPLACE FUNCTION public.update_funding_source_and_invalidate(
   _source_id UUID,
   _name TEXT,
@@ -204,7 +204,8 @@ BEGIN
   WHERE id = _source_id
   RETURNING * INTO new_source;
 
-  IF new_source.base_url IS DISTINCT FROM old_source.base_url THEN
+  IF new_source.base_url IS DISTINCT FROM old_source.base_url
+     OR (new_source.active IS DISTINCT FROM old_source.active AND new_source.active = false) THEN
     UPDATE public.funding_opportunities
     SET verification_status = 'unverified',
         last_verified_at = NULL,
@@ -229,7 +230,11 @@ BEGIN
     'update_funding_source',
     'funding_source',
     _source_id::text,
-    jsonb_build_object('base_url_changed', new_source.base_url IS DISTINCT FROM old_source.base_url, 'active', new_source.active)
+    jsonb_build_object(
+      'base_url_changed', new_source.base_url IS DISTINCT FROM old_source.base_url,
+      'active_changed', new_source.active IS DISTINCT FROM old_source.active,
+      'active', new_source.active
+    )
   );
 
   RETURN new_source;
