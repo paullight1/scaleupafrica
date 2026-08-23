@@ -43,7 +43,7 @@ export function CurrentPlanCard() {
   }
 
   return (
-    <section aria-labelledby="current-plan-heading" className="rounded-xl border border-border bg-card p-6 shadow-soft md:p-8">
+    <section aria-labelledby="current-plan-heading" className="rounded-xl border border-border bg-card p-4 sm:p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-navy">{planLabel(data?.plan_code)}</p>
@@ -64,11 +64,11 @@ export function CurrentPlanCard() {
           : <p>You're not a member yet. Choose a recurring plan to unlock the Funding Radar.</p>}
       </div>
 
-      {neverSubscribed && <ul className="mt-5 grid gap-2 sm:grid-cols-2">{MEMBERSHIP_FEATURES.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm text-foreground"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-dark" />{feature}</li>)}</ul>}
+      {neverSubscribed && <ul className="mt-5 grid gap-x-5 gap-y-2 sm:grid-cols-2">{MEMBERSHIP_FEATURES.map((feature) => <li key={feature} className="flex min-w-0 items-start gap-2 text-sm leading-5 text-foreground"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-dark" /><span>{feature}</span></li>)}</ul>}
 
       {hasBillingAccount && <Button variant="outline" className="mt-6 w-full sm:w-auto" onClick={openPortal} disabled={portalPending}>{portalPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening billing…</> : <><ExternalLink className="h-4 w-4" /> Manage billing</>}</Button>}
 
-      {!hasBillingAccount && !active && <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4"><p className="font-display text-xl font-bold text-ink-strong">{price}<span className="ml-1 text-sm font-normal text-muted-foreground">/ {PLAN_TERM_MONTHS.annual / 12} year</span></p><p className="mt-1 text-xs text-muted-foreground">Recurring USD card subscription through Bachs.</p><CheckoutButton currency="USD" next="/dashboard/account#billing" className="mt-4 w-full sm:w-auto">Start annual membership</CheckoutButton></div>}
+      {!hasBillingAccount && !active && <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4"><p className="font-display text-xl font-bold text-ink-strong">{price}<span className="ml-1 text-sm font-normal text-muted-foreground">/ {PLAN_TERM_MONTHS.annual / 12} year</span></p><p className="mt-1 text-xs text-muted-foreground">Recurring USD card subscription through Bachs.</p><CheckoutButton currency="USD" next="/dashboard/account/membership" className="mt-4 w-full sm:w-auto">Start annual membership</CheckoutButton></div>}
 
       <p className="mt-6 flex items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><span>Plans renew automatically through Bachs. Manage or cancel your subscription from the Bachs billing portal. Cresciva does not receive your card details.</span></p>
     </section>

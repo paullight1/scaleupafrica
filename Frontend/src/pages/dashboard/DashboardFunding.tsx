@@ -65,10 +65,7 @@ export function DashboardFunding() {
           {teaserQ.isPending ? (
             <OpportunityCardSkeletonList count={3} />
           ) : teaserQ.isError || !teaserQ.data ? (
-            <ErrorState
-              title="Couldn't load this week's funding"
-              onRetry={() => teaserQ.refetch()}
-            />
+            null
           ) : (
             <FundingTeaserPanel teaser={teaserQ.data} heading="Open right now" />
           )}

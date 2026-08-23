@@ -78,6 +78,15 @@ describe("Funding gate", () => {
     expect(screen.queryByTestId("funding-workspace")).toBeNull();
   });
 
+  it("keeps the paywall useful when the non-member teaser request fails", () => {
+    sub.status = "inactive";
+    teaser.isError = true;
+    renderPage();
+
+    expect(screen.getByText(/members only/i)).toBeInTheDocument();
+    expect(screen.queryByText(/couldn't load this week's funding/i)).toBeNull();
+  });
+
   it("active subscription shows the workspace, no paywall", () => {
     sub.status = "active";
     renderPage();

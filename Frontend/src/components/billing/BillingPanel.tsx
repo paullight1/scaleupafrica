@@ -26,12 +26,12 @@ export function BillingPanel({ showHeader = true, className }: BillingPanelProps
           className="mb-8"
         />
       )}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid gap-5 2xl:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
+        <div className="min-w-0 space-y-5">
           <CurrentPlanCard />
           <PaymentHistory />
         </div>
-        <div className="lg:col-span-1">
+        <div className="min-w-0">
           <ConciergeCard />
         </div>
       </div>

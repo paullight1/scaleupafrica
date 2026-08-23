@@ -13,7 +13,11 @@ export const DASHBOARD_FUNDING = "/dashboard/funding";
 export const DASHBOARD_PROFILE = "/dashboard/profile";
 export const DASHBOARD_PROFILE_EDIT = "/dashboard/profile/edit";
 export const DASHBOARD_ACCOUNT = "/dashboard/account";
-export const DASHBOARD_ACCOUNT_BILLING = "/dashboard/account#billing";
+export const DASHBOARD_MEMBERSHIP = "/dashboard/account/membership";
+export const DASHBOARD_SECURITY = "/dashboard/account/security";
+export const DASHBOARD_NOTIFICATIONS = "/dashboard/account/notifications";
+export const DASHBOARD_DATA = "/dashboard/account/data";
+export const DASHBOARD_ACCOUNT_BILLING = DASHBOARD_MEMBERSHIP;
 
 /** The editable groups of the profile form. Order is the wizard order. */
 export const PROFILE_SECTIONS = ["identity", "story", "matching", "contact"] as const;

@@ -84,7 +84,7 @@ export function defaultCurrency(): Currency {
 }
 
 /** Where upgrade / renew CTAs point — the Membership section of the account page. */
-export const BILLING_ROUTE = "/dashboard/account#billing";
+export const BILLING_ROUTE = "/dashboard/account/membership";
 
 // --- Concierge ---------------------------------------------------------------
 // TODO(HANDOFF): replace with the real staffed WhatsApp business number before launch.

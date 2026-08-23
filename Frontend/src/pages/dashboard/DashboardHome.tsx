@@ -20,6 +20,7 @@ import { OnboardingCard } from "@/components/dashboard/OnboardingCard";
 import { ClosingSoonCard } from "@/components/dashboard/ClosingSoonCard";
 import { MatchedOpportunities } from "@/components/dashboard/MatchedOpportunities";
 import { FundingTeaserPanel } from "@/components/dashboard/FundingTeaserPanel";
+import { FundingPaywall } from "@/components/funding/FundingPaywall";
 import { DASHBOARD_FUNDING, DASHBOARD_PROFILE } from "@/lib/dashboard/routes";
 
 function greetingName(
@@ -130,10 +131,7 @@ export function DashboardHome() {
         teaserQ.isPending ? (
           <CardSkeleton lines={4} />
         ) : teaserQ.isError || !teaserQ.data ? (
-          <ErrorState
-            title="Couldn't load this week's funding"
-            onRetry={() => teaserQ.refetch()}
-          />
+          <FundingPaywall userEmail={user?.email ?? undefined} />
         ) : (
           <FundingTeaserPanel teaser={teaserQ.data} />
         )

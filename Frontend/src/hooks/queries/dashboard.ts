@@ -133,10 +133,10 @@ export function useFundingTeaser(enabled: boolean): UseQueryResult<FundingTeaser
     enabled: enabled && !!user,
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<FundingTeaser> => {
-      const rpc = (supabase as unknown as {
+      const client = supabase as unknown as {
         rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
-      }).rpc;
-      const { data, error } = await rpc("funding_teaser", { _limit: 3 });
+      };
+      const { data, error } = await client.rpc("funding_teaser", { _limit: 3 });
       if (error) throw error;
       const rows = (data ?? []) as Array<{ id: string; title: string; funder: string; type: string | null; deadline: string | null; total_published: number | string }>;
       return {
