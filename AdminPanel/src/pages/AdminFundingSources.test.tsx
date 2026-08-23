@@ -6,6 +6,8 @@ import AdminFundingSources from "./AdminFundingSources";
 
 const recheckMutate = vi.fn();
 const refreshDueMutate = vi.fn();
+const createSourceMutate = vi.fn();
+const updateSourceMutate = vi.fn();
 
 vi.mock("@/hooks/queries/fundingSources", () => ({
   useFundingSourceHealth: () => ({
@@ -59,12 +61,16 @@ vi.mock("@/hooks/queries/fundingSources", () => ({
   }),
   useRecheckFundingOpportunity: () => ({ mutate: recheckMutate, isPending: false }),
   useRefreshDueFunding: () => ({ mutate: refreshDueMutate, isPending: false }),
+  useCreateFundingSource: () => ({ mutate: createSourceMutate, isPending: false }),
+  useUpdateFundingSource: () => ({ mutate: updateSourceMutate, isPending: false }),
 }));
 
 describe("AdminFundingSources", () => {
   beforeEach(() => {
     recheckMutate.mockReset();
     refreshDueMutate.mockReset();
+    createSourceMutate.mockReset();
+    updateSourceMutate.mockReset();
   });
 
   it("shows failed source health with error class and last success", () => {
@@ -93,5 +99,22 @@ describe("AdminFundingSources", () => {
     render(<AdminFundingSources />);
     fireEvent.click(screen.getByRole("button", { name: /refresh due/i }));
     expect(refreshDueMutate).toHaveBeenCalled();
+  });
+
+  it("edits source metadata through the invalidating source-registry mutation", () => {
+    render(<AdminFundingSources />);
+    fireEvent.click(screen.getByRole("button", { name: /edit source/i }));
+    expect(screen.getByRole("dialog", { name: /edit funding source/i })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/base url/i), { target: { value: "https://example.org/funding" } });
+    fireEvent.click(screen.getByRole("button", { name: /save source/i }));
+    expect(updateSourceMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "source-1",
+        name: "Example Funder",
+        baseUrl: "https://example.org/funding",
+        active: true,
+      }),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 });
