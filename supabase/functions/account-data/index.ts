@@ -44,7 +44,7 @@ async function exportAccount(
   user: { id: string; email?: string; created_at?: string },
 ): Promise<JsonRecord> {
   const [profiles, subscriptions, payments, preferences, saved, fundingResults, memberStates, notificationPrefs, enrichmentRuns, fundingReports] = await Promise.all([
-    selectRows(service, "profiles", "id", user.id),
+    selectRows(service, "profiles", "user_id", user.id),
     selectRows(service, "subscriptions", "user_id", user.id),
     selectRows(service, "payments", "user_id", user.id, "id,provider,reference,plan_code,amount,currency,status,channel,paid_at,created_at,updated_at"),
     selectRows(service, "user_preferences", "user_id", user.id),
@@ -113,10 +113,12 @@ Deno.serve(async (req) => {
     const nowSeconds = Math.floor(Date.now() / 1000);
     if (!issuedAt || nowSeconds - issuedAt > RECENT_AUTH_SECONDS) return json({ error: "recent_auth_required" }, 409);
 
+    // Storage cleanup happens first. If it fails, the account/database graph is
+    // still intact and the member can retry without a partially detached ledger.
+    await removeProfileMedia(service, user.id);
+
     const { error: prepareError } = await service.rpc("prepare_account_deletion", { _user_id: user.id });
     if (prepareError) throw new Error("account_sanitization_failed");
-
-    await removeProfileMedia(service, user.id);
 
     const { error: deleteError } = await service.auth.admin.deleteUser(user.id);
     if (deleteError) throw new Error("auth_delete_failed");
