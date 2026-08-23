@@ -22,6 +22,7 @@ const required = [
   "Frontend/src/components/dashboard/DataRightsCard.tsx",
   "Frontend/src/components/funding/FundingIssueReport.tsx",
   "AdminPanel/src/pages/AdminFundingReports.tsx",
+  "Backend/src/db/payment-schema.ts",
   "Backend/src/observability/logger.ts",
   "supabase/functions/_shared/log.ts",
 ];
@@ -48,6 +49,8 @@ const [
   accountRightsMigration,
   fundingReportsMigration,
   providerDefaultsMigration,
+  paymentSchema,
+  dbClient,
 ] = await Promise.all([
   text("package.json"),
   text("supabase/config.toml"),
@@ -60,6 +63,8 @@ const [
   text("supabase/migrations/20260823093000_account_data_rights.sql"),
   text("supabase/migrations/20260823094500_funding_corrections.sql"),
   text("supabase/migrations/20260823095500_bachs_provider_defaults.sql"),
+  text("Backend/src/db/payment-schema.ts"),
+  text("Backend/src/db/client.ts"),
 ]);
 
 function requireContains(label, source, needle) {
@@ -120,6 +125,12 @@ requireContains("Funding-report migration", fundingReportsMigration, "funding_op
 
 requireContains("Provider defaults", providerDefaultsMigration, "ALTER COLUMN provider SET DEFAULT 'bachs'");
 requireAbsent("Provider defaults", providerDefaultsMigration, /SET DEFAULT 'paystack'/i);
+requireContains("Backend payment schema", paymentSchema, 'provider: text("provider").notNull().default("bachs")');
+requireContains("Backend payment schema", paymentSchema, 'userId: uuid("user_id")');
+requireAbsent("Backend payment schema", paymentSchema, /userId:\s*uuid\("user_id"\)\.notNull\(\)/);
+requireAbsent("Backend payment schema", paymentSchema, /default\("paystack"\)/i);
+requireContains("Backend DB client", dbClient, "payments,");
+requireContains("Backend DB client", dbClient, "paymentWebhookEvents,");
 
 if (failures.length) {
   console.error("release-readiness: FAIL");
@@ -127,4 +138,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`release-readiness: PASS (${required.length} required artifacts + trust/data-rights invariants)`);
+console.log(`release-readiness: PASS (${required.length} required artifacts + trust/data-rights/schema invariants)`);
