@@ -92,6 +92,7 @@ jobs:
             src/lib/funding/feedTrust.test.ts \
             src/lib/funding/primaryFundingGate.test.ts \
             src/lib/funding/recommendationEngine.test.ts \
+            src/lib/funding/recommendationEngine.trust.test.ts \
             src/lib/fundingCache.test.ts \
             src/components/funding/FundingRadarTabs.test.tsx \
             src/components/funding/FundingWorkspace.test.tsx \
@@ -145,6 +146,7 @@ jobs:
           grep -q 'pageText.includes(quote)' supabase/functions/_shared/businessDiscovery.ts
           grep -q 'sua:funding:v2:' Frontend/src/lib/fundingCache.ts
           grep -q 'resolveFeedVerificationStatus' Frontend/src/hooks/queries/funding.ts
+          grep -q 'effectiveFundingVerificationStatus' Frontend/src/lib/funding/recommendationEngine.ts
           grep -q 'FUNDING_NOTIFICATION_SECRET' supabase/functions/funding-notifications/index.ts
           grep -q 'delivery_attempts_exhausted' supabase/migrations/20260822071000_funding_notification_delivery.sql
           grep -q 'email_new_funding,email_new_matches,email_deadline_alerts' supabase/functions/funding-notifications/index.ts
