@@ -1,262 +1,359 @@
 # Cresciva Recommendation Engine
 
-## What it does
+## Purpose
 
 The Recommendation Engine answers:
 
-> **Which funding opportunities are the best fit for this specific Cresciva member, and why?**
+> **Given Cresciva's confirmed understanding of this organisation and a canonical funding record, is the member eligible, how strong is the fit, how trustworthy is the record, and why?**
 
-It is intentionally different from Opportunity Search. Search starts from an explicit member query. Recommendations start from the member's business profile and Cresciva's curated opportunity feed.
+It does **not** decide whether the current funding cycle is open. That belongs to the Opportunity Status Engine. It does **not** discover arbitrary opportunities from model memory. That belongs to Opportunity Search/ingestion.
 
-## Implemented V2 architecture
+## Current architecture
 
 ```text
-Member profile
-  country
-  sector
-  keywords
-  short/long business description
-        |
-        v
-Feature extraction
-        |
-        v
-Conservative hard eligibility
-        |
-        +---- known country mismatch ---> exclude + blocker
-        |
-        v
-Normalized match score (0-100)
-        |
-        +---- geography (when known)
-        +---- sector fit
-        +---- keyword/tag fit
-        +---- description fit
-        |
-        v
-Separate confidence score
-        |
-        +---- verification recency
-        +---- usable program/source URL
-        +---- explicit geography
-        +---- eligibility/structured details
-        |
-        v
-Deterministic reasons
-        |
-        v
-Ranked recommendations
-        |
-        +---- Dashboard
-        +---- Funding Radar
-        |
-        v
-Open / save / source-click analytics
+Confirmed member / organisation profile
+        ↓
+Hard eligibility checks
+        ├─ explicit geography mismatch -> INELIGIBLE
+        ├─ explicit stage mismatch -> INELIGIBLE
+        └─ missing facts -> possibly eligible / insufficient information
+        ↓
+Deterministic match score (0–100)
+        ↓
+Separate source-confidence score (0–100)
+        ↓
+Separate application-readiness score (0–100)
+        ↓
+Evidence-backed reasons / blockers / missing information
+        ↓
+Current-cycle status attached from Status Engine
+        ↓
+Primary application eligibility
+verified + fresh + open/closing-soon/rolling + eligible
+        ↓
+Funding Radar surface classifier
 ```
 
-The core implementation is `Frontend/src/lib/funding/recommendationEngine.ts`. Dashboard matching is an adapter over the same engine rather than a competing scoring implementation.
+Core implementation:
 
-## Why the engine is deterministic
+`Frontend/src/lib/funding/recommendationEngine.ts`
 
-Cresciva does not ask an LLM to decide whether a member is eligible or to invent a numeric match score. V2 is deterministic so that:
+Dashboard/Funding Radar adapters consume the same engine rather than maintaining competing scoring formulas.
 
-- the same profile and opportunity produce the same result;
-- a known hard eligibility mismatch cannot be overridden by persuasive AI text;
-- every score can be explained;
-- regression tests can protect ranking behavior;
-- the system can later be benchmarked against human labels.
+## Why deterministic
 
-AI may later turn deterministic evidence into richer prose, but it does not own the eligibility verdict or score.
+Cresciva does not ask an LLM to assign the eligibility verdict or numeric match score.
 
-## Inputs
+Deterministic rules provide:
 
-### Member profile
+- repeatability;
+- explainability;
+- hard exclusion that cannot be overridden by persuasive AI text;
+- testable ranking behavior;
+- measurable false-positive rates against human labels;
+- clean separation between relevance and source/current-cycle trust.
 
-V2 currently uses fields that already exist in Cresciva:
+AI may explain verified structured evidence in the future, but it does not own the underlying verdict.
 
-- `country`
-- `sector`
-- `keywords[]`
-- `short_description`
-- `long_description`
+## Member profile inputs
 
-Future funding-profile phases can add business stage, revenue, team size, company age, funding amount sought, equity/debt preferences and application readiness.
+The current recommendation profile can use:
 
-### Opportunity
-
-V2 currently uses:
-
-- `country_focus[]`
-- `tags[]`
-- `title`
-- `funder`
-- `summary`
-- `eligibility`
-- `type`
-- `deadline`
-- `url`
-- `last_verified_at`
-- `details` JSON where explicit structured values exist
-
-The current generated Supabase funding type predates `details` and `last_verified_at`; the dashboard extends that row type locally until the real Cresciva project is available for trustworthy type regeneration.
-
-## Step 1 — eligibility
-
-Eligibility is evaluated before match scoring.
-
-### Country rule
-
-V2 is intentionally conservative:
-
-- explicit member-country match -> `eligible`;
-- `Africa`, `African`, `Pan-African`, `All`, and equivalent continent-wide focus -> `eligible`;
-- explicit country list that excludes a known member country -> `ineligible` and match score `0`;
-- explicit opportunity geography but missing member country -> `insufficient_information`;
-- **missing opportunity geography -> `possibly_eligible`**, not automatically eligible.
-
-Unknown opportunity geography receives **no geography match points**. Missing data is not converted into either a positive match or a hard rejection.
-
-### Eligibility states
-
-```ts
-"eligible"
-"possibly_eligible"
-"insufficient_information"
-"ineligible"
+```text
+country
+sector
+keywords[]
+short description
+long description
+business stage
+preferred funding types[]
+funding target USD
+application readiness
+confirmed Business Enrichment evidence fallback
 ```
 
-Additional hard rules should be added only when Cresciva has explicit structured source data for them.
+Funding Radar prefers manual/member-entered values when present and uses confirmed enrichment only to fill missing context.
 
-## Step 2 — match score
+Unconfirmed enrichment candidates never enter recommendation scoring.
 
-The score is normalized to `0–100` using evaluable profile dimensions.
+## Opportunity inputs
 
-| Dimension | Maximum weight |
-| --- | ---: |
-| Geography | 30 |
-| Sector fit | 25 |
-| Keyword/tag fit | 25 |
-| Business-description fit | 20 |
-| **Total** | **100** |
+The recommendation engine consumes canonical fields including:
+
+```text
+country_focus[]
+tags[]
+title
+funder
+type
+summary
+eligibility
+structured details
+last_verified_at
+source_url
+verification_status
+application_status
+status_checked_at
+application_url
+deadline_at
+deadline_status
+```
+
+Useful structured `details` fields include:
+
+```text
+business_stages[]
+min_award_usd
+max_award_usd
+sectors[]
+subsectors[]
+keywords[]
+sdg_focus[]
+```
+
+Free-form details cannot promote verification/current status; controlled canonical fields own trust.
+
+## Step 1 — hard eligibility
+
+Eligibility states:
+
+```text
+eligible
+possibly_eligible
+insufficient_information
+ineligible
+```
 
 ### Geography
 
-Full geography weight is awarded only when the member country is known **and** the opportunity explicitly supports that country or a Pan-African geography.
+- direct member-country match -> eligible evidence;
+- Pan-African/continent-wide focus -> eligible evidence;
+- explicit country list excluding the known member country -> hard `ineligible`;
+- member country missing while opportunity geography is explicit -> `insufficient_information`;
+- opportunity geography missing -> `possibly_eligible`, not free positive evidence.
 
-An explicit geographic mismatch excludes the recommendation.
+Country aliases normalise common demonyms such as `Nigerian -> Nigeria`.
 
-### Sector fit
+### Business stage
 
-The engine normalizes and tokenizes member sector vs opportunity title, funder, type, summary, eligibility, tags and selected structured `details` fields. Small domain aliases improve basic vocabulary parity, for example `agritech -> agriculture` and `fintech -> finance`.
+When the opportunity contains explicit structured `business_stages[]`:
 
-### Keyword fit
+- known member stage in allowed stages -> positive eligibility evidence;
+- known member stage outside allowed stages -> hard `ineligible`;
+- member stage missing -> missing-information/abstention rather than optimistic eligibility.
 
-Profile keywords are compared with searchable opportunity tokens. Repeated keywords do not multiply the score.
+Funding type and funding target are **fit dimensions**, not hard eligibility exclusions unless future source structure explicitly makes them eligibility requirements.
 
-### Business-description fit
+## Step 2 — match score
 
-Meaningful words from the short/long description are compared with opportunity evidence. Common stop words are ignored so generic English does not inflate the score.
+Only evaluable dimensions enter the denominator. Missing data does not automatically lower the member with an arbitrary zero, and it does not create free positive evidence.
 
-## Step 3 — confidence score
+Current maximum dimension weights:
 
-**Match score and confidence score are intentionally separate.**
+| Dimension | Weight |
+| --- | ---: |
+| Geography | 25 |
+| Sector/subsector | 20 |
+| Keywords/themes | 20 |
+| Business description similarity | 15 |
+| Business stage | 10 |
+| Preferred funding type | 5 |
+| Funding target vs structured award range | 5 |
+| **Total when all are evaluable** | **100** |
 
-A program can be highly relevant while its Cresciva record needs rechecking.
+### Vocabulary normalization
 
-Current confidence inputs are:
-
-- base confidence: `10`;
-- usable program/source URL: `+20`;
-- explicit country focus: `+15`;
-- eligibility text or structured details: `+15`;
-- verification <=7 days: `+40`;
-- verification <=30 days: `+25`;
-- verification <=90 days: `+10`.
-
-The score is bounded to `0–100`.
-
-This is a **record-confidence heuristic**, not yet the full official-source provenance score planned in Phase 5.
-
-## Step 4 — deterministic explanations
-
-The engine emits evidence-backed reasons such as:
-
-- `Nigeria is in the eligible geography.`
-- `AgriTech & Food aligns with this program's focus.`
-- `Matches your climate, agriculture interests.`
-
-The UI renders only reasons produced by the engine.
-
-## Ranking
-
-Recommendations are ordered by:
-
-1. eligibility state;
-2. match score;
-3. confidence score;
-4. `featured` only as a final merchandising tie-break;
-5. original stable feed order.
-
-`featured` does not create relevance by itself.
-
-Hard-ineligible records are omitted from the recommendation set, but the Funding Radar Explore feed can still show unmatched records below personalized matches rather than pretending every feed item is recommended.
-
-## UI behavior
-
-Dashboard and Funding Radar can show:
+Basic domain aliases improve deterministic matching, for example:
 
 ```text
-92% match
-VERIFIED SOURCE
-
-Climate Smart Agriculture Growth Fund
-
-Why it matches
-✓ Nigeria is in the eligible geography.
-✓ AgriTech & Food aligns with this program's focus.
-✓ Matches your climate, agriculture interests.
-
-[Learn more] [Official source]
+agritech -> agriculture / agricultural
+fintech -> finance / financial
+healthtech -> health
+edtech -> education
+climatetech -> climate
 ```
 
-If source confidence is weak, the UI can show `Source needs recheck` separately from the match percentage.
+This is taxonomy normalization, not model inference.
 
-## Feedback loop
+### Funding target
 
-V2 uses the existing saved-opportunity system and adds aggregate product events:
+When a source-backed award range is present, a member target inside the range earns the amount-fit dimension. An out-of-range target does not create hard ineligibility; the engine surfaces a review warning/missing-information message.
 
-- `recommendation_open`
-- `recommendation_save` — emitted only after a successful save mutation
-- `opportunity_source_click`
+## Step 3 — source confidence
 
-Recommendation events can include match/confidence/eligibility metadata. Raw Opportunity Search queries are not copied into general analytics.
+Match score and confidence are intentionally separate.
 
-Future signals can add `not_relevant`, application started/submitted, won and rejected states once the corresponding product workflows exist.
+Current confidence inputs include:
 
-## Accuracy rules
+- base confidence;
+- controlled authoritative `source_url`;
+- explicit geography;
+- eligibility/structured detail availability;
+- explicit `verification_status`;
+- age of `last_verified_at`.
 
-1. A known hard mismatch never receives a positive recommendation.
-2. Missing data is not a mismatch and is not free positive evidence.
-3. AI text cannot change deterministic eligibility or scoring.
-4. Verification confidence is never folded into relevance score.
-5. A stale record may remain discoverable but must not look as trustworthy as a recently checked record.
-6. Free-form `details` JSON cannot promote its own trust state; controlled curated columns own verification metadata.
+Recent verified source evidence can produce a high confidence score; a relevant but stale/unverified record can still have a high match score with low confidence.
 
-## Current verification
+Current-cycle freshness is **not** hidden inside this score. The Status Engine separately computes effective application status/freshness.
 
-Automated tests cover direct-country match, Pan-African match, explicit country exclusion, missing-country uncertainty, unknown-opportunity-geography behavior, sector/keyword ranking, bounded scores, stale-confidence degradation and recommendation ordering.
+## Step 4 — readiness score
 
-The full repository workspace gate has passed with the engine implementation, and all seven active Edge Functions have passed the focused Deno diagnostic. Final normal PR CI remains the release evidence source.
-
-## Relationship with Opportunity Search
+Application readiness is separate from fit:
 
 ```text
-Recommendation: profile -> curated candidates -> eligibility -> score -> rank
-Search:         query   -> verified search -> optional AI discovery -> results
+ready       -> high readiness score
+preparing   -> medium readiness score
+exploring   -> low readiness score
+unknown     -> 0 / prompt for profile completion
 ```
 
-Both engines share opportunity data and UI components but preserve different trust and analytics semantics.
+A founder who is early in preparation can still be an excellent program fit. Cresciva therefore does not punish relevance simply because application materials are incomplete.
 
-## Next accuracy layer
+## Step 5 — explanations
 
-The current engine works on the existing Cresciva schema. Phase 5 provenance should add official-source evidence and more structured eligibility fields; a later Funding Profile phase can add stage, revenue, funding-size and preference features. Those additions increase the number of deterministic eligibility/ranking dimensions without changing the engine's basic architecture.
+The engine produces deterministic:
+
+- `reasons[]`;
+- `blockers[]`;
+- `missingInformation[]`.
+
+Examples:
+
+```text
+Nigeria is in the eligible geography.
+Growth stage matches the program's stated eligibility.
+Agritech aligns with this program's focus.
+Matches your climate, agriculture interests.
+Grant matches your preferred funding type.
+Your funding target is inside the program's stated award range.
+```
+
+Known hard failures produce explicit blockers instead of a vague low score.
+
+## Step 6 — current-cycle attachment
+
+The engine attaches the **effective** application status from the Status Engine:
+
+```text
+open
+closing_soon
+rolling
+upcoming
+closed
+paused
+unknown
+```
+
+A stored OPEN that is outside its freshness window becomes effective `unknown` at read time.
+
+Availability does not alter the conceptual match score. A closed grant can remain a 95% fit and appear in Explore; it simply cannot enter the paid primary application surface.
+
+## Primary application eligibility
+
+`primaryApplyEligible` requires all of:
+
+```text
+verification_status = verified
+AND effective status is fresh
+AND application_status IN (open, closing_soon, rolling)
+AND eligibility_status = eligible
+```
+
+The card additionally requires a valid authoritative `application_url` before rendering **Apply on official site**.
+
+## Funding Radar ranking/surfaces
+
+The recommendation engine scores canonical records; the Primary Funding Gate assigns surfaces:
+
+### Open for you
+
+Verified + fresh + current + eligible.
+
+### Closing soon
+
+Subset of Open for you with current-cycle `closing_soon`.
+
+### Watchlist
+
+Verified records that are upcoming/stale/unknown/paused or require missing eligibility information.
+
+### Explore
+
+Closed/hard-ineligible/non-primary records plus AI discovery.
+
+Within a surface, strong match/confidence ranks ahead; `featured` is only a late tie-break, never a relevance source.
+
+## Member feedback
+
+Member workflow states are independent of engine truth:
+
+```text
+saved
+preparing
+applied
+won
+rejected
+dismissed
+```
+
+These signals support future measurement/learning but do not directly change hard eligibility rules or source status.
+
+The first `applied` transition records application time; later won/rejected transitions preserve it.
+
+## Analytics
+
+Lifecycle events include:
+
+```text
+recommendation_impression
+recommendation_open
+recommendation_save
+recommendation_not_relevant
+recommendation_apply_click
+application_started
+application_submitted
+application_won
+application_rejected
+opportunity_source_click
+```
+
+Metadata is bounded/sanitized and can carry score/status identifiers, not raw third-party source bodies or unrestricted search text.
+
+## Accuracy invariants
+
+1. Explicit hard mismatch never receives a positive primary eligibility verdict.
+2. Missing information is not free positive evidence.
+3. AI text cannot alter hard eligibility, score, verification or current-cycle status.
+4. Match, confidence, readiness and current availability remain separate.
+5. Stale stored OPEN cannot remain primary.
+6. Free-form JSON cannot promote trust.
+7. A high match score cannot bypass source/current/eligibility gates.
+8. Search relevance cannot independently grant the primary application CTA.
+
+## Evaluation
+
+Targeted tests cover:
+
+- direct/Pan-African geography;
+- explicit geography exclusion;
+- missing geography uncertainty;
+- business-stage match/exclusion;
+- sector/domain aliases;
+- preferred funding type;
+- award-range fit;
+- separate readiness score;
+- confidence/source evidence;
+- closed high-fit records retaining fit but losing primary eligibility;
+- stale stored OPEN -> effective unknown;
+- unverified records never promoted to primary;
+- ranking and hard-ineligible exclusion.
+
+P0-D adds human-labelled eligibility/relevance metrics including hard false-positive rate and Precision@5.
+
+## Current release status
+
+**Repository behavior:** implemented.
+
+**Fresh final-head verification:** currently `BLOCKED_EXTERNAL` because GitHub Actions jobs are failing before checkout/setup (`steps: null`), not because a current compiler/test failure has been observed.
+
+**Production certification:** `BLOCKED_EXTERNAL` until the real Supabase/source-refresh environment and required human/live P0-D corpus/results exist.
