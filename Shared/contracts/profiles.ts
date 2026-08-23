@@ -8,6 +8,8 @@ import { z } from "zod";
 
 export const BUSINESS_STAGE_VALUES = ["idea", "early", "growth", "scale"] as const;
 export const APPLICATION_READINESS_VALUES = ["exploring", "preparing", "ready"] as const;
+export const ACQUISITION_SOURCE_VALUES = ["linkedin", "whatsapp", "founders_webinar", "instagram", "facebook", "other"] as const;
+export type AcquisitionSource = (typeof ACQUISITION_SOURCE_VALUES)[number];
 
 export function sanitizeWebUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -37,6 +39,9 @@ const webUrl = (max: number, msg: string) =>
     .refine((v) => !v || sanitizeWebUrl(v) !== null, msg)
     .transform((v) => (v ? sanitizeWebUrl(v) ?? undefined : undefined));
 
+export const OfferingSchema = z.object({ name: z.string().trim().min(1, "Add a name").max(120), description: optStr(500), url: webUrl(500, "Enter a valid product or service link") }).strict();
+export type Offering = z.infer<typeof OfferingSchema>;
+
 export const ProfileUpsertSchema = z
   .object({
     business_name: z
@@ -49,6 +54,8 @@ export const ProfileUpsertSchema = z
     sector: z.string().trim().min(1, "Choose a sector"),
     short_description: optStr(180),
     long_description: optStr(2000),
+    target_customers: optStr(1000),
+    offerings: z.array(OfferingSchema).max(10, "Add up to 10 products or services").default([]),
     website: webUrl(255, "Enter a valid web address like https://example.com"),
     email: z
       .string()
@@ -89,11 +96,14 @@ export const ProfileUpsertSchema = z
       .default([])
       .transform((arr) => Array.from(new Set(arr.map((v) => v.trim()).filter(Boolean)))),
     founding_year: z.number().int().min(1800).max(2100).nullable().optional(),
+    acquisition_source: z.enum(ACQUISITION_SOURCE_VALUES).nullable().optional(),
+    acquisition_source_other: optStr(160),
     show_email: z.boolean().default(true),
     show_phone: z.boolean().default(true),
     show_whatsapp: z.boolean().default(true),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => { if (value.acquisition_source === "other" && !value.acquisition_source_other) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["acquisition_source_other"], message: "Tell us where you heard about Cresciva" }); });
 
 export type ProfileUpsertInput = z.infer<typeof ProfileUpsertSchema>;
 
@@ -132,6 +142,8 @@ export interface ProfileDetail {
   sector: string;
   short_description: string | null;
   long_description: string | null;
+  target_customers: string | null;
+  offerings: Offering[];
   website: string | null;
   instagram: string | null;
   linkedin: string | null;
@@ -165,4 +177,4 @@ export interface PrivateFundingProfileFields {
 }
 
 /** Owner-only response. */
-export type OwnProfile = ProfileDetail & PrivateFundingProfileFields & { user_id: string };
+export type OwnProfile = ProfileDetail & PrivateFundingProfileFields & { user_id: string; acquisition_source: AcquisitionSource | null; acquisition_source_other: string | null };

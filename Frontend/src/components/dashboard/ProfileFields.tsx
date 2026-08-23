@@ -14,6 +14,8 @@ import {
   type ProfileFormValues,
 } from "@/lib/validation/profile";
 import type { ProfileSection } from "@/lib/dashboard/routes";
+import { OfferingsFieldArray } from "@/components/dashboard/OfferingsFieldArray";
+import { AcquisitionSourceFields } from "@/components/dashboard/AcquisitionSourceFields";
 
 type ImageField = "logo_url" | "founder_photo_url";
 type ImageSetter = (field: ImageField) => (url: string) => void;
@@ -40,7 +42,7 @@ function IdentityFields({ userId }: { userId: string }) {
 
 function StoryFields() {
   const { register, watch, formState: { errors } } = useFormContext<ProfileFormValues>(); const long = watch("long_description") ?? "";
-  return <div className="space-y-5"><Field label="One-liner" error={errors.short_description?.message} name="short_description" hint="The single sentence that appears under your name in the directory."><Input {...register("short_description")} maxLength={180} /></Field><Field label="About the business" error={errors.long_description?.message} name="long_description" hint={`${long.length} / 2000`}><Textarea {...register("long_description")} maxLength={2000} rows={7} /></Field></div>;
+  return <div className="space-y-5"><Field label="One-liner" error={errors.short_description?.message} name="short_description" hint="The single sentence that appears under your name in the directory."><Input {...register("short_description")} maxLength={180} /></Field><Field label="About the business" error={errors.long_description?.message} name="long_description" hint={`${long.length} / 2000`}><Textarea {...register("long_description")} maxLength={2000} rows={7} /></Field><Field label="Who do you serve?" error={errors.target_customers?.message} name="target_customers" hint="Describe the customers, organisations, or communities that benefit from what you do."><Textarea {...register("target_customers")} maxLength={1000} rows={4}/></Field><OfferingsFieldArray/></div>;
 }
 
 function MatchingFields() {
@@ -69,7 +71,7 @@ function ContactFields() {
     <ContactField label="Phone" error={errors.phone?.message} name="phone" switchName="show_phone"><Input {...register("phone")} maxLength={40} /></ContactField>
     <ContactField label="WhatsApp" error={errors.whatsapp?.message} name="whatsapp" switchName="show_whatsapp"><Input {...register("whatsapp")} maxLength={40} /></ContactField>
     <Field label="Website" error={errors.website?.message} name="website"><Input {...register("website")} maxLength={255} placeholder="https://..." aria-invalid={!!errors.website} /></Field>
-  </div><div className="grid gap-5 md:grid-cols-3"><Field label="Instagram" error={errors.instagram?.message} name="instagram"><Input {...register("instagram")} maxLength={120} placeholder="@handle" /></Field><Field label="LinkedIn" error={errors.linkedin?.message} name="linkedin"><Input {...register("linkedin")} maxLength={255} placeholder="https://linkedin.com/in/..." aria-invalid={!!errors.linkedin} /></Field><Field label="X (Twitter)" error={errors.twitter?.message} name="twitter"><Input {...register("twitter")} maxLength={120} placeholder="@handle" /></Field></div></div>;
+  </div><div className="grid gap-5 md:grid-cols-3"><Field label="Instagram" error={errors.instagram?.message} name="instagram"><Input {...register("instagram")} maxLength={120} placeholder="@handle" /></Field><Field label="LinkedIn" error={errors.linkedin?.message} name="linkedin"><Input {...register("linkedin")} maxLength={255} placeholder="https://linkedin.com/in/..." aria-invalid={!!errors.linkedin} /></Field><Field label="X (Twitter)" error={errors.twitter?.message} name="twitter"><Input {...register("twitter")} maxLength={120} placeholder="@handle" /></Field></div><div className="rounded-xl border border-border bg-surface-muted p-4"><AcquisitionSourceFields/></div></div>;
 }
 
 export function ProfileImageSetterProvider({ onSet, children }: { onSet: ImageSetter; children: React.ReactNode }) { return <ImageSetterContext.Provider value={onSet}>{children}</ImageSetterContext.Provider>; }

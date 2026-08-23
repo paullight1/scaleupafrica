@@ -859,6 +859,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          acquisition_source: string | null
+          acquisition_source_other: string | null
           application_readiness: string | null
           business_identity_candidate_id: string | null
           business_identity_confirmed_at: string | null
@@ -882,6 +884,7 @@ export type Database = {
           long_description: string | null
           operating_countries: string[]
           organisation_type: string | null
+          offerings: Json
           phone: string | null
           preferred_funding_types: string[]
           sector: string
@@ -892,6 +895,7 @@ export type Database = {
           slug: string
           status: string
           twitter: string | null
+          target_customers: string | null
           updated_at: string
           user_id: string
           view_count: number
@@ -899,6 +903,8 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          acquisition_source?: string | null
+          acquisition_source_other?: string | null
           application_readiness?: string | null
           business_identity_candidate_id?: string | null
           business_identity_confirmed_at?: string | null
@@ -922,6 +928,7 @@ export type Database = {
           long_description?: string | null
           operating_countries?: string[]
           organisation_type?: string | null
+          offerings?: Json
           phone?: string | null
           preferred_funding_types?: string[]
           sector: string
@@ -932,6 +939,7 @@ export type Database = {
           slug: string
           status?: string
           twitter?: string | null
+          target_customers?: string | null
           updated_at?: string
           user_id: string
           view_count?: number
@@ -939,6 +947,8 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          acquisition_source?: string | null
+          acquisition_source_other?: string | null
           application_readiness?: string | null
           business_identity_candidate_id?: string | null
           business_identity_confirmed_at?: string | null
@@ -962,6 +972,7 @@ export type Database = {
           long_description?: string | null
           operating_countries?: string[]
           organisation_type?: string | null
+          offerings?: Json
           phone?: string | null
           preferred_funding_types?: string[]
           sector?: string
@@ -972,6 +983,7 @@ export type Database = {
           slug?: string
           status?: string
           twitter?: string | null
+          target_customers?: string | null
           updated_at?: string
           user_id?: string
           view_count?: number

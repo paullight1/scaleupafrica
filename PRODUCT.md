@@ -28,7 +28,7 @@ Trustworthy & empowering. Credible, institutional-grade, "we open doors" — the
 
 1. **Trust is the product** — provenance, disclaimers, and honest states (sample vs live data) must always be explicit; never blur the line between AI-curated and verified information.
 2. **Mobile network reality** — every screen must be usable on a mid-range Android over 3G; performance is a design feature.
-3. **The profile is the founder's storefront** — profile creation and directory cards deserve the most craft; they represent real businesses.
+3. **The profile represents the founder's business** — profile creation and directory cards deserve the most craft; they represent real businesses.
 4. **Earn the subscription** — free surfaces should demonstrate concrete value, not tease with lorem-quality filler.
 
 ## Accessibility & Inclusion

@@ -38,6 +38,14 @@ describe("ProfileUpsertSchema", () => {
   it("requires a business name", () => {
     expect(() => ProfileUpsertSchema.parse({ country: "Nigeria", sector: "Fintech" })).toThrow();
   });
+
+  it("validates public offerings and private discovery source", () => {
+    const parsed = ProfileUpsertSchema.parse({ ...base, target_customers: "Independent retailers", offerings: [{ name: "Inventory setup", url: "example.com/setup" }], acquisition_source: "other", acquisition_source_other: "A partner network" });
+    expect(parsed.offerings[0].url).toBe("https://example.com/setup");
+    expect(() => ProfileUpsertSchema.parse({ ...base, offerings: Array.from({ length: 11 }, () => ({ name: "Service" })) })).toThrow();
+    expect(() => ProfileUpsertSchema.parse({ ...base, offerings: [{ name: "Bad", url: "javascript:alert(1)" }] })).toThrow();
+    expect(() => ProfileUpsertSchema.parse({ ...base, acquisition_source: "other" })).toThrow();
+  });
 });
 
 describe("ProfileListQuerySchema", () => {

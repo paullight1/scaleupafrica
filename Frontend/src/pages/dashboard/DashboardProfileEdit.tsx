@@ -44,6 +44,7 @@ import {
   normalizeProfileInput,
   type ProfileFormValues,
 } from "@/lib/validation/profile";
+import { ProfileDiscoveryDialog } from "@/components/dashboard/ProfileDiscoveryDialog";
 
 export function DashboardProfileEdit() {
   const { user, loading: authLoading } = useAuth();
@@ -57,6 +58,8 @@ export function DashboardProfileEdit() {
   const replacedPaths = useRef<Set<string>>(new Set());
   const [discardOpen, setDiscardOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [discoveryOpen, setDiscoveryOpen] = useState(false);
+  const [savedValues, setSavedValues] = useState<ProfileFormValues | null>(null);
   const hydrated = useRef(false);
 
   const form = useForm<ProfileFormValues>({ resolver: zodResolver(profileSchema), defaultValues: profileFormDefaults });
@@ -78,6 +81,8 @@ export function DashboardProfileEdit() {
       sector: (existing.sector as string) ?? "",
       short_description: (existing.short_description as string) ?? "",
       long_description: (existing.long_description as string) ?? "",
+      target_customers: (existing.target_customers as string) ?? "",
+      offerings: (existing.offerings as ProfileFormValues["offerings"]) ?? [],
       website: (existing.website as string) ?? "",
       email: (existing.email as string) ?? "",
       phone: (existing.phone as string) ?? "",
@@ -95,6 +100,8 @@ export function DashboardProfileEdit() {
       organisation_type: (existing.organisation_type as string) ?? "",
       operating_countries: (existing.operating_countries as string[]) ?? [],
       founding_year: existing.founding_year == null ? null : Number(existing.founding_year),
+      acquisition_source: (existing.acquisition_source as ProfileFormValues["acquisition_source"]) ?? null,
+      acquisition_source_other: (existing.acquisition_source_other as string) ?? "",
       show_email: (existing.show_email as boolean) ?? true,
       show_phone: (existing.show_phone as boolean) ?? true,
       show_whatsapp: (existing.show_whatsapp as boolean) ?? true,
@@ -133,6 +140,7 @@ export function DashboardProfileEdit() {
       }
       reset(values);
       toast.success(isEditing ? "Profile updated." : "Profile published.");
+      if (!values.acquisition_source && sessionStorage.getItem("cresciva:profile-discovery-dismissed") !== "1") { setSavedValues(values); setDiscoveryOpen(true); return; }
       navigate(isEditing ? DASHBOARD_PROFILE : `${DASHBOARD_PROFILE}?published=1`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
@@ -185,6 +193,7 @@ export function DashboardProfileEdit() {
       </FormProvider>
 
       <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Discard your changes?</AlertDialogTitle><AlertDialogDescription>You have unsaved changes. If you leave now, they'll be lost.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep editing</AlertDialogCancel><AlertDialogAction onClick={leave}>Discard</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <ProfileDiscoveryDialog open={discoveryOpen} pending={save.isPending} onSkip={() => { sessionStorage.setItem("cresciva:profile-discovery-dismissed", "1"); setDiscoveryOpen(false); navigate(isEditing ? DASHBOARD_PROFILE : `${DASHBOARD_PROFILE}?published=1`); }} onSave={async (source, other) => { if (!user || !savedValues) return; try { await save.mutateAsync({ ...normalizeProfileInput({ ...savedValues, acquisition_source: source, acquisition_source_other: other }), user_id: user.id }); setDiscoveryOpen(false); navigate(isEditing ? DASHBOARD_PROFILE : `${DASHBOARD_PROFILE}?published=1`); } catch (error) { toast.error(error instanceof Error ? error.message : "Could not save your answer. Please try again."); } }} />
     </div>
   );
 }

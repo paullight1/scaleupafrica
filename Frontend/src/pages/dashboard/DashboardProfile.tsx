@@ -45,7 +45,7 @@ export function DashboardProfile() {
   }, []);
 
   const header = (
-    <PageHeader title="My profile" subtitle="Your public storefront in the directory." />
+    <PageHeader title="My profile" subtitle="Your public profile in the directory." />
   );
 
   if (isPending) {
@@ -76,7 +76,7 @@ export function DashboardProfile() {
         {header}
         <EmptyState
           variant="firstRun"
-          title="Your storefront isn't live yet"
+          title="Your profile isn't live yet"
           description="A complete profile is how partners, customers and funders find you. It takes about three minutes."
           action={{ label: "Create your profile", to: DASHBOARD_PROFILE_EDIT }}
         />

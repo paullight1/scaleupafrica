@@ -28,12 +28,13 @@ export const directoryKeys = {
   own: (userId: string) => ["directory", "own", userId] as const,
 };
 export type DirectoryCardRow = { id:string;slug:string;business_name:string;founder_name:string|null;logo_url:string|null;country:string;sector:string;short_description:string|null;featured:boolean;created_at:string };
-export type ProfileDetailRow = { id:string;slug:string;business_name:string;founder_name:string|null;founder_photo_url:string|null;logo_url:string|null;country:string;sector:string;short_description:string|null;long_description:string|null;website:string|null;instagram:string|null;linkedin:string|null;twitter:string|null;keywords:string[]|null;status:string;view_count:number;created_at:string };
+export type ProfileOffering = { name:string;description?:string;url?:string };
+export type ProfileDetailRow = { id:string;slug:string;business_name:string;founder_name:string|null;founder_photo_url:string|null;logo_url:string|null;country:string;sector:string;short_description:string|null;long_description:string|null;target_customers:string|null;offerings:ProfileOffering[];website:string|null;instagram:string|null;linkedin:string|null;twitter:string|null;keywords:string[]|null;status:string;view_count:number;created_at:string };
 export type ProfileContact = { email:string|null;phone:string|null;whatsapp:string|null };
 export type FacetValue = { value:string;count:number };
 export type DirectoryFacets = { countries:FacetValue[];sectors:FacetValue[] };
 const CARD_COLUMNS="id, slug, business_name, founder_name, logo_url, country, sector, short_description, featured, created_at";
-const PROFILE_COLUMNS="id, slug, business_name, founder_name, founder_photo_url, logo_url, country, sector, short_description, long_description, website, instagram, linkedin, twitter, keywords, status, view_count, created_at";
+const PROFILE_COLUMNS="id, slug, business_name, founder_name, founder_photo_url, logo_url, country, sector, short_description, long_description, target_customers, offerings, website, instagram, linkedin, twitter, keywords, status, view_count, created_at";
 
 export function sanitizeTerm(raw:string):string{return raw.replace(/[,()]/g," ").replace(/[%_]/g,(m)=>`\\${m}`).replace(/\s+/g," ").trim();}
 export interface DirectoryQueryBuilder{eq(column:string,value:unknown):DirectoryQueryBuilder;or(filter:string):DirectoryQueryBuilder;}
@@ -46,6 +47,7 @@ const UPSERT_KEYS=[
   "website","email","phone","whatsapp","instagram","linkedin","twitter","logo_url",
   "founder_photo_url","keywords","business_stage","funding_target_usd","preferred_funding_types",
   "application_readiness","organisation_type","operating_countries","founding_year",
+  "target_customers","offerings","acquisition_source","acquisition_source_other",
   "show_email","show_phone","show_whatsapp",
 ] as const;
 function pickUpsertPayload(payload:Record<string,unknown>):Record<string,unknown>{const out:Record<string,unknown>={};for(const k of UPSERT_KEYS)if(payload[k]!==undefined)out[k]=payload[k];return out;}

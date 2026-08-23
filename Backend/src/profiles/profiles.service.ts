@@ -116,6 +116,10 @@ export class ProfilesService {
         sector: input.sector,
         shortDescription: input.short_description ?? null,
         longDescription: input.long_description ?? null,
+        targetCustomers: input.target_customers ?? null,
+        offerings: input.offerings,
+        acquisitionSource: input.acquisition_source ?? null,
+        acquisitionSourceOther: input.acquisition_source === "other" ? input.acquisition_source_other ?? null : null,
         website: input.website ?? null,
         email: input.email ?? null,
         phone: input.phone ?? null,
@@ -184,6 +188,8 @@ function toDetail(row: typeof profiles.$inferSelect, mask = true): ProfileDetail
     sector: row.sector,
     short_description: row.shortDescription,
     long_description: row.longDescription,
+    target_customers: row.targetCustomers,
+    offerings: (row.offerings ?? []) as ProfileDetail["offerings"],
     website: row.website,
     instagram: row.instagram,
     linkedin: row.linkedin,
@@ -210,6 +216,8 @@ function toOwn(
   return {
     ...toDetail(row, false),
     user_id: row.userId,
+    acquisition_source: row.acquisitionSource as OwnProfile["acquisition_source"],
+    acquisition_source_other: row.acquisitionSourceOther,
     business_stage: asBusinessStage(funding.businessStage),
     funding_target_usd:
       funding.fundingTargetUsd == null ? null : Number(funding.fundingTargetUsd),

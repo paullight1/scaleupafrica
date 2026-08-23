@@ -7,7 +7,7 @@
 ## Goal
 
 A logged-in founder home at `/dashboard` that answers, on every visit: *"what funding is new for
-me, how is my storefront doing, and what should I do next?"* Four pillars:
+me, how is my profile doing, and what should I do next?"* Four pillars:
 
 - **A. Funding feed home** (`/dashboard`, index) — matched + saved + new-this-week opportunities,
   subscription status. The reason to return.
@@ -297,7 +297,7 @@ Data: `useMyProfile`. Widgets:
    `percent`, color: `< 40` warning, `40–79` primary orange, `≥ 80` success teal. Below: up to 3
    top-weighted `missing` items as checklist links into `/directory/create#<anchor>`
    (CreateProfile gets matching `id=` anchors on its section headings — small modify to
-   `src/pages/CreateProfile.tsx`). At 100%: "Your storefront is complete." + share nudge.
+   `src/pages/CreateProfile.tsx`). At 100%: "Your profile is complete." + share nudge.
 2. **`components/dashboard/ProfilePreviewCard.tsx`** — renders the founder's own directory card
    *exactly* as the public sees it (extract the card markup from `src/pages/Directory.tsx` into a
    shared `src/components/directory/ProfileCard.tsx`; Directory page and this widget both consume
@@ -316,7 +316,7 @@ Data: `useMyProfile`. Widgets:
 
 States: **Loading** — 3 card skeletons. **Error** — `<ErrorState onRetry>` full-pane. **Empty**
 (no profile row) — full-pane `<EmptyState variant="firstRun">` with `profile-empty` illustration:
-"Your storefront isn't live yet" / body "A complete profile is how partners, customers and funders
+"Your profile isn't live yet" / body "A complete profile is how partners, customers and funders
 find you." / primary "Create your profile" → `/directory/create`. No completeness/share/visibility
 cards render in this state.
 

@@ -84,6 +84,12 @@ describe("profileSchema", () => {
     });
     expect(fieldError(r, "funding_target_usd")).toMatch(/greater than zero/i);
   });
+
+  it("validates offerings and requires a description for an other discovery source", () => {
+    const valid = profileSchema.safeParse({ ...profileFormDefaults, business_name: "Acme", country: "Nigeria", sector: "Retail & E-commerce", offerings: [{ name: "Delivery", description: "Same-day delivery", url: "example.com/delivery" }] });
+    expect(valid.success).toBe(true);
+    expect(profileSchema.safeParse({ ...profileFormDefaults, business_name: "Acme", country: "Nigeria", sector: "Retail & E-commerce", acquisition_source: "other", acquisition_source_other: "" }).success).toBe(false);
+  });
 });
 
 describe("normalizeProfileInput", () => {
@@ -120,5 +126,11 @@ describe("normalizeProfileInput", () => {
     expect(out.funding_target_usd).toBe(125000);
     expect(out.preferred_funding_types).toEqual(["grant", "development finance"]);
     expect(out.application_readiness).toBe("ready");
+  });
+
+  it("normalizes offering links and clears stale other-source detail", () => {
+    const out = normalizeProfileInput({ ...profileFormDefaults, offerings: [{ name: " Advisory ", description: " Growth help ", url: "example.com" }], acquisition_source: "linkedin", acquisition_source_other: "stale" });
+    expect(out.offerings).toEqual([{ name: "Advisory", description: "Growth help", url: "https://example.com/" }]);
+    expect(out.acquisition_source_other).toBeNull();
   });
 });

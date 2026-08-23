@@ -257,6 +257,20 @@ const ProfileDetail = () => {
               </section>
             )}
 
+            {profile.target_customers && (
+              <section className="rounded-xl border border-border bg-card p-6 shadow-soft">
+                <h2 className="mb-3 font-display text-lg font-semibold text-ink-strong">Who we serve</h2>
+                <div className="space-y-3 text-sm leading-relaxed text-foreground/90">{toParagraphs(profile.target_customers).map((paragraph, index) => <p key={index} className="whitespace-pre-line">{paragraph}</p>)}</div>
+              </section>
+            )}
+
+            {profile.offerings?.length > 0 && (
+              <section className="rounded-xl border border-border bg-card p-6 shadow-soft">
+                <h2 className="mb-4 font-display text-lg font-semibold text-ink-strong">Products & services</h2>
+                <div className="divide-y divide-border">{profile.offerings.map((offering, index) => { const url=sanitizeUrl(offering.url); return <article key={`${offering.name}-${index}`} className="py-4 first:pt-0 last:pb-0"><h3 className="font-semibold text-ink-strong">{offering.name}</h3>{offering.description && <div className="mt-2 space-y-2 text-sm leading-relaxed text-foreground/90">{toParagraphs(offering.description).map((paragraph, i)=><p key={i}>{paragraph}</p>)}</div>}{url && <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-primary-dark hover:underline">View offering <ExternalLink className="h-4 w-4"/></a>}</article>; })}</div>
+              </section>
+            )}
+
             {hasLinks && (
               <section className="rounded-xl border border-border bg-card p-6 shadow-soft">
                 <h2 className="mb-3 font-display text-lg font-semibold text-ink-strong">Links</h2>

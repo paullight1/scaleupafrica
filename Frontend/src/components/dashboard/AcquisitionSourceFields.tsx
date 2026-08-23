@@ -1,0 +1,7 @@
+import { useFormContext } from "react-hook-form";
+import { Input } from "@shared/components/ui/input";
+import { Label } from "@shared/components/ui/label";
+import { ACQUISITION_SOURCE_OPTIONS, type ProfileFormValues } from "@/lib/validation/profile";
+
+const labels = { linkedin: "LinkedIn", whatsapp: "WhatsApp", founders_webinar: "Founders Webinar", instagram: "Instagram", facebook: "Facebook", other: "Other" } as const;
+export function AcquisitionSourceFields() { const { register, watch, formState:{errors} } = useFormContext<ProfileFormValues>(); const selected=watch("acquisition_source"); return <fieldset><legend className="font-medium text-ink-strong">How did you hear about Cresciva?</legend><p className="mt-1 text-sm text-muted-foreground">Private. This helps us understand which founder communities are working.</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{ACQUISITION_SOURCE_OPTIONS.map(source=><label key={source} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm"><input type="radio" value={source} {...register("acquisition_source")}/>{labels[source]}</label>)}</div>{selected === "other" && <div className="mt-3"><Label htmlFor="acquisition-source-other">Where did you hear about us?</Label><Input id="acquisition-source-other" {...register("acquisition_source_other")} maxLength={160}/>{errors.acquisition_source_other && <p className="mt-1 text-sm text-destructive-strong">{errors.acquisition_source_other.message}</p>}</div>}</fieldset>; }

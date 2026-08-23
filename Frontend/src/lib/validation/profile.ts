@@ -12,6 +12,8 @@ export const FUNDING_TYPE_OPTIONS = [
   "equity",
   "debt",
 ] as const;
+export const ACQUISITION_SOURCE_OPTIONS = ["linkedin", "whatsapp", "founders_webinar", "instagram", "facebook", "other"] as const;
+const offeringSchema = z.object({ name: z.string().trim().min(1, "Add a name").max(120), description: z.string().trim().max(500).optional().or(z.literal("")), url: z.string().trim().max(500).optional().or(z.literal("")).refine((v) => !v || sanitizeUrl(v) !== null, "Enter a valid product or service link") });
 
 export const profileSchema = z.object({
   business_name: z
@@ -39,6 +41,8 @@ export const profileSchema = z.object({
     .max(2000, "Keep the description under 2000 characters")
     .optional()
     .or(z.literal("")),
+  target_customers: z.string().trim().max(1000, "Keep this under 1000 characters").optional().or(z.literal("")),
+  offerings: z.array(offeringSchema).max(10, "Add up to 10 products or services").default([]),
   website: z
     .string()
     .trim()
@@ -111,10 +115,12 @@ export const profileSchema = z.object({
     .max(2100, "Founding year is too late")
     .nullable()
     .optional(),
+  acquisition_source: z.enum(ACQUISITION_SOURCE_OPTIONS).nullable().optional(),
+  acquisition_source_other: z.string().trim().max(160).optional().or(z.literal("")),
   show_email: z.boolean().default(true),
   show_phone: z.boolean().default(true),
   show_whatsapp: z.boolean().default(true),
-});
+}).superRefine((value, ctx) => { if (value.acquisition_source === "other" && !value.acquisition_source_other?.trim()) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["acquisition_source_other"], message: "Tell us where you heard about Cresciva" }); });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 
@@ -125,6 +131,8 @@ export const profileFormDefaults: ProfileFormValues = {
   sector: "",
   short_description: "",
   long_description: "",
+  target_customers: "",
+  offerings: [],
   website: "",
   email: "",
   phone: "",
@@ -142,6 +150,8 @@ export const profileFormDefaults: ProfileFormValues = {
   organisation_type: "",
   operating_countries: [],
   founding_year: null,
+  acquisition_source: null,
+  acquisition_source_other: "",
   show_email: true,
   show_phone: true,
   show_whatsapp: true,
@@ -168,6 +178,8 @@ export function normalizeProfileInput(v: ProfileFormValues) {
     sector: v.sector,
     short_description: v.short_description || null,
     long_description: v.long_description || null,
+    target_customers: v.target_customers || null,
+    offerings: (v.offerings ?? []).map((item) => ({ name: item.name.trim(), description: item.description?.trim() || undefined, url: item.url ? sanitizeUrl(item.url) ?? undefined : undefined })),
     website: v.website ? sanitizeUrl(v.website) ?? v.website : null,
     email: v.email || null,
     phone: v.phone || null,
@@ -185,6 +197,8 @@ export function normalizeProfileInput(v: ProfileFormValues) {
     organisation_type: v.organisation_type?.trim() || null,
     operating_countries: operatingCountries,
     founding_year: v.founding_year ?? null,
+    acquisition_source: v.acquisition_source ?? null,
+    acquisition_source_other: v.acquisition_source === "other" ? v.acquisition_source_other?.trim() || null : null,
     show_email: v.show_email,
     show_phone: v.show_phone,
     show_whatsapp: v.show_whatsapp,
