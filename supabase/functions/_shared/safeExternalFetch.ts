@@ -116,7 +116,6 @@ export async function safeExternalFetch(
       const location = response.headers.get("location");
       if (!location) return failure(current.href, response.status, "redirect_missing_location");
       try {
-        // Every redirect is revalidated, including fresh DNS resolution.
         current = await validateExternalUrl(new URL(location, current).href, resolveDns);
       } catch (error) {
         return failure(current.href, response.status, classifyValidationError(error));
@@ -202,8 +201,11 @@ export async function validateExternalUrl(
 }
 
 class SafeFetchValidationError extends Error {
-  constructor(readonly code: "invalid_url" | "blocked_host" | "dns_failed") {
+  readonly code: "invalid_url" | "blocked_host" | "dns_failed";
+
+  constructor(code: "invalid_url" | "blocked_host" | "dns_failed") {
     super(code);
+    this.code = code;
   }
 }
 
