@@ -76,8 +76,9 @@ describe("Funding source extraction trust boundary", () => {
     expect(applicationStatusMigrationSource).toContain("verification_status = 'unverified'");
   });
 
-  it("keeps authoritative source history by disallowing member-facing source deletion", () => {
+  it("keeps authoritative source history by disallowing source deletion from app roles", () => {
     expect(provenanceMigrationSource).toContain("REVOKE DELETE ON public.funding_sources FROM authenticated");
+    expect(provenanceMigrationSource).toContain("REVOKE DELETE ON public.funding_sources FROM service_role");
   });
 
   it("forces AI and non-verified cached discovery to unknown application status", () => {
