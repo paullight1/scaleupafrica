@@ -4,8 +4,10 @@ import { describe, expect, it } from "vitest";
 
 const workerPath = resolve(process.cwd(), "../supabase/functions/funding-notifications/index.ts");
 const migrationPath = resolve(process.cwd(), "../supabase/migrations/20260822071000_funding_notification_delivery.sql");
+const schemaPath = resolve(process.cwd(), "src/db/funding-intelligence-schema.ts");
 const workerSource = existsSync(workerPath) ? readFileSync(workerPath, "utf8") : "";
 const migrationSource = existsSync(migrationPath) ? readFileSync(migrationPath, "utf8") : "";
+const schemaSource = existsSync(schemaPath) ? readFileSync(schemaPath, "utf8") : "";
 
 describe("Funding notification delivery trust boundary", () => {
   it("uses a dedicated scheduler secret and bounded batch", () => {
@@ -35,6 +37,14 @@ describe("Funding notification delivery trust boundary", () => {
     expect(migrationSource).toContain("processing_at");
     expect(migrationSource).toContain("pending");
     expect(migrationSource).toContain("failed");
+  });
+
+  it("mirrors notification delivery state in the Backend schema", () => {
+    expect(schemaSource).toContain("notificationEvents");
+    expect(schemaSource).toContain('"notification_events"');
+    expect(schemaSource).toContain("attemptCount");
+    expect(schemaSource).toContain("processingAt");
+    expect(schemaSource).toContain("lastError");
   });
 
   it("never copies raw source bodies into the notification worker", () => {
