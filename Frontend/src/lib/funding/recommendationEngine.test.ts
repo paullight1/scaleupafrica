@@ -11,6 +11,9 @@ const NOW = new Date("2026-08-21T12:00:00Z");
 function profile(overrides: Partial<RecommendationProfile> = {}): RecommendationProfile {
   return {
     country: "Nigeria",
+    operatingCountries: [],
+    organisationType: null,
+    foundingYear: null,
     sector: "Agritech & Food",
     keywords: ["climate", "agriculture", "export"],
     shortDescription: "We help smallholder farmers detect crop disease using AI.",
@@ -23,9 +26,7 @@ function profile(overrides: Partial<RecommendationProfile> = {}): Recommendation
   };
 }
 
-function opportunity(
-  overrides: Partial<RecommendationOpportunity> = {},
-): RecommendationOpportunity {
+function opportunity(overrides: Partial<RecommendationOpportunity> = {}): RecommendationOpportunity {
   return {
     id: "o1",
     title: "Climate Smart Agriculture Growth Fund",
@@ -63,33 +64,31 @@ describe("recommendOpportunity", () => {
     expect(result.reasons.some((r) => /Nigeria/i.test(r))).toBe(true);
   });
 
-  it("treats pan-African focus as eligible", () => {
+  it("uses confirmed operating countries for geographic eligibility", () => {
     const result = recommendOpportunity(
-      profile({ country: "Kenya" }),
-      opportunity({ countryFocus: ["Pan-African"] }),
+      profile({ country: "Nigeria", operatingCountries: ["Nigeria", "Kenya"] }),
+      opportunity({ countryFocus: ["Kenya"] }),
       NOW,
     );
+    expect(result.eligibilityStatus).toBe("eligible");
+    expect(result.reasons.join(" ")).toMatch(/Kenya/i);
+  });
+
+  it("treats pan-African focus as eligible", () => {
+    const result = recommendOpportunity(profile({ country: "Kenya" }), opportunity({ countryFocus: ["Pan-African"] }), NOW);
     expect(result.eligibilityStatus).toBe("eligible");
     expect(result.blockers).toEqual([]);
   });
 
   it("hard-excludes an explicit country mismatch", () => {
-    const result = recommendOpportunity(
-      profile({ country: "Kenya" }),
-      opportunity({ countryFocus: ["Nigeria", "Ghana"] }),
-      NOW,
-    );
+    const result = recommendOpportunity(profile({ country: "Kenya" }), opportunity({ countryFocus: ["Nigeria", "Ghana"] }), NOW);
     expect(result.eligibilityStatus).toBe("ineligible");
     expect(result.matchScore).toBe(0);
     expect(result.blockers.join(" ")).toMatch(/Kenya/i);
   });
 
   it("does not invent a country verdict when the profile country is missing", () => {
-    const result = recommendOpportunity(
-      profile({ country: null }),
-      opportunity({ countryFocus: ["Nigeria"] }),
-      NOW,
-    );
+    const result = recommendOpportunity(profile({ country: null }), opportunity({ countryFocus: ["Nigeria"] }), NOW);
     expect(result.eligibilityStatus).toBe("insufficient_information");
     expect(result.missingInformation.join(" ")).toMatch(/country/i);
   });
@@ -101,29 +100,81 @@ describe("recommendOpportunity", () => {
     expect(ambiguous.matchScore).toBeLessThan(explicit.matchScore);
   });
 
-  it("scores a relevant sector/keyword opportunity above an unrelated one", () => {
-    const relevant = recommendOpportunity(profile(), opportunity(), NOW);
-    const unrelated = recommendOpportunity(
-      profile(),
-      opportunity({
-        id: "o2",
-        title: "Fashion Retail Competition",
-        summary: "Retail showcase for fashion brands.",
-        tags: ["fashion", "retail"],
-        eligibility: "African consumer brands",
-        details: {},
-      }),
+  it("hard-excludes a structured organisation-type mismatch", () => {
+    const result = recommendOpportunity(
+      profile({ organisationType: "Nonprofit / NGO" }),
+      opportunity({ details: { business_stages: ["growth"], entity_types: ["for_profit"] } }),
       NOW,
     );
+    expect(result.eligibilityStatus).toBe("ineligible");
+    expect(result.blockers.join(" ")).toMatch(/organisation|entity/i);
+  });
+
+  it("normalizes NGO/nonprofit organisation-type aliases", () => {
+    const result = recommendOpportunity(
+      profile({ organisationType: "NGO" }),
+      opportunity({ details: { business_stages: ["growth"], entity_types: ["nonprofit"] } }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("eligible");
+  });
+
+  it("asks for organisation type when the opportunity has a hard entity-type rule", () => {
+    const result = recommendOpportunity(
+      profile({ organisationType: null }),
+      opportunity({ details: { business_stages: ["growth"], entity_types: ["nonprofit"] } }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("insufficient_information");
+    expect(result.missingInformation.join(" ")).toMatch(/organisation|entity/i);
+  });
+
+  it("hard-excludes a company definitely younger than a structured minimum age", () => {
+    const result = recommendOpportunity(
+      profile({ foundingYear: 2025 }),
+      opportunity({ details: { business_stages: ["growth"], min_company_age_years: 3 } }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("ineligible");
+    expect(result.blockers.join(" ")).toMatch(/age|years|founded/i);
+  });
+
+  it("asks for an exact founding date when year-only evidence straddles an age boundary", () => {
+    const result = recommendOpportunity(
+      profile({ foundingYear: 2023 }),
+      opportunity({ details: { business_stages: ["growth"], min_company_age_years: 3 } }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("insufficient_information");
+    expect(result.missingInformation.join(" ")).toMatch(/founding date|company age/i);
+  });
+
+  it("accepts a company safely beyond a structured minimum age", () => {
+    const result = recommendOpportunity(
+      profile({ foundingYear: 2020 }),
+      opportunity({ details: { business_stages: ["growth"], min_company_age_years: 3 } }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("eligible");
+  });
+
+  it("hard-excludes a company definitely older than a structured maximum age", () => {
+    const result = recommendOpportunity(
+      profile({ foundingYear: 2010 }),
+      opportunity({ details: { business_stages: ["growth"], max_company_age_years: 5 } }),
+      NOW,
+    );
+    expect(result.eligibilityStatus).toBe("ineligible");
+  });
+
+  it("scores a relevant sector/keyword opportunity above an unrelated one", () => {
+    const relevant = recommendOpportunity(profile(), opportunity(), NOW);
+    const unrelated = recommendOpportunity(profile(), opportunity({ id: "o2", title: "Fashion Retail Competition", summary: "Retail showcase for fashion brands.", tags: ["fashion", "retail"], eligibility: "African consumer brands", details: {} }), NOW);
     expect(relevant.matchScore).toBeGreaterThan(unrelated.matchScore);
   });
 
   it("hard-excludes an explicit business-stage mismatch", () => {
-    const result = recommendOpportunity(
-      profile({ businessStage: "idea" }),
-      opportunity({ details: { business_stages: ["growth", "scale"] } }),
-      NOW,
-    );
+    const result = recommendOpportunity(profile({ businessStage: "idea" }), opportunity({ details: { business_stages: ["growth", "scale"] } }), NOW);
     expect(result.eligibilityStatus).toBe("ineligible");
     expect(result.matchScore).toBe(0);
     expect(result.blockers.join(" ")).toMatch(/stage/i);
@@ -146,11 +197,7 @@ describe("recommendOpportunity", () => {
 
   it("keeps application readiness separate from fit", () => {
     const ready = recommendOpportunity(profile({ applicationReadiness: "ready" }), opportunity(), NOW);
-    const exploring = recommendOpportunity(
-      profile({ applicationReadiness: "exploring" }),
-      opportunity(),
-      NOW,
-    );
+    const exploring = recommendOpportunity(profile({ applicationReadiness: "exploring" }), opportunity(), NOW);
     expect(ready.matchScore).toBe(exploring.matchScore);
     expect(ready.readinessScore).toBeGreaterThan(exploring.readinessScore);
   });
@@ -170,27 +217,8 @@ describe("recommendOpportunity", () => {
 
   it("keeps confidence separate and requires real source evidence for high confidence", () => {
     const recent = recommendOpportunity(profile(), opportunity(), NOW);
-    const stale = recommendOpportunity(
-      profile(),
-      opportunity({
-        lastVerifiedAt: "2026-01-01T00:00:00Z",
-        sourceUrl: null,
-        verificationStatus: "unverified",
-        url: null,
-        eligibility: null,
-        countryFocus: [],
-      }),
-      NOW,
-    );
-    const fakeFresh = recommendOpportunity(
-      profile(),
-      opportunity({
-        lastVerifiedAt: "2026-08-20T00:00:00Z",
-        sourceUrl: null,
-        verificationStatus: "unverified",
-      }),
-      NOW,
-    );
+    const stale = recommendOpportunity(profile(), opportunity({ lastVerifiedAt: "2026-01-01T00:00:00Z", sourceUrl: null, verificationStatus: "unverified", url: null, eligibility: null, countryFocus: [] }), NOW);
+    const fakeFresh = recommendOpportunity(profile(), opportunity({ lastVerifiedAt: "2026-08-20T00:00:00Z", sourceUrl: null, verificationStatus: "unverified" }), NOW);
     expect(recent.matchScore).toBeGreaterThan(0);
     expect(recent.confidenceScore).toBeGreaterThan(stale.confidenceScore);
     expect(recent.confidenceScore).toBeGreaterThan(fakeFresh.confidenceScore);
@@ -198,11 +226,7 @@ describe("recommendOpportunity", () => {
 
   it("keeps a strong closed match scored but excludes it from primary apply-now output", () => {
     const open = recommendOpportunity(profile(), opportunity(), NOW);
-    const closed = recommendOpportunity(
-      profile(),
-      opportunity({ applicationStatus: "closed", statusCheckedAt: "2026-08-21T10:00:00Z" }),
-      NOW,
-    );
+    const closed = recommendOpportunity(profile(), opportunity({ applicationStatus: "closed", statusCheckedAt: "2026-08-21T10:00:00Z" }), NOW);
     expect(closed.matchScore).toBe(open.matchScore);
     expect(closed.applicationStatus).toBe("closed");
     expect(closed.primaryApplyEligible).toBe(false);
@@ -210,26 +234,13 @@ describe("recommendOpportunity", () => {
   });
 
   it("downgrades a stale stored OPEN status to effective unknown before rendering", () => {
-    const result = recommendOpportunity(
-      profile(),
-      opportunity({ applicationStatus: "open", statusCheckedAt: "2026-08-19T10:00:00Z" }),
-      NOW,
-    );
+    const result = recommendOpportunity(profile(), opportunity({ applicationStatus: "open", statusCheckedAt: "2026-08-19T10:00:00Z" }), NOW);
     expect(result.applicationStatus).toBe("unknown");
     expect(result.primaryApplyEligible).toBe(false);
   });
 
   it("never promotes unverified discovery into primary apply-now output", () => {
-    const result = recommendOpportunity(
-      profile(),
-      opportunity({
-        verificationStatus: "unverified",
-        sourceUrl: null,
-        applicationStatus: "open",
-        statusCheckedAt: "2026-08-21T11:00:00Z",
-      }),
-      NOW,
-    );
+    const result = recommendOpportunity(profile(), opportunity({ verificationStatus: "unverified", sourceUrl: null, applicationStatus: "open", statusCheckedAt: "2026-08-21T11:00:00Z" }), NOW);
     expect(result.primaryApplyEligible).toBe(false);
   });
 });
@@ -237,15 +248,8 @@ describe("recommendOpportunity", () => {
 describe("rankRecommendations", () => {
   it("excludes hard-ineligible records and ranks strong matches first", () => {
     const strong = opportunity({ id: "strong" });
-    const weak = opportunity({
-      id: "weak",
-      title: "General SME Prize",
-      summary: "A broad program for businesses.",
-      tags: ["business"],
-      details: {},
-    });
+    const weak = opportunity({ id: "weak", title: "General SME Prize", summary: "A broad program for businesses.", tags: ["business"], details: {} });
     const excluded = opportunity({ id: "excluded", countryFocus: ["South Africa"] });
-
     const ranked = rankRecommendations(profile(), [weak, excluded, strong], NOW);
     expect(ranked.map((x) => x.opportunity.id)).toEqual(["strong", "weak"]);
     expect(ranked.every((x) => x.eligibilityStatus !== "ineligible")).toBe(true);
