@@ -67,7 +67,7 @@ describe("Bachs recurring subscription snapshots", () => {
 
   it("accepts an exact recurring invoice amount and currency", () => {
     const invoice = parseBachsInvoiceSnapshot({
-      invoice_id: "inv_123",
+      invoice_id: "inv_1234",
       subscription: { subscription_id: "sub_monthly_123" },
       status: "paid",
       currency: "USD",
