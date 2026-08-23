@@ -39,6 +39,19 @@ async function selectRows(
   return Array.isArray(data) ? data : [];
 }
 
+async function selectEnrichmentCandidates(
+  service: ReturnType<typeof createClient>,
+  runs: unknown[],
+): Promise<unknown[]> {
+  const runIds = runs
+    .map((row) => (row && typeof row === "object" ? (row as { id?: unknown }).id : null))
+    .filter((id): id is string => typeof id === "string");
+  if (!runIds.length) return [];
+  const { data, error } = await service.from("business_enrichment_candidates").select("*").in("run_id", runIds);
+  if (error) throw new Error("export_business_enrichment_candidates_failed");
+  return Array.isArray(data) ? data : [];
+}
+
 async function exportAccount(
   service: ReturnType<typeof createClient>,
   user: { id: string; email?: string; created_at?: string },
@@ -55,6 +68,7 @@ async function exportAccount(
     selectRows(service, "business_enrichment_runs", "user_id", user.id),
     selectRows(service, "funding_opportunity_reports", "user_id", user.id),
   ]);
+  const enrichmentCandidates = await selectEnrichmentCandidates(service, enrichmentRuns);
 
   return {
     format: "cresciva-account-export-v1",
@@ -69,6 +83,7 @@ async function exportAccount(
     member_opportunity_state: memberStates,
     funding_notification_preferences: notificationPrefs,
     business_enrichment_runs: enrichmentRuns,
+    business_enrichment_candidates: enrichmentCandidates,
     funding_correction_reports: fundingReports,
   };
 }
@@ -113,12 +128,11 @@ Deno.serve(async (req) => {
     const nowSeconds = Math.floor(Date.now() / 1000);
     if (!issuedAt || nowSeconds - issuedAt > RECENT_AUTH_SECONDS) return json({ error: "recent_auth_required" }, 409);
 
-    // Storage cleanup happens first. If it fails, the account/database graph is
-    // still intact and the member can retry without a partially detached ledger.
+    // Storage is external to the auth/database transaction, so remove it first.
+    // If this fails the database/account graph remains untouched. Database
+    // sanitization itself runs in a BEFORE DELETE trigger on auth.users and is
+    // therefore atomic with the Auth deletion transaction.
     await removeProfileMedia(service, user.id);
-
-    const { error: prepareError } = await service.rpc("prepare_account_deletion", { _user_id: user.id });
-    if (prepareError) throw new Error("account_sanitization_failed");
 
     const { error: deleteError } = await service.auth.admin.deleteUser(user.id);
     if (deleteError) throw new Error("auth_delete_failed");
