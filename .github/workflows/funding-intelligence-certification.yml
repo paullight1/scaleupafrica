@@ -12,16 +12,20 @@ on:
       - "Frontend/src/hooks/queries/funding*.ts"
       - "Frontend/src/hooks/queries/memberOpportunityState*.ts"
       - "Frontend/src/lib/__tests__/email-templates.test.ts"
+      - "Frontend/src/lib/__tests__/safe-external-fetch-contract.test.ts"
       - "Backend/src/funding/**"
+      - "Backend/src/db/funding-intelligence-schema.ts"
       - "Backend/test/funding*.spec.ts"
       - "supabase/functions/aggregate-funding/**"
       - "supabase/functions/funding-source-refresh/**"
       - "supabase/functions/funding-notifications/**"
       - "supabase/functions/_shared/funding*.ts"
+      - "supabase/functions/_shared/safeExternalFetch.ts"
       - "supabase/functions/_shared/email/templates.ts"
       - "supabase/migrations/2026082205*.sql"
       - "supabase/migrations/2026082206*.sql"
       - "supabase/migrations/2026082207*.sql"
+      - "scripts/funding-intelligence-eval.ts"
       - "docs/production-readiness/fixtures/funding-intelligence-certification-v1.json"
       - ".github/workflows/funding-intelligence-certification.yml"
   push:
@@ -73,7 +77,8 @@ jobs:
             src/components/funding/OpportunityCard.test.tsx \
             src/components/funding/OpportunityCard.member.test.tsx \
             src/hooks/queries/memberOpportunityState.test.ts \
-            src/lib/__tests__/email-templates.test.ts
+            src/lib/__tests__/email-templates.test.ts \
+            src/lib/__tests__/safe-external-fetch-contract.test.ts
 
       - name: Backend funding parity gates
         run: |
@@ -81,7 +86,8 @@ jobs:
             test/funding-status.spec.ts \
             test/funding-verified-first.spec.ts \
             test/funding-search-ranking.spec.ts \
-            test/funding-notifications.spec.ts
+            test/funding-notifications.spec.ts \
+            test/funding-live-eval.spec.ts
 
       - name: Typecheck workspaces
         run: npm run typecheck --workspaces --if-present
@@ -102,4 +108,5 @@ jobs:
           grep -q 'Do not output a trusted application_status' supabase/functions/_shared/fundingSourceSignals.ts
           grep -q 'FUNDING_NOTIFICATION_SECRET' supabase/functions/funding-notifications/index.ts
           grep -q 'funding-alert:${event.id}' supabase/functions/funding-notifications/index.ts
+          grep -q 'safeExternalFetch' scripts/funding-intelligence-eval.ts
           grep -q 'You’re not currently eligible for any verified open opportunities.' Frontend/src/components/funding/FundingWorkspace.tsx
