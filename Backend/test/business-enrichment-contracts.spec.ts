@@ -91,6 +91,16 @@ describe("business enrichment Edge trust boundary", () => {
     expect(sharedSource).toContain("if (!canonicalName || !sourceUrls.length) return null");
   });
 
+  it("drops unsupported enriched facts instead of trusting model output without field evidence", () => {
+    expect(sharedSource).toContain("hasFieldEvidence");
+    expect(sharedSource).toContain('hasFieldEvidence(fieldEvidence, "country")');
+    expect(sharedSource).toContain('hasFieldEvidence(fieldEvidence, "organisation_type")');
+    expect(sharedSource).toContain('hasFieldEvidence(fieldEvidence, "sectors")');
+    expect(sharedSource).toContain('hasFieldEvidence(fieldEvidence, "operating_countries")');
+    expect(sharedSource).toContain('hasFieldEvidence(fieldEvidence, "founding_year")');
+    expect(sharedSource).toContain('hasFieldEvidence(fieldEvidence, "keywords")');
+  });
+
   it("forbids sensitive demographic inference", () => {
     expect(sharedSource).toContain("Never infer sensitive personal characteristics");
     expect(sharedSource).toContain("religion");
