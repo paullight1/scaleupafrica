@@ -1,11 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { gzipSync } from "node:zlib";
-import { SITE_ORIGIN } from "../config/site-origin.js";
+import { DEFAULT_SITE_ORIGIN, normalizeSiteOrigin } from "../config/site-origin.js";
 
 const ROOT = process.cwd();
 const DIST = path.join(ROOT, "Frontend", "dist");
 const ADMIN_DIST = path.join(DIST, "admin");
+const SITE_ORIGIN = normalizeSiteOrigin(process.env.VITE_SITE_ORIGIN || process.env.SITE_ORIGIN || DEFAULT_SITE_ORIGIN);
 
 const limits = {
   publicJsTotalGzip: Number(process.env.WEB_BUDGET_PUBLIC_JS_GZIP ?? 2_500_000),
@@ -82,6 +83,7 @@ async function verifyBudgets() {
   if (cssTotal > limits.cssTotalGzip) failures.push(`combined CSS gzip ${cssTotal} > ${limits.cssTotalGzip}`);
 
   console.log(JSON.stringify({
+    site_origin: SITE_ORIGIN,
     public_js_gzip: publicJs.total,
     public_largest_chunk_gzip: publicJs.largest,
     admin_js_gzip: adminJs.total,
