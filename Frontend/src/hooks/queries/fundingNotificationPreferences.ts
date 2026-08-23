@@ -10,9 +10,38 @@ export interface FundingNotificationPreferences {
   emailDeadlineAlerts: boolean;
 }
 
+interface FundingPreferenceRow {
+  email_new_funding?: boolean | null;
+  email_new_matches?: boolean | null;
+  email_deadline_alerts?: boolean | null;
+}
+
 export const fundingNotificationPreferenceKeys = {
   detail: (userId: string | undefined) => ["funding", "notification-preferences", userId] as const,
 };
+
+export function effectiveFundingNotificationPreferences(
+  row: FundingPreferenceRow | null | undefined,
+): FundingNotificationPreferences {
+  const masterFundingConsent = row?.email_new_funding ?? true;
+  const matchPreference = row?.email_new_matches ?? masterFundingConsent;
+  const deadlinePreference = row?.email_deadline_alerts ?? masterFundingConsent;
+  return {
+    emailNewMatches: masterFundingConsent && matchPreference,
+    emailDeadlineAlerts: masterFundingConsent && deadlinePreference,
+  };
+}
+
+export function fundingNotificationPreferenceMutation(preferences: FundingNotificationPreferences) {
+  return {
+    // Existing users already control the broad funding-email switch. Keep it in
+    // sync with the two granular P0-C switches so Account and Funding Radar do
+    // not disagree about consent.
+    email_new_funding: preferences.emailNewMatches || preferences.emailDeadlineAlerts,
+    email_new_matches: preferences.emailNewMatches,
+    email_deadline_alerts: preferences.emailDeadlineAlerts,
+  };
+}
 
 export function useFundingNotificationPreferences() {
   const { user } = useAuth();
@@ -24,14 +53,11 @@ export function useFundingNotificationPreferences() {
     queryFn: async () => {
       const { data, error } = await db
         .from("user_preferences")
-        .select("email_new_matches,email_deadline_alerts")
+        .select("email_new_funding,email_new_matches,email_deadline_alerts")
         .eq("user_id", userId as string)
         .maybeSingle();
       if (error) throw error;
-      return {
-        emailNewMatches: data?.email_new_matches ?? true,
-        emailDeadlineAlerts: data?.email_deadline_alerts ?? true,
-      };
+      return effectiveFundingNotificationPreferences(data as FundingPreferenceRow | null);
     },
   });
 }
@@ -45,8 +71,7 @@ export function useUpdateFundingNotificationPreferences() {
       if (!userId) throw new Error("Sign in to update notification preferences.");
       const { error } = await db.from("user_preferences").upsert({
         user_id: userId,
-        email_new_matches: preferences.emailNewMatches,
-        email_deadline_alerts: preferences.emailDeadlineAlerts,
+        ...fundingNotificationPreferenceMutation(preferences),
       }, { onConflict: "user_id" });
       if (error) throw error;
     },
