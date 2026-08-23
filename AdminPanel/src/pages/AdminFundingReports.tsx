@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@shared/integrations/supabase/client";
 import { useAuth } from "@shared/hooks/useAuth";
 import { PageHeader } from "@shared/components/common/PageHeader";
@@ -11,6 +12,7 @@ import { Badge } from "@shared/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@shared/components/ui/table";
 import { toast } from "sonner";
 
+const db = supabase as unknown as SupabaseClient;
 const KEY = ["admin", "funding-reports"] as const;
 
 type FundingReportRow = {
@@ -27,7 +29,7 @@ function useFundingReports() {
   return useQuery({
     queryKey: KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("funding_opportunity_reports")
         .select("id, opportunity_id, category, message, status, created_at, funding_opportunities(title,funder,source_url,url)")
         .order("created_at", { ascending: false });
@@ -45,7 +47,7 @@ const AdminFundingReports = () => {
 
   const update = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: FundingReportRow["status"] }) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("funding_opportunity_reports")
         .update({ status, reviewed_at: new Date().toISOString(), reviewed_by: user?.id ?? null })
         .eq("id", id);
