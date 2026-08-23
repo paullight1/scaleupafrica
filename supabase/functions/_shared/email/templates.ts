@@ -257,7 +257,7 @@ export function paymentReceipt(ctx: PaymentReceiptCtx): RenderedEmail {
 
   const body =
     h1("Payment received — your access is live") +
-    p(greet(ctx.name).replace(/,$/, "") + " — thanks. Your annual membership is active, and the Funding Radar is unlocked right now.") +
+    p(greet(ctx.name).replace(/,$/, "") + " — thanks. Your Cresciva membership is active, and the Funding Radar is unlocked right now.") +
     definitions([
       ["Amount", amount],
       ["Reference", ctx.reference],
@@ -270,7 +270,7 @@ export function paymentReceipt(ctx: PaymentReceiptCtx): RenderedEmail {
   const text = [
     greet(ctx.name),
     ``,
-    `Thanks — your ${BRAND.name} annual membership is active and the Funding Radar is unlocked.`,
+    `Thanks — your ${BRAND.name} membership is active and the Funding Radar is unlocked.`,
     ``,
     `Amount:       ${amount}`,
     `Reference:    ${ctx.reference}`,

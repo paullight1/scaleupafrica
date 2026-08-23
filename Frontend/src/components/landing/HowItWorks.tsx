@@ -42,7 +42,7 @@ const steps: {
     points: [
       "AI-curated funding opportunities",
       "Grants, competitions, accelerators & more",
-      "Access included with annual membership",
+      "Access included with paid membership",
     ],
   },
 ];
