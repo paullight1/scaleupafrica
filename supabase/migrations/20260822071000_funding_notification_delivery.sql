@@ -31,6 +31,18 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- A worker can crash after leasing the final allowed attempt. In that case the
+  -- row would otherwise stay pending forever because later claims exclude
+  -- attempt_count >= 3. Once that lease has expired, terminalize it explicitly.
+  UPDATE public.notification_events
+  SET status = 'failed',
+      processing_at = NULL,
+      last_error = COALESCE(last_error, 'delivery_attempts_exhausted')
+  WHERE status = 'pending'
+    AND attempt_count >= 3
+    AND processing_at IS NOT NULL
+    AND processing_at < now() - interval '10 minutes';
+
   RETURN QUERY
   WITH candidates AS (
     SELECT event.id
@@ -66,4 +78,4 @@ GRANT EXECUTE ON FUNCTION public.claim_funding_notification_events(INTEGER)
   TO service_role;
 
 COMMENT ON FUNCTION public.claim_funding_notification_events(INTEGER) IS
-  'Service-role-only, SKIP LOCKED lease for at-most-25 Funding Radar notification events.';
+  'Service-role-only, SKIP LOCKED lease for at-most-25 Funding Radar notification events; stale exhausted leases are failed closed.';
