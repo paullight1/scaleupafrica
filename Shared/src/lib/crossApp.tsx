@@ -15,7 +15,7 @@ import { useEffect } from "react";
  * "did you mean to visit /admin/auth?".
  *
  * - `VITE_SITE_URL`  — set in AdminPanel: origin of the public site  (dev: http://localhost:8080)
- * - `VITE_ADMIN_URL` — set in Frontend:   origin of the admin panel  (dev: http://localhost:8081)
+ * - `VITE_ADMIN_URL` — set in Frontend: public origin proxying `/admin` (dev: http://localhost:8080)
  */
 const SITE_ORIGIN = (import.meta.env.VITE_SITE_URL ?? "").replace(/\/+$/, "");
 const ADMIN_ORIGIN = (import.meta.env.VITE_ADMIN_URL ?? "").replace(/\/+$/, "");

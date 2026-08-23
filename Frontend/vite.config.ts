@@ -37,7 +37,17 @@ export default defineConfig(({ mode }) => ({
     hmr: { overlay: false },
     // Dev-only: proxy API calls to the local NestJS server (../Backend, port 3001).
     // No effect in production; the frontend only hits /api when VITE_API_DOMAINS opts a domain in.
-    proxy: { "/api": "http://localhost:3001" },
+    proxy: {
+      "/api": "http://localhost:3001",
+      // Keep the public site and AdminPanel on one browser origin in development.
+      // Supabase persists its session in localStorage, which is scoped by port;
+      // serving /admin through :8080 prevents the sign-in redirect loop.
+      "/admin": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+        ws: true,
+      },
+    },
   },
   plugins: [react(), siteOrigin(mode)],
   resolve: {
