@@ -77,6 +77,10 @@ export function useUpdateFundingNotificationPreferences() {
     },
     onSuccess: (_result, preferences) => {
       qc.setQueryData(fundingNotificationPreferenceKeys.detail(userId), preferences);
+      // NotificationPrefsCard reads the same user_preferences row through the
+      // legacy dashboard key. Refetch it so the broad funding switch cannot look
+      // stale after a granular change.
+      void qc.invalidateQueries({ queryKey: ["preferences", "me", userId] });
     },
   });
 }
