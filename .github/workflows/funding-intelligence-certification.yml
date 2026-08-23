@@ -11,6 +11,7 @@ on:
       - "Frontend/src/components/funding/**"
       - "Frontend/src/hooks/queries/funding*.ts"
       - "Frontend/src/hooks/queries/memberOpportunityState*.ts"
+      - "Frontend/src/lib/__tests__/email-config.test.ts"
       - "Frontend/src/lib/__tests__/email-templates.test.ts"
       - "Frontend/src/lib/__tests__/safe-external-fetch-contract.test.ts"
       - "Backend/src/funding/**"
@@ -21,6 +22,7 @@ on:
       - "supabase/functions/funding-notifications/**"
       - "supabase/functions/_shared/funding*.ts"
       - "supabase/functions/_shared/safeExternalFetch.ts"
+      - "supabase/functions/_shared/email/config.ts"
       - "supabase/functions/_shared/email/templates.ts"
       - "supabase/migrations/2026082205*.sql"
       - "supabase/migrations/2026082206*.sql"
@@ -78,6 +80,7 @@ jobs:
             src/components/funding/OpportunityCard.test.tsx \
             src/components/funding/OpportunityCard.member.test.tsx \
             src/hooks/queries/memberOpportunityState.test.ts \
+            src/lib/__tests__/email-config.test.ts \
             src/lib/__tests__/email-templates.test.ts \
             src/lib/__tests__/safe-external-fetch-contract.test.ts
 
