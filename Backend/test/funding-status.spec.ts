@@ -63,6 +63,8 @@ describe("Funding source extraction trust boundary", () => {
   it("revokes dependent verification and cycle trust when a registered source is disabled", () => {
     expect(applicationStatusMigrationSource).toContain("new_source.active IS DISTINCT FROM old_source.active");
     expect(applicationStatusMigrationSource).toContain("new_source.active = false");
+    expect(applicationStatusMigrationSource).toContain("funding_sources_trust_invalidation");
+    expect(applicationStatusMigrationSource).toContain("AFTER UPDATE OF base_url, active ON public.funding_sources");
     expect(applicationStatusMigrationSource).toContain("application_status = 'unknown'");
     expect(applicationStatusMigrationSource).toContain("verification_status = 'unverified'");
   });
