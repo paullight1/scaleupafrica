@@ -19,6 +19,10 @@ export interface ExtractedFundingSignals {
   deadline_at: string | null;
   deadline_timezone: string | null;
   source_quotes: string[];
+  eligibility_geography_quotes: string[];
+  eligibility_stage_quotes: string[];
+  eligibility_entity_type_quotes: string[];
+  eligibility_company_age_quotes: string[];
 }
 
 export type FundingSignalExtractionResult =
@@ -27,7 +31,8 @@ export type FundingSignalExtractionResult =
 
 /**
  * Extract candidate source signals only. This module deliberately cannot return
- * Cresciva's trusted application status; `classifyFundingStatus` owns that decision.
+ * Cresciva's trusted application status or hard eligibility rules. The status
+ * classifier and deterministic eligibility parser own those decisions.
  */
 export async function extractFundingSourceSignals(input: {
   sourceUrl: string;
@@ -45,7 +50,7 @@ export async function extractFundingSourceSignals(input: {
   if (!visibleSourceText.trim()) return { ok: false, error: "invalid_ai_output" };
   const sourceLinks = Array.from(extractSourceLinks(rawSourceText, sourceUrl)).slice(0, MAX_LINKS);
 
-  const system = `You extract funding application-cycle signals for Cresciva.\n\nTRUST RULES:\n- Use only supplied source text and supplied source links.\n- Do not use model memory or outside knowledge.\n- Every text signal must be an exact verbatim substring of source_text.\n- application_url must be one of source_links.\n- Do not infer open from a future deadline alone.\n- Do not substitute a historical or typical deadline.\n- Return null for unsupported fields.\n- Do not output a trusted application_status.\n- Do not call a programme rolling merely because no deadline is visible.\n- Dates must refer to the current application cycle described in the supplied source.\n- opens_text and deadline_text must be exact source_text snippets supporting opens_at and deadline_at.\n- If the source contains conflicting current-cycle statements, preserve the conflicting exact quotes instead of resolving them yourself.\n- Return only JSON with keys: cycle_label, explicit_open_text, explicit_closed_text, explicit_paused_text, rolling_text, application_cta_text, application_url, opens_text, opens_at, deadline_text, deadline_at, deadline_timezone, source_quotes.\n- opens_at and deadline_at must be ISO-8601 strings only when explicitly supported by their exact source text; otherwise null.\n- source_quotes must contain short verbatim snippets from supplied source_text that support extracted signals.`;
+  const system = `You extract funding application-cycle and eligibility evidence for Cresciva.\n\nTRUST RULES:\n- Use only supplied source text and supplied source links.\n- Do not use model memory or outside knowledge.\n- Every text signal and every eligibility quote must be an exact verbatim substring of source_text.\n- application_url must be one of source_links.\n- Do not infer open from a future deadline alone.\n- Do not substitute a historical or typical deadline.\n- Return null or [] for unsupported fields.\n- Do not output a trusted application_status.\n- Do not output normalized hard eligibility rules; return exact eligibility quote buckets only.\n- Do not call a programme rolling merely because no deadline is visible.\n- Dates must refer to the current application cycle described in the supplied source.\n- opens_text and deadline_text must be exact source_text snippets supporting opens_at and deadline_at.\n- If the source contains conflicting current-cycle statements, preserve the conflicting exact quotes instead of resolving them yourself.\n- eligibility_geography_quotes: exact snippets that state where applicants may/may not be registered or operate.\n- eligibility_stage_quotes: exact snippets that state business/venture stage requirements.\n- eligibility_entity_type_quotes: exact snippets that state legal/entity-type requirements such as NGO, nonprofit, for-profit, cooperative, university or government.\n- eligibility_company_age_quotes: exact snippets that state minimum/maximum years of operation.\n- Return only JSON with keys: cycle_label, explicit_open_text, explicit_closed_text, explicit_paused_text, rolling_text, application_cta_text, application_url, opens_text, opens_at, deadline_text, deadline_at, deadline_timezone, source_quotes, eligibility_geography_quotes, eligibility_stage_quotes, eligibility_entity_type_quotes, eligibility_company_age_quotes.\n- opens_at and deadline_at must be ISO-8601 strings only when explicitly supported by their exact source text; otherwise null.\n- source_quotes and eligibility quote arrays must contain short verbatim snippets from supplied source_text.`;
 
   const user = JSON.stringify({
     source_url: sourceUrl,
@@ -65,7 +70,7 @@ export async function extractFundingSourceSignals(input: {
           { role: "user", content: user },
         ],
         response_format: { type: "json_object" },
-        max_tokens: 1800,
+        max_tokens: 2400,
       }),
       signal: AbortSignal.timeout(AI_TIMEOUT_MS),
     });
@@ -129,13 +134,6 @@ export function normalizeFundingSignalsForSource(
   const deadlineAt = supportedIsoDate(value.deadline_at, deadlineText);
   const deadlineTimezone = exactSourceText(value.deadline_timezone, visibleSourceText, 80);
 
-  const quotes = Array.isArray(value.source_quotes)
-    ? Array.from(new Set(value.source_quotes
-      .map((quote) => safeString(quote, 320))
-      .filter((quote) => Boolean(quote && visibleSourceText.includes(quote)))))
-      .slice(0, MAX_QUOTES)
-    : [];
-
   return {
     cycle_label: cycleLabel,
     explicit_open_text: explicitOpenText,
@@ -149,8 +147,21 @@ export function normalizeFundingSignalsForSource(
     deadline_text: deadlineText,
     deadline_at: deadlineAt,
     deadline_timezone: deadlineTimezone,
-    source_quotes: quotes,
+    source_quotes: exactQuoteArray(value.source_quotes, visibleSourceText),
+    eligibility_geography_quotes: exactQuoteArray(value.eligibility_geography_quotes, visibleSourceText),
+    eligibility_stage_quotes: exactQuoteArray(value.eligibility_stage_quotes, visibleSourceText),
+    eligibility_entity_type_quotes: exactQuoteArray(value.eligibility_entity_type_quotes, visibleSourceText),
+    eligibility_company_age_quotes: exactQuoteArray(value.eligibility_company_age_quotes, visibleSourceText),
   };
+}
+
+function exactQuoteArray(value: unknown, sourceText: string): string[] {
+  return Array.isArray(value)
+    ? Array.from(new Set(value
+      .map((quote) => safeString(quote, 400))
+      .filter((quote) => Boolean(quote && sourceText.includes(quote)))))
+      .slice(0, MAX_QUOTES)
+    : [];
 }
 
 function exactSourceText(value: unknown, sourceText: string, max: number): string | null {
