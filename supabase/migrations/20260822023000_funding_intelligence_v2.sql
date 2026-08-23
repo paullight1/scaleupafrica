@@ -117,7 +117,8 @@ CREATE INDEX IF NOT EXISTS funding_sources_active_idx
 
 ALTER TABLE public.funding_sources ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.funding_sources FROM anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.funding_sources TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.funding_sources TO authenticated;
+REVOKE DELETE ON public.funding_sources FROM authenticated;
 GRANT ALL ON public.funding_sources TO service_role;
 
 DROP POLICY IF EXISTS "Staff manage funding sources" ON public.funding_sources;
@@ -128,32 +129,52 @@ CREATE POLICY "Staff manage funding sources"
   USING (public.is_staff(auth.uid()))
   WITH CHECK (public.is_staff(auth.uid()));
 
--- Domain-level trust gate used by the DB verification trigger. funding_sources is
--- the staff-approved allowlist for authoritative funding origins. Path-level
--- refresh scoping remains enforced by the Edge worker when a registry base_url
--- contains a path prefix.
+-- Registry trust is scoped by origin and optional path prefix, matching the Edge
+-- worker. A base_url of https://funder.example/programs authorizes that path and
+-- descendants, not unrelated pages on the same host.
 CREATE OR REPLACE FUNCTION public.funding_source_is_registered(_url TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SET search_path = public
 AS $$
+  WITH target AS (
+    SELECT
+      substring(lower(btrim(_url)) FROM '^(https?://[^/?#]+)') AS target_origin,
+      COALESCE(
+        NULLIF(substring(btrim(_url) FROM '^https?://[^/?#]+([^?#]*)'), ''),
+        '/'
+      ) AS target_path
+  ), registered AS (
+    SELECT
+      substring(lower(btrim(source.base_url)) FROM '^(https?://[^/?#]+)') AS base_origin,
+      COALESCE(
+        NULLIF(substring(btrim(source.base_url) FROM '^https?://[^/?#]+([^?#]*)'), ''),
+        '/'
+      ) AS base_path
+    FROM public.funding_sources source
+    WHERE source.active = true
+  )
   SELECT CASE
     WHEN _url IS NULL OR btrim(_url) !~* '^https?://' THEN false
     ELSE EXISTS (
       SELECT 1
-      FROM public.funding_sources source
-      WHERE source.active = true
-        AND substring(lower(btrim(source.base_url)) FROM '^(https?://[^/?#]+)') IS NOT NULL
-        AND substring(lower(btrim(source.base_url)) FROM '^(https?://[^/?#]+)') =
-            substring(lower(btrim(_url)) FROM '^(https?://[^/?#]+)')
+      FROM registered source
+      CROSS JOIN target requested
+      WHERE source.base_origin IS NOT NULL
+        AND source.base_origin = requested.target_origin
+        AND (
+          regexp_replace(source.base_path, '/+$', '') IN ('', '/')
+          OR requested.target_path = regexp_replace(source.base_path, '/+$', '')
+          OR requested.target_path LIKE regexp_replace(source.base_path, '/+$', '') || '/%'
+        )
     )
   END;
 $$;
 
 -- Replace the earlier trigger function now that the authoritative registry exists.
--- A syntactically valid URL is not enough: the source origin must be explicitly
--- admitted to the active funding source registry before a record can be verified.
+-- A syntactically valid URL is not enough: the source must be explicitly admitted
+-- to the active funding source registry before a record can be verified.
 CREATE OR REPLACE FUNCTION public.enforce_funding_provenance()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -192,6 +213,13 @@ BEGIN
     NEW.source_retrieved_at := COALESCE(NEW.source_retrieved_at, NEW.last_verified_at);
   END IF;
 
+  IF TG_OP = 'UPDATE'
+     AND OLD.verification_status <> 'verified'
+     AND NEW.verification_status = 'verified'
+     AND NEW.last_verified_at IS NOT DISTINCT FROM OLD.last_verified_at THEN
+    RAISE EXCEPTION 'Verified transition requires a fresh verification timestamp';
+  END IF;
+
   IF NEW.verification_status = 'verified' AND (
     NEW.source_url IS NULL
     OR NEW.source_url !~* '^https?://'
@@ -219,6 +247,6 @@ WHERE verification_status = 'verified'
 COMMENT ON COLUMN public.funding_opportunities.source_url IS
   'Authoritative source evidence used for verification; verified state requires an active funding_sources registry match.';
 COMMENT ON COLUMN public.funding_opportunities.verification_status IS
-  'Controlled trust state. verified requires a registry-backed source plus a verification timestamp.';
+  'Controlled trust state. verified requires a registry-backed source plus a fresh verification timestamp.';
 COMMENT ON TABLE public.funding_sources IS
-  'Staff-managed registry of authoritative funding sources used for scheduled retrieval and verification.';
+  'Staff-managed, non-deletable registry of authoritative funding sources used for scheduled retrieval and verification; deactivate sources to preserve audit history.';
