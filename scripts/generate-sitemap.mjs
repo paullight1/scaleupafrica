@@ -42,7 +42,8 @@ const fileEnv = loadEnvFile(resolve(ROOT, "Frontend/.env"));
 const env = { ...fileEnv, ...process.env };
 
 const SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_KEY =
+  env.SUPABASE_ANON_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const SITE_URL = normalizeSiteOrigin(
   env.SITE_ORIGIN || env.VITE_SITE_ORIGIN || DEFAULT_SITE_ORIGIN,
 );

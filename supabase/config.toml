@@ -1,4 +1,4 @@
-project_id = "dwyglydswegyvjowzdot"
+project_id = "zttqskrvbkjdzwrxtzaa"
 
 # Bachs payment functions (production-readiness Phase 1).
 # init/verify require the caller's Supabase JWT. The webhook does not receive a
