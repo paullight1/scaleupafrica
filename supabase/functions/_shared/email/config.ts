@@ -4,10 +4,6 @@
 // Pure TypeScript (NO Deno globals, NO npm: imports) so it runs on the Deno edge
 // runtime AND under Vitest (Node). Callers pass `Deno.env.toObject()`-shaped
 // records in; nothing here reads a global.
-//
-// The brand palette mirrors Shared/src/styles/index.css. Email clients have no
-// CSS variables, so the hex values are duplicated here on purpose — keep them in
-// lockstep with the design tokens.
 // =============================================================================
 
 export const BRAND = {
@@ -43,7 +39,9 @@ const DEFAULTS = {
   from: "Cresciva <hello@cresciva.com>",
   replyTo: "hello@cresciva.com",
   teamInbox: "hello@cresciva.com",
-  siteUrl: "https://cresciva.com",
+  // Must match the repository's canonical public-origin contract unless an
+  // explicit SITE_URL is supplied by the deployment environment.
+  siteUrl: "https://cresciva.vercel.app",
 } as const;
 
 function str(source: Record<string, string | undefined>, key: string, fallback = ""): string {
@@ -53,8 +51,8 @@ function str(source: Record<string, string | undefined>, key: string, fallback =
 
 /**
  * Build the config from an env-shaped record. Never throws — a missing API key
- * yields `apiKey: ""` so callers can degrade gracefully (capture the lead, skip
- * the email) instead of 500-ing a user-facing form.
+ * yields `apiKey: ""` so callers can degrade gracefully instead of 500-ing a
+ * user-facing form.
  */
 export function loadEmailConfig(source: Record<string, string | undefined>): EmailConfig {
   return {
