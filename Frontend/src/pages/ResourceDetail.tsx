@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -21,6 +21,8 @@ import { CardSkeleton } from "@shared/components/common/LoadingState";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { Badge } from "@shared/components/ui/badge";
 import { Button } from "@shared/components/ui/button";
+import { useAuth } from "@shared/hooks/useAuth";
+import { ResourceAccessModal } from "@/components/resources/ResourceAccessModal";
 import { Input } from "@shared/components/ui/input";
 import { Label } from "@shared/components/ui/label";
 import {
@@ -50,6 +52,9 @@ function incrementDownload(id: string) {
 
 const ResourceDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { data: resource, isLoading, isError, refetch } = useResourceBySlug(slug);
 
   const relatedQuery = useRelatedResources(resource?.type, resource?.id, 3);
@@ -60,6 +65,7 @@ const ResourceDetail = () => {
   const [company, setCompany] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const honeypot = useRef<HTMLInputElement>(null);
 
   // Fire the view event + increment once per resource.
@@ -80,6 +86,10 @@ const ResourceDetail = () => {
         () => {},
       );
   }, [resource]);
+
+  useEffect(() => {
+    if (!authLoading && resource?.gated && !user) setAccessOpen(true);
+  }, [authLoading, resource, user]);
 
   const publishedLabel = useMemo(() => {
     const d = resource?.published_at ?? resource?.created_at;
@@ -135,7 +145,11 @@ const ResourceDetail = () => {
   const typeLabel = resourceTypeLabel(resource.type);
   const size = formatFileSize(resource.file_size_kb);
   const hasFile = !!resource.file_url;
-  const canDownloadNow = hasFile && (!resource.gated || unlocked);
+  const canDownloadNow = hasFile && (!resource.gated || !!user || unlocked);
+  const openSignIn = (create = false) => {
+    const next = encodeURIComponent(location.pathname);
+    navigate(create ? `/auth/signup?next=${next}` : `/auth?next=${next}`);
+  };
   const seoImage = resource.cover_image_url || undefined;
 
   const handleDownload = () => {
@@ -267,14 +281,10 @@ const ResourceDetail = () => {
               </div>
             )}
 
-            {resource.content ? (
+            {resource.content && (!resource.gated || user) ? (
               <Markdown content={resource.content} />
             ) : (
-              <p className="text-sm text-muted-foreground">
-                {hasFile
-                  ? "Use the download panel to grab this resource."
-                  : "This resource has no additional detail yet."}
-              </p>
+              <div className="rounded-xl border border-border bg-card p-6 shadow-soft"><Lock className="mb-3 h-5 w-5 text-primary-dark" /><h2 className="font-display text-xl font-bold text-ink-strong">Sign in to read the playbook</h2><p className="mt-2 text-sm text-muted-foreground">Your account gives you access to the full workshop notes and the original slide deck.</p><Button className="mt-5" onClick={() => setAccessOpen(true)}>Sign in to unlock</Button></div>
             )}
           </div>
 
@@ -300,6 +310,8 @@ const ResourceDetail = () => {
                   <Button className="w-full" size="lg" onClick={handleDownload}>
                     <Download className="h-4 w-4" /> Download
                   </Button>
+                ) : !user && resource.gated ? (
+                  <Button className="w-full" size="lg" onClick={() => setAccessOpen(true)}><Lock className="h-4 w-4" /> Sign in to access</Button>
                 ) : (
                   <form onSubmit={handleLeadSubmit} className="space-y-3" noValidate>
                     {/* Honeypot — hidden from humans and assistive tech. */}
@@ -382,6 +394,7 @@ const ResourceDetail = () => {
           </section>
         )}
       </div>
+      <ResourceAccessModal open={accessOpen} onOpenChange={setAccessOpen} title={resource.title} onSignIn={() => openSignIn()} onCreateAccount={() => openSignIn(true)} />
     </>
   );
 };

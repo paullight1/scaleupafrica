@@ -4,6 +4,7 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { supabase } from "@shared/integrations/supabase/client";
+import { HARD_CODED_RESOURCE, HARD_CODED_RESOURCES } from "@/content/hardcodedResources";
 
 /**
  * Public Resource Library data layer. All server reads go through TanStack Query.
@@ -149,10 +150,16 @@ export function useResources(filters: ResourceFilters) {
         .order("published_at", { ascending: false })
         .range(pageParam, pageParam + PAGE_SIZE - 1);
 
-      if (error) throw error;
+      // Keep the local playbook available even when the resource table is not configured yet.
+      if (error) {
+        const rows = filterLocalResources(filters);
+        return { rows: rows.slice(pageParam, pageParam + PAGE_SIZE), count: rows.length, nextOffset: pageParam + PAGE_SIZE };
+      }
+      const localRows = filterLocalResources(filters);
+      const remoteRows = (data ?? []) as ResourceCardRow[];
       return {
-        rows: (data ?? []) as ResourceCardRow[],
-        count: count ?? 0,
+        rows: pageParam === 0 ? [...HARD_CODED_RESOURCES, ...remoteRows].slice(0, PAGE_SIZE) : remoteRows,
+        count: (count ?? 0) + localRows.length,
         nextOffset: pageParam + PAGE_SIZE,
       };
     },
@@ -174,8 +181,8 @@ export function useFeaturedResources(limit = 3) {
         .eq("featured", true)
         .order("published_at", { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return (data ?? []) as ResourceCardRow[];
+      if (error) return HARD_CODED_RESOURCES.slice(0, limit);
+      return [...HARD_CODED_RESOURCES, ...((data ?? []) as ResourceCardRow[])].slice(0, limit);
     },
   });
 }
@@ -190,7 +197,7 @@ export function useResourceTopics() {
         .from("resources")
         .select("topics")
         .eq("status", "published");
-      if (error) throw error;
+      if (error) return [...new Set(HARD_CODED_RESOURCES.flatMap((r) => r.topics))].sort();
       const counts = new Map<string, number>();
       for (const row of (data ?? []) as { topics: string[] | null }[]) {
         for (const t of row.topics ?? []) {
@@ -198,9 +205,8 @@ export function useResourceTopics() {
           if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
         }
       }
-      return [...counts.entries()]
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .map(([value]) => value);
+      return [...new Set([...counts.keys(), ...HARD_CODED_RESOURCES.flatMap((r) => r.topics)])]
+        .sort((a, b) => a.localeCompare(b));
     },
   });
 }
@@ -211,13 +217,14 @@ export function useResourceBySlug(slug: string | undefined) {
     queryKey: resourceKeys.detail(slug ?? ""),
     enabled: !!slug,
     queryFn: async () => {
+      if (slug === HARD_CODED_RESOURCE.slug) return HARD_CODED_RESOURCE;
       const { data, error } = await supabase
         .from("resources")
         .select(DETAIL_COLUMNS)
         .eq("slug", slug as string)
         .eq("status", "published")
         .maybeSingle();
-      if (error) throw error;
+      if (error) return null;
       return (data ?? null) as ResourceDetailRow | null;
     },
   });
@@ -242,8 +249,17 @@ export function useRelatedResources(
         .order("featured", { ascending: false })
         .order("published_at", { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return (data ?? []) as ResourceCardRow[];
+      if (error) return HARD_CODED_RESOURCES.filter((r) => r.id !== excludeId).slice(0, limit);
+      return [...HARD_CODED_RESOURCES.filter((r) => r.id !== excludeId), ...((data ?? []) as ResourceCardRow[])].slice(0, limit);
     },
   });
+}
+
+function filterLocalResources(filters: ResourceFilters): ResourceCardRow[] {
+  const q = (filters.q ?? "").trim().toLowerCase();
+  return HARD_CODED_RESOURCES.filter((resource) =>
+    (!filters.type || resource.type === filters.type) &&
+    (!filters.topic || resource.topics.includes(filters.topic)) &&
+    (!q || `${resource.title} ${resource.excerpt ?? ""}`.toLowerCase().includes(q)),
+  );
 }

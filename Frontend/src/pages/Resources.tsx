@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@shared/components/ui/input";
 import { Button } from "@shared/components/ui/button";
@@ -24,12 +24,17 @@ import {
   type ResourceFilters,
 } from "@/hooks/queries/resources";
 import { cn } from "@shared/lib/utils";
+import { authPathWithNext } from "@shared/lib/routes";
+import { useAuth } from "@shared/hooks/useAuth";
+import { ResourceAccessModal } from "@/components/resources/ResourceAccessModal";
+import { ADVISORS_PLAYBOOK_SLUG } from "@/content/hardcodedResources";
 
 const ALL_TOPICS = "__all__";
 
 const TYPE_CHIPS = [{ value: "", label: "All" }, ...RESOURCE_TYPE_FILTERS];
 
 const Resources = () => {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const type = searchParams.get("type");
   const topic = searchParams.get("topic");
@@ -38,6 +43,20 @@ const Resources = () => {
   // Local input mirrors the URL `q` but is debounced before it reaches the query.
   const [input, setInput] = useState(urlQ);
   const [debouncedQ, setDebouncedQ] = useState(urlQ);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (authLoading || user || window.localStorage.getItem("cresciva-resource-welcome-seen")) return;
+    const timer = window.setTimeout(() => setWelcomeOpen(true), 700);
+    return () => window.clearTimeout(timer);
+  }, [authLoading, user]);
+
+  const closeWelcome = (open: boolean) => {
+    setWelcomeOpen(open);
+    if (!open) window.localStorage.setItem("cresciva-resource-welcome-seen", "1");
+  };
 
   useEffect(() => {
     setInput(urlQ);
@@ -150,6 +169,8 @@ const Resources = () => {
         </div>
       </section>
 
+      <ResourceAccessModal open={welcomeOpen} onOpenChange={closeWelcome} title="The Advisor's Playbook" onSignIn={() => navigate(`/auth?next=/resources/${ADVISORS_PLAYBOOK_SLUG}`)} onCreateAccount={() => navigate(`/auth/signup?next=/resources/${ADVISORS_PLAYBOOK_SLUG}`)} />
+
       <section className="mx-auto max-w-6xl px-6 py-10">
         {/* Type chips + topic filter */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -243,16 +264,16 @@ const Resources = () => {
         ) : count === 0 ? (
           <EmptyState
             variant="search"
-            title="No resources match"
+            title={hasFilters ? "No resources match" : "Sign in to view more"}
             description={
               hasFilters
                 ? "Try a different search or clear the filters to see everything."
-                : "New resources are on the way — check back soon."
+                : "Sign in to access more resources, guides and playbooks for growing your business."
             }
             action={
               hasFilters
                 ? { label: "Clear filters", onClick: clearFilters }
-                : undefined
+                : { label: "Sign in", to: authPathWithNext(location) }
             }
           />
         ) : (
