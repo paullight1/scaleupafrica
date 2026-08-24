@@ -26,11 +26,15 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { loadEmailConfig, normalizeEmail } from "../_shared/email/config.ts";
 import { dispatch, type EmailLogRow } from "../_shared/email/dispatch.ts";
 import { unsubscribeUrl } from "../_shared/email/tokens.ts";
+import { createBrevoClient } from "../_shared/brevo/client.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const CONFIG = loadEmailConfig(Deno.env.toObject());
 const FUNCTIONS_BASE = `${SUPABASE_URL.replace(/\/+$/, "")}/functions/v1`;
+const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY")?.trim() ?? "";
+const BREVO_LIST_ID = positiveInteger(Deno.env.get("BREVO_LIST_ID"));
+const BREVO_SENDER_ID = positiveInteger(Deno.env.get("BREVO_SENDER_ID"));
 
 type LooseSupabaseClient = SupabaseClient<any, "public", "public", any, any>;
 
@@ -188,19 +192,47 @@ async function handleNewsletter(
     .maybeSingle();
 
   const alreadySubscribed = existing?.status === "subscribed";
+  let subscriberId = existing?.id ?? null;
+  const subscribedAt = new Date().toISOString();
 
   if (!existing) {
-    const { error } = await admin
+    const { data: created, error } = await admin
       .from("newsletter_subscribers")
-      .insert({ email, source, status: "subscribed" });
+      .insert({
+        email,
+        source,
+        status: "subscribed",
+        subscribed_at: subscribedAt,
+        consent_source: source,
+        brevo_sync_status: "pending",
+      })
+      .select("id")
+      .single();
     if (error && !/duplicate key/i.test(error.message)) {
       console.error("send-email: subscriber insert failed", error.message);
       return json({ error: "Could not subscribe. Please try again.", code: "SAVE_FAILED" }, 500);
     }
+    subscriberId = created?.id ?? null;
+    if (!subscriberId && error) {
+      const { data: raced } = await admin
+        .from("newsletter_subscribers")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+      subscriberId = raced?.id ?? null;
+    }
   } else if (!alreadySubscribed) {
     const { error } = await admin
       .from("newsletter_subscribers")
-      .update({ status: "subscribed", source })
+      .update({
+        status: "subscribed",
+        source,
+        subscribed_at: subscribedAt,
+        unsubscribed_at: null,
+        unsubscribe_reason: null,
+        consent_source: source,
+        brevo_sync_status: "pending",
+      })
       .eq("id", existing.id);
     if (error) {
       console.error("send-email: subscriber resubscribe failed", error.message);
@@ -210,11 +242,14 @@ async function handleNewsletter(
 
   if (!alreadySubscribed) {
     const unsub = await unsubscribeUrl(email, CONFIG.tokenSecret, FUNCTIONS_BASE);
-    await dispatch(
-      { kind: "newsletter_welcome", email, siteUrl: CONFIG.siteUrl, unsubscribeUrl: unsub },
-      { to: email, idempotencyKey: `welcome:${email}`, listUnsubscribeUrl: unsub },
-      { config: CONFIG, log },
-    );
+    await Promise.all([
+      dispatch(
+        { kind: "newsletter_welcome", email, siteUrl: CONFIG.siteUrl, unsubscribeUrl: unsub },
+        { to: email, idempotencyKey: `welcome:${email}`, listUnsubscribeUrl: unsub },
+        { config: CONFIG, log },
+      ),
+      subscriberId ? syncNewsletterContact(admin, subscriberId, email) : Promise.resolve(),
+    ]);
   }
 
   return json({ ok: true }, 200);
@@ -282,6 +317,42 @@ async function handleResource(
 
 function str(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function positiveInteger(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 0;
+}
+
+async function syncNewsletterContact(
+  admin: LooseSupabaseClient,
+  subscriberId: string,
+  email: string,
+): Promise<void> {
+  if (!BREVO_API_KEY || !BREVO_LIST_ID) return;
+  const provider = createBrevoClient(
+    { apiKey: BREVO_API_KEY, listId: BREVO_LIST_ID, senderId: BREVO_SENDER_ID || 1 },
+    { maxAttempts: 1, timeoutMs: 5_000 },
+  );
+  const result = await provider.upsertContact({ email, subscriberId, subscribed: true });
+  if (result.ok) {
+    const contactId = result.data && typeof result.data.id === "number" ? result.data.id : null;
+    await admin.from("newsletter_subscribers").update({
+      brevo_contact_id: contactId,
+      brevo_sync_status: "synced",
+      brevo_synced_at: new Date().toISOString(),
+      brevo_sync_error: null,
+    }).eq("id", subscriberId);
+    await admin.from("newsletter_sync_jobs").update({ status: "completed", last_error: null })
+      .eq("subscriber_id", subscriberId).in("status", ["queued", "running", "failed"]);
+    return;
+  }
+
+  console.error("send-email: Brevo contact sync failed", result.error);
+  await admin.from("newsletter_subscribers").update({
+    brevo_sync_status: "failed",
+    brevo_sync_error: result.error,
+  }).eq("id", subscriberId);
 }
 
 function clientIp(req: Request): string {
