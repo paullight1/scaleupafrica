@@ -8,6 +8,7 @@ Cresciva is a Pan-African SME platform: a public, searchable directory where fou
 - **Admin:** a separate Vite/React app assembled under `/admin/` in the production artifact.
 - **Backend today:** Supabase Auth, Postgres/RLS, Storage and Deno Edge Functions.
 - **Payments:** Bachs recurring product checkout, signed lifecycle webhooks, customer billing portal, and a Cresciva-owned payment/entitlement ledger. Plans are $10/month, $25/3 months, or $90/year and renew automatically until canceled.
+- **Email:** Resend for transactional/visitor-triggered messages; Brevo for administrator-authored newsletter campaigns, segmented audiences and delivery reporting.
 - **Funding intelligence:** deterministic profile recommendations over the curated feed, verified-first opportunity search, and AI-assisted long-tail discovery that is always labelled unverified until source verification upgrades it.
 - **API server:** NestJS + Drizzle under `Backend/`, introduced behind domain-by-domain cutover flags.
 - **Testing:** Vitest + Testing Library; GitHub Actions also typechecks Supabase Edge Functions with Deno.
@@ -125,6 +126,10 @@ RESEND_API_KEY
 EMAIL_FROM
 EMAIL_TEAM_INBOX
 EMAIL_TOKEN_SECRET
+BREVO_API_KEY
+BREVO_LIST_ID
+BREVO_SENDER_ID
+BREVO_WEBHOOK_TOKEN
 ```
 
 Bachs environments must not be mixed:
@@ -208,7 +213,7 @@ npm run build:api
 
 Supabase database migrations and Edge Function deployment must target the Cresciva project declared in `supabase/config.toml`. Do not substitute another project when the intended project is unavailable to the current credentials.
 
-Current active payment functions are `bachs-init`, `bachs-verify`, `bachs-webhook`, `bachs-portal`, plus the admin-only `payment-reconciliation` function.
+Current active payment functions are `bachs-init`, `bachs-verify`, `bachs-webhook`, `bachs-portal`, plus the admin-only `payment-reconciliation` function. Newsletter marketing additionally requires the `newsletter-admin` and `brevo-webhook` functions; public `send-email` persists consent, sends the transactional welcome through Resend and synchronizes the contact to Brevo. Full provider setup and smoke-test steps are in `docs/EMAIL.md`.
 
 ## Operations
 

@@ -27,7 +27,8 @@ The admin panel lives at **`/admin`** and gives staff a single place to:
 - **Users** — see every user with subscription + role, grant/revoke access, set expiry, assign
   admin/editor roles.
 - **Leads** — inbox for contact-form submissions and gated-resource downloads; export CSV.
-- **Newsletter** — subscriber list; export CSV.
+- **Newsletter** — Brevo-backed campaign studio, audience segmentation, consent operations,
+  delivery reporting and provider health.
 - **Settings** — announcement banner + feature flags (`site_settings`).
 - **Audit Log** — every mutating admin action is recorded.
 
@@ -93,7 +94,12 @@ it but never authors DDL). The admin foundation migration is
 | `blog_posts`             | Blog posts (markdown)                                         | staff |
 | `funding_opportunities`  | Admin-curated funding (extended by `…140000` with AI/verify)  | staff |
 | `leads`                  | Contact + gated-download + demo submissions                  | anyone inserts; admin reads |
-| `newsletter_subscribers` | Newsletter list                                              | anyone inserts; admin reads |
+| `newsletter_subscribers` | Consent authority + Brevo contact sync state                 | public capture; admin operates |
+| `newsletter_consent_events` | Append-only subscribe/suppress history                    | server writes; admin reads |
+| `newsletter_campaigns` | Draft revisions, rendered content and delivery state            | admin via Edge Function |
+| `newsletter_campaign_recipients` | Immutable per-campaign audience snapshots              | server writes; admin reads |
+| `newsletter_campaign_events` | Deduplicated Brevo delivery/engagement events              | webhook writes; admin reads |
+| `newsletter_sync_jobs` | Retry/reconciliation state for Brevo contacts                    | server writes; admin reads |
 | `analytics_events`       | Lightweight product analytics                                | anyone inserts; admin reads |
 | `site_settings`          | Announcement banner, feature flags                           | admin writes; public reads |
 | `admin_audit_log`        | Record of admin actions                                      | staff inserts; admin reads |
@@ -182,6 +188,17 @@ Routes deliberately keep the `/admin` prefix rather than using a router `basenam
 in-panel link reads the same as its URL. Anything outside `/admin` belongs to the public app and is
 handed off with a real document navigation, not a react-router link.
 
+### Newsletter command center
+
+`/admin/newsletter` is administrator-only and has four URL-addressable workspaces:
+
+- **Overview** — subscriber growth, delivery/click rates, recent campaigns and failed contact syncs.
+- **Campaigns** — searchable status list plus a structured block editor with desktop/mobile preview. Authors choose all active subscribers or a source/date segment, send a revision-specific test, then send immediately or schedule through Brevo.
+- **Subscribers** — search/filter by consent, Brevo sync, signup source and dates; export CSV, inspect append-only consent history, explicitly resubscribe, unsubscribe or retry provider sync.
+- **Settings** — masked configuration health, master list/sender IDs, last sync/webhook timestamps and guarded audience reconciliation.
+
+Campaign content is validated block JSON, not arbitrary HTML. Supabase owns consent and campaign snapshots; only `newsletter-admin` can use service-role/provider credentials. `brevo-webhook` deduplicates at-least-once events and applies unsubscribe, complaint and hard-bounce suppression locally. See `docs/EMAIL.md` for provider setup and deployment order.
+
 ### Conventions the admin UI follows
 
 - Data via the **Supabase client** + **TanStack Query** (centralized query keys). Reads always
@@ -269,6 +286,8 @@ To add a new admin module:
   project so deliberate cross-app links use the correct hosts.
 - Add `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and
   `VITE_SUPABASE_PROJECT_ID` to all three Vercel environments (Production, Preview, Development).
+- Apply `20260824145932_newsletter_command_center.sql`, configure the four server-only `BREVO_*`
+  secrets, and deploy `send-email`, `newsletter-admin` and `brevo-webhook` before enabling campaigns.
 
 ### Cross-app origins
 

@@ -1,6 +1,11 @@
-# Transactional email (Resend)
+# Email delivery (Resend + Brevo)
 
-Every outbound Cresciva email goes through Resend from Supabase Edge Functions. Browser clients never hold the Resend API key and never choose arbitrary recipients.
+Cresciva deliberately separates email by purpose:
+
+- **Resend** sends transactional and visitor-triggered messages: contact acknowledgements, newsletter welcomes, resource delivery, payment receipts and Funding Intelligence notifications.
+- **Brevo** sends administrator-authored marketing campaigns from `/admin/newsletter` and returns delivery/engagement events.
+
+Both providers are called only from Supabase Edge Functions. Browser clients never hold provider keys or choose arbitrary provider IDs. Supabase remains the source of truth for newsletter consent, campaign revisions and immutable recipient snapshots; Brevo is the marketing-delivery executor.
 
 ## Shared email layer
 
@@ -18,7 +23,20 @@ Keep pure template/config/render helpers free of `Deno.*` and `npm:` imports so 
 
 ## Current message families
 
-The repository includes contact acknowledgements/team notifications, newsletter/resource delivery, payment receipts and Funding Intelligence notification templates. Funding notifications are queued/delivered by the scheduler-only `funding-notifications` function and re-check member preferences/trust before send.
+The repository includes contact acknowledgements/team notifications, newsletter welcome messages, resource delivery, payment receipts and Funding Intelligence notification templates. Funding notifications are queued/delivered by the scheduler-only `funding-notifications` function and re-check member preferences/trust before send.
+
+## Marketing campaigns (Brevo)
+
+`supabase/functions/_shared/brevo/` owns the provider adapter, retries/timeouts, response redaction, contact synchronization, campaign operations and webhook normalization. The integration consists of:
+
+- `newsletter-admin` — JWT-protected, explicitly re-checks `is_admin`, and owns campaign/subscriber/provider operations;
+- `brevo-webhook` — public provider endpoint protected by a dedicated bearer token;
+- `send-email` — persists public newsletter consent, sends the Resend welcome, and performs a best-effort Brevo contact upsert for new or renewed consent;
+- `newsletter_campaigns`, `newsletter_campaign_recipients`, `newsletter_campaign_events`, `newsletter_consent_events` and `newsletter_sync_jobs` — local operational state from migration `20260824145932_newsletter_command_center.sql`.
+
+Fresh public signups are valid as soon as Supabase persists them. A Brevo outage does not discard that consent: the contact is marked failed/pending, and the AdminPanel reconciliation action or campaign delivery retries synchronization. Campaign delivery always re-reads active local consent and creates a campaign-specific Brevo list, so a scheduled audience cannot drift with the master list.
+
+Every changed campaign revision requires a successful test send before it can be sent or scheduled. Once queued, campaign content and audience criteria are immutable. Brevo unsubscribe, complaint and hard-bounce events suppress the local subscriber; routine synchronization never silently re-subscribes them.
 
 ## Bachs payment receipts
 
@@ -61,14 +79,38 @@ Secrets belong in the deployment secret store / `supabase/.env` for local operat
 | `SITE_URL` | canonical link base used in emails |
 | `EMAIL_TOKEN_SECRET` | HMAC secret for unsubscribe/safety tokens |
 | `FUNDING_NOTIFICATION_SECRET` | scheduler authentication for funding delivery |
+| `BREVO_API_KEY` | server-side Brevo Marketing API authentication |
+| `BREVO_LIST_ID` | authoritative master newsletter list; its folder holds campaign snapshots |
+| `BREVO_SENDER_ID` | verified Brevo sender identity used for every campaign |
+| `BREVO_WEBHOOK_TOKEN` | long random bearer token required by `brevo-webhook` |
 
-The actual sending domain/address must be one Cresciva controls and has verified with Resend. Do not assume `cresciva.com` ownership from repository examples; configure the verified operational domain at deployment.
+The actual sending domain/address must be one Cresciva controls and has authenticated with each active provider. Do not assume `cresciva.com` ownership from repository examples; configure the verified operational domain at deployment.
+
+## Brevo account setup
+
+1. Authenticate the Cresciva sending domain in Brevo (SPF/DKIM and any provider-requested DNS records), then create and verify the production sender. Record its numeric sender ID as `BREVO_SENDER_ID`.
+2. Create one master contact list for the newsletter. Record its numeric list ID as `BREVO_LIST_ID`. Do not reuse an unrelated/imported list: Cresciva consent must remain authoritative.
+3. Create a restricted Brevo API key for marketing/contact operations and store it only as `BREVO_API_KEY` in Supabase secrets.
+4. Generate a long random `BREVO_WEBHOOK_TOKEN`. Register a Brevo marketing webhook at `https://<project-ref>.supabase.co/functions/v1/brevo-webhook`, configure `Authorization: Bearer <BREVO_WEBHOOK_TOKEN>`, and enable sent, delivered, opened, click, soft bounce, hard bounce, spam/complaint, unsubscribe, contact-updated and contact-deleted events.
+5. Never copy these four values into `Frontend/.env`, `AdminPanel/.env`, Vite variables, source code or screenshots. `supabase/.env.example` documents names only.
+
+After deployment, open **Admin → Newsletter → Settings**. It must show a connected Brevo account, the expected list and sender IDs, and then a webhook timestamp after the first test event. Use **Reconcile audience** to retry any pending/failed contacts.
 
 ## Deployment
 
-After database migrations/secrets are applied, deploy the email/payment/funding functions used by the release, including at minimum the current Bachs functions plus `send-email`, `email-unsubscribe` and, when scheduled funding alerts are enabled, `funding-notifications`.
+Apply the newsletter migration before deploying functions that write the new subscriber fields:
 
-The repository deliberately does not require retired `paystack-*` functions.
+```sh
+supabase db push
+supabase secrets set --env-file supabase/.env
+supabase functions deploy send-email
+supabase functions deploy newsletter-admin
+supabase functions deploy brevo-webhook --no-verify-jwt
+```
+
+Also deploy `email-unsubscribe`, the current Bachs functions and, when scheduled funding alerts are enabled, `funding-notifications`. The repository deliberately does not require retired `paystack-*` functions.
+
+Before the first production campaign, add a test subscriber you control, reconcile it, create a draft, send a test of the exact revision, send to that one-person segment, and verify delivered/clicked/unsubscribed events in the read-only campaign report. Do not use a production-wide audience as the first live smoke test.
 
 ## Adding a message
 
