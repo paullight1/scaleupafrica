@@ -29,15 +29,15 @@ type NavItem = { label: string; to: string; icon: typeof LayoutDashboard; end?: 
 type NavGroup = { heading: string; items: NavItem[] };
 
 const NAV: NavGroup[] = [
-  { heading: "Overview", items: [{ label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true }] },
+  { heading: "Overview", items: [{ label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true, adminOnly: true }] },
   {
     heading: "Content",
     items: [
       { label: "Resources", to: "/admin/resources", icon: FileText },
       { label: "Blog", to: "/admin/blog", icon: Newspaper },
-      { label: "Funding", to: "/admin/funding", icon: Landmark, end: true },
-      { label: "Funding source health", to: "/admin/funding/sources", icon: Radar },
-      { label: "Funding reports", to: "/admin/funding/reports", icon: Flag },
+      { label: "Funding", to: "/admin/funding", icon: Landmark, end: true, adminOnly: true },
+      { label: "Funding source health", to: "/admin/funding/sources", icon: Radar, adminOnly: true },
+      { label: "Funding reports", to: "/admin/funding/reports", icon: Flag, adminOnly: true },
     ],
   },
   {

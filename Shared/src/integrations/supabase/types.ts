@@ -1260,7 +1260,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_content_performance: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          content_id: string
+          content_type: string
+          downloads: number
+          status: string
+          title: string
+          total_engagement: number
+          views: number
+        }[]
+      }
       admin_dashboard_stats: { Args: never; Returns: Json }
+      admin_reporting_summary: { Args: { _days?: number }; Returns: Json }
       admin_list_users: {
         Args: { _limit?: number; _search?: string }
         Returns: {

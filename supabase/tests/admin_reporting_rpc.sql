@@ -1,0 +1,10 @@
+begin;
+select plan(6);
+select has_function('public', 'admin_reporting_summary', array['integer']);
+select has_function('public', 'admin_content_performance', array['integer', 'integer']);
+select function_privs_are('public', 'admin_reporting_summary', array['integer'], 'anon', array[]::text[]);
+select function_privs_are('public', 'admin_content_performance', array['integer', 'integer'], 'anon', array[]::text[]);
+select ok(pg_get_functiondef('public.admin_reporting_summary(integer)'::regprocedure) ilike '%is_admin(auth.uid())%', 'summary self-authorizes');
+select ok(pg_get_functiondef('public.admin_content_performance(integer,integer)'::regprocedure) ilike '%is_admin(auth.uid())%', 'performance self-authorizes');
+select * from finish();
+rollback;

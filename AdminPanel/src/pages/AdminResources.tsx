@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 
 import { SEO } from "@shared/components/common/SEO";
+import { useRole } from "@shared/hooks/useRole";
+import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
 import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
@@ -73,6 +75,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 const AdminResources = () => {
+  const { isAdmin, isEditor } = useRole();
   const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [toDelete, setToDelete] = useState<ResourceRow | null>(null);
@@ -93,6 +96,7 @@ const AdminResources = () => {
   }, [data, status, search]);
 
   const handleTogglePublish = (row: ResourceRow) => {
+    if (!isAdmin) return;
     const publish = row.status !== "published";
     toggleStatus.mutate(
       { row, publish },
@@ -110,6 +114,7 @@ const AdminResources = () => {
   };
 
   const handleDuplicate = (row: ResourceRow) => {
+    if (!isAdmin) return;
     duplicate.mutate(row, {
       onSuccess: (created) => {
         toast.success("Duplicated as a draft.");
@@ -124,7 +129,7 @@ const AdminResources = () => {
   };
 
   const handleDelete = () => {
-    if (!toDelete) return;
+    if (!toDelete || !isAdmin) return;
     const id = toDelete.id;
     remove.mutate(id, {
       onSuccess: () => {
@@ -217,7 +222,9 @@ const AdminResources = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((row) => (
+              {filtered.map((row) => {
+                const permissions = contentPermissions({ isAdmin, isEditor, status: row.status as ContentStatus });
+                return (
                 <TableRow key={row.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -285,36 +292,37 @@ const AdminResources = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
+                        {permissions.canEdit && <DropdownMenuItem asChild>
                           <Link to={`/admin/resources/${row.id}`}>
                             <Pencil className="h-4 w-4" /> Edit
                           </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
+                        </DropdownMenuItem>}
+                        {(permissions.canPublish || permissions.canUnpublish) && <DropdownMenuItem
                           onClick={() => handleTogglePublish(row)}
                           disabled={toggleStatus.isPending}
                         >
                           <Eye className="h-4 w-4" />
                           {row.status === "published" ? "Unpublish" : "Publish"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
+                        </DropdownMenuItem>}
+                        {permissions.canDuplicate && <DropdownMenuItem
                           onClick={() => handleDuplicate(row)}
                           disabled={duplicate.isPending}
                         >
                           <Copy className="h-4 w-4" /> Duplicate
-                        </DropdownMenuItem>
+                        </DropdownMenuItem>}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
+                        {permissions.canDelete && <DropdownMenuItem
                           className="text-destructive-strong focus:text-destructive-strong"
                           onClick={() => setToDelete(row)}
                         >
                           <Trash2 className="h-4 w-4" /> Delete
-                        </DropdownMenuItem>
+                        </DropdownMenuItem>}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>
