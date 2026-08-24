@@ -106,6 +106,42 @@ export function createBrevoClient(config: BrevoConfig, options: BrevoClientOptio
       });
     },
 
+    async createAudienceList(name: string, emails: string[]): Promise<BrevoResult<{ id: number }>> {
+      const configuredList = await request<{ folderId?: number }>(`/contacts/lists/${config.listId}`, { method: "GET" });
+      if (configuredList.ok === false) return {
+        ok: false,
+        status: configuredList.status,
+        retryable: configuredList.retryable,
+        error: configuredList.error,
+      };
+      if (!Number.isSafeInteger(configuredList.data.folderId)) {
+        return { ok: false, status: 502, retryable: false, error: "Brevo list folder is unavailable" };
+      }
+      const created = await request<{ id: number }>("/contacts/lists", {
+        method: "POST",
+        body: JSON.stringify({ name: name.trim().slice(0, 120), folderId: configuredList.data.folderId }),
+      });
+      if (!created.ok) return created;
+
+      const normalized = [...new Set(emails.map(normalizeEmail).filter(Boolean))];
+      for (let index = 0; index < normalized.length; index += 150) {
+        const added = await request<{ success?: string[]; failure?: string[] }>(`/contacts/lists/${created.data.id}/contacts/add`, {
+          method: "POST",
+          body: JSON.stringify({ emails: normalized.slice(index, index + 150) }),
+        });
+        if (added.ok === false) return {
+          ok: false,
+          status: added.status,
+          retryable: added.retryable,
+          error: added.error,
+        };
+        if (added.data.failure?.length) {
+          return { ok: false, status: 422, retryable: false, error: `Brevo rejected ${added.data.failure.length} audience contacts` };
+        }
+      }
+      return created;
+    },
+
     suppressContact(input: Omit<BrevoContactInput, "subscribed">) {
       return request<{ id?: number }>("/contacts", {
         method: "POST",
@@ -126,7 +162,23 @@ export function createBrevoClient(config: BrevoConfig, options: BrevoClientOptio
         body: JSON.stringify({
           name: input.name,
           sender: { id: config.senderId, name: input.senderName },
-          recipients: { listIds: [config.listId] },
+          recipients: { listIds: [input.audienceListId ?? config.listId] },
+          subject: input.subject,
+          previewText: input.previewText,
+          htmlContent: input.htmlContent,
+          replyTo: input.replyTo,
+          ...(input.scheduledAt ? { scheduledAt: input.scheduledAt } : {}),
+        }),
+      });
+    },
+
+    updateCampaign(campaignId: number, input: BrevoCampaignInput) {
+      return request<null>(`/emailCampaigns/${campaignId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: input.name,
+          sender: { id: config.senderId, name: input.senderName },
+          recipients: { listIds: [input.audienceListId ?? config.listId] },
           subject: input.subject,
           previewText: input.previewText,
           htmlContent: input.htmlContent,

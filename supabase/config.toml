@@ -55,3 +55,12 @@ verify_jwt = false
 
 [functions.email-unsubscribe]
 verify_jwt = false
+
+# Newsletter campaign operations are administrator-only and keep the Brevo API
+# key server-side. Brevo's marketing webhook cannot send a Supabase JWT, so its
+# function validates a dedicated bearer token before reading the request body.
+[functions.newsletter-admin]
+verify_jwt = true
+
+[functions.brevo-webhook]
+verify_jwt = false

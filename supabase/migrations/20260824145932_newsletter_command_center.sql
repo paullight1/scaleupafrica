@@ -120,6 +120,7 @@ create table public.newsletter_campaigns (
   estimated_recipient_count integer check (estimated_recipient_count >= 0),
   final_recipient_count integer check (final_recipient_count >= 0),
   brevo_campaign_id bigint unique,
+  brevo_audience_list_id bigint,
   last_test_email text,
   last_test_revision integer,
   last_test_status text check (last_test_status is null or last_test_status in ('sent', 'failed')),
@@ -162,7 +163,6 @@ set search_path = pg_catalog, public
 as $$
 begin
   if old.status <> 'draft' and (
-    new.status is distinct from old.status or
     new.revision is distinct from old.revision or
     new.internal_name is distinct from old.internal_name or
     new.subject is distinct from old.subject or
@@ -278,3 +278,32 @@ create policy newsletter_sync_jobs_admin_select
 create trigger newsletter_sync_jobs_set_updated_at
   before update on public.newsletter_sync_jobs
   for each row execute function public.tg_set_updated_at();
+
+create or replace function public.newsletter_queue_subscriber_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  insert into public.newsletter_sync_jobs (subscriber_id, operation)
+  select
+    new.id,
+    case when new.status = 'subscribed' then 'upsert' else 'unsubscribe' end
+  where not exists (
+    select 1
+    from public.newsletter_sync_jobs existing
+    where existing.subscriber_id = new.id
+      and existing.operation = case when new.status = 'subscribed' then 'upsert' else 'unsubscribe' end
+      and existing.status in ('queued', 'running')
+  );
+  return new;
+end;
+$$;
+
+revoke all on function public.newsletter_queue_subscriber_sync() from public, anon, authenticated;
+
+drop trigger if exists newsletter_subscribers_queue_sync on public.newsletter_subscribers;
+create trigger newsletter_subscribers_queue_sync
+  after insert or update of status on public.newsletter_subscribers
+  for each row execute function public.newsletter_queue_subscriber_sync();

@@ -76,4 +76,44 @@ describe("Brevo client", () => {
       replyTo: "team@example.com",
     });
   });
+
+  it("updates a draft campaign before sending a new test revision", async () => {
+    const fetchImpl = vi.fn(async () => new Response(null, { status: 204 }));
+
+    const result = await createBrevoClient(config, { fetchImpl }).updateCampaign(55, {
+      name: "August dispatch v2",
+      subject: "More funding",
+      previewText: "Updated opportunities",
+      htmlContent: "<html><body>Updated funding</body></html>",
+      replyTo: "team@example.com",
+      senderName: "Cresciva",
+    });
+
+    expect(result).toEqual({ ok: true, data: null });
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe("https://api.brevo.com/v3/emailCampaigns/55");
+    expect(init?.method).toBe("PUT");
+  });
+
+  it("creates a campaign-specific list for a snapshotted segment", async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(new Response('{"id":19,"folderId":3}', { status: 200 }))
+      .mockResolvedValueOnce(new Response('{"id":88}', { status: 201 }))
+      .mockResolvedValueOnce(new Response('{"success":["one@example.com","two@example.com"],"failure":[]}', { status: 201 }));
+
+    const result = await createBrevoClient(config, { fetchImpl }).createAudienceList(
+      "Cresciva · August dispatch · 12345678",
+      ["one@example.com", "two@example.com"],
+    );
+
+    expect(result).toEqual({ ok: true, data: { id: 88 } });
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(String(fetchImpl.mock.calls[1][1]?.body))).toEqual({
+      name: "Cresciva · August dispatch · 12345678",
+      folderId: 3,
+    });
+    expect(JSON.parse(String(fetchImpl.mock.calls[2][1]?.body))).toEqual({
+      emails: ["one@example.com", "two@example.com"],
+    });
+  });
 });

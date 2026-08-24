@@ -22,6 +22,7 @@ export interface BrevoCampaignInput {
   replyTo: string;
   senderName: string;
   scheduledAt?: string;
+  audienceListId?: number;
 }
 
 export type NewsletterEventType =

@@ -1,6 +1,6 @@
 begin;
 
-select plan(24);
+select plan(25);
 
 select has_table('public', 'newsletter_consent_events');
 select has_table('public', 'newsletter_campaigns');
@@ -14,6 +14,7 @@ select has_column('public', 'newsletter_subscribers', 'consent_source');
 select has_column('public', 'newsletter_subscribers', 'brevo_contact_id');
 select has_column('public', 'newsletter_subscribers', 'brevo_sync_status');
 select has_column('public', 'newsletter_subscribers', 'brevo_sync_error');
+select has_column('public', 'newsletter_campaigns', 'brevo_audience_list_id');
 
 select has_index('public', 'newsletter_subscribers', 'newsletter_subscribers_status_created_idx');
 select has_index('public', 'newsletter_campaigns', 'newsletter_campaigns_status_schedule_idx');
