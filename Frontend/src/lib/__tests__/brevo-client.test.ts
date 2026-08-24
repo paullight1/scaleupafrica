@@ -5,7 +5,7 @@ const config = { apiKey: "xkeysib-top-secret", listId: 19, senderId: 7 };
 
 describe("Brevo client", () => {
   it("redacts credentials from permanent provider errors", async () => {
-    const fetchImpl = vi.fn(async () => new Response(
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response(
       JSON.stringify({ message: "invalid xkeysib-top-secret" }),
       { status: 401, headers: { "Content-Type": "application/json" } },
     ));
@@ -17,7 +17,7 @@ describe("Brevo client", () => {
   });
 
   it("upserts a subscribed contact into the configured list with the local id", async () => {
-    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ id: 314 }), { status: 201 }));
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ id: 314 }), { status: 201 }));
     const client = createBrevoClient(config, { fetchImpl });
 
     const result = await client.upsertContact({
@@ -42,7 +42,7 @@ describe("Brevo client", () => {
   });
 
   it("retries a rate limit once and returns the successful response", async () => {
-    const fetchImpl = vi.fn()
+    const fetchImpl = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response('{"message":"slow down"}', { status: 429 }))
       .mockResolvedValueOnce(new Response('{"plan":[{"type":"free"}]}', { status: 200 }));
     const sleepImpl = vi.fn(async () => undefined);
@@ -55,7 +55,7 @@ describe("Brevo client", () => {
   });
 
   it("creates a campaign using only configured sender/list ids", async () => {
-    const fetchImpl = vi.fn(async () => new Response('{"id":55}', { status: 201 }));
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response('{"id":55}', { status: 201 }));
 
     const result = await createBrevoClient(config, { fetchImpl }).createCampaign({
       name: "August dispatch",
@@ -78,7 +78,7 @@ describe("Brevo client", () => {
   });
 
   it("updates a draft campaign before sending a new test revision", async () => {
-    const fetchImpl = vi.fn(async () => new Response(null, { status: 204 }));
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response(null, { status: 204 }));
 
     const result = await createBrevoClient(config, { fetchImpl }).updateCampaign(55, {
       name: "August dispatch v2",
@@ -96,7 +96,7 @@ describe("Brevo client", () => {
   });
 
   it("creates a campaign-specific list for a snapshotted segment", async () => {
-    const fetchImpl = vi.fn()
+    const fetchImpl = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response('{"id":19,"folderId":3}', { status: 200 }))
       .mockResolvedValueOnce(new Response('{"id":88}', { status: 201 }))
       .mockResolvedValueOnce(new Response('{"success":["one@example.com","two@example.com"],"failure":[]}', { status: 201 }));
