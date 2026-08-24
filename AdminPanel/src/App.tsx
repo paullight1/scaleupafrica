@@ -3,11 +3,10 @@ import { Toaster as Sonner } from "@shared/components/ui/sonner";
 import { TooltipProvider } from "@shared/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@shared/hooks/useAuth";
 import { ScrollToTop } from "@shared/components/common/ScrollToTop";
 import { LoadingState } from "@shared/components/common/LoadingState";
-import { CrossAppRedirect, siteUrl } from "@shared/lib/crossApp";
 import AdminGuard from "./components/AdminGuard";
 import AdminLayout from "./components/AdminLayout";
 
@@ -58,7 +57,7 @@ const App = () => (
                 <Route path="settings" element={<AdminGuard require="admin"><AdminSettings /></AdminGuard>} />
                 <Route path="audit" element={<AdminGuard require="admin"><AdminAuditLog /></AdminGuard>} />
               </Route>
-              <Route path="*" element={<CrossAppRedirect to={siteUrl("/")} />} />
+              <Route path="*" element={<Navigate to="/admin/" replace />} />
             </Routes>
           </Suspense>
         </AuthProvider>

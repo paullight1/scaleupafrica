@@ -259,24 +259,28 @@ To add a new admin module:
 - Ensure at least one admin exists (seed or Users page).
 - Regenerate `types.ts` from the live schema to drop the temporary casts.
 - `npm run build`, `npm run lint`, `npm test` must pass (all from the repo root).
-- Serve `AdminPanel/dist/` at `/admin/` with an SPA fallback to `/admin/index.html`. On a separate
-  host, serve it at that host's root and set `VITE_SITE_URL` in `AdminPanel/.env` (and
-  `VITE_ADMIN_URL` in `Frontend/.env`, so the site's "Admin" links point at the other host).
+- Serve `AdminPanel/dist/` at `/admin/` with an SPA fallback to `/admin/index.html`.
+- For a separate Vercel project connected to this monorepo, set **Root Directory** to
+  `AdminPanel`, keep **Framework Preset** as Vite, **Build Command** as `npm run build`, and
+  **Output Directory** as `dist`. Keep **Include source files outside of the Root Directory**
+  enabled because the panel imports `../Shared`.
+- A separate admin host opens at `/admin/`; its `/` route forwards there without leaving the
+  admin origin. Set `VITE_SITE_URL` on the admin project and `VITE_ADMIN_URL` on the public-site
+  project so deliberate cross-app links use the correct hosts.
+- Add `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and
+  `VITE_SUPABASE_PROJECT_ID` to all three Vercel environments (Production, Preview, Development).
 
 ### Cross-app origins
 
-Frontend and AdminPanel are separate bundles with separate routers. Every link between them —
-the site's "Admin" links, and the panel's bounce to sign-in — goes through
-`Shared/src/lib/crossApp.tsx` (`siteUrl` / `adminUrl` / `isAdminPath`) and is a real document
-navigation. A react-router `<Link to="/admin">` from the public site just misses its route table.
+Frontend and AdminPanel are separate bundles with separate routers. Deliberate links between them
+go through `Shared/src/lib/crossApp.tsx` (`siteUrl` / `adminUrl`) and use real document navigation.
+Admin sign-in and MFA stay inside the AdminPanel bundle.
 
-Same-origin deploys need no configuration. Local dev does, because the apps are on two ports:
-`Frontend/.env.development` sets `VITE_ADMIN_URL=http://localhost:8081` and
-`AdminPanel/.env.development` sets `VITE_SITE_URL=http://localhost:8080`. Delete either and the
-corresponding link resolves against the wrong server — which is what produces
-`The server is configured with a public base URL of /admin/ — did you mean to visit
-/admin/auth?next=%2Fadmin%2F instead?`. Both dev servers must be running
-(`npm run dev` and `npm run dev:admin`).
+Same-origin deploys need no configuration. Local development can open the standalone panel at
+`http://localhost:8081/admin/` or use the public site's proxy at
+`http://localhost:8080/admin/`. The two `.env.development` files provide optional cross-app
+origins for "Admin" and "View site" links. Both dev servers must be running (`npm run dev` and
+`npm run dev:admin`).
 
 ---
 
