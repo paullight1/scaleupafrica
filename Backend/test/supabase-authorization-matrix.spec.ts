@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const matrixPath = fileURLToPath(new URL("../../supabase/tests/authorization-matrix.sql", import.meta.url));
+const matrixPath = resolve(process.cwd(), "../supabase/tests/authorization-matrix.sql");
 const matrix = readFileSync(matrixPath, "utf8");
 
 describe("Supabase authorization matrix contract", () => {

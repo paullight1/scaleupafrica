@@ -49,18 +49,22 @@ function unique<T>(items: T[]): T[] {
   return Array.from(new Set(items));
 }
 
-function phrasePresent(text: string, phrase: string): boolean {
-  return new RegExp(`(?:^|\\b)${normalize(phrase).replace(/\s+/g, "\\s+")}(?:\\b|$)`).test(text);
-}
-
 function countriesFromQuotes(quotes: string[]): string[] {
   const found: string[] = [];
   for (const quote of quotes) {
     const text = normalize(quote);
-    for (const country of AFRICAN_COUNTRIES) {
+    const matches = AFRICAN_COUNTRIES.flatMap((country) => {
       const variants = [country, ...(COUNTRY_ALIASES[country] ?? [])];
-      if (variants.some((variant) => phrasePresent(text, variant))) found.push(country);
-    }
+      const positions = variants
+        .map((variant) => {
+          const match = new RegExp(`(?:^|\\b)${normalize(variant).replace(/\s+/g, "\\s+")}(?:\\b|$)`).exec(text);
+          return match?.index ?? -1;
+        })
+        .filter((position) => position >= 0);
+      return positions.length ? [{ country, position: Math.min(...positions) }] : [];
+    });
+    matches.sort((left, right) => left.position - right.position);
+    found.push(...matches.map(({ country }) => country));
   }
   return unique(found);
 }
@@ -87,7 +91,7 @@ function stagesFromQuotes(quotes: string[]): EligibilityBusinessStage[] {
 function entityTypesFromQuotes(quotes: string[]): EligibilityEntityType[] {
   const text = quotes.map(normalize).join(" ");
   const out: EligibilityEntityType[] = [];
-  if (/\b(non profit|nonprofit|not for profit|ngo|non governmental organization|non governmental organisation|charity)\b/.test(text)) out.push("nonprofit");
+  if (/\b(non profits?|nonprofits?|not for profits?|ngos?|non governmental organizations?|non governmental organisations?|charities|charity)\b/.test(text)) out.push("nonprofit");
   if (/\b(for profit|for profit company|private company|private sector|sme|small and medium enterprise|small or medium enterprise|startup company)\b/.test(text)) out.push("for_profit");
   if (/\bsocial enterprise\b/.test(text)) out.push("social_enterprise");
   if (/\b(cooperative|co op|coop)\b/.test(text)) out.push("cooperative");

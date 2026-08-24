@@ -25,7 +25,7 @@ function SourceList({ candidate }: { candidate: BusinessIdentityCandidate }) {
           }
           return (
             <li key={url}>
-              <a href={url} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">
+              <a href={url} target="_blank" rel="noreferrer" className="text-primary-dark underline-offset-4 hover:underline">
                 {label}
               </a>
             </li>

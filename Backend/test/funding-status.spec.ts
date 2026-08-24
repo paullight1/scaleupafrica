@@ -37,15 +37,15 @@ describe("Funding source extraction trust boundary", () => {
     expect(signalSource).toContain("Use only supplied source text");
     expect(signalSource).toContain("Do not infer open from a future deadline alone");
     expect(signalSource).toContain("Do not substitute a historical or typical deadline");
-    expect(signalSource).toContain("Return null for unsupported fields");
+    expect(signalSource).toContain("Return null or [] for unsupported fields");
     expect(signalSource).toContain("Do not output a trusted application_status");
   });
 
   it("requires bounded refresh orchestration and deterministic classification", () => {
-    expect(refreshSource).toContain("MAX_BATCH = 25");
+    expect(refreshSource).toMatch(/MAX_BATCH\s*=\s*25/);
     expect(refreshSource).toContain("safeExternalFetch");
     expect(refreshSource).toContain("classifyFundingStatus");
-    expect(refreshSource).toContain("funding_source_checks");
+    expect(refreshSource).toContain("record_funding_status_check");
     expect(refreshSource).toContain("FUNDING_REFRESH_SECRET");
     expect(refreshSource).toContain("timingSafeEqual");
   });
@@ -68,8 +68,8 @@ describe("Funding source extraction trust boundary", () => {
   });
 
   it("revokes dependent verification and cycle trust when a registered source is disabled", () => {
-    expect(applicationStatusMigrationSource).toContain("new_source.active IS DISTINCT FROM old_source.active");
-    expect(applicationStatusMigrationSource).toContain("new_source.active = false");
+    expect(applicationStatusMigrationSource).toContain("NEW.active IS DISTINCT FROM OLD.active");
+    expect(applicationStatusMigrationSource).toContain("NEW.active = false");
     expect(applicationStatusMigrationSource).toContain("funding_sources_trust_invalidation");
     expect(applicationStatusMigrationSource).toContain("AFTER UPDATE OF base_url, active ON public.funding_sources");
     expect(applicationStatusMigrationSource).toContain("application_status = 'unknown'");

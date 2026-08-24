@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FundingService } from "../src/funding/funding.service";
 import type { Db } from "../src/db/client";
 import type { Env } from "../src/config/env";
@@ -79,6 +79,15 @@ function serviceWith(selectResults: unknown[][]) {
 }
 
 describe("FundingService verified-first search", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-23T00:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("returns five strong curated matches without consuming an AI call", async () => {
     // select #1 = no AI cache, #2 = curated feed, #3 = current-cycle status projection.
     const { service, curate } = serviceWith([
