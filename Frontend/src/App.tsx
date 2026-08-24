@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@shared/hooks/useAuth";
 import { SiteLayout } from "@/components/common/SiteLayout";
+import { CookieConsent } from "@/components/common/CookieConsent";
 import { RequireAuth } from "@/components/common/RequireAuth";
 import { ScrollToTop } from "@shared/components/common/ScrollToTop";
 import { LoadingState } from "@shared/components/common/LoadingState";
@@ -92,6 +93,7 @@ const App = () => (
             </Route>
           </Routes>
           </Suspense>
+          <CookieConsent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

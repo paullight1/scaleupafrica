@@ -234,10 +234,10 @@ function KpiGrid({ s }: { s: AdminStats }) {
         icon={Mail}
       />
       <StatCard
-        label="New Leads"
+        label="New Inquiries"
         value={fmt(s.new_leads)}
         icon={UserPlus}
-        hint={`${fmt(s.total_leads)} total leads`}
+        hint={`${fmt(s.total_leads)} total inquiries`}
       />
       <StatCard
         label="Funding Searches (30d)"
@@ -542,14 +542,14 @@ const AdminDashboard = () => {
             <EmptyState
               variant="firstRun"
               title="All clear"
-              description="No new leads, flagged profiles, or pending drafts right now."
+              description="No new inquiries, flagged profiles, or pending drafts right now."
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <QuickLink
                 to="/admin/leads"
                 icon={Inbox}
-                label="New leads"
+                label="New inquiries"
                 value={fmt(s.new_leads)}
                 hint={`${fmt(s.total_leads)} total`}
                 emphasize={s.new_leads > 0}

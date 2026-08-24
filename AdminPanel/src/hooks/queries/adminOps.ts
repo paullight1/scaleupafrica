@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@shared/integrations/supabase/client";
 import type { Json, Tables } from "@shared/integrations/supabase/types";
 import { logAdminAction } from "@shared/lib/audit";
+import { matchesInquiryClassification } from "@shared/lib/inquiries";
 
 const db = supabase as unknown as SupabaseClient;
 
@@ -181,7 +182,7 @@ export function useDeleteFunding() {
 
 export type LeadRow = Tables<"leads">;
 export type LeadStatus = "new" | "contacted" | "archived";
-export type LeadFilters = { status: string; source: string; q: string };
+export type LeadFilters = { status: string; area: string; sector: string; q: string };
 export const leadKeys = { all: ["admin", "leads"] as const, list: (f: LeadFilters) => ["admin", "leads", "list", f] as const };
 
 export function useAdminLeads(filters: LeadFilters) {
@@ -194,8 +195,8 @@ export function useAdminLeads(filters: LeadFilters) {
       const term = filters.q.trim().toLowerCase();
       return rows.filter((r) => {
         if (filters.status !== "all" && r.status !== filters.status) return false;
-        if (filters.source !== "all" && r.source !== filters.source) return false;
-        return !term || `${r.email} ${r.name ?? ""}`.toLowerCase().includes(term);
+        if (!matchesInquiryClassification(r, filters)) return false;
+        return !term || `${r.email} ${r.name ?? ""} ${r.company ?? ""} ${r.message ?? ""}`.toLowerCase().includes(term);
       });
     },
   });
@@ -208,7 +209,7 @@ export function useUpdateLeadStatus() {
     onSuccess: (_res, { row, status }) => {
       qc.invalidateQueries({ queryKey: leadKeys.all });
       void logAdminAction("update_lead_status", { entityType: "lead", entityId: row.id, details: { status, email: row.email } });
-      toast.success(status === "contacted" ? "Marked as contacted" : status === "archived" ? "Archived" : "Marked as new");
+      toast.success(status === "contacted" ? "Marked in progress" : status === "archived" ? "Inquiry resolved" : "Inquiry reopened");
     },
     onError: (e) => toast.error(errMessage(e, "Could not update lead")),
   });

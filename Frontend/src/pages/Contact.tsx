@@ -12,11 +12,15 @@ import { Label } from "@shared/components/ui/label";
 import { Textarea } from "@shared/components/ui/textarea";
 import { submitContact } from "@/lib/email";
 import { trackEvent } from "@shared/lib/analytics";
+import { SUPPORT_AREAS } from "@shared/lib/inquiries";
+import { BUSINESS_SECTORS } from "@shared/lib/businessSectors";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Please tell us your name.").max(120),
   email: z.string().trim().email("Enter a valid email address.").max(254),
   company: z.string().trim().max(160).optional().or(z.literal("")),
+  supportArea: z.string().trim().min(1, "Choose a support area."),
+  businessSector: z.string().trim().max(120).optional().or(z.literal("")),
   message: z.string().trim().min(10, "Please add a little more detail.").max(2000),
 });
 
@@ -29,7 +33,7 @@ export default function Contact() {
 
   const form = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { name: "", email: "", company: "", message: "" },
+    defaultValues: { name: "", email: "", company: "", supportArea: "", businessSector: "", message: "" },
   });
 
   const onSubmit = async (values: ContactValues) => {
@@ -37,6 +41,8 @@ export default function Contact() {
       name: values.name,
       email: values.email,
       company: values.company || undefined,
+      supportArea: values.supportArea,
+      businessSector: values.businessSector || undefined,
       message: values.message,
       hp: honeypot.current?.value ?? "",
     });
@@ -132,6 +138,35 @@ export default function Contact() {
                   {form.formState.errors.company && (
                     <p className="text-sm text-destructive">{form.formState.errors.company.message}</p>
                   )}
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-support-area">Support area</Label>
+                    <select
+                      id="contact-support-area"
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      aria-invalid={!!form.formState.errors.supportArea}
+                      {...form.register("supportArea")}
+                    >
+                      <option value="">Choose an area</option>
+                      {SUPPORT_AREAS.map((area) => <option key={area.value} value={area.value}>{area.label}</option>)}
+                    </select>
+                    {form.formState.errors.supportArea && (
+                      <p className="text-sm text-destructive">{form.formState.errors.supportArea.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-business-sector">Business sector <span className="text-muted-foreground">(optional)</span></Label>
+                    <select
+                      id="contact-business-sector"
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      {...form.register("businessSector")}
+                    >
+                      <option value="">Select a sector</option>
+                      {BUSINESS_SECTORS.map((sector) => <option key={sector} value={sector}>{sector}</option>)}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

@@ -70,11 +70,15 @@ describe("contactNotify", () => {
       name: "Amara Okafor",
       email: "amara@example.com",
       company: "Kite Ltd",
+      supportArea: "Funding support",
+      businessSector: "Technology & Software",
       message: "Partnership idea",
       leadId: "lead-123",
     });
-    expect(mail.subject).toBe("[Lead] Amara Okafor via the contact form");
+    expect(mail.subject).toBe("[Inquiry] Amara Okafor · Funding support");
     expect(mail.html).toContain("amara@example.com");
+    expect(mail.text).toContain("Support area: Funding support");
+    expect(mail.text).toContain("Business sector: Technology & Software");
     expect(mail.html).toContain("lead-123");
   });
 
@@ -86,7 +90,7 @@ describe("contactNotify", () => {
       message: "hi",
       leadId: null,
     });
-    expect(mail.subject).toBe("[Lead] anon@example.com via the contact form");
+    expect(mail.subject).toBe("[Inquiry] anon@example.com · General support");
   });
 });
 

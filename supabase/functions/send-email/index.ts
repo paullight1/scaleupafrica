@@ -39,7 +39,16 @@ const IP_SALT = CONFIG.tokenSecret || SERVICE_ROLE_KEY;
 
 const RATE_LIMIT_PER_HOUR = 10;
 
-const MAX = { name: 120, email: 254, company: 160, message: 2000, source: 60 } as const;
+const MAX = { name: 120, email: 254, company: 160, message: 2000, source: 60, area: 60, sector: 120 } as const;
+const SUPPORT_AREA_LABELS: Record<string, string> = {
+  general: "General support",
+  account_profile: "Account & profile",
+  funding_support: "Funding support",
+  membership_billing: "Membership & billing",
+  partnerships: "Partnerships",
+  resources: "Resources",
+  media_events: "Media & events",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -97,11 +106,14 @@ async function handleContact(
   const name = str(body.name, MAX.name);
   const email = normalizeEmail(body.email);
   const company = str(body.company, MAX.company);
+  const supportArea = str(body.supportArea, MAX.area);
+  const businessSector = str(body.businessSector, MAX.sector);
   const message = str(body.message, MAX.message);
 
   const fields: Record<string, string> = {};
   if (name.length < 2) fields.name = "Please tell us your name.";
   if (!email) fields.email = "Enter a valid email address.";
+  if (!SUPPORT_AREA_LABELS[supportArea]) fields.supportArea = "Choose a valid support area.";
   if (message.length < 10) fields.message = "Please add a little more detail.";
   if (Object.keys(fields).length) return json({ error: "Please check the form.", fields }, 400);
 
@@ -113,7 +125,10 @@ async function handleContact(
       company: company || null,
       message,
       source: "contact",
-      metadata: {},
+      metadata: {
+        support_area: supportArea,
+        business_sector: businessSector || null,
+      },
     })
     .select("id")
     .single();
@@ -140,6 +155,8 @@ async function handleContact(
       name,
       email: email!,
       company,
+      supportArea: SUPPORT_AREA_LABELS[supportArea],
+      businessSector,
       message,
       leadId: lead.id,
       siteUrl: CONFIG.siteUrl,

@@ -1,4 +1,5 @@
 import { supabase } from "@shared/integrations/supabase/client";
+import { hasAnalyticsConsent } from "@shared/lib/consent";
 
 export const ANALYTICS_EVENT_TYPES = [
   "page_view",
@@ -116,6 +117,7 @@ export async function trackEvent(
     metadata?: Record<string, unknown>;
   } = {},
 ): Promise<void> {
+  if (!hasAnalyticsConsent()) return;
   try {
     const { data } = await supabase.auth.getUser();
     await supabase.from("analytics_events").insert({

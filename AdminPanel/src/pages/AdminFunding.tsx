@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Star, BadgeCheck, Eye, EyeOff, Bot, Radar, ExternalLink } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Star, BadgeCheck, Eye, EyeOff, Bot, ExternalLink } from "lucide-react";
 import { useAuth } from "@shared/hooks/useAuth";
 import { SEO } from "@shared/components/common/SEO";
 import { PageHeader } from "@shared/components/common/PageHeader";
@@ -96,9 +95,9 @@ const AdminFunding = () => {
     <>
       <SEO title="Funding" noindex />
       <PageHeader
-        title="Funding"
-        subtitle="Curate programs and inspect source verification separately from current application-cycle status."
-        actions={<div className="flex flex-wrap gap-2"><Button asChild variant="outline"><Link to="/admin/funding/sources"><Radar className="h-4 w-4" /> Source health</Link></Button><Button onClick={openCreate}><Plus className="h-4 w-4" /> New opportunity</Button></div>}
+        title="Opportunities"
+        subtitle="Curate programs and inspect their publication and verification status."
+        actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> New opportunity</Button>}
       />
 
       {aiDraftCount > 0 && <div className="mt-6 flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-4 text-sm"><Bot className="h-5 w-5 shrink-0 text-primary-dark" aria-hidden="true" /><p className="text-ink-strong"><span className="font-semibold">{aiDraftCount}</span> AI-sourced {aiDraftCount === 1 ? "draft is" : "drafts are"} awaiting review. AI drafts cannot become verified/open without authoritative source checks.</p></div>}

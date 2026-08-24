@@ -11,8 +11,6 @@ import {
   FileText,
   Newspaper,
   Landmark,
-  Radar,
-  Flag,
   Building2,
   Users,
   Inbox,
@@ -35,9 +33,7 @@ const NAV: NavGroup[] = [
     items: [
       { label: "Resources", to: "/admin/resources", icon: FileText },
       { label: "Blog", to: "/admin/blog", icon: Newspaper },
-      { label: "Funding", to: "/admin/funding", icon: Landmark, end: true, adminOnly: true },
-      { label: "Funding source health", to: "/admin/funding/sources", icon: Radar, adminOnly: true },
-      { label: "Funding reports", to: "/admin/funding/reports", icon: Flag, adminOnly: true },
+      { label: "Funding", to: "/admin/funding", icon: Landmark, adminOnly: true },
     ],
   },
   {
@@ -50,7 +46,7 @@ const NAV: NavGroup[] = [
   {
     heading: "Growth",
     items: [
-      { label: "Leads", to: "/admin/leads", icon: Inbox, adminOnly: true },
+      { label: "Inbox", to: "/admin/leads", icon: Inbox, adminOnly: true },
       { label: "Newsletter", to: "/admin/newsletter", icon: Mail, adminOnly: true },
     ],
   },

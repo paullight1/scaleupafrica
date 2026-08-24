@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { adminUrl } from "@shared/lib/crossApp";
+import { openCookieSettings } from "@shared/lib/consent";
 
 const footerNav: { heading: string; links: { label: string; to: string }[] }[] = [
   {
@@ -80,6 +81,10 @@ export function AppFooter() {
             </div>
             <p className="flex items-center gap-3 text-sm text-white/70">
               <span>© {new Date().getFullYear()} Cresciva</span>
+              <span aria-hidden="true" className="text-white/30">·</span>
+              <button type="button" onClick={openCookieSettings} className="transition-colors hover:text-white">
+                Cookie settings
+              </button>
               <span aria-hidden="true" className="text-white/30">·</span>
               {/* Always visible: /admin is the other bundle (real document nav),
                   and AdminGuard + RLS — not this link's visibility — gate access. */}

@@ -66,6 +66,8 @@ export interface ContactSubmission {
   name: string;
   email: string;
   company?: string;
+  supportArea: string;
+  businessSector?: string;
   message: string;
   /** Honeypot. Must stay empty; a filled value means a bot filled the hidden field. */
   hp?: string;

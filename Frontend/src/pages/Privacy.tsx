@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { SEO } from "@shared/components/common/SEO";
 import { PageHeader } from "@shared/components/common/PageHeader";
 
-const LAST_UPDATED = "23 August 2026";
+const LAST_UPDATED = "24 August 2026";
 
 const Privacy = () => (
   <>
@@ -102,10 +102,18 @@ const Privacy = () => (
           <h2>11. Children's privacy</h2>
           <p>The Service is intended for founders, organisations and business users and is not directed to children under 18.</p>
 
-          <h2>12. Changes</h2>
+          <h2>12. Cookies and local storage</h2>
+          <p>
+            Cresciva uses essential browser storage for authentication, security, core product
+            operation and remembering your privacy choice. Optional product analytics are disabled
+            unless you consent. You can review or change that choice through “Cookie settings” in
+            the site footer.
+          </p>
+
+          <h2>13. Changes</h2>
           <p>Material updates will be reflected by changing the date above and providing additional notice where appropriate.</p>
 
-          <h2>13. Contact and data-rights requests</h2>
+          <h2>14. Contact and data-rights requests</h2>
           <p>
             Privacy questions and data-rights requests can be submitted through the monitored <Link to="/contact">Cresciva contact page</Link>. Signed-in members can also use the export/delete controls in Account settings.
           </p>

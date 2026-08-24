@@ -17,9 +17,11 @@ const AdminResources = lazy(() => import("./pages/AdminResources"));
 const AdminResourceEdit = lazy(() => import("./pages/AdminResourceEdit"));
 const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 const AdminBlogEdit = lazy(() => import("./pages/AdminBlogEdit"));
+const AdminFundingWorkspace = lazy(() => import("./pages/AdminFundingWorkspace"));
 const AdminFunding = lazy(() => import("./pages/AdminFunding"));
 const AdminFundingSources = lazy(() => import("./pages/AdminFundingSources"));
 const AdminFundingReports = lazy(() => import("./pages/AdminFundingReports"));
+const AdminFundingEngine = lazy(() => import("./pages/AdminFundingEngine"));
 const AdminLeads = lazy(() => import("./pages/AdminLeads"));
 const AdminNewsletter = lazy(() => import("./pages/AdminNewsletter"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
@@ -46,9 +48,12 @@ const App = () => (
                 <Route path="blog" element={<AdminBlog />} />
                 <Route path="blog/new" element={<AdminBlogEdit />} />
                 <Route path="blog/:id" element={<AdminBlogEdit />} />
-                <Route path="funding" element={<AdminGuard require="admin"><AdminFunding /></AdminGuard>} />
-                <Route path="funding/sources" element={<AdminGuard require="admin"><AdminFundingSources /></AdminGuard>} />
-                <Route path="funding/reports" element={<AdminGuard require="admin"><AdminFundingReports /></AdminGuard>} />
+                <Route path="funding" element={<AdminGuard require="admin"><AdminFundingWorkspace /></AdminGuard>}>
+                  <Route index element={<AdminFunding />} />
+                  <Route path="sources" element={<AdminFundingSources />} />
+                  <Route path="reports" element={<AdminFundingReports />} />
+                  <Route path="engine" element={<AdminFundingEngine />} />
+                </Route>
                 <Route path="profiles" element={<AdminGuard require="admin"><AdminProfiles /></AdminGuard>} />
                 <Route path="users" element={<AdminGuard require="admin"><AdminUsers /></AdminGuard>} />
                 <Route path="leads" element={<AdminGuard require="admin"><AdminLeads /></AdminGuard>} />

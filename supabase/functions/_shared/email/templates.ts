@@ -102,29 +102,36 @@ export interface ContactNotifyCtx extends BaseCtx {
   name?: string | null;
   email: string;
   company?: string | null;
+  supportArea?: string | null;
+  businessSector?: string | null;
   message: string;
   leadId?: string | null;
 }
 
 export function contactNotify(ctx: ContactNotifyCtx): RenderedEmail {
+  const supportArea = label(ctx.supportArea) || "General support";
   const body =
-    h1("New contact form submission") +
+    h1("New support inquiry") +
     definitions([
       ["Name", ctx.name ?? "—"],
       ["Email", ctx.email],
       ["Company", ctx.company ?? "—"],
-      ["Lead ID", ctx.leadId ?? "—"],
+      ["Support area", supportArea],
+      ["Business sector", ctx.businessSector ?? "—"],
+      ["Inquiry ID", ctx.leadId ?? "—"],
     ]) +
     quote(paragraphs(ctx.message)) +
     p("Reply directly to this email to answer them — the reply-to is set to the sender.");
 
   const text = [
-    `New contact form submission`,
+    `New support inquiry`,
     ``,
     `Name:    ${ctx.name ?? "—"}`,
     `Email:   ${ctx.email}`,
     `Company: ${ctx.company ?? "—"}`,
-    `Lead ID: ${ctx.leadId ?? "—"}`,
+    `Support area: ${supportArea}`,
+    `Business sector: ${ctx.businessSector ?? "—"}`,
+    `Inquiry ID: ${ctx.leadId ?? "—"}`,
     ``,
     `Message:`,
     ctx.message.trim(),
@@ -132,7 +139,7 @@ export function contactNotify(ctx: ContactNotifyCtx): RenderedEmail {
 
   return {
     // Sender name in the subject makes the internal inbox scannable.
-    subject: `[Lead] ${ctx.name?.trim() || ctx.email} via the contact form`,
+    subject: `[Inquiry] ${ctx.name?.trim() || ctx.email} · ${supportArea}`,
     html: layout(body, { siteUrl: ctx.siteUrl, preheader: `From ${ctx.email}` }),
     text,
   };
