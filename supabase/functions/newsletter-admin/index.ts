@@ -350,26 +350,39 @@ async function deliverCampaign(service: LooseClient, payload: Row) {
   if (scheduledAt && (Number.isNaN(Date.parse(scheduledAt)) || Date.parse(scheduledAt) < Date.now() + 60_000)) {
     throw new Error("invalid_schedule");
   }
-  const providerPayload = { ...campaignInput(campaign, audienceList.data.id), ...(scheduledAt ? { scheduledAt } : {}) };
-  const prepared = providerId
-    ? await provider.updateCampaign(providerId, providerPayload)
-    : await provider.createCampaign(providerPayload);
-  if (!prepared.ok) throw new Error(`provider:${prepared.error}`);
-  if (!providerId && prepared.data && typeof prepared.data === "object" && "id" in prepared.data) providerId = positiveInteger(prepared.data.id);
-  if (!providerId) throw new Error("provider_campaign_missing");
 
   const now = new Date().toISOString();
   const nextStatus = scheduledAt ? "scheduled" : "sending";
   const { data: transitioned, error: transitionError } = await service.from("newsletter_campaigns").update({
     status: nextStatus,
     final_recipient_count: candidates.length,
-    brevo_campaign_id: providerId,
+    brevo_campaign_id: providerId || null,
     brevo_audience_list_id: audienceList.data.id,
     scheduled_at: scheduledAt,
     sending_started_at: scheduledAt ? null : now,
     provider_error: null,
   }).eq("id", id).eq("status", "draft").select("id").maybeSingle();
   if (transitionError || !transitioned) throw new Error("campaign_already_queued");
+
+  const providerPayload = { ...campaignInput(campaign, audienceList.data.id), ...(scheduledAt ? { scheduledAt } : {}) };
+  const prepared = providerId
+    ? await provider.updateCampaign(providerId, providerPayload)
+    : await provider.createCampaign(providerPayload);
+  if (!prepared.ok) {
+    await service.from("newsletter_campaigns").update({ status: "failed", provider_error: prepared.error }).eq("id", id);
+    throw new Error(`provider:${prepared.error}`);
+  }
+  if (!providerId && prepared.data && typeof prepared.data === "object" && "id" in prepared.data) providerId = positiveInteger(prepared.data.id);
+  if (!providerId) {
+    await service.from("newsletter_campaigns").update({ status: "failed", provider_error: "Brevo campaign ID missing" }).eq("id", id);
+    throw new Error("provider_campaign_missing");
+  }
+  const { error: providerIdError } = await service.from("newsletter_campaigns").update({ brevo_campaign_id: providerId }).eq("id", id);
+  if (providerIdError) {
+    if (scheduledAt) await provider.cancelCampaign(providerId);
+    await service.from("newsletter_campaigns").update({ status: "failed", provider_error: "Campaign provider ID could not be saved" }).eq("id", id);
+    throw new Error("campaign_provider_link_failed");
+  }
 
   if (!scheduledAt) {
     const sent = await provider.sendCampaign(providerId);
@@ -549,6 +562,7 @@ Deno.serve(async (req) => {
       invalid_schedule: ["Choose a future delivery time", 400, "INVALID_SCHEDULE"],
       brevo_not_configured: ["Brevo is not configured", 503, "PROVIDER_NOT_CONFIGURED"],
       campaign_already_queued: ["This campaign was already queued by another request", 409, "ALREADY_QUEUED"],
+      campaign_provider_link_failed: ["Brevo accepted the campaign but its local link could not be saved", 500, "PROVIDER_LINK_FAILED"],
     };
     const mapped = known[raw];
     if (mapped) return error(...mapped);
