@@ -1,0 +1,10 @@
+import { Input } from "@shared/components/ui/input";
+import { Label } from "@shared/components/ui/label";
+import { Textarea } from "@shared/components/ui/textarea";
+import BlockEditor from "./BlockEditor";
+import type { CampaignDraftPayload } from "@/hooks/queries/adminNewsletter";
+
+export default function CampaignComposer({ value, onChange }: { value: CampaignDraftPayload; onChange: (value: CampaignDraftPayload) => void }) {
+  const set = <K extends keyof CampaignDraftPayload>(key: K, next: CampaignDraftPayload[K]) => onChange({ ...value, [key]: next });
+  return <div className="space-y-6"><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2 sm:col-span-2"><Label htmlFor="campaign-name">Internal campaign name</Label><Input id="campaign-name" value={value.internalName} onChange={(e) => set("internalName", e.target.value)} placeholder="August funding dispatch" /></div><div className="space-y-2 sm:col-span-2"><Label htmlFor="campaign-subject">Subject</Label><Input id="campaign-subject" value={value.subject} onChange={(e) => set("subject", e.target.value)} placeholder="Three opportunities worth your time" /></div><div className="space-y-2 sm:col-span-2"><Label htmlFor="campaign-preview">Preview text</Label><Textarea id="campaign-preview" rows={2} value={value.previewText} onChange={(e) => set("previewText", e.target.value)} maxLength={240} /></div><div className="space-y-2"><Label htmlFor="sender-name">Sender name</Label><Input id="sender-name" value={value.senderName} onChange={(e) => set("senderName", e.target.value)} /></div><div className="space-y-2"><Label htmlFor="sender-email">Sender email</Label><Input id="sender-email" type="email" value={value.senderEmail} onChange={(e) => set("senderEmail", e.target.value)} /></div><div className="space-y-2 sm:col-span-2"><Label htmlFor="reply-to">Reply-to</Label><Input id="reply-to" type="email" value={value.replyTo} onChange={(e) => set("replyTo", e.target.value)} /></div></div><BlockEditor blocks={value.blocks} onChange={(blocks) => set("blocks", blocks)} /></div>;
+}

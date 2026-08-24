@@ -12,7 +12,6 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY")?.trim() ?? "";
 const BREVO_LIST_ID = positiveInteger(Deno.env.get("BREVO_LIST_ID"));
 const BREVO_SENDER_ID = positiveInteger(Deno.env.get("BREVO_SENDER_ID"));
-const DEFAULT_REPLY_TO = Deno.env.get("EMAIL_REPLY_TO")?.trim() || "hello@cresciva.com";
 const PAGE_SIZE = 40;
 const MAX_AUDIENCE = 10_000;
 
@@ -236,14 +235,17 @@ async function saveCampaign(service: LooseClient, userId: string, payload: Row) 
   const contentBlocks = blocks(values.blocks);
   const audience = validateAudienceFilter(values.audience);
   const subject = str(values.subject, 200, true);
+  const senderEmail = email(values.senderEmail);
+  const replyTo = email(values.replyTo);
+  if (!senderEmail || !replyTo) throw new Error("invalid_sender_email");
   const rendered = renderNewsletter({ subject, previewText: str(values.previewText, 240), blocks: contentBlocks });
   const base = {
     internal_name: str(values.internalName, 160, true),
     subject,
     preview_text: str(values.previewText, 240),
     sender_name: str(values.senderName, 120, true),
-    sender_email: str(values.senderEmail, 254, true),
-    reply_to: email(values.replyTo) ?? DEFAULT_REPLY_TO,
+    sender_email: senderEmail,
+    reply_to: replyTo,
     content_blocks: contentBlocks,
     rendered_html: rendered.html,
     rendered_text: rendered.text,
@@ -534,6 +536,7 @@ Deno.serve(async (req) => {
       invalid_action: ["Unknown newsletter action", 400, "INVALID_ACTION"],
       required_field_missing: ["Complete every required campaign field", 400, "VALIDATION_FAILED"],
       invalid_content_blocks: ["Campaign content contains an unsupported block", 400, "VALIDATION_FAILED"],
+      invalid_sender_email: ["Enter valid sender and reply-to email addresses", 400, "VALIDATION_FAILED"],
       campaign_not_found: ["Campaign not found", 404, "NOT_FOUND"],
       subscriber_not_found: ["Subscriber not found", 404, "NOT_FOUND"],
       campaign_not_editable: ["Only draft campaigns can be edited", 409, "CAMPAIGN_LOCKED"],
