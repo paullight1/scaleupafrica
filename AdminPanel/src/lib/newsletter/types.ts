@@ -49,6 +49,7 @@ export interface CampaignDraft {
   subject: string;
   previewText: string;
   senderName: string;
+  senderEmail: string;
   replyTo: string;
   blocks: CampaignBlock[];
   audience: AudienceFilter;
