@@ -25,8 +25,8 @@ describe("dashboard-style admin primitives", () => {
     expect(screen.getByText("Manage the publishing desk.")).toBeInTheDocument();
   });
 
-  it("renders summary metrics as neutral dashboard cards", () => {
-    render(
+  it("carries the dashboard's pastel tone and icon treatment to summary metrics", () => {
+    const { container } = render(
       <StudioMetricStrip
         items={[
           {
@@ -40,10 +40,12 @@ describe("dashboard-style admin primitives", () => {
       />,
     );
 
-    expect(screen.getByText("Published").closest("article")).toHaveClass(
-      "bg-card",
+    const card = screen.getByText("Published").closest("article");
+    expect(card).toHaveClass(
+      "bg-[#eef5ff]",
       "shadow-soft",
     );
+    expect(container.querySelector("article svg")).toHaveClass("absolute");
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("Ready for readers")).toBeInTheDocument();
   });
