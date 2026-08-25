@@ -100,8 +100,8 @@ const AdminLayout = () => {
   const handleSignOut = async () => { await signOut(); window.location.assign(siteUrl("/")); };
 
   return (
-    <div className="min-h-screen bg-secondary">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+    <div className="admin-studio min-h-screen bg-secondary">
+      <aside className="studio-sidebar fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <Link to="/admin" className="flex items-center gap-2 px-6 py-5"><span className="font-display text-lg font-bold text-sidebar-foreground">Cresciva <span className="text-primary">Admin</span></span></Link>
         <div className="flex-1 overflow-hidden"><SidebarContent /></div>
         <div className="border-t border-sidebar-border p-4">
@@ -115,13 +115,13 @@ const AdminLayout = () => {
           <div className="flex items-center gap-3">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild className="lg:hidden"><Button variant="ghost" size="icon" aria-label="Open menu"><Menu className="h-5 w-5" /></Button></SheetTrigger>
-              <SheetContent side="left" className="w-64 border-sidebar-border bg-sidebar p-0"><div className="px-6 py-5"><span className="font-display text-lg font-bold text-sidebar-foreground">Cresciva <span className="text-primary">Admin</span></span></div><SidebarContent onNavigate={() => setMobileOpen(false)} /></SheetContent>
+              <SheetContent side="left" className="studio-sidebar w-64 border-sidebar-border bg-sidebar p-0"><div className="px-6 py-5"><span className="font-display text-lg font-bold text-sidebar-foreground">Cresciva <span className="text-primary">Admin</span></span></div><SidebarContent onNavigate={() => setMobileOpen(false)} /></SheetContent>
             </Sheet>
             <span className="text-sm font-medium text-muted-foreground">{isAdmin ? "Administrator" : "Editor"}</span>
           </div>
           <div className="flex items-center gap-3"><span className="hidden text-sm text-muted-foreground sm:inline">{user?.email}</span><Button variant="ghost" size="sm" onClick={handleSignOut} className="lg:hidden"><LogOut className="h-4 w-4" /></Button></div>
         </header>
-        <main className="p-4 lg:p-8"><ErrorBoundary key={pathname}><Outlet /></ErrorBoundary></main>
+        <main className="studio-canvas p-4 lg:p-8 xl:px-10"><ErrorBoundary key={pathname}><Outlet /></ErrorBoundary></main>
       </div>
     </div>
   );
