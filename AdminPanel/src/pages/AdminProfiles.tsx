@@ -164,8 +164,8 @@ const AdminProfiles = () => {
       />
       <StudioPageHeader
         eyebrow="Community desk"
-        title="Meet the people building next"
-        description="Keep Cresciva's directory useful, vibrant and safe for everyone discovering what Africa is building."
+        title="Directory profiles"
+        description="Review and moderate business profiles in the Cresciva directory."
         accent="orange"
       />
 

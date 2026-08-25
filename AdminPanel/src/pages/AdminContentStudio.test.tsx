@@ -85,14 +85,14 @@ vi.mock("@/hooks/queries/adminResources", () => ({
   useDeleteResource: () => ({ mutate, isPending: false }),
 }));
 
-describe("Cresciva content studio", () => {
+describe("dashboard-style content management", () => {
   beforeEach(() => mutate.mockReset());
 
   it("turns the blog roster into an editorial publishing desk", () => {
     render(<MemoryRouter><AdminBlog /></MemoryRouter>);
 
-    expect(screen.getByRole("heading", { name: "Stories worth sharing" })).toBeInTheDocument();
-    expect(screen.getByText("Content studio")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Blog" })).toBeInTheDocument();
+    expect(screen.queryByText("Content studio")).not.toBeInTheDocument();
     expect(screen.getByText("Published stories")).toBeInTheDocument();
     expect(screen.getByText("4,280")).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Search posts by title" })).toBeInTheDocument();
@@ -101,8 +101,8 @@ describe("Cresciva content studio", () => {
   it("turns resources into a visual library without losing search", () => {
     render(<MemoryRouter><AdminResources /></MemoryRouter>);
 
-    expect(screen.getByRole("heading", { name: "Tools worth keeping" })).toBeInTheDocument();
-    expect(screen.getByText("Resource library")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Resources" })).toBeInTheDocument();
+    expect(screen.queryByText("Resource library")).not.toBeInTheDocument();
     expect(screen.getByText("Total downloads")).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Page summary" })).getByText("320")).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Search resources by title" })).toBeInTheDocument();

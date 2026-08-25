@@ -103,8 +103,8 @@ const AdminFunding = () => {
         <SEO title="Funding" noindex />
         <StudioPageHeader
           eyebrow="Opportunity radar"
-          title="Money moves, made visible"
-          description="Curate the opportunities worth knowing about and make their timing and source trust easy to understand."
+          title="Funding opportunities"
+          description="Manage opportunity status, deadlines, sources and verification."
           actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> New opportunity</Button>}
         />
 

@@ -25,11 +25,9 @@ describe("AdminFundingWorkspace", () => {
   it("keeps all funding operations in one tabbed workspace", () => {
     renderWorkspace("/admin/funding/sources");
 
-    expect(screen.getByText("Funding workspace")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Funding" })).toBeInTheDocument();
-    expect(screen.queryByText(/Manage opportunities, source reliability/)).not.toBeInTheDocument();
     const navigation = screen.getByRole("navigation", { name: "Funding sections" });
-    expect(navigation).toBeInTheDocument();
+    expect(navigation).toHaveClass("bg-card", "shadow-soft");
+    expect(screen.queryByText("Funding workspace")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Opportunities" })).toHaveAttribute("href", "/admin/funding");
     expect(screen.getByRole("link", { name: "Source Health" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();

@@ -165,8 +165,8 @@ const AdminResources = () => {
       <SEO title="Resources" noindex />
       <StudioPageHeader
         eyebrow="Resource library"
-        title="Tools worth keeping"
-        description="Curate practical guides, templates and playbooks people will want to return to."
+        title="Resources"
+        description="Manage guides, templates and playbooks available to members."
         accent="cobalt"
         actions={
           <Button asChild>

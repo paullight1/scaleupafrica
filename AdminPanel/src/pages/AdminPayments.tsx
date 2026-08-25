@@ -37,8 +37,8 @@ export default function AdminPayments() {
     <div className="space-y-7">
       <StudioPageHeader
         eyebrow="Read-only finance desk"
-        title="Payments pulse"
-        description="Compare settlement, access, webhook processing and receipts without bypassing the verified payment flow."
+        title="Payments"
+        description="Review settlement, access, webhook processing and receipt reconciliation."
         accent="lime"
         actions={
           <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>

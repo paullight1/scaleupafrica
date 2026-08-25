@@ -100,12 +100,12 @@ vi.mock("../hooks/queries/adminPayments", () => ({
   }),
 }));
 
-describe("Cresciva finance studio", () => {
+describe("dashboard-style finance management", () => {
   it("turns funding operations into a clear opportunity radar", () => {
     render(<MemoryRouter><AdminFunding /></MemoryRouter>);
 
-    expect(screen.getByRole("heading", { name: "Money moves, made visible" })).toBeInTheDocument();
-    expect(screen.getByText("Opportunity radar")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Funding opportunities" })).toBeInTheDocument();
+    expect(screen.queryByText("Opportunity radar")).not.toBeInTheDocument();
     expect(screen.getByText("AI drafts")).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Search opportunities" })).toBeInTheDocument();
   });
@@ -113,9 +113,9 @@ describe("Cresciva finance studio", () => {
   it("makes reconciliation health readable without implying write access", () => {
     render(<AdminPayments />);
 
-    expect(screen.getByRole("heading", { name: "Payments pulse" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Payments" })).toBeInTheDocument();
     expect(screen.getByText("Reconciliation healthy")).toBeInTheDocument();
-    expect(screen.getByText("Read-only finance desk")).toBeInTheDocument();
+    expect(screen.queryByText("Read-only finance desk")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /refresh/i })).toBeInTheDocument();
   });
 });

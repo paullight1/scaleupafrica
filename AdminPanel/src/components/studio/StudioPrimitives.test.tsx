@@ -7,24 +7,25 @@ import { StudioAvatar } from "./StudioAvatar";
 import { StudioMetricStrip } from "./StudioMetricStrip";
 import { StudioPageHeader } from "./StudioPageHeader";
 
-describe("Cresciva Studio primitives", () => {
-  it("gives every admin desk an editorial but accessible page introduction", () => {
+describe("dashboard-style admin primitives", () => {
+  it("uses the same restrained page introduction as the member dashboard", () => {
     render(
       <StudioPageHeader
         eyebrow="Content studio"
-        title="Stories worth sharing"
+        title="Blog"
         description="Manage the publishing desk."
       />,
     );
 
-    expect(
-      screen.getByRole("heading", { name: "Stories worth sharing" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Content studio")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Blog" })).toHaveClass(
+      "text-3xl",
+      "text-ink-strong",
+    );
+    expect(screen.queryByText("Content studio")).not.toBeInTheDocument();
     expect(screen.getByText("Manage the publishing desk.")).toBeInTheDocument();
   });
 
-  it("keeps metric meaning visible instead of relying on accent color", () => {
+  it("renders summary metrics as neutral dashboard cards", () => {
     render(
       <StudioMetricStrip
         items={[
@@ -39,7 +40,10 @@ describe("Cresciva Studio primitives", () => {
       />,
     );
 
-    expect(screen.getByText("Published")).toBeInTheDocument();
+    expect(screen.getByText("Published").closest("article")).toHaveClass(
+      "bg-card",
+      "shadow-soft",
+    );
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("Ready for readers")).toBeInTheDocument();
   });

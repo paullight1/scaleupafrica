@@ -136,8 +136,8 @@ const AdminBlog = () => {
       <SEO title="Blog" noindex />
       <StudioPageHeader
         eyebrow="Content studio"
-        title="Stories worth sharing"
-        description="Shape ideas into useful stories, then send the strongest ones out into the world."
+        title="Blog"
+        description="Create, review and publish articles for the Cresciva blog."
         actions={
           <Button asChild>
             <Link to="/admin/blog/new"><Plus className="h-4 w-4" /> New story</Link>

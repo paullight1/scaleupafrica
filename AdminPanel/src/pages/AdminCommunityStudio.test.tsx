@@ -80,12 +80,12 @@ vi.mock("@/hooks/queries/adminUsers", () => ({
     user.has_access && (!user.expires_at || new Date(user.expires_at).getTime() > Date.now()),
 }));
 
-describe("Cresciva community studio", () => {
+describe("dashboard-style community management", () => {
   it("makes directory moderation people-first and keeps filters visible", () => {
     render(<MemoryRouter><AdminProfiles /></MemoryRouter>);
 
-    expect(screen.getByRole("heading", { name: "Meet the people building next" })).toBeInTheDocument();
-    expect(screen.getByText("Community desk")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Directory profiles" })).toBeInTheDocument();
+    expect(screen.queryByText("Community desk")).not.toBeInTheDocument();
     expect(screen.getByText("Featured profiles")).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Search profiles by business name" })).toBeInTheDocument();
   });
@@ -93,8 +93,8 @@ describe("Cresciva community studio", () => {
   it("summarizes member access without hiding account actions", () => {
     render(<MemoryRouter><AdminUsers /></MemoryRouter>);
 
-    expect(screen.getByRole("heading", { name: "The community behind Cresciva" })).toBeInTheDocument();
-    expect(screen.getByText("Member access")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
+    expect(screen.queryByText("Member access")).not.toBeInTheDocument();
     expect(screen.getByText("Active members")).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Search users by email or business" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Actions for amaka@cresciva.com" })).toBeInTheDocument();

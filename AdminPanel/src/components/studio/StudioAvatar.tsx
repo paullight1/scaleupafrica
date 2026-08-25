@@ -20,7 +20,7 @@ export function StudioAvatar({
   className?: string;
 }) {
   const classes = cn(
-    "studio-avatar flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full",
+    "studio-avatar flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-secondary text-sm font-semibold text-navy",
     className,
   );
 

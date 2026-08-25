@@ -142,8 +142,8 @@ const AdminUsers = () => {
       <SEO title="Users" description="Manage user accounts, subscriptions and roles." noindex />
       <StudioPageHeader
         eyebrow="Member access"
-        title="The community behind Cresciva"
-        description="See who is here, understand their access and keep staff roles in the right hands."
+        title="Users"
+        description="Manage member access, subscriptions and staff roles."
         accent="cobalt"
       />
 
