@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@shared/components/common/ErrorBoundary";
+import { DashboardSkeleton } from "@shared/components/common/LoadingState";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { siteUrl } from "@shared/lib/crossApp";
@@ -194,7 +195,11 @@ const AdminLayout = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="studio-canvas p-4 lg:p-8 xl:px-10"><ErrorBoundary key={pathname}><Outlet /></ErrorBoundary></main>
+        <main className="studio-canvas p-4 lg:p-8 xl:px-10">
+          <Suspense fallback={<DashboardSkeleton />}>
+            <ErrorBoundary key={pathname}><Outlet /></ErrorBoundary>
+          </Suspense>
+        </main>
       </div>
     </div>
   );

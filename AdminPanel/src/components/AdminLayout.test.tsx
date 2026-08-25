@@ -20,6 +20,28 @@ vi.mock("@shared/hooks/useRole", () => ({
 }));
 
 describe("AdminLayout funding navigation", () => {
+  it("keeps the studio shell visible while the next route is loading", () => {
+    const pendingRoute = new Promise<never>(() => undefined);
+    const SuspendedRoute = () => {
+      throw pendingRoute;
+    };
+
+    render(
+      <MemoryRouter initialEntries={["/admin/blog"]}>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="blog" element={<SuspendedRoute />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("navigation", { name: "Admin navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveClass("studio-canvas");
+    expect(screen.getByRole("status")).toBeInTheDocument();
+  });
+
   it("shows one active Funding entry for every funding subsection", () => {
     render(
       <MemoryRouter initialEntries={["/admin/funding/reports"]}>
