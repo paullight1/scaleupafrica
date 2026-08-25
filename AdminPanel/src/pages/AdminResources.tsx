@@ -10,13 +10,15 @@ import {
   Pencil,
   Plus,
   Trash2,
+  BookOpen,
+  FilePenLine,
+  Archive,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { SEO } from "@shared/components/common/SEO";
 import { useRole } from "@shared/hooks/useRole";
 import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
-import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { TableSkeleton } from "@shared/components/common/LoadingState";
@@ -24,6 +26,10 @@ import { Button } from "@shared/components/ui/button";
 import { Badge } from "@shared/components/ui/badge";
 import { Input } from "@shared/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@shared/components/ui/tabs";
+import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
+import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
+import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
+import { StudioToolbar } from "@/components/studio/StudioToolbar";
 import {
   Table,
   TableBody,
@@ -84,16 +90,21 @@ const AdminResources = () => {
   const toggleStatus = useToggleResourceStatus();
   const duplicate = useDuplicateResource();
   const remove = useDeleteResource();
+  const allResources = data ?? [];
+  const publishedCount = allResources.filter((resource) => resource.status === "published").length;
+  const draftCount = allResources.filter((resource) => resource.status === "draft").length;
+  const totalDownloads = allResources.reduce((sum, resource) => sum + (resource.download_count ?? 0), 0);
+  const gatedCount = allResources.filter((resource) => resource.gated).length;
 
   const filtered = useMemo(() => {
-    const rows = data ?? [];
+    const rows = allResources;
     const term = search.trim().toLowerCase();
     return rows.filter((r) => {
       const statusMatch = status === "all" || r.status === status;
       const searchMatch = !term || r.title.toLowerCase().includes(term);
       return statusMatch && searchMatch;
     });
-  }, [data, status, search]);
+  }, [allResources, status, search]);
 
   const handleTogglePublish = (row: ResourceRow) => {
     if (!isAdmin) return;
@@ -150,11 +161,13 @@ const AdminResources = () => {
   const filtersActive = !!search || status !== "all";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <SEO title="Resources" noindex />
-      <PageHeader
-        title="Resources"
-        subtitle="Templates, playbooks, guides and downloads for the resource library."
+      <StudioPageHeader
+        eyebrow="Resource library"
+        title="Tools worth keeping"
+        description="Curate practical guides, templates and playbooks people will want to return to."
+        accent="cobalt"
         actions={
           <Button asChild>
             <Link to="/admin/resources/new">
@@ -164,7 +177,16 @@ const AdminResources = () => {
         }
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <StudioMetricStrip
+        items={[
+          { label: "Published tools", value: publishedCount.toLocaleString(), hint: "Ready to use", icon: BookOpen, tone: "cobalt" },
+          { label: "Draft resources", value: draftCount.toLocaleString(), hint: "In the workshop", icon: FilePenLine, tone: "orange" },
+          { label: "Total downloads", value: totalDownloads.toLocaleString(), hint: "Across the library", icon: Download, tone: "lime" },
+          { label: "Member-only", value: gatedCount.toLocaleString(), hint: "Gated resources", icon: Archive, tone: "navy" },
+        ]}
+      />
+
+      <StudioToolbar className="flex-col sm:flex-row sm:justify-between">
         <Tabs value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
           <TabsList>
             {STATUS_TABS.map((t) => (
@@ -182,7 +204,7 @@ const AdminResources = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
-      </div>
+      </StudioToolbar>
 
       {isLoading ? (
         <TableSkeleton rows={6} columns={6} />
@@ -206,7 +228,7 @@ const AdminResources = () => {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-soft">
+        <StudioDataPanel>
           <Table>
             <TableHeader>
               <TableRow>
@@ -325,7 +347,7 @@ const AdminResources = () => {
               })}
             </TableBody>
           </Table>
-        </div>
+        </StudioDataPanel>
       )}
 
       <AlertDialog open={!!toDelete} onOpenChange={(open) => !open && setToDelete(null)}>

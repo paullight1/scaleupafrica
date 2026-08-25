@@ -10,17 +10,24 @@ import {
   Trash2,
   Star,
   Search as SearchIcon,
+  Newspaper,
+  FilePenLine,
+  Archive,
+  Plus,
 } from "lucide-react";
 import { SEO } from "@shared/components/common/SEO";
 import { useRole } from "@shared/hooks/useRole";
 import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
-import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { TableSkeleton } from "@shared/components/common/LoadingState";
 import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
 import { Badge } from "@shared/components/ui/badge";
+import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
+import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
+import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
+import { StudioToolbar } from "@/components/studio/StudioToolbar";
 import {
   Table,
   TableBody,
@@ -79,16 +86,21 @@ const AdminBlog = () => {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<BlogPost | null>(null);
+  const allPosts = data ?? [];
+  const publishedCount = allPosts.filter((post) => post.status === "published").length;
+  const draftCount = allPosts.filter((post) => post.status === "draft").length;
+  const archivedCount = allPosts.filter((post) => post.status === "archived").length;
+  const totalViews = allPosts.reduce((sum, post) => sum + (post.view_count ?? 0), 0);
 
   const posts = useMemo(() => {
-    const rows = data ?? [];
+    const rows = allPosts;
     const q = search.trim().toLowerCase();
     return rows.filter((p) => {
       if (status !== "all" && p.status !== status) return false;
       if (q && !p.title.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [data, status, search]);
+  }, [allPosts, status, search]);
 
   const handleToggle = (post: BlogPost) => {
     if (!isAdmin) return;
@@ -120,23 +132,34 @@ const AdminBlog = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <SEO title="Blog" noindex />
-      <PageHeader
-        title="Blog"
-        subtitle="Write, publish and manage articles."
+      <StudioPageHeader
+        eyebrow="Content studio"
+        title="Stories worth sharing"
+        description="Shape ideas into useful stories, then send the strongest ones out into the world."
         actions={
           <Button asChild>
-            <Link to="/admin/blog/new">New post</Link>
+            <Link to="/admin/blog/new"><Plus className="h-4 w-4" /> New story</Link>
           </Button>
         }
       />
 
+      <StudioMetricStrip
+        items={[
+          { label: "Published stories", value: publishedCount.toLocaleString(), hint: "Live for readers", icon: Newspaper, tone: "cobalt" },
+          { label: "Drafts in progress", value: draftCount.toLocaleString(), hint: "Still taking shape", icon: FilePenLine, tone: "orange" },
+          { label: "Archived", value: archivedCount.toLocaleString(), hint: "Kept for reference", icon: Archive, tone: "lime" },
+          { label: "Total views", value: totalViews.toLocaleString(), hint: "Across every story", icon: Eye, tone: "navy" },
+        ]}
+      />
+
       {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <StudioToolbar className="flex-col sm:flex-row">
         <div className="relative flex-1">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title…"
@@ -156,7 +179,7 @@ const AdminBlog = () => {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </StudioToolbar>
 
       {isLoading ? (
         <TableSkeleton rows={6} columns={6} />
@@ -186,7 +209,7 @@ const AdminBlog = () => {
           }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-soft">
+        <StudioDataPanel>
           <Table>
             <TableHeader>
               <TableRow>
@@ -324,7 +347,7 @@ const AdminBlog = () => {
               })}
             </TableBody>
           </Table>
-        </div>
+        </StudioDataPanel>
       )}
 
       <AlertDialog
