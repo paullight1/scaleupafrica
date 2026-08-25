@@ -1,8 +1,11 @@
-import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleAlert, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
 import { Badge } from "@shared/components/ui/badge";
 import { Button } from "@shared/components/ui/button";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { LoadingState } from "@shared/components/common/LoadingState";
+import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
+import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
+import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
 import { usePaymentReconciliation, type PaymentIssue } from "../hooks/queries/adminPayments";
 
 const ISSUE_LABELS: Record<PaymentIssue, string> = {
@@ -31,28 +34,30 @@ export default function AdminPayments() {
   const allHealthy = summary.unhealthy_payments === 0 && summary.access_discrepancies === 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Payment reconciliation</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Read-only comparison of Bachs settlement, Cresciva payment ledger, membership access,
-            webhook processing, and receipt delivery. Fixes must go through verified payment settlement.
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
-          <RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-      </div>
+    <div className="space-y-7">
+      <StudioPageHeader
+        eyebrow="Read-only finance desk"
+        title="Payments pulse"
+        description="Compare settlement, access, webhook processing and receipts without bypassing the verified payment flow."
+        accent="lime"
+        actions={
+          <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
+            <RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        }
+      />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Metric label="Payments checked" value={summary.payments_checked} />
-        <Metric label="Payment issues" value={summary.unhealthy_payments} />
-        <Metric label="Access issues" value={summary.access_discrepancies} />
-      </div>
+      <StudioMetricStrip
+        items={[
+          { label: "Payments checked", value: summary.payments_checked.toLocaleString(), hint: "In this reconciliation", icon: CreditCard, tone: "cobalt" },
+          { label: "Healthy payments", value: payments.filter((payment) => payment.healthy).length.toLocaleString(), hint: "No issue detected", icon: ShieldCheck, tone: "lime" },
+          { label: "Payment issues", value: summary.unhealthy_payments.toLocaleString(), hint: "Needs investigation", icon: CircleAlert, tone: "orange" },
+          { label: "Access issues", value: summary.access_discrepancies.toLocaleString(), hint: "Ledger mismatch", icon: AlertTriangle, tone: "navy" },
+        ]}
+      />
 
-      <div className={`rounded-xl border p-4 ${allHealthy ? "border-success/30 bg-success/5" : "border-warning/40 bg-warning/5"}`}>
+      <div className={`studio-health-panel ${allHealthy ? "" : "!border-l-warning"}`}>
         <div className="flex items-center gap-2">
           {allHealthy ? (
             <CheckCircle2 className="h-5 w-5 text-success-strong" />
@@ -60,7 +65,7 @@ export default function AdminPayments() {
             <AlertTriangle className="h-5 w-5 text-warning-strong" />
           )}
           <p className="font-medium text-foreground">
-            {allHealthy ? "No reconciliation discrepancies detected." : "Reconciliation needs attention."}
+            {allHealthy ? "Reconciliation healthy" : "Reconciliation needs attention"}
           </p>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -68,9 +73,10 @@ export default function AdminPayments() {
         </p>
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-border bg-card">
+      <StudioDataPanel>
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-display text-xl font-semibold text-foreground">Recent payments</h2>
+          <p className="studio-section-label text-primary-dark">Settlement ledger</p>
+          <h2 className="mt-1 font-display text-xl font-semibold text-foreground">Recent payments</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
@@ -111,7 +117,7 @@ export default function AdminPayments() {
             </tbody>
           </table>
         </div>
-      </section>
+      </StudioDataPanel>
 
       {accessDiscrepancies.length > 0 && (
         <section className="rounded-xl border border-warning/40 bg-card p-5">
@@ -131,15 +137,6 @@ export default function AdminPayments() {
           </ul>
         </section>
       )}
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-2 font-display text-3xl font-bold text-foreground">{value}</p>
     </div>
   );
 }

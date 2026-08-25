@@ -2,10 +2,9 @@ import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Star, BadgeCheck, Eye, EyeOff, Bot, ExternalLink } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Star, BadgeCheck, Eye, EyeOff, Bot, ExternalLink, CircleDollarSign, Clock3 } from "lucide-react";
 import { useAuth } from "@shared/hooks/useAuth";
 import { SEO } from "@shared/components/common/SEO";
-import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { TableSkeleton } from "@shared/components/common/LoadingState";
@@ -20,6 +19,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@shared/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@shared/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@shared/components/ui/alert-dialog";
+import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
+import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
+import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
+import { StudioToolbar } from "@/components/studio/StudioToolbar";
 import {
   useAdminFunding,
   useSaveFunding,
@@ -90,29 +93,43 @@ const AdminFunding = () => {
   const onSubmit = handleSubmit((values) => { save.mutate({ id: editing?.id, values: formToPayload(values) }, { onSuccess: () => setDialogOpen(false) }); });
   const hasFilters = !!filters.q || filters.status !== "all" || filters.source !== "all";
   const aiDraftCount = useMemo(() => rows.filter((r) => r.source === "ai" && r.status === "draft").length, [rows]);
+  const openCount = useMemo(() => rows.filter((r) => r.application_status === "open" || r.application_status === "rolling").length, [rows]);
+  const closingSoonCount = useMemo(() => rows.filter((r) => r.application_status === "closing_soon").length, [rows]);
+  const verifiedCount = useMemo(() => rows.filter((r) => r.verification_status === "verified").length, [rows]);
 
   return (
     <>
-      <SEO title="Funding" noindex />
-      <PageHeader
-        title="Opportunities"
-        subtitle="Curate programs and inspect their publication and verification status."
-        actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> New opportunity</Button>}
-      />
+      <div className="space-y-7">
+        <SEO title="Funding" noindex />
+        <StudioPageHeader
+          eyebrow="Opportunity radar"
+          title="Money moves, made visible"
+          description="Curate the opportunities worth knowing about and make their timing and source trust easy to understand."
+          actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> New opportunity</Button>}
+        />
 
-      {aiDraftCount > 0 && <div className="mt-6 flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-4 text-sm"><Bot className="h-5 w-5 shrink-0 text-primary-dark" aria-hidden="true" /><p className="text-ink-strong"><span className="font-semibold">{aiDraftCount}</span> AI-sourced {aiDraftCount === 1 ? "draft is" : "drafts are"} awaiting review. AI drafts cannot become verified/open without authoritative source checks.</p></div>}
+        <StudioMetricStrip
+          items={[
+            { label: "Open now", value: openCount.toLocaleString(), hint: "Accepting applications", icon: CircleDollarSign, tone: "cobalt" },
+            { label: "Closing soon", value: closingSoonCount.toLocaleString(), hint: "Needs timely attention", icon: Clock3, tone: "orange" },
+            { label: "AI drafts", value: aiDraftCount.toLocaleString(), hint: "Awaiting human review", icon: Bot, tone: "navy" },
+            { label: "Verified sources", value: verifiedCount.toLocaleString(), hint: "Evidence checked", icon: BadgeCheck, tone: "lime" },
+          ]}
+        />
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative sm:max-w-xs sm:flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Search title or funder…" value={filters.q} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} aria-label="Search opportunities" /></div>
+        {aiDraftCount > 0 && <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-4 text-sm"><Bot className="h-5 w-5 shrink-0 text-primary-dark" aria-hidden="true" /><p className="text-ink-strong"><span className="font-semibold">{aiDraftCount}</span> AI-sourced {aiDraftCount === 1 ? "draft is" : "drafts are"} awaiting review. AI drafts cannot become verified/open without authoritative source checks.</p></div>}
+
+        <StudioToolbar className="flex-col sm:flex-row">
+        <div className="relative sm:max-w-xs sm:flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input type="search" className="pl-9" placeholder="Search title or funder…" value={filters.q} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} aria-label="Search opportunities" /></div>
         <Select value={filters.status} onValueChange={(v) => setFilters((f) => ({ ...f, status: v }))}><SelectTrigger className="sm:w-40" aria-label="Filter by status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All statuses</SelectItem><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select>
         <Select value={filters.source} onValueChange={(v) => setFilters((f) => ({ ...f, source: v }))}><SelectTrigger className="sm:w-40" aria-label="Filter by source"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All sources</SelectItem><SelectItem value="manual">Manual</SelectItem><SelectItem value="ai">AI</SelectItem></SelectContent></Select>
-      </div>
+        </StudioToolbar>
 
-      <div className="mt-6">
+      <div>
         {query.isLoading ? <TableSkeleton rows={8} columns={8} /> : query.isError ? <ErrorState onRetry={() => query.refetch()} /> : rows.length === 0 ? (
           <EmptyState variant={hasFilters ? "search" : "firstRun"} title="No opportunities found" description={hasFilters ? "Try adjusting your filters." : "Add your first funding opportunity to show it to members."} action={hasFilters ? undefined : { label: "New opportunity", onClick: openCreate }} />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-soft">
+          <StudioDataPanel>
             <Table>
               <TableHeader><TableRow><TableHead>Title / Funder</TableHead><TableHead>Type</TableHead><TableHead>Amount</TableHead><TableHead>Current cycle</TableHead><TableHead>Source trust</TableHead><TableHead>Publication</TableHead><TableHead>Featured</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
@@ -134,8 +151,9 @@ const AdminFunding = () => {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </StudioDataPanel>
         )}
+      </div>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
