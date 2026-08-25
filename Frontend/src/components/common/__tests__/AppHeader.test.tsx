@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AppHeader } from "@/components/common/AppHeader";
 
@@ -53,9 +53,21 @@ describe("AppHeader", () => {
     const toggle = screen.getByRole("button", { name: "Open menu" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(toggle);
-    expect(
-      screen.getByRole("button", { name: "Close menu" })
-    ).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+  });
+
+  it("opens mobile navigation as an accessible side drawer and closes it after navigation", async () => {
+    renderHeader("/");
+
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+
+    const drawer = screen.getByRole("dialog", { name: "Navigation" });
+    expect(within(drawer).getByRole("navigation", { name: "Mobile navigation" })).toBeInTheDocument();
+
+    fireEvent.click(within(drawer).getByRole("link", { name: "Directory" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Navigation" })).not.toBeInTheDocument());
   });
 
   it("signs out from the mobile drawer", async () => {

@@ -9,8 +9,6 @@ import {
 export interface DashboardNavItem {
   to: string;
   label: string;
-  /** Shorter label for the mobile bottom bar. */
-  shortLabel: string;
   icon: LucideIcon;
   /** Match the route exactly (index route). */
   end?: boolean;
@@ -32,8 +30,8 @@ export interface DashboardNavItem {
  * where the opportunities it counts actually live.
  */
 export const DASHBOARD_NAV: DashboardNavItem[] = [
-  { to: DASHBOARD_HOME, label: "Home", shortLabel: "Home", icon: Home, end: true },
-  { to: DASHBOARD_FUNDING, label: "Funding", shortLabel: "Funding", icon: Compass, badge: true },
-  { to: DASHBOARD_PROFILE, label: "My profile", shortLabel: "Profile", icon: Store },
-  { to: DASHBOARD_ACCOUNT, label: "Account", shortLabel: "Account", icon: Settings },
+  { to: DASHBOARD_HOME, label: "Home", icon: Home, end: true },
+  { to: DASHBOARD_FUNDING, label: "Funding", icon: Compass, badge: true },
+  { to: DASHBOARD_PROFILE, label: "My profile", icon: Store },
+  { to: DASHBOARD_ACCOUNT, label: "Account", icon: Settings },
 ];

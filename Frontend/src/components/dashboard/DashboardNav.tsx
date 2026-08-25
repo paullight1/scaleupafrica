@@ -4,7 +4,7 @@ import { DASHBOARD_NAV } from "./navItems";
 
 /**
  * Left section-nav for the dashboard (md+). Sits beneath the global AppHeader
- * (from SiteLayout) — HubSpot-style. Mobile uses <DashboardMobileNav> instead.
+ * (from SiteLayout). Mobile destinations live in AppHeader's side drawer.
  */
 export function DashboardNav({ newCount = 0 }: { newCount?: number }) {
   return (

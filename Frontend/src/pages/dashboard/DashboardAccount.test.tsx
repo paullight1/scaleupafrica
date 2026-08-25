@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { DashboardAccount } from "./DashboardAccount";
@@ -34,11 +34,16 @@ describe("DashboardAccount", () => {
     expect(screen.queryByText("General email preferences")).not.toBeInTheDocument();
   });
 
-  it("exposes a mobile account section menu inside the account panel", () => {
-    renderAccount("/dashboard/account/security");
+  it("uses mobile account tabs that navigate directly between panels", () => {
+    renderAccount();
 
-    expect(screen.getByLabelText("Account section")).toHaveValue("/dashboard/account/security");
+    const mobileTabs = screen.getByRole("navigation", { name: "Mobile account sections" });
+    expect(screen.queryByRole("combobox", { name: "Account section" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("link", { name: "Security" })[0]);
+
     expect(screen.getByText("Security card")).toBeInTheDocument();
     expect(screen.queryByText("Billing panel")).not.toBeInTheDocument();
+    expect(mobileTabs).toBeInTheDocument();
   });
 });

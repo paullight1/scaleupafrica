@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 import { CreditCard, Database, Bell, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@shared/components/common/PageHeader";
 import { cn } from "@shared/lib/utils";
@@ -35,9 +35,6 @@ function PanelHeading({ title, description }: { title: string; description: stri
 
 /** Account settings split into focused routes so membership opens immediately. */
 export function DashboardAccount() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
   useEffect(() => {
     document.title = "Account — Cresciva";
   }, []);
@@ -46,19 +43,29 @@ export function DashboardAccount() {
     <div className="space-y-7">
       <PageHeader title="Account" subtitle="Your membership, security, preferences and data rights." />
 
-      <label className="block md:hidden">
-        <span className="sr-only">Account section</span>
-        <select
-          aria-label="Account section"
-          value={location.pathname}
-          onChange={(event) => navigate(event.target.value)}
-          className="h-11 w-full rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {ACCOUNT_SECTIONS.map((item) => (
-            <option key={item.to} value={item.to}>{item.label}</option>
+      <nav
+        aria-label="Mobile account sections"
+        className="sticky top-16 z-30 -mx-4 overflow-x-auto overscroll-x-contain border-y border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-5 sm:px-5 md:hidden"
+      >
+        <div className="flex min-w-max gap-2">
+          {ACCOUNT_SECTIONS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) => cn(
+                "flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                isActive
+                  ? "border-primary bg-primary/10 text-navy"
+                  : "border-border bg-card text-muted-foreground hover:bg-surface-subtle hover:text-foreground",
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {label}
+            </NavLink>
           ))}
-        </select>
-      </label>
+        </div>
+      </nav>
 
       <div className="md:grid md:grid-cols-[170px_minmax(0,1fr)] md:gap-6 lg:gap-8">
         <nav aria-label="Account sections" className="hidden md:block">

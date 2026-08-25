@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShieldCheck, LayoutDashboard, UserRound, Compass, LogOut } from "lucide-react";
+import { Menu, ShieldCheck, LayoutDashboard, UserRound, Compass, LogOut, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@shared/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@shared/components/ui/sheet";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { UserMenu } from "@/components/common/UserMenu";
@@ -34,14 +34,6 @@ export function AppHeader() {
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
-
-  // Esc closes the drawer.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
 
   const signInHref = authPathWithNext(location);
   const showDashboard = DEFAULT_AUTHED_ROUTE === "/dashboard";
@@ -111,31 +103,37 @@ export function AppHeader() {
 
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen(true)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-nav"
           className="rounded-lg p-2 text-white outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
         >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          <Menu className="h-6 w-6" />
         </button>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            id="mobile-nav"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-t border-white/10 bg-navy-dark lg:hidden"
-          >
-            <nav className="flex flex-col px-4 py-4 sm:px-6">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          id="mobile-nav"
+          side="left"
+          className="w-[min(86vw,22rem)] overflow-y-auto border-white/10 bg-navy-dark p-0 text-white lg:hidden [&>button]:right-5 [&>button]:top-5 [&>button]:text-white [&>button]:opacity-80"
+        >
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <div className="flex min-h-full flex-col">
+            <div className="flex h-16 items-center border-b border-white/10 px-5">
+              <Link to="/" className="font-display text-xl font-bold text-white">
+                Cresciva<span className="text-primary">.</span>
+              </Link>
+            </div>
+
+            <nav aria-label="Mobile navigation" className="flex flex-1 flex-col px-5 py-5">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Explore</p>
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
                   to={link.to}
-                  className="border-b border-white/10 py-3 text-white/80 transition-colors hover:text-white"
+                  className="flex min-h-11 items-center border-b border-white/10 py-3 text-sm font-medium text-white/80 transition-colors hover:text-white"
                 >
                   {link.label}
                 </Link>
@@ -144,40 +142,47 @@ export function AppHeader() {
               {isStaff && (
                 <a
                   href={adminUrl()}
-                  className="flex items-center gap-2 border-b border-white/10 py-3 text-white/80 hover:text-white"
+                  className="flex min-h-11 items-center gap-2 border-b border-white/10 py-3 text-sm font-medium text-white/80 hover:text-white"
                 >
                   <ShieldCheck className="h-4 w-4" /> Admin panel
                 </a>
               )}
 
-              <div className="mt-4 flex flex-col gap-3">
+              <div className="mt-6 flex flex-col gap-1">
                 {loading ? null : user ? (
                   <>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Your account</p>
                     {showDashboard && (
                       <Link
                         to="/dashboard"
-                        className="flex items-center gap-2 py-2.5 text-white/90 hover:text-white"
+                        className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white"
                       >
                         <LayoutDashboard className="h-4 w-4" /> My dashboard
                       </Link>
                     )}
                     <Link
                       to="/dashboard/profile/edit"
-                      className="flex items-center gap-2 py-2.5 text-white/90 hover:text-white"
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white"
                     >
                       <UserRound className="h-4 w-4" /> My profile
                     </Link>
                     <Link
                       to="/dashboard/funding"
-                      className="flex items-center gap-2 py-2.5 text-white/90 hover:text-white"
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white"
                     >
                       <Compass className="h-4 w-4" /> Funding
+                    </Link>
+                    <Link
+                      to="/dashboard/account/membership"
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white"
+                    >
+                      <Settings className="h-4 w-4" /> Account
                     </Link>
                     <div className="my-1 border-t border-white/10" />
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="flex items-center gap-2 py-2.5 text-left text-primary hover:text-primary-hover"
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-primary hover:bg-white/10 hover:text-primary-hover"
                     >
                       <LogOut className="h-4 w-4" /> Sign out
                     </button>
@@ -198,9 +203,9 @@ export function AppHeader() {
                 )}
               </div>
             </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </SheetContent>
+      </Sheet>
     </header>
   );
 }

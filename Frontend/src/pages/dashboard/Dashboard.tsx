@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { SEO } from "@shared/components/common/SEO";
 import { LoadingState } from "@shared/components/common/LoadingState";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
-import { DashboardMobileNav } from "@/components/dashboard/DashboardMobileNav";
 
 const DashboardHome = lazy(() => import("./DashboardHome"));
 const DashboardFunding = lazy(() => import("./DashboardFunding"));
@@ -17,8 +16,8 @@ const DashboardProfileEdit = lazy(() => import("./DashboardProfileEdit"));
 /**
  * Dashboard shell. Mounted by the orchestrator at `/dashboard/*` inside
  * <RequireAuth> + <SiteLayout>. The global navy AppHeader + AppFooter come from
- * SiteLayout; this adds a left section-nav (md+) and a mobile bottom tab bar,
- * and owns its own nested routing.
+ * SiteLayout; this adds a left section-nav on larger screens and owns its own
+ * nested routing. Mobile dashboard destinations live in the global side drawer.
  *
  * `newCount` is read once here rather than in each page so the nav badge and the
  * pages can never disagree about what "new this week" means. For a non-member
@@ -37,7 +36,7 @@ export default function Dashboard() {
         <div className="md:grid md:grid-cols-[200px_minmax(0,1fr)] md:gap-6 lg:gap-8">
           <DashboardNav newCount={newCount} />
 
-          <div className="min-w-0 pb-24 md:pb-0">
+          <div className="min-w-0">
             <Suspense fallback={<LoadingState className="min-h-[40vh]" label="Loading…" />}>
               <Routes>
                 <Route index element={<DashboardHome />} />
@@ -57,8 +56,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      <DashboardMobileNav newCount={newCount} />
     </>
   );
 }

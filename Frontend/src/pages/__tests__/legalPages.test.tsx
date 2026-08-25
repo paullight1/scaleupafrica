@@ -44,4 +44,13 @@ describe("footer", () => {
     wrap(<AppFooter />);
     expect(screen.getByRole("link", { name: "FAQ" })).toHaveAttribute("href", "/faq");
   });
+
+  it("provides a compact set of essential mobile footer links", () => {
+    wrap(<AppFooter />);
+
+    const essentials = screen.getByRole("navigation", { name: "Footer essentials" });
+    expect(essentials).toHaveTextContent("Contact");
+    expect(essentials).toHaveTextContent("Privacy");
+    expect(essentials).toHaveTextContent("Terms");
+  });
 });

@@ -42,8 +42,31 @@ const footerNav: { heading: string; links: { label: string; to: string }[] }[] =
 export function AppFooter() {
   return (
     <footer className="border-t border-white/10 bg-navy-dark text-white/80">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-14 lg:px-8">
+        <div className="md:hidden">
+          <p className="font-display text-lg font-bold text-white">
+            Cresciva<span className="text-primary">.</span>
+          </p>
+          <p className="mt-2 max-w-sm text-sm leading-6 text-white/60">
+            Visibility and funding intelligence for Pan-African SME founders.
+          </p>
+
+          <nav aria-label="Footer essentials" className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link to="/contact" className="min-h-11 py-3 text-white/75 hover:text-white">Contact</Link>
+            <Link to="/privacy" className="min-h-11 py-3 text-white/75 hover:text-white">Privacy</Link>
+            <Link to="/terms" className="min-h-11 py-3 text-white/75 hover:text-white">Terms</Link>
+          </nav>
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-white/10 pt-5 text-xs text-white/55">
+            <span>© {new Date().getFullYear()} Cresciva</span>
+            <span aria-hidden="true" className="text-white/25">·</span>
+            <button type="button" onClick={openCookieSettings} className="min-h-11 py-3 transition-colors hover:text-white">
+              Cookie settings
+            </button>
+          </div>
+        </div>
+
+        <div className="hidden md:grid md:grid-cols-2 md:gap-10 lg:grid-cols-6">
           <div className="lg:col-span-2">
             <p className="font-display text-xl font-bold text-white">
               Cresciva<span className="text-primary">.</span>
@@ -73,7 +96,7 @@ export function AppFooter() {
           ))}
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-8">
+        <div className="mt-10 hidden border-t border-white/10 pt-8 md:block">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="mb-2 text-sm font-semibold text-white">Stay in the loop</p>
