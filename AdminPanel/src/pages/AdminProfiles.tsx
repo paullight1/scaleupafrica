@@ -12,7 +12,8 @@ import {
   FlagOff,
   ExternalLink,
   Trash2,
-  Building2,
+  UsersRound,
+  Activity,
 } from "lucide-react";
 import {
   useAdminProfiles,
@@ -21,7 +22,6 @@ import {
   type AdminProfileRow,
 } from "@/hooks/queries/adminUsers";
 import { SEO } from "@shared/components/common/SEO";
-import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { TableSkeleton } from "@shared/components/common/LoadingState";
@@ -29,6 +29,11 @@ import { Input } from "@shared/components/ui/input";
 import { Button } from "@shared/components/ui/button";
 import { Badge } from "@shared/components/ui/badge";
 import { Switch } from "@shared/components/ui/switch";
+import { StudioAvatar } from "@/components/studio/StudioAvatar";
+import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
+import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
+import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
+import { StudioToolbar } from "@/components/studio/StudioToolbar";
 import {
   Table,
   TableBody,
@@ -79,18 +84,7 @@ function StatusBadge({ status }: { status: string }) {
 function BusinessCell({ profile }: { profile: AdminProfileRow }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-muted">
-        {profile.logo_url ? (
-          <img
-            src={profile.logo_url}
-            alt={`${profile.business_name} logo`}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <Building2 className="h-4 w-4 text-muted-foreground" />
-        )}
-      </div>
+      <StudioAvatar name={profile.business_name} src={profile.logo_url} className="h-12 w-12" />
       <div className="min-w-0">
         <p className="truncate font-medium text-ink-strong">{profile.business_name}</p>
         {profile.founder_name && (
@@ -157,23 +151,38 @@ const AdminProfiles = () => {
     });
 
   const hasFilters = status !== "all" || sector !== "all" || term.length > 0;
+  const activeCount = allRows.filter((profile) => profile.status === "active").length;
+  const featuredCount = allRows.filter((profile) => profile.featured).length;
+  const flaggedCount = allRows.filter((profile) => profile.status === "flagged").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <SEO
         title="Directory Profiles"
         description="Moderate directory business profiles."
         noindex
       />
-      <PageHeader
-        title="Directory Profiles"
-        subtitle="Feature, hide, flag or remove business profiles in the directory."
+      <StudioPageHeader
+        eyebrow="Community desk"
+        title="Meet the people building next"
+        description="Keep Cresciva's directory useful, vibrant and safe for everyone discovering what Africa is building."
+        accent="orange"
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <StudioMetricStrip
+        items={[
+          { label: "All profiles", value: allRows.length.toLocaleString(), hint: "Across the directory", icon: UsersRound, tone: "navy" },
+          { label: "Active profiles", value: activeCount.toLocaleString(), hint: "Visible right now", icon: Activity, tone: "cobalt" },
+          { label: "Featured profiles", value: featuredCount.toLocaleString(), hint: "In the spotlight", icon: Star, tone: "orange" },
+          { label: "Flagged for review", value: flaggedCount.toLocaleString(), hint: "Needs attention", icon: Flag, tone: "lime" },
+        ]}
+      />
+
+      <StudioToolbar className="flex-col sm:flex-row sm:flex-wrap">
         <div className="relative sm:max-w-xs sm:flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             aria-label="Search profiles by business name"
@@ -207,7 +216,7 @@ const AdminProfiles = () => {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </StudioToolbar>
 
       {isLoading ? (
         <TableSkeleton rows={8} columns={7} />
@@ -228,7 +237,7 @@ const AdminProfiles = () => {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-soft">
+        <StudioDataPanel>
           <Table>
             <TableHeader>
               <TableRow>
@@ -373,7 +382,7 @@ const AdminProfiles = () => {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </StudioDataPanel>
       )}
 
       <AlertDialog

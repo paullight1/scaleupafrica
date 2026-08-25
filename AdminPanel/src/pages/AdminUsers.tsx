@@ -9,6 +9,7 @@ import {
   CalendarClock,
   KeyRound,
   KeySquare,
+  UsersRound,
 } from "lucide-react";
 import { useAuth } from "@shared/hooks/useAuth";
 import {
@@ -20,13 +21,17 @@ import {
   type AdminUserRow,
 } from "@/hooks/queries/adminUsers";
 import { SEO } from "@shared/components/common/SEO";
-import { PageHeader } from "@shared/components/common/PageHeader";
 import { EmptyState } from "@shared/components/common/EmptyState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { TableSkeleton } from "@shared/components/common/LoadingState";
 import { Input } from "@shared/components/ui/input";
 import { Button } from "@shared/components/ui/button";
 import { Badge } from "@shared/components/ui/badge";
+import { StudioAvatar } from "@/components/studio/StudioAvatar";
+import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
+import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
+import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
+import { StudioToolbar } from "@/components/studio/StudioToolbar";
 import {
   Table,
   TableBody,
@@ -111,6 +116,9 @@ const AdminUsers = () => {
   const setRole = useSetRole();
 
   const anyPending = setAccess.isPending || setExpiry.isPending || setRole.isPending;
+  const activeCount = rows.filter((row) => subscriptionActive(row)).length;
+  const staffCount = rows.filter((row) => row.is_admin || row.is_editor).length;
+  const withoutAccessCount = rows.length - activeCount;
 
   // Set-expiry dialog state.
   const [expiryTarget, setExpiryTarget] = useState<AdminUserRow | null>(null);
@@ -130,23 +138,37 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <SEO title="Users" description="Manage user accounts, subscriptions and roles." noindex />
-      <PageHeader
-        title="Users"
-        subtitle="Manage accounts, subscription access and staff roles."
+      <StudioPageHeader
+        eyebrow="Member access"
+        title="The community behind Cresciva"
+        description="See who is here, understand their access and keep staff roles in the right hands."
+        accent="cobalt"
       />
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          aria-label="Search users by email or business"
-          placeholder="Search by email or business…"
-          className="pl-9"
-        />
-      </div>
+      <StudioMetricStrip
+        items={[
+          { label: "People found", value: rows.length.toLocaleString(), hint: search ? "Matching this search" : "In the member roster", icon: UsersRound, tone: "navy" },
+          { label: "Active members", value: activeCount.toLocaleString(), hint: "Subscription live", icon: ShieldCheck, tone: "lime" },
+          { label: "Staff accounts", value: staffCount.toLocaleString(), hint: "Admin or editor", icon: KeyRound, tone: "cobalt" },
+          { label: "Without access", value: withoutAccessCount.toLocaleString(), hint: "No active subscription", icon: ShieldOff, tone: "orange" },
+        ]}
+      />
+
+      <StudioToolbar>
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            aria-label="Search users by email or business"
+            placeholder="Search by email or business…"
+            className="pl-9"
+          />
+        </div>
+      </StudioToolbar>
 
       {isLoading ? (
         <TableSkeleton rows={8} columns={7} />
@@ -167,7 +189,7 @@ const AdminUsers = () => {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-soft">
+        <StudioDataPanel>
           <Table>
             <TableHeader>
               <TableRow>
@@ -186,8 +208,14 @@ const AdminUsers = () => {
                 const isSelf = currentUser?.id === u.user_id;
                 return (
                   <TableRow key={u.user_id}>
-                    <TableCell className="font-medium text-ink-strong">
-                      {u.email ?? "—"}
+                    <TableCell>
+                      <div className="flex min-w-[220px] items-center gap-3">
+                        <StudioAvatar name={u.business_name || u.email || "Member"} />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink-strong">{u.email ?? "—"}</p>
+                          <p className="truncate text-xs text-muted-foreground">{u.business_name ?? "Independent member"}</p>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>{u.business_name ?? "—"}</TableCell>
                     <TableCell>{u.country ?? "—"}</TableCell>
@@ -281,7 +309,7 @@ const AdminUsers = () => {
               })}
             </TableBody>
           </Table>
-        </div>
+        </StudioDataPanel>
       )}
 
       <Dialog open={!!expiryTarget} onOpenChange={(o) => !o && setExpiryTarget(null)}>
