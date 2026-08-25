@@ -90,7 +90,7 @@ const AdminResources = () => {
   const toggleStatus = useToggleResourceStatus();
   const duplicate = useDuplicateResource();
   const remove = useDeleteResource();
-  const allResources = data ?? [];
+  const allResources = useMemo(() => data ?? [], [data]);
   const publishedCount = allResources.filter((resource) => resource.status === "published").length;
   const draftCount = allResources.filter((resource) => resource.status === "draft").length;
   const totalDownloads = allResources.reduce((sum, resource) => sum + (resource.download_count ?? 0), 0);

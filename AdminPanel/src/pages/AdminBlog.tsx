@@ -86,7 +86,7 @@ const AdminBlog = () => {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<BlogPost | null>(null);
-  const allPosts = data ?? [];
+  const allPosts = useMemo(() => data ?? [], [data]);
   const publishedCount = allPosts.filter((post) => post.status === "published").length;
   const draftCount = allPosts.filter((post) => post.status === "draft").length;
   const archivedCount = allPosts.filter((post) => post.status === "archived").length;
