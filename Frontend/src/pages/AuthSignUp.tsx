@@ -64,7 +64,7 @@ const AuthSignUp = () => {
   const handleResend = async () => {
     if (!confirmEmail || cooldown > 0) return;
     setPanelError(null);
-    const { error } = await resendConfirmation(confirmEmail);
+    const { error } = await resendConfirmation(confirmEmail, next);
     if (error) {
       setPanelError(mapAuthError(error));
       return;

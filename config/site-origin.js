@@ -4,7 +4,7 @@
  * This module deliberately has no Node-only or browser-only dependencies so it
  * can be imported by Vite config, browser/shared code, and build scripts.
  */
-export const DEFAULT_SITE_ORIGIN = "https://cresciva.vercel.app";
+export const DEFAULT_SITE_ORIGIN = "https://www.crescivacapital.com";
 
 /** Normalize an explicit deployment override or fall back to production. */
 export function normalizeSiteOrigin(value = DEFAULT_SITE_ORIGIN) {

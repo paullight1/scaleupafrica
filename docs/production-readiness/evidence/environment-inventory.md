@@ -1,6 +1,6 @@
 # Cresciva Production Environment & Release Inventory
 
-Verified/updated: 2026-08-23
+Verified/updated: 2026-08-25
 Repository: `paullight1/scaleupafrica`
 Implementation branch: `docs/cresciva-production-readiness`
 Default branch baseline at review: `main` → `8603e5ec2db6830263c97d0d556ac31e390d51ac`
@@ -12,10 +12,10 @@ This file records identifiers and verification state only. **No secret values be
 | Item | Repository contract | External verification |
 | --- | --- | --- |
 | Product | Cresciva | Source verified |
-| Public origin | `https://cresciva.vercel.app` | Single-source repository contract; actual Vercel project not visible to connected Vercel account |
+| Public origin | `https://www.crescivacapital.com` | Single-source repository contract; live Vercel route verified on 2026-08-25 |
 | Admin | same origin, `/admin/` | Source/build routing verified; live deployment not independently verified |
 | Production Git branch | `main` | Repository default branch verified |
-| Supabase project ref | `fqragjhmunphhdnmvpgs` | Repository + publishable frontend config agree; read-only CLI verification succeeded |
+| Supabase project ref | `fqragjhmunphhdnmvpgs` | Repository + publishable frontend config agree; CLI verification and Auth URL correction succeeded |
 | Payment provider | Bachs | Source integration + current public Bachs docs verified; Bachs merchant account not connected |
 | Bachs membership model | recurring monthly/quarterly/annual subscription | Source verified; auto-renews until canceled |
 | NestJS API | optional/domain-by-domain cutover | Source verified; deployment status unverified |
@@ -214,11 +214,10 @@ The connected GitHub action surface available here does not expose a branch-prot
 
 ## 10. OAuth and email identity
 
-Source code contains Google OAuth/reset support and transactional email flows, but production provider configuration is **unverified** because the intended Supabase/Vercel projects are not connected here.
+Supabase Auth's Site URL and production redirect allowlist were verified and corrected on 2026-08-25. An invalid-link smoke test confirmed both the default fallback and an explicit `/auth?next=/funding` callback now return to `https://www.crescivacapital.com`. Google provider credentials and the external email-sending identity remain unverified.
 
 Before launch, externally verify:
 
-- Supabase Auth Site URL == official Cresciva production origin;
 - Google authorized origins/redirects include official Cresciva host and reset callback;
 - no obsolete ScaleUp Africa host remains in auth configuration;
 - Resend sending identity is Cresciva;
@@ -253,7 +252,6 @@ Repository implementation: **implemented**.
 
 External proof required:
 
-- authorized access to Supabase project `fqragjhmunphhdnmvpgs`;
 - migration and Edge Function deployment comparison;
 - Bachs sandbox/live dashboard, products, webhook and secret alignment;
 - actual Vercel project/domain/env inventory;

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { z } from "zod";
 import { useAuth } from "@shared/hooks/useAuth";
 import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from "@shared/lib/passwordStrength";
+import { authRedirectUrl } from "@shared/lib/authOrigin";
 import { mapAuthError, type FriendlyError } from "@/lib/authErrors";
 
 export const SIGNUP_STEPS = ["Your email", "Create a password", "About you"];
@@ -110,7 +111,7 @@ export function useSignUpWizard({ next, onConfirmationRequired, onSessionCreated
   const submitAccount = useCallback(async () => {
     setBusy(true);
     try {
-      const redirect = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
+      const redirect = authRedirectUrl(`/auth?next=${encodeURIComponent(next)}`);
       const { error, confirmationRequired } = await signUp(
         values.email.trim(),
         values.password,

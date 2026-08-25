@@ -71,7 +71,7 @@ export async function sendPaymentReceipt(
       .maybeSingle();
 
     const log = async (row: EmailLogRow) => {
-      await admin.from("email_events").insert(row);
+      await admin.from("email_events").insert({ ...row, payment_id: paymentId });
     };
 
     await dispatch(

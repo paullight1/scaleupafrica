@@ -3,7 +3,7 @@ import { loadEmailConfig } from "../../../../supabase/functions/_shared/email/co
 
 describe("email public origin fallback", () => {
   it("defaults transactional links to the canonical Cresciva readiness origin", () => {
-    expect(loadEmailConfig({}).siteUrl).toBe("https://cresciva.vercel.app");
+    expect(loadEmailConfig({}).siteUrl).toBe("https://www.crescivacapital.com");
   });
 
   it("uses an explicit SITE_URL and removes trailing slashes", () => {

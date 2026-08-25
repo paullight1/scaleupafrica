@@ -13,7 +13,7 @@
 - [x] Secret values are excluded from source/evidence.
 - [x] Repository identifies intended Supabase project as `fqragjhmunphhdnmvpgs`.
 - [x] One public-origin contract drives canonical links, static metadata, sitemap/robots and the Bachs `APP_URL` rule.
-- [x] Current default public origin is `https://cresciva.vercel.app` until an owned production domain is intentionally selected.
+- [x] Current default public origin is the owned production domain `https://www.crescivacapital.com`.
 - [x] `cresciva.com` is **not** assumed/used; public research shows that hostname belongs to an unrelated organization.
 - [ ] Preview deployments must be verified not to claim themselves canonical/indexable contrary to policy.
 - [ ] Production configuration is not complete until live smoke tests pass.

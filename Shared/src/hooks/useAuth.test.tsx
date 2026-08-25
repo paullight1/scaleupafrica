@@ -6,6 +6,10 @@ const authMocks = vi.hoisted(() => ({
   onAuthStateChange: vi.fn(),
   getSession: vi.fn(),
   signInWithPassword: vi.fn(),
+  signInWithOAuth: vi.fn(),
+  signInWithOtp: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
+  resend: vi.fn(),
   signOut: vi.fn(),
 }));
 const cleanupMocks = vi.hoisted(() => ({ runSignOutCleanup: vi.fn() }));
@@ -23,10 +27,15 @@ function wrapper({ children }: { children: ReactNode }) {
 
 describe("useAuth session bootstrap", () => {
   let emitAuthState: (event: string, session: unknown) => void;
+  const originalLocation = window.location;
 
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    authMocks.signInWithOAuth.mockResolvedValue({ error: null });
+    authMocks.signInWithOtp.mockResolvedValue({ error: null });
+    authMocks.resetPasswordForEmail.mockResolvedValue({ error: null });
+    authMocks.resend.mockResolvedValue({ error: null });
     authMocks.onAuthStateChange.mockImplementation((callback) => {
       emitAuthState = callback;
       return { data: { subscription: { unsubscribe: vi.fn() } } };
@@ -34,9 +43,22 @@ describe("useAuth session bootstrap", () => {
   });
 
   afterEach(() => {
+    Object.defineProperty(window, "location", { value: originalLocation, writable: true });
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
+
+  function stubLocation(origin: string) {
+    const parsed = new URL(origin);
+    Object.defineProperty(window, "location", {
+      value: {
+        ...originalLocation,
+        origin: parsed.origin,
+        hostname: parsed.hostname,
+      },
+      writable: true,
+    });
+  }
 
   it("uses Supabase INITIAL_SESSION as the single bootstrap source", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -92,5 +114,49 @@ describe("useAuth session bootstrap", () => {
 
     expect(cleanupMocks.runSignOutCleanup).toHaveBeenCalledOnce();
     expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it("uses the canonical site for auth emails issued from a deployed host", async () => {
+    stubLocation("https://cresciva-preview.vercel.app");
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    act(() => emitAuthState("INITIAL_SESSION", null));
+
+    await act(async () => {
+      await result.current.signInWithOtp("founder@example.com", "/funding");
+      await result.current.resetPassword("founder@example.com");
+      await result.current.resendConfirmation("founder@example.com", "/funding");
+    });
+
+    expect(authMocks.signInWithOtp).toHaveBeenCalledWith({
+      email: "founder@example.com",
+      options: {
+        emailRedirectTo: "https://www.crescivacapital.com/auth?next=%2Ffunding",
+        shouldCreateUser: false,
+      },
+    });
+    expect(authMocks.resetPasswordForEmail).toHaveBeenCalledWith("founder@example.com", {
+      redirectTo: "https://www.crescivacapital.com/auth/reset",
+    });
+    expect(authMocks.resend).toHaveBeenCalledWith({
+      type: "signup",
+      email: "founder@example.com",
+      options: {
+        emailRedirectTo: "https://www.crescivacapital.com/auth?next=%2Ffunding",
+      },
+    });
+  });
+
+  it("keeps auth email callbacks on localhost during development", async () => {
+    stubLocation("http://localhost:8080");
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    act(() => emitAuthState("INITIAL_SESSION", null));
+
+    await act(async () => {
+      await result.current.resetPassword("founder@example.com");
+    });
+
+    expect(authMocks.resetPasswordForEmail).toHaveBeenCalledWith("founder@example.com", {
+      redirectTo: "http://localhost:8080/auth/reset",
+    });
   });
 });

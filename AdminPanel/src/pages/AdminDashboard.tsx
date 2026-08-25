@@ -11,7 +11,7 @@ import {
   FileText,
   Inbox,
   Newspaper,
-  Sparkles,
+  SunMedium,
   TrendingUp,
   UserPlus,
   Users,
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
   const header = (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary-dark"><Sparkles className="h-4 w-4" aria-hidden="true" /> Daily overview</div>
+        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary-dark"><SunMedium className="h-4 w-4" aria-hidden="true" /> Daily overview</div>
         <h1 className="font-display text-3xl font-bold tracking-tight text-ink-strong md:text-4xl">{greeting}</h1>
         <p className="mt-2 text-sm text-muted-foreground">Here’s what’s happening across Cresciva today.</p>
       </div>

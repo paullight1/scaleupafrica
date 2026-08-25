@@ -8,6 +8,10 @@ import { DEFAULT_SITE_ORIGIN, normalizeSiteOrigin } from "../../../config/site-o
 const ROOT = resolve(process.cwd(), "..");
 
 describe("Cresciva production origin contract", () => {
+  it("uses the owned production domain", () => {
+    expect(DEFAULT_SITE_ORIGIN).toBe("https://www.crescivacapital.com");
+  });
+
   it("normalizes overrides to scheme + host only", () => {
     expect(normalizeSiteOrigin(`${DEFAULT_SITE_ORIGIN}/`)).toBe(DEFAULT_SITE_ORIGIN);
     expect(normalizeSiteOrigin("https://preview.example.com/")).toBe("https://preview.example.com");

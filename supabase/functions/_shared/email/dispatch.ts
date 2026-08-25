@@ -35,6 +35,8 @@ export interface EmailLogRow {
   status: "sent" | "failed" | "skipped";
   provider_id: string | null;
   error: string | null;
+  /** Present for payment receipts so reconciliation never guesses by customer email. */
+  payment_id?: string | null;
 }
 
 export interface DispatchDeps {
@@ -112,7 +114,7 @@ export async function dispatch(
     deps.sendOptions,
   );
 
-  if (result.ok) {
+  if (result.ok === true) {
     await record({
       kind: payload.kind,
       to_email: bareAddress(primary),

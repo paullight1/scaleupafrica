@@ -1,4 +1,5 @@
-import { AlertTriangle, CheckCircle2, CircleAlert, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, Banknote, CheckCircle2, CircleAlert, RefreshCw } from "lucide-react";
 import { Badge } from "@shared/components/ui/badge";
 import { Button } from "@shared/components/ui/button";
 import { ErrorState } from "@shared/components/common/ErrorState";
@@ -6,7 +7,17 @@ import { LoadingState } from "@shared/components/common/LoadingState";
 import { StudioDataPanel } from "@/components/studio/StudioDataPanel";
 import { StudioMetricStrip } from "@/components/studio/StudioMetricStrip";
 import { StudioPageHeader } from "@/components/studio/StudioPageHeader";
-import { usePaymentReconciliation, type PaymentIssue } from "../hooks/queries/adminPayments";
+import {
+  PaymentAmountValue,
+  PaymentInsightsDialog,
+} from "@/components/payments/PaymentInsightsDialog";
+import {
+  resolvePaymentPeriod,
+  useAdminPaymentReport,
+  usePaymentReconciliation,
+  type PaymentIssue,
+  type PaymentPeriodSelection,
+} from "../hooks/queries/adminPayments";
 
 const ISSUE_LABELS: Record<PaymentIssue, string> = {
   paid_no_access: "Paid, no access",
@@ -18,6 +29,15 @@ const ISSUE_LABELS: Record<PaymentIssue, string> = {
 
 export default function AdminPayments() {
   const query = usePaymentReconciliation();
+  const [insightsOpen, setInsightsOpen] = useState(false);
+  const [period, setPeriod] = useState<PaymentPeriodSelection>(() => {
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = `${year}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return { mode: "monthly", month, year, customFrom: "", customTo: "" };
+  });
+  const reportQuery = useAdminPaymentReport(period);
+  const resolvedPeriod = resolvePaymentPeriod(period);
 
   if (query.isLoading) return <LoadingState label="Reconciling payments…" />;
   if (query.isError || !query.data) {
@@ -41,8 +61,18 @@ export default function AdminPayments() {
         description="Review settlement, access, webhook processing and receipt reconciliation."
         accent="lime"
         actions={
-          <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
-            <RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} />
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (resolvedPeriod.valid) {
+                void Promise.all([query.refetch(), reportQuery.refetch()]);
+              } else {
+                void query.refetch();
+              }
+            }}
+            disabled={query.isFetching || reportQuery.isFetching}
+          >
+            <RefreshCw className={`h-4 w-4 ${query.isFetching || reportQuery.isFetching ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         }
@@ -50,11 +80,31 @@ export default function AdminPayments() {
 
       <StudioMetricStrip
         items={[
-          { label: "Payments checked", value: summary.payments_checked.toLocaleString(), hint: "In this reconciliation", icon: CreditCard, tone: "cobalt" },
-          { label: "Healthy payments", value: payments.filter((payment) => payment.healthy).length.toLocaleString(), hint: "No issue detected", icon: ShieldCheck, tone: "lime" },
-          { label: "Payment issues", value: summary.unhealthy_payments.toLocaleString(), hint: "Needs investigation", icon: CircleAlert, tone: "orange" },
-          { label: "Access issues", value: summary.access_discrepancies.toLocaleString(), hint: "Ledger mismatch", icon: AlertTriangle, tone: "navy" },
+          {
+            label: "Amount Gotten",
+            value: <PaymentAmountValue report={reportQuery.data} />,
+            hint: reportQuery.isError ? "Could not load · Open to retry" : `${resolvedPeriod.label} · View breakdown`,
+            icon: Banknote,
+            tone: "lime",
+            onClick: () => setInsightsOpen(true),
+            actionLabel: "Amount Gotten — view payment insights",
+          },
+          { label: "Successful payments", value: reportQuery.data?.successfulPayments.toLocaleString() ?? "—", hint: resolvedPeriod.label, icon: CheckCircle2, tone: "cobalt" },
+          { label: "Unsuccessful payments", value: reportQuery.data?.failedPayments.toLocaleString() ?? "—", hint: resolvedPeriod.label, icon: CircleAlert, tone: "orange" },
+          { label: "Reconciliation issues", value: (summary.unhealthy_payments + summary.access_discrepancies).toLocaleString(), hint: `${summary.payments_checked.toLocaleString()} recent payments checked`, icon: AlertTriangle, tone: "navy" },
         ]}
+      />
+
+      <PaymentInsightsDialog
+        open={insightsOpen}
+        onOpenChange={setInsightsOpen}
+        selection={period}
+        onSelectionChange={setPeriod}
+        report={reportQuery.data}
+        loading={reportQuery.isLoading || reportQuery.isFetching}
+        error={reportQuery.isError}
+        rangeValid={resolvedPeriod.valid}
+        onRetry={() => void reportQuery.refetch()}
       />
 
       <div className={`studio-health-panel ${allHealthy ? "" : "!border-l-warning"}`}>
@@ -85,6 +135,7 @@ export default function AdminPayments() {
                 <th className="px-5 py-3">Reference</th>
                 <th className="px-5 py-3">Provider</th>
                 <th className="px-5 py-3">Amount</th>
+                <th className="px-5 py-3">Paid</th>
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3">Access</th>
                 <th className="px-5 py-3">Receipt</th>
@@ -97,6 +148,7 @@ export default function AdminPayments() {
                   <td className="px-5 py-4 font-mono text-xs text-foreground">{payment.reference}</td>
                   <td className="px-5 py-4 capitalize">{payment.provider}</td>
                   <td className="px-5 py-4">{formatAmount(payment.amount, payment.currency)}</td>
+                  <td className="px-5 py-4 whitespace-nowrap">{formatPaymentDate(payment.paid_at)}</td>
                   <td className="px-5 py-4"><Badge variant={payment.status === "success" ? "success" : "secondary"}>{payment.status}</Badge></td>
                   <td className="px-5 py-4">{payment.access_active ? "Active" : "Inactive"}</td>
                   <td className="px-5 py-4">{payment.receipt_status ?? "—"}</td>
@@ -112,7 +164,7 @@ export default function AdminPayments() {
                 </tr>
               ))}
               {payments.length === 0 && (
-                <tr><td className="px-5 py-8 text-center text-muted-foreground" colSpan={7}>No payments recorded yet.</td></tr>
+                <tr><td className="px-5 py-8 text-center text-muted-foreground" colSpan={8}>No payments recorded yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -139,6 +191,17 @@ export default function AdminPayments() {
       )}
     </div>
   );
+}
+
+function formatPaymentDate(value: string | null): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 function formatAmount(amount: number | string, currency: string): string {

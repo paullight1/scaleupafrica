@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import AdminFunding from "./AdminFunding";
 import AdminPayments from "./AdminPayments";
 
 const mutate = vi.fn();
+const reportRefetch = vi.fn();
 
 const fundingRows = [
   {
@@ -70,7 +71,32 @@ vi.mock("@/hooks/queries/adminOps", () => ({
   useDeleteFunding: () => ({ mutate, isPending: false }),
 }));
 
-vi.mock("../hooks/queries/adminPayments", () => ({
+vi.mock("../hooks/queries/adminPayments", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../hooks/queries/adminPayments")>()),
+  useAdminPaymentReport: ({ mode }: { mode: string }) => ({
+    data: mode === "lifetime"
+      ? {
+          periodLabel: "Lifetime",
+          byCurrency: {
+            NGN: { amount: 150000000, payments: 24, average: 6250000 },
+          },
+          successfulPayments: 24,
+          failedPayments: 3,
+        }
+      : {
+          periodLabel: "August 2026",
+          byCurrency: {
+            NGN: { amount: 4250000, payments: 3, average: 1416667 },
+            USD: { amount: 9000, payments: 1, average: 9000 },
+          },
+          successfulPayments: 3,
+          failedPayments: 1,
+        },
+    isLoading: false,
+    isError: false,
+    isFetching: false,
+    refetch: reportRefetch,
+  }),
   usePaymentReconciliation: () => ({
     data: {
       generated_at: "2026-08-25T08:00:00.000Z",
@@ -117,5 +143,35 @@ describe("dashboard-style finance management", () => {
     expect(screen.getByText("Reconciliation healthy")).toBeInTheDocument();
     expect(screen.queryByText("Read-only finance desk")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /refresh/i })).toBeInTheDocument();
+  });
+
+  it("opens amount tracking and switches from monthly to lifetime reporting", () => {
+    render(<AdminPayments />);
+
+    expect(screen.queryByText("Healthy payments")).not.toBeInTheDocument();
+    expect(screen.getAllByText("August 2026").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: /amount gotten/i }));
+
+    expect(screen.getByRole("dialog", { name: "Payment insights" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Monthly" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Yearly" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lifetime" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Custom" })).toBeInTheDocument();
+    expect(screen.getByText("1 payment")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Lifetime" }));
+    expect(screen.getByText("24 successful payments")).toBeInTheDocument();
+  });
+
+  it("does not request a report while the custom calendar range is incomplete", () => {
+    reportRefetch.mockClear();
+    render(<AdminPayments />);
+
+    fireEvent.click(screen.getByRole("button", { name: /amount gotten/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Custom" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
+
+    expect(reportRefetch).not.toHaveBeenCalled();
   });
 });

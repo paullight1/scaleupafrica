@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { AuthError, Session, User } from "@supabase/supabase-js";
 import { supabase } from "@shared/integrations/supabase/client";
 import { runSignOutCleanup } from "@shared/hooks/signOutCleanup";
+import { authRedirectUrl } from "@shared/lib/authOrigin";
 
 type SignUpResult = { error: AuthError | null; confirmationRequired: boolean };
 
@@ -39,7 +40,10 @@ type AuthContextValue = {
   verifyEmailOtp: (email: string, token: string) => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
-  resendConfirmation: (email: string) => Promise<{ error: AuthError | null }>;
+  resendConfirmation: (
+    email: string,
+    next?: string,
+  ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -176,7 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle: AuthContextValue["signInWithGoogle"] = async (next) => {
-    const redirectTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
+    const redirectTo = authRedirectUrl(`/auth?next=${encodeURIComponent(next)}`);
     // Supabase builds the OAuth URL locally; provider configuration errors can
     // only surface after the browser navigates to the Auth service.
     return runAuthRequest(
@@ -197,7 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
+            emailRedirectTo: authRedirectUrl(`/auth?next=${encodeURIComponent(next)}`),
             shouldCreateUser: false,
           },
       }),
@@ -211,7 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const resetPassword: AuthContextValue["resetPassword"] = async (email) => {
     return runAuthRequest(
       supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/reset`,
+          redirectTo: authRedirectUrl("/auth/reset"),
       }),
     );
   };
@@ -220,8 +224,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return runAuthRequest(supabase.auth.updateUser({ password: newPassword }));
   };
 
-  const resendConfirmation: AuthContextValue["resendConfirmation"] = async (email) => {
-    return runAuthRequest(supabase.auth.resend({ type: "signup", email }));
+  const resendConfirmation: AuthContextValue["resendConfirmation"] = async (
+    email,
+    next = "/dashboard",
+  ) => {
+    return runAuthRequest(
+      supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: authRedirectUrl(`/auth?next=${encodeURIComponent(next)}`),
+        },
+      }),
+    );
   };
 
   const signOut = async () => {

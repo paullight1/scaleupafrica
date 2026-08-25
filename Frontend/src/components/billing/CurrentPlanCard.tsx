@@ -7,8 +7,8 @@ import { LoadingState } from "@shared/components/common/LoadingState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { useSubscription } from "@/lib/subscription";
 import { createPortalSession } from "@/lib/bachs";
-import { formatPlanPrice, MEMBERSHIP_FEATURES, PLAN_TERM_MONTHS } from "@/lib/billing";
-import { CheckoutButton } from "@/components/billing/CheckoutButton";
+import { MEMBERSHIP_FEATURES } from "@/lib/billing";
+import { PlanSelectionDialog } from "@/components/billing/PlanSelectionDialog";
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -22,6 +22,7 @@ function planLabel(plan: string | null | undefined): string {
 export function CurrentPlanCard() {
   const { status, data, active, refetch } = useSubscription();
   const [portalPending, setPortalPending] = useState(false);
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
 
   if (status === "loading") return <div className="rounded-xl border border-border bg-card p-6 shadow-soft"><LoadingState label="Loading your membership…" /></div>;
   if (status === "error") return <ErrorState title="Couldn't load your membership" message="We couldn't check your membership. Check your connection and try again — your access is safe." onRetry={refetch} />;
@@ -32,8 +33,6 @@ export function CurrentPlanCard() {
   const isPastDue = billingStatus === "past_due" || billingStatus === "unpaid";
   const isCanceled = billingStatus === "canceled";
   const neverSubscribed = !data?.has_access && !expiresAt;
-  const price = formatPlanPrice("annual", "USD");
-
   async function openPortal() {
     setPortalPending(true);
     const result = await createPortalSession();
@@ -68,7 +67,7 @@ export function CurrentPlanCard() {
 
       {hasBillingAccount && <Button variant="outline" className="mt-6 w-full sm:w-auto" onClick={openPortal} disabled={portalPending}>{portalPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening billing…</> : <><ExternalLink className="h-4 w-4" /> Manage billing</>}</Button>}
 
-      {!hasBillingAccount && !active && <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4"><p className="font-display text-xl font-bold text-ink-strong">{price}<span className="ml-1 text-sm font-normal text-muted-foreground">/ {PLAN_TERM_MONTHS.annual / 12} year</span></p><p className="mt-1 text-xs text-muted-foreground">Recurring USD card subscription through Bachs.</p><CheckoutButton currency="USD" next="/dashboard/account/membership" className="mt-4 w-full sm:w-auto">Start annual membership</CheckoutButton></div>}
+      {!hasBillingAccount && !active && <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4"><p className="font-display text-xl font-bold text-ink-strong">Plans from $10<span className="ml-1 text-sm font-normal text-muted-foreground">/ month</span></p><p className="mt-1 text-xs text-muted-foreground">Choose monthly, quarterly, or annual recurring billing through Bachs.</p><Button className="mt-4 w-full sm:w-auto" size="lg" onClick={() => setPlanDialogOpen(true)}>Choose your plan</Button><PlanSelectionDialog open={planDialogOpen} onOpenChange={setPlanDialogOpen} /></div>}
 
       <p className="mt-6 flex items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><span>Plans renew automatically through Bachs. Manage or cancel your subscription from the Bachs billing portal. Cresciva does not receive your card details.</span></p>
     </section>

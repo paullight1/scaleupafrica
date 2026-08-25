@@ -77,7 +77,7 @@ The full provenance/source-ingestion roadmap remains in `docs/production-readine
 
 ## Public origin
 
-`config/site-origin.js` is the single source of truth for the default public production origin. The current repository default is `https://cresciva.vercel.app`.
+`config/site-origin.js` is the single source of truth for the default public production origin. The current repository default is `https://www.crescivacapital.com`.
 
 Deployments may override it with `VITE_SITE_ORIGIN`. Runtime SEO metadata, static HTML metadata, sitemap and robots generation all consume the same contract. Do not duplicate the production-origin literal elsewhere.
 

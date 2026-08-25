@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import AuthSignUp from "@/pages/AuthSignUp";
 
@@ -138,6 +138,31 @@ describe("Signup wizard", () => {
     expect(await screen.findByRole("heading", { name: "Confirm your email" })).toBeInTheDocument();
     // Nothing is confirmed yet, so no success toast.
     expect(toastMock.success).not.toHaveBeenCalled();
+  });
+
+  it("resends confirmation with the intended post-confirmation destination", async () => {
+    vi.useFakeTimers();
+    try {
+      mocks.signUp.mockResolvedValue({ error: null, confirmationRequired: true });
+      mocks.resendConfirmation.mockResolvedValue({ error: null });
+      renderSignUp("/auth/signup?next=%2Ffunding");
+
+      type("Email", "founder@example.com");
+      click("Continue");
+      type("Password", "correct horse 9");
+      type("Confirm password", "correct horse 9");
+      click("Continue");
+      await act(async () => click("Create account"));
+
+      expect(mocks.signUp).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("heading", { name: "Confirm your email" })).toBeInTheDocument();
+      await act(async () => vi.advanceTimersByTimeAsync(60_000));
+      await act(async () => fireEvent.click(screen.getByRole("button", { name: /resend/i })));
+
+      expect(mocks.resendConfirmation).toHaveBeenCalledWith("founder@example.com", "/funding");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("submits without the optional fields", async () => {

@@ -23,7 +23,7 @@ export const BRAND = {
 export interface EmailConfig {
   /** Resend API key. Empty string means "email is not configured". */
   apiKey: string;
-  /** RFC-5322 From, e.g. `Cresciva <hello@cresciva.com>`. */
+  /** RFC-5322 From, e.g. `Cresciva <receipts@update.crescivacapital.com>`. */
   from: string;
   /** Where replies land. */
   replyTo: string;
@@ -36,12 +36,13 @@ export interface EmailConfig {
 }
 
 const DEFAULTS = {
-  from: "Cresciva <hello@cresciva.com>",
-  replyTo: "hello@cresciva.com",
+  // update.crescivacapital.com is the verified transactional sender in Resend.
+  from: "Cresciva <receipts@update.crescivacapital.com>",
+  replyTo: "tech@crescivacapital.com",
   teamInbox: "hello@cresciva.com",
   // Must match the repository's canonical public-origin contract unless an
   // explicit SITE_URL is supplied by the deployment environment.
-  siteUrl: "https://cresciva.vercel.app",
+  siteUrl: "https://www.crescivacapital.com",
 } as const;
 
 function str(source: Record<string, string | undefined>, key: string, fallback = ""): string {
@@ -65,7 +66,7 @@ export function loadEmailConfig(source: Record<string, string | undefined>): Ema
   };
 }
 
-/** `Cresciva <hello@cresciva.com>` -> `hello@cresciva.com`. Passthrough otherwise. */
+/** `Cresciva <receipts@example.com>` -> `receipts@example.com`. Passthrough otherwise. */
 export function bareAddress(address: string): string {
   const match = /<([^>]+)>/.exec(address);
   return (match ? match[1] : address).trim().toLowerCase();
