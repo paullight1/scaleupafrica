@@ -1,9 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, ExternalLink, Link2, Loader2, UploadCloud } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Cloud,
+  ExternalLink,
+  History,
+  Link2,
+  Loader2,
+  UploadCloud,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@shared/hooks/useAuth";
@@ -86,6 +95,14 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 type DeliveryKind = "upload" | "link";
 
+type LocalResourceDraft = {
+  version: 1;
+  savedAt: string;
+  deliveryKind: DeliveryKind;
+  linkUrl: string;
+  values: FormValues;
+};
+
 const DEFAULTS: FormValues = {
   title: "",
   slug: "",
@@ -103,6 +120,64 @@ const DEFAULTS: FormValues = {
   file_name: null,
   file_size_kb: null,
 };
+
+const LOCAL_DRAFT_PREFIX = "cresciva:admin:resource-draft:v1";
+const LOCAL_DRAFT_DELAY_MS = 600;
+
+function localDraftKey(userId: string | undefined): string {
+  return `${LOCAL_DRAFT_PREFIX}:${userId ?? "staff"}`;
+}
+
+function readLocalDraft(key: string): LocalResourceDraft | null {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LocalResourceDraft>;
+    if (
+      parsed.version !== 1 ||
+      typeof parsed.savedAt !== "string" ||
+      (parsed.deliveryKind !== "upload" && parsed.deliveryKind !== "link") ||
+      typeof parsed.linkUrl !== "string" ||
+      !parsed.values ||
+      typeof parsed.values !== "object"
+    ) {
+      window.localStorage.removeItem(key);
+      return null;
+    }
+    return {
+      ...parsed,
+      values: { ...DEFAULTS, ...parsed.values, status: "draft" },
+    } as LocalResourceDraft;
+  } catch {
+    return null;
+  }
+}
+
+function hasDraftContent(
+  values: FormValues,
+  deliveryKind: DeliveryKind | null,
+  linkUrl: string,
+): deliveryKind is DeliveryKind {
+  return Boolean(
+    deliveryKind &&
+      (values.title.trim() ||
+        values.excerpt.trim() ||
+        values.content.trim() ||
+        values.category.trim() ||
+        values.topics.trim() ||
+        values.file_url ||
+        linkUrl.trim()),
+  );
+}
+
+function draftTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "recently";
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
 
 /** "a, b ,c" -> ["a","b","c"]; empty entries dropped. */
 function parseTopics(input: string): string[] {
@@ -123,16 +198,31 @@ const AdminResourceEdit = () => {
   const createResource = useCreateResource();
   const updateResource = useUpdateResource();
 
-  const slugTouched = useRef(false);
+  const browserDraftKey = localDraftKey(user?.id);
+  const [initialLocalDraft] = useState<LocalResourceDraft | null>(() =>
+    isEdit ? null : readLocalDraft(browserDraftKey),
+  );
+
+  const slugTouched = useRef(Boolean(initialLocalDraft?.values.slug));
   const hydrated = useRef(false);
+  const localDraftTimer = useRef<number | null>(null);
+  const deliveryKindRef = useRef<DeliveryKind | null>(
+    initialLocalDraft?.deliveryKind ?? (isEdit ? "upload" : null),
+  );
+  const linkUrlRef = useRef(initialLocalDraft?.linkUrl ?? "");
   const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const [deliveryKind, setDeliveryKind] = useState<DeliveryKind | null>(
-    isEdit ? "upload" : null,
+    initialLocalDraft?.deliveryKind ?? (isEdit ? "upload" : null),
   );
-  const [linkUrl, setLinkUrl] = useState("");
+  const [linkUrl, setLinkUrl] = useState(initialLocalDraft?.linkUrl ?? "");
   const [linkMetadata, setLinkMetadata] = useState<ResourceLinkMetadata | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [isFetchingLink, setIsFetchingLink] = useState(false);
+  const [recoveredDraftAt, setRecoveredDraftAt] = useState<string | null>(
+    initialLocalDraft?.savedAt ?? null,
+  );
+  const [localSavedAt, setLocalSavedAt] = useState<string | null>(null);
+  const [remoteSavedAt, setRemoteSavedAt] = useState<string | null>(null);
 
   const {
     register,
@@ -140,12 +230,13 @@ const AdminResourceEdit = () => {
     control,
     reset,
     watch,
+    getValues,
     setValue,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: DEFAULTS,
+    defaultValues: initialLocalDraft?.values ?? DEFAULTS,
   });
 
   const title = watch("title");
@@ -153,6 +244,74 @@ const AdminResourceEdit = () => {
   const status = watch("status");
   const coverUrl = watch("cover_image_url");
   const fileUrl = watch("file_url");
+
+  const clearBrowserDraft = useCallback(() => {
+    if (localDraftTimer.current !== null) {
+      window.clearTimeout(localDraftTimer.current);
+      localDraftTimer.current = null;
+    }
+    try {
+      window.localStorage.removeItem(browserDraftKey);
+    } catch {
+      // Browsers may disable storage; database saves should still succeed.
+    }
+    setRecoveredDraftAt(null);
+    setLocalSavedAt(null);
+  }, [browserDraftKey]);
+
+  const queueBrowserDraft = useCallback(
+    (values: FormValues) => {
+      if (isEdit) return;
+      if (localDraftTimer.current !== null) {
+        window.clearTimeout(localDraftTimer.current);
+      }
+      const currentDeliveryKind = deliveryKindRef.current;
+      const currentLinkUrl = linkUrlRef.current;
+      if (!hasDraftContent(values, currentDeliveryKind, currentLinkUrl)) return;
+      setLocalSavedAt(null);
+      localDraftTimer.current = window.setTimeout(() => {
+        const savedAt = new Date().toISOString();
+        const snapshot: LocalResourceDraft = {
+          version: 1,
+          savedAt,
+          deliveryKind: currentDeliveryKind,
+          linkUrl: currentLinkUrl,
+          values: { ...values, status: "draft" },
+        };
+        try {
+          window.localStorage.setItem(browserDraftKey, JSON.stringify(snapshot));
+          setLocalSavedAt(savedAt);
+        } catch {
+          // Keep editing available when storage is full or disabled.
+        }
+        localDraftTimer.current = null;
+      }, LOCAL_DRAFT_DELAY_MS);
+    },
+    [browserDraftKey, isEdit],
+  );
+
+  useEffect(() => {
+    deliveryKindRef.current = deliveryKind;
+    linkUrlRef.current = linkUrl;
+    if (!isEdit) queueBrowserDraft(getValues());
+  }, [deliveryKind, getValues, isEdit, linkUrl, queueBrowserDraft]);
+
+  useEffect(() => {
+    if (isEdit) return;
+    const subscription = watch((values) => {
+      queueBrowserDraft({ ...DEFAULTS, ...values } as FormValues);
+    });
+    return () => subscription.unsubscribe();
+  }, [isEdit, queueBrowserDraft, watch]);
+
+  useEffect(
+    () => () => {
+      if (localDraftTimer.current !== null) {
+        window.clearTimeout(localDraftTimer.current);
+      }
+    },
+    [],
+  );
 
   // Auto-derive the slug from the title until the user edits it themselves.
   useEffect(() => {
@@ -169,6 +328,7 @@ const AdminResourceEdit = () => {
     hydrated.current = true;
     slugTouched.current = true;
     setPublishedAt(row.published_at);
+    setRemoteSavedAt(row.updated_at);
     const savedDeliveryKind = resourceDeliveryKind(row.file_url);
     setDeliveryKind(savedDeliveryKind === "link" ? "link" : "upload");
     if (savedDeliveryKind === "link") setLinkUrl(row.file_url ?? "");
@@ -191,7 +351,11 @@ const AdminResourceEdit = () => {
     });
   }, [resourceQuery.data, reset]);
 
-  const persist = async (values: FormValues, nextStatus: ResourceStatus) => {
+  const persist = async (
+    values: FormValues,
+    nextStatus: ResourceStatus,
+    options: { stayInEditor?: boolean } = {},
+  ) => {
     const permissions = contentPermissions({
       isAdmin,
       isEditor,
@@ -226,23 +390,31 @@ const AdminResourceEdit = () => {
     };
 
     try {
+      let saved;
       if (isEdit && id) {
-        await updateResource.mutateAsync({ id, values: payload });
+        saved = await updateResource.mutateAsync({ id, values: payload });
         void logAdminAction("resource_update", {
           entityType: "resource",
           entityId: id,
         });
       } else {
-        const created = await createResource.mutateAsync(payload);
+        saved = await createResource.mutateAsync(payload);
         void logAdminAction("resource_create", {
           entityType: "resource",
-          entityId: created.id,
+          entityId: saved.id,
         });
       }
+      clearBrowserDraft();
+      setRemoteSavedAt(saved.updated_at ?? new Date().toISOString());
+      reset({ ...values, status: nextStatus });
       toast.success(
-        willPublish ? "Resource published." : isEdit ? "Changes saved." : "Draft created.",
+        willPublish ? "Resource published." : "Draft saved.",
       );
-      navigate("/admin/resources");
+      if (options.stayInEditor) {
+        if (!isEdit) navigate(`/admin/resources/${saved.id}`, { replace: true });
+      } else {
+        navigate("/admin/resources");
+      }
     } catch (err) {
       if (err instanceof SlugConflictError) {
         setError("slug", { type: "manual", message: err.message });
@@ -253,7 +425,9 @@ const AdminResourceEdit = () => {
     }
   };
 
-  const onSaveDraft = handleSubmit((values) => persist(values, "draft"));
+  const onSaveDraft = handleSubmit((values) =>
+    persist(values, "draft", { stayInEditor: true }),
+  );
   const onPublish = handleSubmit((values) => persist(values, "published"));
   // "Save" keeps the current status (e.g. re-saving an archived or published item).
   const onSave = handleSubmit((values) => persist(values, values.status));
@@ -300,6 +474,16 @@ const AdminResourceEdit = () => {
     isEditor,
     status: (resourceQuery.data?.status ?? "draft") as ContentStatus,
   });
+
+  const discardRecoveredDraft = () => {
+    clearBrowserDraft();
+    slugTouched.current = false;
+    setDeliveryKind(null);
+    setLinkUrl("");
+    setLinkMetadata(null);
+    setLinkError(null);
+    reset(DEFAULTS);
+  };
 
   if (isEdit && resourceQuery.isLoading) {
     return (
@@ -362,6 +546,60 @@ const AdminResourceEdit = () => {
           ) : undefined
         }
       />
+
+      {recoveredDraftAt && !isEdit && (
+        <section className="flex flex-col gap-4 rounded-xl border border-primary/25 bg-primary/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="rounded-lg bg-background p-2 text-primary shadow-sm">
+              <History className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="font-display text-sm font-semibold text-ink-strong">
+                Recovered browser draft
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your unfinished work from {draftTime(recoveredDraftAt)} is ready to continue.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={discardRecoveredDraft}
+            aria-label="Discard recovered draft"
+          >
+            Discard
+          </Button>
+        </section>
+      )}
+
+      {deliveryKind && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+          ) : remoteSavedAt && !isDirty ? (
+            <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
+          ) : (
+            <Cloud className="h-4 w-4 text-primary" aria-hidden="true" />
+          )}
+          <span>
+            {busy
+              ? "Saving to Cresciva…"
+              : isEdit && isDirty
+                ? "Unsaved changes"
+                : remoteSavedAt
+                  ? `Saved to Cresciva at ${draftTime(remoteSavedAt)}`
+                  : localSavedAt
+                    ? `Saved in this browser at ${draftTime(localSavedAt)}`
+                    : "Draft recovery is on"}
+          </span>
+        </div>
+      )}
 
       {!permissions.canEdit && (
         <p role="status" className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">

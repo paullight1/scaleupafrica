@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AdminResourceEdit from "./AdminResourceEdit";
@@ -17,6 +17,7 @@ const createResource = vi.fn();
 const updateResource = vi.fn();
 const fetchResourceLinkPreview = vi.fn();
 let adminResource: Record<string, unknown> | null = null;
+const LOCAL_DRAFT_KEY = "cresciva:admin:resource-draft:v1:admin-1";
 
 vi.mock("@shared/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "admin-1", email: "admin@cresciva.com" } }),
@@ -47,9 +48,15 @@ vi.mock("@/components/FileUpload", () => ({
   ),
 }));
 
+function LocationProbe() {
+  const location = useLocation();
+  return <output aria-label="Current route">{location.pathname}</output>;
+}
+
 function renderNewResource(path = "/admin/resources/new") {
   return render(
     <MemoryRouter initialEntries={[path]}>
+      <LocationProbe />
       <Routes>
         <Route path="/admin/resources/new" element={<AdminResourceEdit />} />
         <Route path="/admin/resources/:id" element={<AdminResourceEdit />} />
@@ -64,6 +71,7 @@ describe("AdminResourceEdit delivery methods", () => {
     updateResource.mockReset();
     fetchResourceLinkPreview.mockReset();
     adminResource = null;
+    window.localStorage.clear();
   });
 
   it("asks how the resource will be shared before showing the editor", () => {
@@ -150,5 +158,103 @@ describe("AdminResourceEdit delivery methods", () => {
     expect(await screen.findByRole("toolbar", { name: "Formatting tools" })).toBeInTheDocument();
     expect(screen.getByLabelText("Bold")).toBeInTheDocument();
     expect(screen.getByText("Start with the business model")).toBeInTheDocument();
+  });
+
+  it("restores an unfinished browser draft and lets the editor discard it", async () => {
+    window.localStorage.setItem(
+      LOCAL_DRAFT_KEY,
+      JSON.stringify({
+        version: 1,
+        savedAt: "2026-08-29T18:00:00.000Z",
+        deliveryKind: "upload",
+        linkUrl: "",
+        values: {
+          title: "Quarterly planning workbook",
+          slug: "quarterly-planning-workbook",
+          type: "guide",
+          category: "Planning",
+          topics: "Planning, Operations",
+          excerpt: "A work in progress.",
+          content: "## First working section",
+          gated: false,
+          featured: false,
+          read_time_min: null,
+          status: "draft",
+          cover_image_url: null,
+          file_url: null,
+          file_name: null,
+          file_size_kb: null,
+        },
+      }),
+    );
+
+    renderNewResource();
+
+    expect(await screen.findByText("Recovered browser draft")).toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveValue("Quarterly planning workbook");
+    expect(screen.getByText("First working section")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Discard recovered draft" }));
+
+    expect(window.localStorage.getItem(LOCAL_DRAFT_KEY)).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: "How are you sharing this resource?" }),
+    ).toBeInTheDocument();
+  });
+
+  it("saves unfinished new work in this browser without requiring a valid database row", async () => {
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Upload a file/i }));
+    fireEvent.change(await screen.findByLabelText("Title"), {
+      target: { value: "Unfinished funding notes" },
+    });
+
+    await waitFor(
+      () => {
+        const saved = JSON.parse(window.localStorage.getItem(LOCAL_DRAFT_KEY) ?? "null");
+        expect(saved?.values.title).toBe("Unfinished funding notes");
+        expect(saved?.deliveryKind).toBe("upload");
+      },
+      { timeout: 2_000 },
+    );
+    expect(screen.getByText(/Saved in this browser/i)).toBeInTheDocument();
+    expect(createResource).not.toHaveBeenCalled();
+  });
+
+  it("keeps a newly saved Supabase draft open and clears its browser recovery copy", async () => {
+    createResource.mockImplementation(async (values: Record<string, unknown>) => {
+      adminResource = {
+        id: "saved-draft-1",
+        ...values,
+        topics: [],
+        status: "draft",
+        view_count: 0,
+        download_count: 0,
+        created_at: "2026-08-29T18:05:00.000Z",
+        updated_at: "2026-08-29T18:05:00.000Z",
+      };
+      return adminResource;
+    });
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Upload a file/i }));
+    fireEvent.change(await screen.findByLabelText("Title"), {
+      target: { value: "Funding readiness workbook" },
+    });
+    await waitFor(() => {
+      expect(screen.getByLabelText("Slug")).toHaveValue("funding-readiness-workbook");
+    });
+    await waitFor(() => expect(window.localStorage.getItem(LOCAL_DRAFT_KEY)).not.toBeNull(), {
+      timeout: 2_000,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Current route")).toHaveTextContent(
+        "/admin/resources/saved-draft-1",
+      );
+    });
+    expect(window.localStorage.getItem(LOCAL_DRAFT_KEY)).toBeNull();
+    expect(await screen.findByText(/Saved to Cresciva/i)).toBeInTheDocument();
   });
 });
