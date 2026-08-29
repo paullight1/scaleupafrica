@@ -16,7 +16,7 @@ export async function fetchResourceLinkMetadata(
   fetcher: MetadataFetcher = safeExternalFetch,
 ): Promise<ResourceLinkFetchResult> {
   const fetched = await fetcher(url);
-  if (!fetched.ok) return { ok: false, error: fetched.error };
+  if (fetched.ok === false) return { ok: false, error: fetched.error };
   return {
     ok: true,
     metadata: parseResourceLinkMetadata(fetched.body, fetched.url),

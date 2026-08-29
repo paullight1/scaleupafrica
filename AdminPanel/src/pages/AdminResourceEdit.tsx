@@ -11,7 +11,6 @@ import { useRole } from "@shared/hooks/useRole";
 import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
 import { slugify } from "@shared/lib/analytics";
 import { logAdminAction } from "@shared/lib/audit";
-import { Markdown } from "@shared/lib/markdown";
 import { resourceDeliveryKind, type ResourceLinkMetadata } from "@shared/lib/resourceLinks";
 import { fetchResourceLinkPreview } from "@/lib/resourceLinkPreview";
 
@@ -20,13 +19,13 @@ import { PageHeader } from "@shared/components/common/PageHeader";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { CardSkeleton } from "@shared/components/common/LoadingState";
 import FileUpload from "@/components/FileUpload";
+import { RichMarkdownEditor } from "@/components/RichMarkdownEditor";
 
 import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
 import { Label } from "@shared/components/ui/label";
 import { Textarea } from "@shared/components/ui/textarea";
 import { Switch } from "@shared/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -152,7 +151,6 @@ const AdminResourceEdit = () => {
   const title = watch("title");
   const slug = watch("slug");
   const status = watch("status");
-  const content = watch("content");
   const coverUrl = watch("cover_image_url");
   const fileUrl = watch("file_url");
 
@@ -524,35 +522,28 @@ const AdminResourceEdit = () => {
 
           <section className="space-y-3 rounded-xl border border-border bg-card p-6 shadow-soft">
             <div className="flex items-center justify-between">
-              <Label htmlFor="content">Content</Label>
-              <span className="text-xs text-muted-foreground">Markdown supported</span>
+              <div>
+                <Label>Content</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Format visually or switch to Markdown source when you need precise control.
+                </p>
+              </div>
+              <span className="hidden text-xs font-medium text-muted-foreground sm:inline">
+                Stored as Markdown
+              </span>
             </div>
-            <Tabs defaultValue="write">
-              <TabsList>
-                <TabsTrigger value="write">Write</TabsTrigger>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-              </TabsList>
-              <TabsContent value="write">
-                <Textarea
-                  id="content"
-                  rows={16}
-                  className="font-mono text-sm"
-                  {...register("content")}
-                  placeholder={"# Heading\n\nWrite your article in Markdown…"}
+            <Controller
+              control={control}
+              name="content"
+              render={({ field }) => (
+                <RichMarkdownEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={!permissions.canEdit}
                 />
-              </TabsContent>
-              <TabsContent value="preview">
-                <div className="min-h-[16rem] rounded-lg border border-border bg-surface-muted/40 p-4">
-                  {content.trim() ? (
-                    <Markdown content={content} />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Nothing to preview yet.
-                    </p>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+              )}
+            />
           </section>
         </div>
 

@@ -27,9 +27,8 @@ export async function handleResourceLinkPreview(
   if (!url || url.length > 2_048) return json({ error: "invalid_url" }, 400);
 
   const result = await dependencies.fetchMetadata(url);
-  return result.ok
-    ? json({ metadata: result.metadata })
-    : json({ error: result.error }, 422);
+  if (result.ok === false) return json({ error: result.error }, 422);
+  return json({ metadata: result.metadata });
 }
 
 function objectString(value: unknown, key: string): string | null {

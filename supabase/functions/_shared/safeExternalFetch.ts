@@ -144,7 +144,9 @@ export async function safeExternalFetch(
     }
 
     const bodyResult = await readBoundedBody(response, maxBytes);
-    if (!bodyResult.ok) return failure(current.href, response.status, bodyResult.error);
+    if (bodyResult.ok === false) {
+      return failure(current.href, response.status, bodyResult.error);
+    }
 
     return {
       ok: true,
@@ -210,9 +212,17 @@ class SafeFetchValidationError extends Error {
 }
 
 async function resolvePublicAddresses(hostname: string): Promise<string[]> {
+  type DenoDnsRuntime = {
+    resolveDns: (hostname: string, recordType: "A" | "AAAA") => Promise<string[]>;
+  };
+  const denoRuntime = (
+    globalThis as typeof globalThis & { Deno?: DenoDnsRuntime }
+  ).Deno;
+  if (!denoRuntime) throw new Error("Deno DNS runtime is unavailable");
+
   const results = await Promise.allSettled([
-    Deno.resolveDns(hostname, "A"),
-    Deno.resolveDns(hostname, "AAAA"),
+    denoRuntime.resolveDns(hostname, "A"),
+    denoRuntime.resolveDns(hostname, "AAAA"),
   ]);
   const addresses: string[] = [];
   for (const result of results) {

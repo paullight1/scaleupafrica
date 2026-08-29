@@ -45,6 +45,50 @@
   box-shadow: var(--shadow-soft);
 }
 
+.cresciva-markdown-editor {
+  min-height: 30rem;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.cresciva-markdown-editor .cresciva-markdown-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  gap: 0.25rem;
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border));
+  border-radius: 0;
+  background: hsl(var(--muted) / 0.55);
+  padding: 0.5rem;
+  backdrop-filter: blur(12px);
+}
+
+.cresciva-markdown-editor .cresciva-markdown-content {
+  min-height: 25rem;
+  padding: 1.5rem;
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.cresciva-markdown-editor .cresciva-markdown-content:focus {
+  outline: none;
+}
+
+.cresciva-markdown-editor:focus-within {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.16);
+}
+
+.cresciva-markdown-editor .mdxeditor-source-editor {
+  min-height: 25rem;
+}
+
 @media (max-width: 767px) {
   .studio-toolbar > * {
     max-width: 100%;

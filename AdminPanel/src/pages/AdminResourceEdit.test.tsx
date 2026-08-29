@@ -16,6 +16,7 @@ globalThis.ResizeObserver = ResizeObserverStub;
 const createResource = vi.fn();
 const updateResource = vi.fn();
 const fetchResourceLinkPreview = vi.fn();
+let adminResource: Record<string, unknown> | null = null;
 
 vi.mock("@shared/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "admin-1", email: "admin@cresciva.com" } }),
@@ -31,7 +32,7 @@ vi.mock("@/hooks/queries/adminResources", () => ({
   RESOURCE_TYPES: [{ value: "guide", label: "Guide" }, { value: "template", label: "Template" }],
   RESOURCE_STATUSES: [{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }],
   SlugConflictError: class SlugConflictError extends Error {},
-  useAdminResource: () => ({ data: null, isLoading: false, isError: false, refetch: vi.fn() }),
+  useAdminResource: () => ({ data: adminResource, isLoading: false, isError: false, refetch: vi.fn() }),
   useCreateResource: () => ({ mutateAsync: createResource, isPending: false }),
   useUpdateResource: () => ({ mutateAsync: updateResource, isPending: false }),
 }));
@@ -51,6 +52,7 @@ function renderNewResource(path = "/admin/resources/new") {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/admin/resources/new" element={<AdminResourceEdit />} />
+        <Route path="/admin/resources/:id" element={<AdminResourceEdit />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -61,6 +63,7 @@ describe("AdminResourceEdit delivery methods", () => {
     createResource.mockReset();
     updateResource.mockReset();
     fetchResourceLinkPreview.mockReset();
+    adminResource = null;
   });
 
   it("asks how the resource will be shared before showing the editor", () => {
@@ -119,5 +122,33 @@ describe("AdminResourceEdit delivery methods", () => {
       target: { value: "Administrator-written description." },
     });
     expect(screen.getByLabelText("Excerpt")).toHaveValue("Administrator-written description.");
+  });
+
+  it("shows existing Markdown in a rich editor with formatting controls", async () => {
+    adminResource = {
+      id: "resource-1",
+      title: "The Advisor's Playbook",
+      slug: "the-advisors-playbook",
+      type: "guide",
+      category: "Business planning",
+      topics: ["Business planning"],
+      excerpt: "A practical blueprint.",
+      content: "## Start with the business model",
+      gated: true,
+      featured: true,
+      read_time_min: 25,
+      status: "published",
+      cover_image_url: null,
+      file_url: "https://example.com/playbook",
+      file_name: "Advisor's Playbook",
+      file_size_kb: null,
+      published_at: "2026-08-23T00:00:00.000Z",
+    };
+
+    renderNewResource("/admin/resources/resource-1");
+
+    expect(await screen.findByRole("toolbar", { name: "Formatting tools" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Bold")).toBeInTheDocument();
+    expect(screen.getByText("Start with the business model")).toBeInTheDocument();
   });
 });

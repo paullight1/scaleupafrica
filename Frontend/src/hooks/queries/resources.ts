@@ -10,7 +10,8 @@ import { HARD_CODED_RESOURCE, HARD_CODED_RESOURCES } from "@/content/hardcodedRe
  * Public Resource Library data layer. All server reads go through TanStack Query.
  * RLS returns only `status = 'published'` rows to anonymous visitors, but every
  * query still filters `status = 'published'` explicitly so the intent is clear.
- * ALWAYS `if (error) throw error;` — never swallow (ErrorState renders on failure).
+ * The database is authoritative. The original local playbook is used only as
+ * an outage fallback so a successful query can never mask Admin edits.
  */
 
 export const RESOURCE_TYPES = [
@@ -155,11 +156,10 @@ export function useResources(filters: ResourceFilters) {
         const rows = filterLocalResources(filters);
         return { rows: rows.slice(pageParam, pageParam + PAGE_SIZE), count: rows.length, nextOffset: pageParam + PAGE_SIZE };
       }
-      const localRows = filterLocalResources(filters);
       const remoteRows = (data ?? []) as ResourceCardRow[];
       return {
-        rows: pageParam === 0 ? [...HARD_CODED_RESOURCES, ...remoteRows].slice(0, PAGE_SIZE) : remoteRows,
-        count: (count ?? 0) + localRows.length,
+        rows: remoteRows,
+        count: count ?? 0,
         nextOffset: pageParam + PAGE_SIZE,
       };
     },
@@ -182,7 +182,7 @@ export function useFeaturedResources(limit = 3) {
         .order("published_at", { ascending: false })
         .limit(limit);
       if (error) return HARD_CODED_RESOURCES.slice(0, limit);
-      return [...HARD_CODED_RESOURCES, ...((data ?? []) as ResourceCardRow[])].slice(0, limit);
+      return ((data ?? []) as ResourceCardRow[]).slice(0, limit);
     },
   });
 }
@@ -205,8 +205,7 @@ export function useResourceTopics() {
           if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
         }
       }
-      return [...new Set([...counts.keys(), ...HARD_CODED_RESOURCES.flatMap((r) => r.topics)])]
-        .sort((a, b) => a.localeCompare(b));
+      return [...counts.keys()].sort((a, b) => a.localeCompare(b));
     },
   });
 }
@@ -217,14 +216,15 @@ export function useResourceBySlug(slug: string | undefined) {
     queryKey: resourceKeys.detail(slug ?? ""),
     enabled: !!slug,
     queryFn: async () => {
-      if (slug === HARD_CODED_RESOURCE.slug) return HARD_CODED_RESOURCE;
       const { data, error } = await supabase
         .from("resources")
         .select(DETAIL_COLUMNS)
         .eq("slug", slug as string)
         .eq("status", "published")
         .maybeSingle();
-      if (error) return null;
+      if (error) {
+        return slug === HARD_CODED_RESOURCE.slug ? HARD_CODED_RESOURCE : null;
+      }
       return (data ?? null) as ResourceDetailRow | null;
     },
   });
@@ -250,7 +250,7 @@ export function useRelatedResources(
         .order("published_at", { ascending: false })
         .limit(limit);
       if (error) return HARD_CODED_RESOURCES.filter((r) => r.id !== excludeId).slice(0, limit);
-      return [...HARD_CODED_RESOURCES.filter((r) => r.id !== excludeId), ...((data ?? []) as ResourceCardRow[])].slice(0, limit);
+      return ((data ?? []) as ResourceCardRow[]).slice(0, limit);
     },
   });
 }
