@@ -1,0 +1,128 @@
+- generic:
+  - generic:
+    - list
+    - region "Notifications alt+T"
+    - generic:
+      - generic:
+        - banner:
+          - generic:
+            - button
+            - generic: Admin workspace
+          - button:
+            - generic: SA
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=1]: Payments
+                - paragraph: Review settlement, access, webhook processing and receipt reconciliation.
+              - generic:
+                - button: Refresh
+            - region:
+              - article:
+                - button:
+                  - generic: Amount Gotten
+                  - generic:
+                    - generic:
+                      - generic: NGN 42,500.00
+                      - generic: $90.00
+                  - generic: August 2026 · View breakdown
+              - article:
+                - generic:
+                  - generic: Successful payments
+                  - generic: "4"
+                  - generic: August 2026
+              - article:
+                - generic:
+                  - generic: Unsuccessful payments
+                  - generic: "1"
+                  - generic: August 2026
+              - article:
+                - generic:
+                  - generic: Reconciliation issues
+                  - generic: "1"
+                  - generic: 3 recent payments checked
+            - generic:
+              - generic:
+                - paragraph: Reconciliation needs attention
+              - paragraph: Generated 8/25/2026, 7:27:58 AM.
+            - generic:
+              - generic:
+                - paragraph: Settlement ledger
+                - heading [level=2]: Recent payments
+              - generic:
+                - table:
+                  - rowgroup:
+                    - row:
+                      - columnheader: Reference
+                      - columnheader: Provider
+                      - columnheader: Amount
+                      - columnheader: Paid
+                      - columnheader: Status
+                      - columnheader: Access
+                      - columnheader: Receipt
+                      - columnheader: Issues
+                  - rowgroup:
+                    - row:
+                      - cell: CRES-001
+                      - cell: bachs
+                      - cell: NGN 15,000.00
+                      - cell: Aug 24, 2026
+                      - cell:
+                        - generic: success
+                      - cell: Active
+                      - cell: sent
+                      - cell: Healthy
+                    - row:
+                      - cell: CRES-002
+                      - cell: bachs
+                      - cell: $10.00
+                      - cell: —
+                      - cell:
+                        - generic: failed
+                      - cell: Inactive
+                      - cell: —
+                      - cell:
+                        - generic: Receipt failed
+  - dialog [ref=f2e89]:
+    - generic [ref=f2e90]:
+      - heading "Payment insights" [level=2] [ref=f2e94]
+      - paragraph [ref=f2e95]: Track settled payment value across a month, year, lifetime, or exact calendar range.
+    - generic [ref=f2e96]:
+      - generic [ref=f2e97]:
+        - button "Monthly" [active] [pressed] [ref=f2e98] [cursor=pointer]
+        - button "Yearly" [ref=f2e99] [cursor=pointer]
+        - button "Lifetime" [ref=f2e100] [cursor=pointer]
+        - button "Custom" [ref=f2e101] [cursor=pointer]
+      - generic [ref=f2e102]:
+        - text: Choose month
+        - textbox "Choose month" [ref=f2e103]: 2026-08
+      - generic [ref=f2e104]:
+        - generic [ref=f2e105]:
+          - paragraph [ref=f2e106]: Amount gotten
+          - heading "August 2026" [level=3] [ref=f2e107]
+        - generic [ref=f2e108]:
+          - article [ref=f2e109]:
+            - paragraph [ref=f2e110]: NGN
+            - paragraph [ref=f2e111]: NGN 42,500.00
+            - generic [ref=f2e112]:
+              - generic [ref=f2e113]: 3 payments
+              - generic [ref=f2e114]: NGN 14,166.67 average
+          - article [ref=f2e115]:
+            - paragraph [ref=f2e116]: USD
+            - paragraph [ref=f2e117]: $90.00
+            - generic [ref=f2e118]:
+              - generic [ref=f2e119]: 1 payment
+              - generic [ref=f2e120]: $90.00 average
+        - generic [ref=f2e121]:
+          - generic [ref=f2e122]:
+            - paragraph [ref=f2e125]: "4"
+            - paragraph [ref=f2e126]: Successful
+          - generic [ref=f2e127]:
+            - paragraph [ref=f2e130]: "1"
+            - paragraph [ref=f2e131]: Unsuccessful
+          - generic [ref=f2e132]:
+            - paragraph [ref=f2e135]: 80%
+            - paragraph [ref=f2e136]: Success rate
+        - paragraph [ref=f2e137]: 4 successful payments
+    - button "Close" [ref=f2e138] [cursor=pointer]

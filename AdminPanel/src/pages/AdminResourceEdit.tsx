@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Link2, Loader2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@shared/hooks/useAuth";
@@ -12,6 +12,8 @@ import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions
 import { slugify } from "@shared/lib/analytics";
 import { logAdminAction } from "@shared/lib/audit";
 import { Markdown } from "@shared/lib/markdown";
+import { resourceDeliveryKind, type ResourceLinkMetadata } from "@shared/lib/resourceLinks";
+import { fetchResourceLinkPreview } from "@/lib/resourceLinkPreview";
 
 import { SEO } from "@shared/components/common/SEO";
 import { PageHeader } from "@shared/components/common/PageHeader";
@@ -83,6 +85,7 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+type DeliveryKind = "upload" | "link";
 
 const DEFAULTS: FormValues = {
   title: "",
@@ -124,6 +127,13 @@ const AdminResourceEdit = () => {
   const slugTouched = useRef(false);
   const hydrated = useRef(false);
   const [publishedAt, setPublishedAt] = useState<string | null>(null);
+  const [deliveryKind, setDeliveryKind] = useState<DeliveryKind | null>(
+    isEdit ? "upload" : null,
+  );
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkMetadata, setLinkMetadata] = useState<ResourceLinkMetadata | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [isFetchingLink, setIsFetchingLink] = useState(false);
 
   const {
     register,
@@ -161,6 +171,9 @@ const AdminResourceEdit = () => {
     hydrated.current = true;
     slugTouched.current = true;
     setPublishedAt(row.published_at);
+    const savedDeliveryKind = resourceDeliveryKind(row.file_url);
+    setDeliveryKind(savedDeliveryKind === "link" ? "link" : "upload");
+    if (savedDeliveryKind === "link") setLinkUrl(row.file_url ?? "");
     reset({
       title: row.title,
       slug: row.slug,
@@ -247,6 +260,42 @@ const AdminResourceEdit = () => {
   // "Save" keeps the current status (e.g. re-saving an archived or published item).
   const onSave = handleSubmit((values) => persist(values, values.status));
 
+  const onFetchLinkDetails = async () => {
+    const candidate = linkUrl.trim();
+    if (!candidate) {
+      setLinkError("Enter a resource link first.");
+      return;
+    }
+
+    setIsFetchingLink(true);
+    setLinkError(null);
+    try {
+      const metadata = await fetchResourceLinkPreview(candidate);
+      setLinkMetadata(metadata);
+      setLinkUrl(metadata.url);
+      setValue("file_url", metadata.url, { shouldDirty: true });
+      setValue("file_name", metadata.siteName, { shouldDirty: true });
+      setValue("file_size_kb", null, { shouldDirty: true });
+      if (metadata.title) {
+        setValue("title", metadata.title, { shouldDirty: true, shouldValidate: true });
+      }
+      if (metadata.description) {
+        setValue("excerpt", metadata.description, { shouldDirty: true, shouldValidate: true });
+      }
+      if (metadata.imageUrl) {
+        setValue("cover_image_url", metadata.imageUrl, { shouldDirty: true });
+      }
+    } catch (error) {
+      setLinkError(
+        error instanceof Error
+          ? error.message
+          : "Couldn't read link details. Check the URL and try again.",
+      );
+    } finally {
+      setIsFetchingLink(false);
+    }
+  };
+
   const busy = isSubmitting || createResource.isPending || updateResource.isPending;
   const permissions = contentPermissions({
     isAdmin,
@@ -322,10 +371,114 @@ const AdminResourceEdit = () => {
         </p>
       )}
 
-      <form className="grid gap-6 lg:grid-cols-3" onSubmit={(e) => e.preventDefault()}>
+      {!deliveryKind && (
+        <section className="rounded-xl border border-border bg-card p-6 shadow-soft">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="font-display text-2xl font-semibold text-ink-strong">
+              How are you sharing this resource?
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Upload a downloadable file or send readers to an existing page.
+            </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <button
+                type="button"
+                className="rounded-xl border border-border p-5 text-left transition-colors hover:border-primary hover:bg-secondary/40"
+                onClick={() => setDeliveryKind("upload")}
+              >
+                <UploadCloud className="h-6 w-6 text-primary" />
+                <span className="mt-3 block font-display text-lg font-semibold text-ink-strong">
+                  Upload a file
+                </span>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  Add a PDF, template, presentation, or other downloadable asset.
+                </span>
+              </button>
+              <button
+                type="button"
+                className="rounded-xl border border-border p-5 text-left transition-colors hover:border-primary hover:bg-secondary/40"
+                onClick={() => setDeliveryKind("link")}
+              >
+                <Link2 className="h-6 w-6 text-primary" />
+                <span className="mt-3 block font-display text-lg font-semibold text-ink-strong">
+                  Paste a link
+                </span>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  Share a guide, document, video, or tool hosted elsewhere.
+                </span>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {deliveryKind && <form className="grid gap-6 lg:grid-cols-3" onSubmit={(e) => e.preventDefault()}>
         <fieldset disabled={!permissions.canEdit} className="contents">
         {/* Main column */}
         <div className="space-y-6 lg:col-span-2">
+          {deliveryKind === "link" && (
+            <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
+              <div>
+                <h2 className="font-display text-lg font-semibold text-ink-strong">Link details</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Fetch the page title, description, and preview image, then edit them below.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Label htmlFor="resource-link">Resource link</Label>
+                  <Input
+                    id="resource-link"
+                    type="url"
+                    value={linkUrl}
+                    onChange={(event) => {
+                      setLinkUrl(event.target.value);
+                      setLinkError(null);
+                    }}
+                    placeholder="https://example.com/resource"
+                    aria-invalid={!!linkError}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void onFetchLinkDetails()}
+                  disabled={isFetchingLink || !linkUrl.trim()}
+                >
+                  {isFetchingLink && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Fetch link details
+                </Button>
+              </div>
+              {linkError && <p className="text-sm text-destructive-strong">{linkError}</p>}
+              {(linkMetadata?.imageUrl || (fileUrl && coverUrl)) && (
+                <div className="overflow-hidden rounded-lg border border-border bg-surface-muted/40">
+                  {(linkMetadata?.imageUrl || coverUrl) && (
+                    <img
+                      src={linkMetadata?.imageUrl ?? coverUrl ?? undefined}
+                      alt="Link preview"
+                      className="aspect-[16/7] w-full object-cover"
+                    />
+                  )}
+                  {fileUrl && (
+                    <div className="flex items-center justify-between gap-3 p-4">
+                      <span className="truncate text-sm text-muted-foreground">
+                        {linkMetadata?.siteName ?? fileUrl}
+                      </span>
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
+                      >
+                        View original link <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+
           <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
@@ -570,23 +723,25 @@ const AdminResourceEdit = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Downloadable file</Label>
-              <FileUpload
-                bucket="resource-files"
-                kind="file"
-                value={fileUrl}
-                onChange={(f) => {
-                  setValue("file_url", f?.url ?? null, { shouldDirty: true });
-                  setValue("file_name", f?.name ?? null, { shouldDirty: true });
-                  setValue("file_size_kb", f?.sizeKb ?? null, { shouldDirty: true });
-                }}
-              />
-            </div>
+            {deliveryKind === "upload" && (
+              <div className="space-y-2">
+                <Label>Downloadable file</Label>
+                <FileUpload
+                  bucket="resource-files"
+                  kind="file"
+                  value={fileUrl}
+                  onChange={(f) => {
+                    setValue("file_url", f?.url ?? null, { shouldDirty: true });
+                    setValue("file_name", f?.name ?? null, { shouldDirty: true });
+                    setValue("file_size_kb", f?.sizeKb ?? null, { shouldDirty: true });
+                  }}
+                />
+              </div>
+            )}
           </section>
         </div>
         </fieldset>
-      </form>
+      </form>}
     </div>
   );
 };

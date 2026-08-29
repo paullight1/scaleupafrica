@@ -62,5 +62,10 @@ verify_jwt = false
 [functions.newsletter-admin]
 verify_jwt = true
 
+# Staff-only URL metadata completion for Resources. The edge validates the JWT,
+# re-checks the caller's admin/editor role, and blocks private-network fetches.
+[functions.resource-link-preview]
+verify_jwt = true
+
 [functions.brevo-webhook]
 verify_jwt = false

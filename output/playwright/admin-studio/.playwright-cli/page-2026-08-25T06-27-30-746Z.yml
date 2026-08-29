@@ -1,0 +1,204 @@
+- generic:
+  - generic:
+    - list
+    - region "Notifications alt+T"
+    - generic:
+      - complementary:
+        - link:
+          - /url: /admin
+          - generic: Cresciva Admin
+        - generic:
+          - navigation:
+            - generic:
+              - generic:
+                - generic: Search navigation
+                - searchbox
+            - generic:
+              - generic:
+                - paragraph: Overview
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /admin
+                      - text: Dashboard
+              - generic:
+                - paragraph: Content
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /admin/resources
+                      - text: Resources
+                  - listitem:
+                    - link:
+                      - /url: /admin/blog
+                      - text: Blog
+                  - listitem:
+                    - link:
+                      - /url: /admin/funding
+                      - text: Funding
+              - generic:
+                - paragraph: Community
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /admin/profiles
+                      - text: Directory Profiles
+                  - listitem:
+                    - link:
+                      - /url: /admin/users
+                      - text: Users
+              - generic:
+                - paragraph: Growth
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /admin/leads
+                      - text: Inbox
+                  - listitem:
+                    - link:
+                      - /url: /admin/newsletter
+                      - text: Newsletter
+              - generic:
+                - paragraph: System
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /admin/payments
+                      - text: Payments
+                  - listitem:
+                    - link:
+                      - /url: /admin/settings
+                      - text: Settings
+                  - listitem:
+                    - link:
+                      - /url: /admin/audit
+                      - text: Audit Log
+        - generic:
+          - link:
+            - /url: http://localhost:8080/
+            - text: View site
+          - button: Sign out
+      - generic:
+        - banner:
+          - generic: Admin workspace
+          - button:
+            - generic: SA
+            - generic:
+              - generic: Studio Admin
+              - generic: Administrator
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=1]: Payments
+                - paragraph: Review settlement, access, webhook processing and receipt reconciliation.
+              - generic:
+                - button: Refresh
+            - region:
+              - article:
+                - button:
+                  - generic: Amount Gotten
+                  - generic:
+                    - generic:
+                      - generic: NGN 42,500.00
+                      - generic: $90.00
+                  - generic: August 2026 · View breakdown
+              - article:
+                - generic:
+                  - generic: Successful payments
+                  - generic: "4"
+                  - generic: August 2026
+              - article:
+                - generic:
+                  - generic: Unsuccessful payments
+                  - generic: "1"
+                  - generic: August 2026
+              - article:
+                - generic:
+                  - generic: Reconciliation issues
+                  - generic: "1"
+                  - generic: 3 recent payments checked
+            - generic:
+              - generic:
+                - paragraph: Reconciliation needs attention
+              - paragraph: Generated 8/25/2026, 7:27:06 AM.
+            - generic:
+              - generic:
+                - paragraph: Settlement ledger
+                - heading [level=2]: Recent payments
+              - generic:
+                - table:
+                  - rowgroup:
+                    - row:
+                      - columnheader: Reference
+                      - columnheader: Provider
+                      - columnheader: Amount
+                      - columnheader: Paid
+                      - columnheader: Status
+                      - columnheader: Access
+                      - columnheader: Receipt
+                      - columnheader: Issues
+                  - rowgroup:
+                    - row:
+                      - cell: CRES-001
+                      - cell: bachs
+                      - cell: NGN 15,000.00
+                      - cell: Aug 24, 2026
+                      - cell:
+                        - generic: success
+                      - cell: Active
+                      - cell: sent
+                      - cell: Healthy
+                    - row:
+                      - cell: CRES-002
+                      - cell: bachs
+                      - cell: $10.00
+                      - cell: —
+                      - cell:
+                        - generic: failed
+                      - cell: Inactive
+                      - cell: —
+                      - cell:
+                        - generic: Receipt failed
+  - dialog [ref=f1e186]:
+    - generic [ref=f1e187]:
+      - heading "Payment insights" [level=2] [ref=f1e191]
+      - paragraph [ref=f1e192]: Track settled payment value across a month, year, lifetime, or exact calendar range.
+    - generic [ref=f1e193]:
+      - generic [ref=f1e194]:
+        - button "Monthly" [active] [pressed] [ref=f1e195] [cursor=pointer]
+        - button "Yearly" [ref=f1e196] [cursor=pointer]
+        - button "Lifetime" [ref=f1e197] [cursor=pointer]
+        - button "Custom" [ref=f1e198] [cursor=pointer]
+      - generic [ref=f1e199]:
+        - text: Choose month
+        - textbox "Choose month" [ref=f1e200]: 2026-08
+      - generic [ref=f1e201]:
+        - generic [ref=f1e202]:
+          - paragraph [ref=f1e203]: Amount gotten
+          - heading "August 2026" [level=3] [ref=f1e204]
+        - generic [ref=f1e205]:
+          - article [ref=f1e206]:
+            - paragraph [ref=f1e207]: NGN
+            - paragraph [ref=f1e208]: NGN 42,500.00
+            - generic [ref=f1e209]:
+              - generic [ref=f1e210]: 3 payments
+              - generic [ref=f1e211]: NGN 14,166.67 average
+          - article [ref=f1e212]:
+            - paragraph [ref=f1e213]: USD
+            - paragraph [ref=f1e214]: $90.00
+            - generic [ref=f1e215]:
+              - generic [ref=f1e216]: 1 payments
+              - generic [ref=f1e217]: $90.00 average
+        - generic [ref=f1e218]:
+          - generic [ref=f1e219]:
+            - paragraph [ref=f1e222]: "4"
+            - paragraph [ref=f1e223]: Successful
+          - generic [ref=f1e224]:
+            - paragraph [ref=f1e227]: "1"
+            - paragraph [ref=f1e228]: Unsuccessful
+          - generic [ref=f1e229]:
+            - paragraph [ref=f1e232]: 80%
+            - paragraph [ref=f1e233]: Success rate
+        - paragraph [ref=f1e234]: 4 successful payments
+    - button "Close" [ref=f1e235] [cursor=pointer]

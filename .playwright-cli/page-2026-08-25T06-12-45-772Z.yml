@@ -1,0 +1,354 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - link "Skip to content" [ref=e3] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Cresciva." [ref=e6] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e7]:
+        - link "Directory" [ref=e8] [cursor=pointer]:
+          - /url: /directory
+        - link "Funding" [ref=e9] [cursor=pointer]:
+          - /url: /dashboard/funding
+        - link "Resources" [ref=e10] [cursor=pointer]:
+          - /url: /resources
+        - link "Blog" [ref=e11] [cursor=pointer]:
+          - /url: /blog
+        - link "Pricing" [ref=e12] [cursor=pointer]:
+          - /url: /#pricing
+      - generic [ref=e13]:
+        - link "Sign in" [ref=e14] [cursor=pointer]:
+          - /url: /auth?next=%2F
+        - link "Get started" [ref=e15] [cursor=pointer]:
+          - /url: /auth/signup?next=/dashboard/profile/edit
+  - main [active] [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e20]:
+        - generic [ref=e21]: Pan-African SME Ecosystem
+        - heading "Scale Your Business With Intent. Access Capital With Clarity." [level=1] [ref=e22]: Scale Your Business With Intent.Access Capital With Clarity.
+        - paragraph [ref=e23]: Get listed on the Pan-African SME Directory and unlock AI-curated funding intelligence built for African founders ready to scale.
+        - generic [ref=e24]:
+          - link "List your business — free" [ref=e25] [cursor=pointer]:
+            - /url: /auth?next=/directory/create
+          - link "See how funding works" [ref=e26] [cursor=pointer]:
+            - /url: /funding
+        - paragraph [ref=e27]: Directory is free. Funding Intelligence unlocks with a paid membership.
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - paragraph [ref=e47]: The gap
+          - heading "Ambition Is Not the Problem. Access Is." [level=2] [ref=e48]
+          - paragraph [ref=e49]: African SMEs already have the drive. What they need is access to funding and proven growth frameworks that help them scale.
+        - generic [ref=e50]:
+          - article [ref=e52]:
+            - heading "Funding Feels Out of Reach" [level=3] [ref=e74]
+            - generic [ref=e75]: Grants, competitions and capital calls exist for African SMEs, but they are scattered across websites, newsletters and WhatsApp groups. You spend hours hunting instead of building.
+          - article [ref=e77]:
+            - heading "Growth Without a Framework" [level=3] [ref=e93]
+            - generic [ref=e94]: You are generating revenue, but scaling feels like guesswork. Without proven growth frameworks tailored to African realities, momentum stalls before it compounds.
+          - article [ref=e96]:
+            - heading "No Shared Growth Infrastructure" [level=3] [ref=e108]
+            - generic [ref=e109]: Serious SMEs across the continent are solving the same problems in isolation. There is no shared, trusted place that pairs funding intelligence with growth playbooks built for us.
+        - paragraph [ref=e110]: This is why we built The Cresciva Collective, the funding and growth infrastructure for serious African SMEs.
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - paragraph [ref=e114]: How it works
+          - heading "Two Tools. One Growth Engine." [level=2] [ref=e115]
+          - paragraph [ref=e116]: Get visible on the free Pan-African SME Directory, and unlock AI-curated funding intelligence when you're ready to scale.
+        - generic [ref=e117]:
+          - generic [ref=e120]:
+            - paragraph [ref=e121]: Step one
+            - heading "List your business" [level=3] [ref=e122]
+            - paragraph [ref=e123]: Create a public profile in minutes — what you do, where you operate, and how to reach you. Free, forever.
+            - list [ref=e124]:
+              - listitem [ref=e125]:
+                - generic [ref=e128]: Free to create a profile
+              - listitem [ref=e129]:
+                - generic [ref=e132]: Showcase your business, contact and social links
+          - generic [ref=e149]:
+            - paragraph [ref=e150]: Step two
+            - heading "Get discovered" [level=3] [ref=e151]
+            - paragraph [ref=e152]: Your profile is public and searchable, so buyers, partners and collaborators across the continent can find you by name, sector or country.
+            - list [ref=e153]:
+              - listitem [ref=e154]:
+                - generic [ref=e157]: Public and searchable by name, sector, country
+              - listitem [ref=e158]:
+                - generic [ref=e161]: Discover potential suppliers and partners
+          - generic [ref=e182]:
+            - paragraph [ref=e183]: Step three
+            - heading "Unlock funding intelligence" [level=3] [ref=e184]
+            - paragraph [ref=e185]: "Members get the Funding Radar: grants, competitions, accelerators and development finance calls, curated to your sector and stage."
+            - list [ref=e186]:
+              - listitem [ref=e187]:
+                - generic [ref=e190]: AI-curated funding opportunities
+              - listitem [ref=e191]:
+                - generic [ref=e194]: Grants, competitions, accelerators & more
+              - listitem [ref=e195]:
+                - generic [ref=e198]: Access included with paid membership
+      - generic [ref=e218]:
+        - generic [ref=e219]:
+          - paragraph [ref=e220]: The directory
+          - heading "A profile that does the finding for you" [level=2] [ref=e221]
+          - paragraph [ref=e222]: Public, searchable, and free — it puts your business in front of buyers, partners and funders across the continent.
+        - generic [ref=e223]: cresciva.com/directory
+        - generic [ref=e231]:
+          - link "Browse the directory" [ref=e232] [cursor=pointer]:
+            - /url: /directory
+          - paragraph [ref=e233]: Browse the directory for more live profiles.
+      - generic [ref=e235]:
+        - generic [ref=e236]:
+          - paragraph [ref=e237]: The Funding Radar
+          - heading "Live funding calls, curated to you" [level=2] [ref=e238]
+          - paragraph [ref=e239]: Grants, competitions, accelerators and development finance — filtered to your sector and stage, so you stop hunting across newsletters and group chats.
+        - generic [ref=e240]:
+          - article [ref=e242]:
+            - generic [ref=e243]:
+              - generic [ref=e244]:
+                - generic [ref=e245]:
+                  - generic [ref=e246]: Current status unconfirmed
+                  - generic [ref=e247]: Example
+                  - generic [ref=e248]: Grant
+                - heading "Africa Agri-Processing Growth Fund" [level=3] [ref=e249]
+                - paragraph [ref=e250]: by Continental Development Facility
+              - generic [ref=e251]: $25,000 – $150,000
+            - paragraph [ref=e252]: Working-capital grants for SMEs processing locally grown produce, with technical assistance over an 18-month period.
+            - generic [ref=e253]: "Eligibility: Registered SMEs operating in an African market for 2+ years"
+            - generic [ref=e255]:
+              - generic [ref=e256]: Agriculture
+              - generic [ref=e257]: Processing
+              - generic [ref=e258]: Working capital
+            - button "Learn more" [ref=e260] [cursor=pointer]
+          - generic [ref=e262]:
+            - heading "Members see the full curated list" [level=3] [ref=e276]
+            - paragraph [ref=e277]: Membership unlocks the whole Funding Radar, refreshed and filtered to your business.
+            - link "See membership" [ref=e278] [cursor=pointer]:
+              - /url: /#pricing
+      - generic [ref=e280]:
+        - generic [ref=e281]:
+          - paragraph [ref=e282]: Membership
+          - heading "Invest in Your Growth Journey" [level=2] [ref=e283]
+          - paragraph [ref=e284]: Choose the membership rhythm that fits your journey. Simple, transparent pricing for African founders ready to scale.
+        - paragraph [ref=e287]: All plans renew automatically in USD through Bachs. Your bank may apply its own currency conversion rate or charges.
+        - generic [ref=e288]:
+          - generic [ref=e289]:
+            - generic [ref=e290]:
+              - paragraph [ref=e291]: Monthly
+              - heading "The Collective" [level=3] [ref=e292]
+              - paragraph [ref=e293]: A flexible way to keep your Funding Radar access active.
+            - generic [ref=e294]:
+              - generic [ref=e295]: $10
+              - generic [ref=e296]: /month
+            - link "Choose Monthly" [ref=e297] [cursor=pointer]:
+              - /url: /auth/signup?next=%2Fdashboard%2Ffunding%3Fplan%3Dmonthly
+            - list [ref=e298]:
+              - listitem [ref=e299]:
+                - generic [ref=e302]: Free profile on the Pan-African SME Directory
+              - listitem [ref=e303]:
+                - generic [ref=e306]: Full access to the Funding Radar
+              - listitem [ref=e307]:
+                - generic [ref=e310]: Curated grants, fellowships and opportunities
+              - listitem [ref=e311]:
+                - generic [ref=e314]: Search funding by your business keywords
+              - listitem [ref=e315]:
+                - generic [ref=e318]: Member resources and playbooks
+          - generic [ref=e319]:
+            - generic [ref=e320]:
+              - paragraph [ref=e321]: Quarterly
+              - heading "The Collective" [level=3] [ref=e322]
+              - paragraph [ref=e323]: More runway for founders building toward their next milestone.
+            - generic [ref=e324]:
+              - generic [ref=e325]: $25
+              - generic [ref=e326]: /3 months
+            - link "Choose Quarterly" [ref=e327] [cursor=pointer]:
+              - /url: /auth/signup?next=%2Fdashboard%2Ffunding%3Fplan%3Dquarterly
+            - list [ref=e328]:
+              - listitem [ref=e329]:
+                - generic [ref=e332]: Free profile on the Pan-African SME Directory
+              - listitem [ref=e333]:
+                - generic [ref=e336]: Full access to the Funding Radar
+              - listitem [ref=e337]:
+                - generic [ref=e340]: Curated grants, fellowships and opportunities
+              - listitem [ref=e341]:
+                - generic [ref=e344]: Search funding by your business keywords
+              - listitem [ref=e345]:
+                - generic [ref=e348]: Member resources and playbooks
+          - generic [ref=e349]:
+            - generic [ref=e350]:
+              - paragraph [ref=e351]: Annual
+              - heading "The Collective" [level=3] [ref=e352]
+              - paragraph [ref=e353]: Best value for a full year of funding intelligence and resources.
+            - generic [ref=e354]:
+              - generic [ref=e355]: $90
+              - generic [ref=e356]: /year
+            - link "Choose Annual" [ref=e357] [cursor=pointer]:
+              - /url: /auth/signup?next=%2Fdashboard%2Ffunding%3Fplan%3Dannual
+            - list [ref=e358]:
+              - listitem [ref=e359]:
+                - generic [ref=e362]: Free profile on the Pan-African SME Directory
+              - listitem [ref=e363]:
+                - generic [ref=e366]: Full access to the Funding Radar
+              - listitem [ref=e367]:
+                - generic [ref=e370]: Curated grants, fellowships and opportunities
+              - listitem [ref=e371]:
+                - generic [ref=e374]: Search funding by your business keywords
+              - listitem [ref=e375]:
+                - generic [ref=e378]: Member resources and playbooks
+        - paragraph [ref=e379]:
+          - text: Access is activated automatically once payment is confirmed — usually under a minute. Plans renew automatically until you cancel them in the Bachs billing portal.
+          - link "Read the full disclaimer" [ref=e380] [cursor=pointer]:
+            - /url: /disclaimer
+          - text: .
+      - generic [ref=e382]:
+        - generic [ref=e383]:
+          - paragraph [ref=e384]: Straight answers
+          - heading "What Cresciva is — and isn't" [level=2] [ref=e385]
+          - paragraph [ref=e386]: We would rather you knew exactly what you're buying before you buy it.
+        - generic [ref=e387]:
+          - generic [ref=e389]:
+            - heading "What Cresciva does" [level=3] [ref=e399]
+            - list [ref=e400]:
+              - listitem [ref=e401]:
+                - generic [ref=e404]: Puts your business in front of buyers, partners and funders
+              - listitem [ref=e405]:
+                - generic [ref=e408]: Tracks live funding calls across African markets
+              - listitem [ref=e409]:
+                - generic [ref=e412]: Curates them to your sector and stage
+          - generic [ref=e414]:
+            - heading "What it doesn't" [level=3] [ref=e426]
+            - list [ref=e427]:
+              - listitem [ref=e428]:
+                - generic [ref=e430]: Provide grants or loans directly
+              - listitem [ref=e431]:
+                - generic [ref=e433]: Write or submit applications for you
+              - listitem [ref=e434]:
+                - generic [ref=e436]: Guarantee that you win any funding
+        - paragraph [ref=e437]:
+          - link "Read the full disclaimer" [ref=e438] [cursor=pointer]:
+            - /url: /disclaimer
+      - generic [ref=e442]:
+        - generic [ref=e443]:
+          - paragraph [ref=e444]: Insights
+          - heading "Notes on funding and growth" [level=2] [ref=e445]
+          - paragraph [ref=e446]: Practical writing for African founders — how funders think, and what actually moves a business forward.
+        - status [ref=e448]:
+          - generic [ref=e449]: Loading posts…
+      - generic [ref=e469]:
+        - generic [ref=e470]:
+          - paragraph [ref=e471]: Questions
+          - heading "Frequently Asked Questions" [level=2] [ref=e472]
+          - paragraph [ref=e473]: Everything you need to know before joining The Cresciva Collective.
+        - generic [ref=e474]:
+          - heading [level=3] [ref=e476]:
+            - button "Is the SME Directory free?" [ref=e477] [cursor=pointer]
+          - heading [level=3] [ref=e481]:
+            - button "What is the Funding Radar?" [ref=e482] [cursor=pointer]
+          - heading [level=3] [ref=e486]:
+            - button "How do I pay, and in which currency?" [ref=e487] [cursor=pointer]
+          - heading [level=3] [ref=e491]:
+            - button "How fast is access after I pay?" [ref=e492] [cursor=pointer]
+          - heading [level=3] [ref=e496]:
+            - button "Does my membership auto-renew? Can I cancel?" [ref=e497] [cursor=pointer]
+        - generic [ref=e500]:
+          - link "See all questions" [ref=e501] [cursor=pointer]:
+            - /url: /faq
+          - paragraph [ref=e504]:
+            - text: Still have questions?
+            - link "Reach out to us" [ref=e505] [cursor=pointer]:
+              - /url: mailto:hello@cresciva.com
+      - generic [ref=e509]:
+        - heading "Get found. Get funded." [level=2] [ref=e510]
+        - paragraph [ref=e511]: List your business free on the Pan-African SME Directory, and unlock curated funding intelligence when you're ready.
+        - generic [ref=e512]:
+          - link "List your business — free" [ref=e513] [cursor=pointer]:
+            - /url: /auth?next=/directory/create
+          - link "See membership" [ref=e514] [cursor=pointer]:
+            - /url: /#pricing
+        - generic [ref=e515]:
+          - paragraph [ref=e516]: Funding notes, every month
+          - generic [ref=e517]:
+            - textbox [ref=e518]
+            - textbox "Email address" [ref=e520]:
+              - /placeholder: you@company.com
+            - button "Subscribe" [ref=e521] [cursor=pointer]
+  - contentinfo [ref=e538]:
+    - generic [ref=e539]:
+      - generic [ref=e540]:
+        - generic [ref=e541]:
+          - paragraph [ref=e542]: Cresciva.
+          - paragraph [ref=e543]: Visibility and funding intelligence for Pan-African SME founders. One credible profile. Real funding leads. No hype.
+        - generic [ref=e544]:
+          - paragraph [ref=e545]: Product
+          - list [ref=e546]:
+            - listitem [ref=e547]:
+              - link "Directory" [ref=e548] [cursor=pointer]:
+                - /url: /directory
+            - listitem [ref=e549]:
+              - link "Funding" [ref=e550] [cursor=pointer]:
+                - /url: /dashboard/funding
+            - listitem [ref=e551]:
+              - link "List your business" [ref=e552] [cursor=pointer]:
+                - /url: /dashboard/profile/edit
+            - listitem [ref=e553]:
+              - link "Pricing" [ref=e554] [cursor=pointer]:
+                - /url: /#pricing
+        - generic [ref=e555]:
+          - paragraph [ref=e556]: Resources
+          - list [ref=e557]:
+            - listitem [ref=e558]:
+              - link "Resource Library" [ref=e559] [cursor=pointer]:
+                - /url: /resources
+            - listitem [ref=e560]:
+              - link "Blog" [ref=e561] [cursor=pointer]:
+                - /url: /blog
+            - listitem [ref=e562]:
+              - link "FAQ" [ref=e563] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=e564]:
+          - paragraph [ref=e565]: Company
+          - list [ref=e566]:
+            - listitem [ref=e567]:
+              - link "About" [ref=e568] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e569]:
+              - link "Contact" [ref=e570] [cursor=pointer]:
+                - /url: /contact
+        - generic [ref=e571]:
+          - paragraph [ref=e572]: Legal
+          - list [ref=e573]:
+            - listitem [ref=e574]:
+              - link "Privacy Policy" [ref=e575] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e576]:
+              - link "Terms of Service" [ref=e577] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e578]:
+              - link "Disclaimer" [ref=e579] [cursor=pointer]:
+                - /url: /disclaimer
+      - generic [ref=e581]:
+        - generic [ref=e582]:
+          - paragraph [ref=e583]: Stay in the loop
+          - generic [ref=e584]:
+            - textbox [ref=e585]
+            - textbox "Email address" [ref=e587]:
+              - /placeholder: you@company.com
+            - button "Subscribe" [ref=e588] [cursor=pointer]
+        - paragraph [ref=e589]:
+          - generic [ref=e590]: © 2026 Cresciva
+          - generic [ref=e591]: ·
+          - button "Cookie settings" [ref=e592] [cursor=pointer]
+          - generic [ref=e593]: ·
+          - link "Admin" [ref=e594] [cursor=pointer]:
+            - /url: http://localhost:8080/admin/
+  - region "Cookie consent" [ref=e595]:
+    - generic [ref=e596]:
+      - paragraph [ref=e600]:
+        - text: Cresciva uses essential storage for secure sign-in and site operation. With your permission, optional analytics help us understand and improve the experience. Read our
+        - link "Privacy Policy" [ref=e601] [cursor=pointer]:
+          - /url: /privacy
+        - text: .
+      - generic [ref=e602]:
+        - button "Cookie settings" [ref=e603] [cursor=pointer]
+        - button "Reject optional" [ref=e604] [cursor=pointer]
+        - button "Accept all" [ref=e605] [cursor=pointer]

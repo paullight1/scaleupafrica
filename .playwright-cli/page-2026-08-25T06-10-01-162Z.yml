@@ -1,0 +1,20 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Cresciva Admin
+      - heading "Staff sign in" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Use your verified Cresciva Capital work account. Database roles still control which admin tools you can access.
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - text: Work email
+          - textbox "Work email" [active] [ref=e15]
+        - generic [ref=e16]:
+          - generic [ref=e17]: Password
+          - generic [ref=e19]:
+            - textbox "Password" [ref=e20]
+            - button "Show password" [ref=e21] [cursor=pointer]
+        - button "Sign in" [ref=e25] [cursor=pointer]
+      - paragraph [ref=e26]: Access is limited to verified @crescivacapital.com accounts that have an assigned staff role.

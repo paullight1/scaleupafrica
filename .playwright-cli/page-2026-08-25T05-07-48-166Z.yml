@@ -1,0 +1,34 @@
+- generic [ref=f5e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=f5e3]:
+    - complementary [ref=f5e4]:
+      - link "Cresciva Admin" [ref=f5e5] [cursor=pointer]:
+        - /url: /admin
+      - navigation "Admin navigation" [ref=f5e8]:
+        - generic [ref=f5e10]:
+          - generic [ref=f5e11]: Search navigation
+          - searchbox "Search navigation" [ref=f5e12]
+        - generic [ref=f5e14]:
+          - paragraph [ref=f5e15]: Content
+          - list [ref=f5e16]:
+            - listitem [ref=f5e17]:
+              - link "Resources" [ref=f5e18] [cursor=pointer]:
+                - /url: /admin/resources
+            - listitem [ref=f5e22]:
+              - link "Blog" [ref=f5e23] [cursor=pointer]:
+                - /url: /admin/blog
+      - generic [ref=f5e27]:
+        - link "View site" [ref=f5e28] [cursor=pointer]:
+          - /url: http://localhost:8080/
+        - button "Sign out" [ref=f5e33] [cursor=pointer]
+    - generic [ref=f5e37]:
+      - banner [ref=f5e38]:
+        - generic [ref=f5e39]: Editor workspace
+        - button "Open profile menu for Studio Admin" [ref=f5e41] [cursor=pointer]:
+          - generic [ref=f5e42]: SA
+          - generic [ref=f5e43]:
+            - generic [ref=f5e44]: Studio Admin
+            - generic [ref=f5e45]: Editor
+      - main [ref=f5e48]
