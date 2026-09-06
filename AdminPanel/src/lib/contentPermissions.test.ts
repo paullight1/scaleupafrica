@@ -15,6 +15,7 @@ describe("contentPermissions", () => {
   it("gives administrators lifecycle controls", () => {
     expect(contentPermissions({ isAdmin: true, isEditor: false, status: "published" })).toMatchObject({
       canEdit: true,
+      canSaveDraft: true,
       canUnpublish: true,
       canArchive: true,
       canDelete: true,

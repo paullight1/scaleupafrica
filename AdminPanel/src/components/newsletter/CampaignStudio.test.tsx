@@ -64,4 +64,21 @@ describe("CampaignStudio", () => {
     expect(screen.getByRole("button", { name: "Send now" })).toBeDisabled();
     expect(screen.getByText("Test required")).toBeInTheDocument();
   });
+
+  it("keeps local edits when the campaign query refreshes after the window regains focus", () => {
+    state.campaign = {
+      id: "campaign-1", internal_name: "August opportunities", subject: "Three grants", preview_text: "",
+      sender_name: "Cresciva", sender_email: "hello@cresciva.com", reply_to: "hello@cresciva.com",
+      content_blocks: [], audience_filter: { mode: "all", sources: [], joinedAfter: null, joinedBefore: null },
+      revision: 1, status: "draft", last_test_revision: null, last_test_status: null,
+    };
+
+    const view = render(<CampaignStudio open campaignId="campaign-1" onOpenChange={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Subject"), { target: { value: "My local edit" } });
+
+    state.campaign = { ...state.campaign, subject: "Value from a focus refresh" };
+    view.rerender(<CampaignStudio open campaignId="campaign-1" onOpenChange={vi.fn()} />);
+
+    expect(screen.getByLabelText("Subject")).toHaveValue("My local edit");
+  });
 });

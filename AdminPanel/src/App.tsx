@@ -27,7 +27,15 @@ const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Admin forms own in-progress state. A focus refetch must not replace it
+      // while someone switches tabs or returns from a minimized window.
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, History, Loader2 } from "lucide-react";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
@@ -76,6 +76,67 @@ const DEFAULTS: FormValues = {
 };
 
 const SEO_DESC_TARGET = 160;
+const LOCAL_DRAFT_PREFIX = "cresciva:admin:blog-draft:v1";
+const LOCAL_DRAFT_DELAY_MS = 600;
+
+type LocalBlogDraft = {
+  version: 1;
+  savedAt: string;
+  values: FormValues;
+  coverUrl: string | null;
+};
+
+function localDraftKey(userId: string | undefined): string {
+  return `${LOCAL_DRAFT_PREFIX}:${userId ?? "staff"}:new`;
+}
+
+function readLocalDraft(key: string): LocalBlogDraft | null {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LocalBlogDraft>;
+    if (
+      parsed.version !== 1 ||
+      typeof parsed.savedAt !== "string" ||
+      !parsed.values ||
+      typeof parsed.values !== "object" ||
+      (parsed.coverUrl !== null && typeof parsed.coverUrl !== "string")
+    ) {
+      window.localStorage.removeItem(key);
+      return null;
+    }
+    return {
+      version: 1,
+      savedAt: parsed.savedAt,
+      values: { ...DEFAULTS, ...parsed.values, status: "draft" },
+      coverUrl: parsed.coverUrl ?? null,
+    } as LocalBlogDraft;
+  } catch {
+    return null;
+  }
+}
+
+function hasDraftContent(values: FormValues, coverUrl: string | null): boolean {
+  return Boolean(
+    values.title.trim() ||
+      values.excerpt?.trim() ||
+      values.content?.trim() ||
+      values.category?.trim() ||
+      values.tags?.trim() ||
+      values.seo_title?.trim() ||
+      values.seo_description?.trim() ||
+      coverUrl,
+  );
+}
+
+function draftTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "recently";
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
 
 function parseTags(raw: string | undefined): string[] {
   if (!raw) return [];
@@ -99,19 +160,29 @@ const AdminBlogEdit = () => {
   const { data: existing, isLoading, isError, refetch } = useAdminBlogPost(id);
   const save = useSaveBlogPost();
 
+  const browserDraftKey = localDraftKey(user?.id);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(false);
   const hydrated = useRef(false);
+  const localDraftHydrated = useRef(false);
+  const localDraftTimer = useRef<number | null>(null);
+  const browserDraftEnabledRef = useRef(isNew);
+  const coverUrlRef = useRef<string | null>(null);
+  const latestValuesRef = useRef<FormValues>(DEFAULTS);
+  const [recoveredDraftAt, setRecoveredDraftAt] = useState<string | null>(null);
+  const [localSavedAt, setLocalSavedAt] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     watch,
+    getValues,
+    control,
     setValue,
     setError,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: DEFAULTS,
@@ -147,6 +218,124 @@ const AdminBlogEdit = () => {
   const status = watch("status");
   const seoDescription = watch("seo_description") ?? "";
   const slug = watch("slug");
+
+  const clearBrowserDraft = useCallback(() => {
+    if (localDraftTimer.current !== null) {
+      window.clearTimeout(localDraftTimer.current);
+      localDraftTimer.current = null;
+    }
+    try {
+      window.localStorage.removeItem(browserDraftKey);
+    } catch {
+      // Browsers may disable storage; database saves should still succeed.
+    }
+    setRecoveredDraftAt(null);
+    setLocalSavedAt(null);
+  }, [browserDraftKey]);
+
+  const writeBrowserDraft = useCallback(
+    (values: FormValues = latestValuesRef.current) => {
+      if (!isNew || !browserDraftEnabledRef.current || !hasDraftContent(values, coverUrlRef.current)) return;
+      const savedAt = new Date().toISOString();
+      const snapshot: LocalBlogDraft = {
+        version: 1,
+        savedAt,
+        values: { ...values, status: "draft" },
+        coverUrl: coverUrlRef.current,
+      };
+      try {
+        window.localStorage.setItem(browserDraftKey, JSON.stringify(snapshot));
+        setLocalSavedAt(savedAt);
+      } catch {
+        // Keep editing available when storage is full or disabled.
+      }
+    },
+    [browserDraftKey, isNew],
+  );
+
+  const queueBrowserDraft = useCallback(
+    (values: FormValues) => {
+      if (!isNew) return;
+      latestValuesRef.current = values;
+      if (localDraftTimer.current !== null) {
+        window.clearTimeout(localDraftTimer.current);
+      }
+      if (!hasDraftContent(values, coverUrlRef.current)) return;
+      setLocalSavedAt(null);
+      localDraftTimer.current = window.setTimeout(() => {
+        writeBrowserDraft(values);
+        localDraftTimer.current = null;
+      }, LOCAL_DRAFT_DELAY_MS);
+    },
+    [isNew, writeBrowserDraft],
+  );
+
+  useEffect(() => {
+    coverUrlRef.current = coverUrl;
+    if (isNew) queueBrowserDraft(getValues());
+  }, [coverUrl, getValues, isNew, queueBrowserDraft]);
+
+  useEffect(() => {
+    if (!isNew) return;
+    const subscription = watch((values) => {
+      queueBrowserDraft({ ...DEFAULTS, ...values } as FormValues);
+    });
+    return () => subscription.unsubscribe();
+  }, [isNew, queueBrowserDraft, watch]);
+
+  useEffect(() => {
+    if (!isNew) return;
+    const flush = () => {
+      if (localDraftTimer.current !== null) {
+        window.clearTimeout(localDraftTimer.current);
+        localDraftTimer.current = null;
+      }
+      writeBrowserDraft();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [isNew, writeBrowserDraft]);
+
+  useEffect(
+    () => () => {
+      if (localDraftTimer.current !== null) {
+        window.clearTimeout(localDraftTimer.current);
+      }
+      writeBrowserDraft();
+    },
+    [writeBrowserDraft],
+  );
+
+  // Recover new-post work after auth finishes bootstrapping or the page remounts.
+  useEffect(() => {
+    if (!isNew || !user?.id || localDraftHydrated.current) return;
+    localDraftHydrated.current = true;
+    const recovered = readLocalDraft(browserDraftKey);
+    if (!recovered) return;
+    latestValuesRef.current = recovered.values;
+    coverUrlRef.current = recovered.coverUrl;
+    setSlugTouched(Boolean(recovered.values.slug));
+    setCoverUrl(recovered.coverUrl);
+    setRecoveredDraftAt(recovered.savedAt);
+    reset(recovered.values);
+  }, [browserDraftKey, isNew, reset, user?.id]);
+
+  const discardRecoveredDraft = () => {
+    clearBrowserDraft();
+    browserDraftEnabledRef.current = true;
+    setSlugTouched(false);
+    coverUrlRef.current = null;
+    latestValuesRef.current = DEFAULTS;
+    setCoverUrl(null);
+    reset(DEFAULTS);
+  };
 
   // Auto-derive the slug from the title until the user edits it directly.
   useEffect(() => {
@@ -189,6 +378,8 @@ const AdminBlogEdit = () => {
 
     try {
       const row = await save.mutateAsync({ id, values: payload });
+      clearBrowserDraft();
+      browserDraftEnabledRef.current = false;
       setValue("status", targetStatus);
       setPublishedAt(row.published_at ?? null);
       toast.success(isNew ? "Post created." : "Post saved.");
@@ -206,9 +397,10 @@ const AdminBlogEdit = () => {
     }
   };
 
-  const onSaveDraft = handleSubmit((values) =>
-    persist(values, values.status === "archived" ? "archived" : "draft"),
-  );
+  const onSaveDraft = () => {
+    setValue("status", "draft", { shouldValidate: true });
+    void handleSubmit((values) => persist(values, "draft"))();
+  };
   const onPublish = handleSubmit((values) => persist(values, "published"));
 
   const busy = isSubmitting || save.isPending;
@@ -252,6 +444,14 @@ const AdminBlogEdit = () => {
     status: (existing?.status ?? "draft") as ContentStatus,
   });
 
+  const onClose = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!isDirty || !permissions.canEdit) return;
+    event.preventDefault();
+    if (busy) return;
+    setValue("status", "draft", { shouldValidate: true });
+    void handleSubmit((values) => persist(values, "draft"))();
+  };
+
   return (
     <div className="space-y-6">
       <SEO title={isNew ? "New post" : "Edit post"} noindex />
@@ -260,6 +460,7 @@ const AdminBlogEdit = () => {
         breadcrumb={
           <Link
             to="/admin/blog"
+            onClick={onClose}
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4" /> Back to blog
@@ -283,6 +484,31 @@ const AdminBlogEdit = () => {
           </div>
         }
       />
+
+      {isNew && recoveredDraftAt && (
+        <section className="flex flex-col gap-4 rounded-xl border border-primary/25 bg-primary/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="rounded-lg bg-background p-2 text-primary shadow-sm">
+              <History className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="font-display text-sm font-semibold text-ink-strong">Recovered browser draft</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your unfinished post from {draftTime(recoveredDraftAt)} is ready to continue.
+              </p>
+            </div>
+          </div>
+          <Button type="button" variant="ghost" size="sm" onClick={discardRecoveredDraft}>
+            Discard draft
+          </Button>
+        </section>
+      )}
+
+      {isNew && localSavedAt && (
+        <p role="status" className="text-sm text-muted-foreground">
+          Draft saved in this browser at {draftTime(localSavedAt)}.
+        </p>
+      )}
 
       {!permissions.canEdit && (
         <p role="status" className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
@@ -425,20 +651,26 @@ const AdminBlogEdit = () => {
           <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select
-                value={status}
-                onValueChange={(v) => setValue("status", v as BlogStatus)}
-                disabled={!isAdmin}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value as BlogStatus)}
+                    disabled={!isAdmin}
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
 
             <div className="flex items-center justify-between rounded-lg bg-surface-muted/50 px-3 py-2">

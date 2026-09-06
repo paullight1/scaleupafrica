@@ -60,6 +60,7 @@ function renderNewResource(path = "/admin/resources/new") {
       <Routes>
         <Route path="/admin/resources/new" element={<AdminResourceEdit />} />
         <Route path="/admin/resources/:id" element={<AdminResourceEdit />} />
+        <Route path="/admin/resources" element={<div />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -160,6 +161,44 @@ describe("AdminResourceEdit delivery methods", () => {
     expect(screen.getByText("Start with the business model")).toBeInTheDocument();
   });
 
+  it("saves an edited resource as a draft before closing the editor", async () => {
+    adminResource = {
+      id: "resource-1",
+      title: "Published resource",
+      slug: "published-resource",
+      type: "guide",
+      category: "Business planning",
+      topics: ["Business planning"],
+      excerpt: "A published resource.",
+      content: "## Published content",
+      gated: true,
+      featured: true,
+      read_time_min: 25,
+      status: "published",
+      cover_image_url: null,
+      file_url: "https://example.com/published-resource",
+      file_name: "Published resource",
+      file_size_kb: null,
+      published_at: "2026-08-23T00:00:00.000Z",
+      updated_at: "2026-08-23T00:00:00.000Z",
+    };
+    updateResource.mockResolvedValue({ ...adminResource, status: "draft" });
+
+    renderNewResource("/admin/resources/resource-1");
+    fireEvent.change(await screen.findByLabelText("Title"), {
+      target: { value: "Private revision" },
+    });
+    fireEvent.click(screen.getByRole("link", { name: "Resources" }));
+
+    await waitFor(() => {
+      expect(updateResource).toHaveBeenCalledWith({
+        id: "resource-1",
+        values: expect.objectContaining({ title: "Private revision", status: "draft" }),
+      });
+      expect(screen.getByLabelText("Current route")).toHaveTextContent("/admin/resources");
+    });
+  });
+
   it("restores an unfinished browser draft and lets the editor discard it", async () => {
     window.localStorage.setItem(
       LOCAL_DRAFT_KEY,
@@ -219,6 +258,21 @@ describe("AdminResourceEdit delivery methods", () => {
     );
     expect(screen.getByText(/Saved in this browser/i)).toBeInTheDocument();
     expect(createResource).not.toHaveBeenCalled();
+  });
+
+  it("flushes an unfinished draft before the browser hides the page", async () => {
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Upload a file/i }));
+    fireEvent.change(await screen.findByLabelText("Title"), {
+      target: { value: "Draft saved before leaving" },
+    });
+
+    fireEvent(window, new Event("pagehide"));
+
+    expect(JSON.parse(window.localStorage.getItem(LOCAL_DRAFT_KEY) ?? "null")).toMatchObject({
+      values: { title: "Draft saved before leaving" },
+      deliveryKind: "upload",
+    });
   });
 
   it("keeps a newly saved Supabase draft open and clears its browser recovery copy", async () => {

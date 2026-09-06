@@ -23,7 +23,7 @@ export function contentPermissions({
   if (isAdmin) {
     return {
       canEdit: true,
-      canSaveDraft: status !== "published",
+      canSaveDraft: true,
       canPublish: status !== "published",
       canUnpublish: status === "published",
       canArchive: status !== "archived",

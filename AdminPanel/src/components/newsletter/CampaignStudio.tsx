@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Eye, Loader2, Save, Send, UsersRound } from "lucide-react";
 import { Badge } from "@shared/components/ui/badge";
 import { Button } from "@shared/components/ui/button";
@@ -25,6 +25,7 @@ export default function CampaignStudio({ open, campaignId, onOpenChange }: { ope
   const [testEmail, setTestEmail] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [dirty, setDirty] = useState(false);
+  const hydratedKey = useRef<string | null>(null);
   const save = useSaveNewsletterCampaign();
   const test = useSendCampaignTest();
   const deliver = useDeliverNewsletterCampaign();
@@ -33,7 +34,36 @@ export default function CampaignStudio({ open, campaignId, onOpenChange }: { ope
   const effectiveId = campaignId ?? savedId;
   const readonly = Boolean(query.data && query.data.status !== "draft");
 
-  useEffect(() => { if (!open) return; setStep("compose"); setSavedId(campaignId); if (query.data) { setDraft(fromRow(query.data)); setRevision(query.data.revision); setTestedRevision(query.data.last_test_status === "sent" && query.data.last_test_revision === query.data.revision ? query.data.revision : null); setTestEmail(query.data.last_test_email ?? ""); setDirty(false); } else if (!campaignId) { setDraft(empty); setRevision(1); setTestedRevision(null); setTestEmail(""); setDirty(false); } }, [open, campaignId, query.data]);
+  useEffect(() => {
+    if (!open) {
+      hydratedKey.current = null;
+      return;
+    }
+
+    const key = campaignId ?? "new";
+    if (hydratedKey.current === key) return;
+    if (campaignId && !query.data) return;
+
+    setStep("compose");
+    setSavedId(campaignId);
+    if (query.data) {
+      setDraft(fromRow(query.data));
+      setRevision(query.data.revision);
+      setTestedRevision(
+        query.data.last_test_status === "sent" && query.data.last_test_revision === query.data.revision
+          ? query.data.revision
+          : null,
+      );
+      setTestEmail(query.data.last_test_email ?? "");
+    } else {
+      setDraft(empty);
+      setRevision(1);
+      setTestedRevision(null);
+      setTestEmail("");
+    }
+    setDirty(false);
+    hydratedKey.current = key;
+  }, [open, campaignId, query.data]);
   useEffect(() => { if (!dirty || !effectiveId || readonly) return; const timer = window.setTimeout(() => save.mutate({ id: effectiveId, values: draft }, { onSuccess: (row) => { setRevision(row.revision); setTestedRevision(null); setDirty(false); } }), 1_000); return () => window.clearTimeout(timer); }, [dirty, effectiveId, draft, readonly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rendered = useMemo(() => renderNewsletter({ subject: draft.subject || "Untitled Cresciva dispatch", previewText: draft.previewText, blocks: draft.blocks }), [draft.subject, draft.previewText, draft.blocks]);

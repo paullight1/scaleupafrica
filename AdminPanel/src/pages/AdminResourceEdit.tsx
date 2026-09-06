@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -206,6 +206,8 @@ const AdminResourceEdit = () => {
   const slugTouched = useRef(Boolean(initialLocalDraft?.values.slug));
   const hydrated = useRef(false);
   const localDraftTimer = useRef<number | null>(null);
+  const latestValuesRef = useRef<FormValues>(initialLocalDraft?.values ?? DEFAULTS);
+  const browserDraftEnabledRef = useRef(!isEdit);
   const deliveryKindRef = useRef<DeliveryKind | null>(
     initialLocalDraft?.deliveryKind ?? (isEdit ? "upload" : null),
   );
@@ -259,9 +261,34 @@ const AdminResourceEdit = () => {
     setLocalSavedAt(null);
   }, [browserDraftKey]);
 
+  const writeBrowserDraft = useCallback(
+    (values: FormValues = latestValuesRef.current) => {
+      if (isEdit || !browserDraftEnabledRef.current) return;
+      const currentDeliveryKind = deliveryKindRef.current;
+      const currentLinkUrl = linkUrlRef.current;
+      if (!hasDraftContent(values, currentDeliveryKind, currentLinkUrl)) return;
+      const savedAt = new Date().toISOString();
+      const snapshot: LocalResourceDraft = {
+        version: 1,
+        savedAt,
+        deliveryKind: currentDeliveryKind,
+        linkUrl: currentLinkUrl,
+        values: { ...values, status: "draft" },
+      };
+      try {
+        window.localStorage.setItem(browserDraftKey, JSON.stringify(snapshot));
+        setLocalSavedAt(savedAt);
+      } catch {
+        // Keep editing available when storage is full or disabled.
+      }
+    },
+    [browserDraftKey, isEdit],
+  );
+
   const queueBrowserDraft = useCallback(
     (values: FormValues) => {
       if (isEdit) return;
+      latestValuesRef.current = values;
       if (localDraftTimer.current !== null) {
         window.clearTimeout(localDraftTimer.current);
       }
@@ -270,24 +297,11 @@ const AdminResourceEdit = () => {
       if (!hasDraftContent(values, currentDeliveryKind, currentLinkUrl)) return;
       setLocalSavedAt(null);
       localDraftTimer.current = window.setTimeout(() => {
-        const savedAt = new Date().toISOString();
-        const snapshot: LocalResourceDraft = {
-          version: 1,
-          savedAt,
-          deliveryKind: currentDeliveryKind,
-          linkUrl: currentLinkUrl,
-          values: { ...values, status: "draft" },
-        };
-        try {
-          window.localStorage.setItem(browserDraftKey, JSON.stringify(snapshot));
-          setLocalSavedAt(savedAt);
-        } catch {
-          // Keep editing available when storage is full or disabled.
-        }
+        writeBrowserDraft(values);
         localDraftTimer.current = null;
       }, LOCAL_DRAFT_DELAY_MS);
     },
-    [browserDraftKey, isEdit],
+    [isEdit, writeBrowserDraft],
   );
 
   useEffect(() => {
@@ -309,9 +323,30 @@ const AdminResourceEdit = () => {
       if (localDraftTimer.current !== null) {
         window.clearTimeout(localDraftTimer.current);
       }
+      writeBrowserDraft();
     },
-    [],
+    [writeBrowserDraft],
   );
+
+  useEffect(() => {
+    if (isEdit) return;
+    const flush = () => {
+      if (localDraftTimer.current !== null) {
+        window.clearTimeout(localDraftTimer.current);
+        localDraftTimer.current = null;
+      }
+      writeBrowserDraft();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [isEdit, writeBrowserDraft]);
 
   // Auto-derive the slug from the title until the user edits it themselves.
   useEffect(() => {
@@ -405,6 +440,7 @@ const AdminResourceEdit = () => {
         });
       }
       clearBrowserDraft();
+      browserDraftEnabledRef.current = false;
       setRemoteSavedAt(saved.updated_at ?? new Date().toISOString());
       reset({ ...values, status: nextStatus });
       toast.success(
@@ -475,8 +511,16 @@ const AdminResourceEdit = () => {
     status: (resourceQuery.data?.status ?? "draft") as ContentStatus,
   });
 
+  const onClose = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!isDirty || !permissions.canEdit) return;
+    event.preventDefault();
+    if (busy) return;
+    void handleSubmit((values) => persist(values, "draft"))();
+  };
+
   const discardRecoveredDraft = () => {
     clearBrowserDraft();
+    browserDraftEnabledRef.current = true;
     slugTouched.current = false;
     setDeliveryKind(null);
     setLinkUrl("");
@@ -531,6 +575,7 @@ const AdminResourceEdit = () => {
         breadcrumb={
           <Link
             to="/admin/resources"
+            onClick={onClose}
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-ink-strong"
           >
             <ArrowLeft className="h-4 w-4" /> Resources
