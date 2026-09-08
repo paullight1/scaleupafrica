@@ -15,6 +15,7 @@ export type SignUpValues = {
   confirm: string;
   fullName: string;
   businessName: string;
+  organizationSize: "" | "0" | "1-20" | "21-50" | "51-100" | "101+";
 };
 
 export type SignUpFieldErrors = Partial<Record<keyof SignUpValues, string>>;
@@ -25,6 +26,7 @@ const EMPTY: SignUpValues = {
   confirm: "",
   fullName: "",
   businessName: "",
+  organizationSize: "",
 };
 
 const emailStep = z.object({
@@ -44,11 +46,17 @@ const passwordStep = z
     message: "Passwords don't match",
   });
 
-// Both fields are optional: an empty business name must never block account
-// creation, it only costs the user a pre-filled directory form later.
+// The onboarding fields are collected before account creation so downstream
+// profile setup can start with useful business context.
 const profileStep = z.object({
-  fullName: z.string().trim().max(80, "Keep this under 80 characters"),
-  businessName: z.string().trim().max(120, "Keep this under 120 characters"),
+  fullName: z.string().trim().min(1, "Enter your first name").max(80, "Keep this under 80 characters"),
+  businessName: z.string().trim().min(1, "Enter your company name").max(120, "Keep this under 120 characters"),
+  organizationSize: z
+    .string()
+    .refine((value): value is Exclude<SignUpValues["organizationSize"], ""> =>
+      ["0", "1-20", "21-50", "51-100", "101+"].includes(value),
+      "Choose your organization size",
+    ),
 });
 
 const STEP_SCHEMAS = { 1: emailStep, 2: passwordStep, 3: profileStep } as const;
@@ -119,7 +127,10 @@ export function useSignUpWizard({ next, onConfirmationRequired, onSessionCreated
           emailRedirectTo: redirect,
           metadata: {
             full_name: values.fullName.trim(),
+            first_name: values.fullName.trim(),
             business_name: values.businessName.trim(),
+            company_name: values.businessName.trim(),
+            organization_size: values.organizationSize as Exclude<SignUpValues["organizationSize"], "">,
           },
         }
       );

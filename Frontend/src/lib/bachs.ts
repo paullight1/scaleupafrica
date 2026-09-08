@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@shared/integrations/supabase/client";
 import { useAuth } from "@shared/hooks/useAuth";
-import { type Currency, type PlanCode } from "@/lib/billing";
+import { defaultCurrency, type Currency, type PlanCode } from "@/lib/billing";
 
 export type VerifyStatus = "success" | "pending" | "failed";
 
@@ -132,7 +132,7 @@ export function useBachsCheckout() {
         return;
       }
 
-      const chargeCurrency = "USD" as const;
+      const chargeCurrency = currency ?? defaultCurrency();
       setIsPending(true);
       try {
         const result = await initCheckout({

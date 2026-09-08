@@ -92,6 +92,16 @@ describe("Bachs recurring subscription snapshots", () => {
     expect(invoiceMatchesExpected({ ...invoice!, currency: "NGN" }, 1_000, "USD")).toBe(false);
   });
 
+  it("accepts naira in kobo and rejects an underpayment or wrong currency", () => {
+    const invoice = parseBachsInvoiceSnapshot({
+      invoice_id: "inv_naira123", status: "paid", currency: "NGN",
+      total: "10000.00", amount_paid: "10000.00",
+    });
+    expect(invoiceMatchesExpected(invoice!, 1_000_000, "NGN")).toBe(true);
+    expect(invoiceMatchesExpected({ ...invoice!, total: "9999.00" }, 1_000_000, "NGN")).toBe(false);
+    expect(invoiceMatchesExpected({ ...invoice!, currency: "USD" }, 1_000_000, "NGN")).toBe(false);
+  });
+
   it("keeps access during Bachs recovery only until the paid period ends", () => {
     const beforeExpiry = new Date("2026-09-01T00:00:00.000Z").getTime();
     const afterExpiry = new Date("2026-10-01T00:00:00.000Z").getTime();

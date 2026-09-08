@@ -6,15 +6,17 @@ import { Label } from "@shared/components/ui/label";
 interface StepProfileProps {
   fullName: string;
   businessName: string;
-  errors: { fullName?: string; businessName?: string };
+  organizationSize: "" | "0" | "1-20" | "21-50" | "51-100" | "101+";
+  errors: { fullName?: string; businessName?: string; organizationSize?: string };
   busy: boolean;
-  onChange: (field: "fullName" | "businessName", value: string) => void;
+  onChange: (field: "fullName" | "businessName" | "organizationSize", value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
 export function StepProfile({
   fullName,
   businessName,
+  organizationSize,
   errors,
   busy,
   onChange,
@@ -26,13 +28,13 @@ export function StepProfile({
         Tell us who you are
       </h1>
       <p className="mb-6 text-muted-foreground">
-        We'll use this to set up your directory profile. You can change both later.
+        A few details help us tailor Cresciva to your business.
       </p>
 
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <div>
           <Label htmlFor="full-name">
-            Your name <span className="text-muted-foreground">(optional)</span>
+            First name
           </Label>
           <Input
             id="full-name"
@@ -40,7 +42,7 @@ export function StepProfile({
             onChange={(e) => onChange("fullName", e.target.value)}
             autoComplete="name"
             autoFocus
-            placeholder="Amara Okafor"
+            placeholder="Amara"
             aria-invalid={!!errors.fullName}
             aria-describedby={errors.fullName ? "full-name-error" : undefined}
             className="h-11"
@@ -54,7 +56,7 @@ export function StepProfile({
 
         <div>
           <Label htmlFor="business-name">
-            Business name <span className="text-muted-foreground">(optional)</span>
+            Company name
           </Label>
           <Input
             id="business-name"
@@ -69,6 +71,30 @@ export function StepProfile({
           {errors.businessName && (
             <p id="business-name-error" className="mt-1 text-sm text-destructive-strong">
               {errors.businessName}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="organization-size">Organization size</Label>
+          <select
+            id="organization-size"
+            value={organizationSize}
+            onChange={(e) => onChange("organizationSize", e.target.value)}
+            className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none focus:ring-2 focus:ring-ring"
+            aria-invalid={!!errors.organizationSize}
+            aria-describedby={errors.organizationSize ? "organization-size-error" : undefined}
+          >
+            <option value="" disabled>Select organization size</option>
+            <option value="0">0 (pre-launch)</option>
+            <option value="1-20">1–20</option>
+            <option value="21-50">21–50</option>
+            <option value="51-100">51–100</option>
+            <option value="101+">101+</option>
+          </select>
+          {errors.organizationSize && (
+            <p id="organization-size-error" className="mt-1 text-sm text-destructive-strong">
+              {errors.organizationSize}
             </p>
           )}
         </div>

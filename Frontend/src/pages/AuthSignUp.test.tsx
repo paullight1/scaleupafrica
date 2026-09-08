@@ -36,7 +36,7 @@ async function reachProfileStep(email = "founder@example.com", password = "corre
   type("Password", password);
   type("Confirm password", password);
   click("Continue");
-  await screen.findByRole("heading", { name: "Tell us who you are" });
+    await screen.findByRole("heading", { name: "Tell us who you are" });
 }
 
 describe("Signup wizard", () => {
@@ -121,8 +121,9 @@ describe("Signup wizard", () => {
     renderSignUp("/auth/signup?next=%2Ffunding");
     await reachProfileStep();
 
-    type("Your name (optional)", "Amara Okafor");
-    type("Business name (optional)", "Kaya Logistics");
+    type("First name", "Amara");
+    type("Company name", "Kaya Logistics");
+    fireEvent.change(screen.getByLabelText("Organization size"), { target: { value: "1-20" } });
     click("Create account");
 
     await waitFor(() => expect(mocks.signUp).toHaveBeenCalledTimes(1));
@@ -130,7 +131,13 @@ describe("Signup wizard", () => {
       "founder@example.com",
       "correct horse 9",
       expect.objectContaining({
-        metadata: { full_name: "Amara Okafor", business_name: "Kaya Logistics" },
+        metadata: {
+          full_name: "Amara",
+          first_name: "Amara",
+          business_name: "Kaya Logistics",
+          company_name: "Kaya Logistics",
+          organization_size: "1-20",
+        },
         emailRedirectTo: expect.stringContaining("next=%2Ffunding"),
       })
     );
@@ -152,6 +159,10 @@ describe("Signup wizard", () => {
       type("Password", "correct horse 9");
       type("Confirm password", "correct horse 9");
       click("Continue");
+      // The wizard advances synchronously here; avoid a timer-backed query while fake timers are active.
+      type("First name", "Amara");
+      type("Company name", "Kaya Logistics");
+      fireEvent.change(screen.getByLabelText("Organization size"), { target: { value: "1-20" } });
       await act(async () => click("Create account"));
 
       expect(mocks.signUp).toHaveBeenCalledTimes(1);
@@ -165,23 +176,25 @@ describe("Signup wizard", () => {
     }
   });
 
-  it("submits without the optional fields", async () => {
+  it("requires the onboarding fields before creating an account", async () => {
     mocks.signUp.mockResolvedValue({ error: null, confirmationRequired: true });
     renderSignUp();
     await reachProfileStep();
     click("Create account");
 
-    await waitFor(() => expect(mocks.signUp).toHaveBeenCalledTimes(1));
-    expect(mocks.signUp.mock.calls[0][2].metadata).toEqual({
-      full_name: "",
-      business_name: "",
-    });
+    expect(await screen.findByText("Enter your first name")).toBeInTheDocument();
+    expect(screen.getByText("Enter your company name")).toBeInTheDocument();
+    expect(screen.getByText("Choose your organization size")).toBeInTheDocument();
+    expect(mocks.signUp).not.toHaveBeenCalled();
   });
 
   it("toasts on a live session when email confirmation is off", async () => {
     mocks.signUp.mockResolvedValue({ error: null, confirmationRequired: false });
     renderSignUp();
     await reachProfileStep();
+    type("First name", "Amara");
+    type("Company name", "Kaya Logistics");
+    fireEvent.change(screen.getByLabelText("Organization size"), { target: { value: "1-20" } });
     click("Create account");
 
     await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Account created."));
@@ -195,6 +208,9 @@ describe("Signup wizard", () => {
     });
     renderSignUp("/auth/signup?next=%2Ffunding");
     await reachProfileStep();
+    type("First name", "Amara");
+    type("Company name", "Kaya Logistics");
+    fireEvent.change(screen.getByLabelText("Organization size"), { target: { value: "1-20" } });
     click("Create account");
 
     const alert = await screen.findByRole("alert");

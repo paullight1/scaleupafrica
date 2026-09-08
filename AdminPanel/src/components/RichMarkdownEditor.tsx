@@ -20,6 +20,7 @@ import {
   toolbarPlugin,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
+import { CONTENT_PROSE_CLASS } from "@shared/lib/prose";
 
 type RichMarkdownEditorProps = {
   value: string;
@@ -92,7 +93,7 @@ export function RichMarkdownEditor({
         readOnly={disabled}
         placeholder="Start writing your resource…"
         className="cresciva-markdown-editor mdxeditor-full-height"
-        contentEditableClassName="cresciva-markdown-content prose prose-slate max-w-none prose-headings:font-display prose-a:text-navy"
+        contentEditableClassName={`cresciva-markdown-content ${CONTENT_PROSE_CLASS}`}
         plugins={plugins}
       />
       {parseError && (

@@ -46,6 +46,8 @@
 }
 
 .cresciva-markdown-editor {
+  min-width: 0;
+  max-width: 100%;
   min-height: 30rem;
   overflow: hidden;
   border: 1px solid hsl(var(--border));
@@ -58,6 +60,7 @@
   position: sticky;
   top: 0;
   z-index: 5;
+  flex-wrap: wrap;
   gap: 0.25rem;
   border: 0;
   border-bottom: 1px solid hsl(var(--border));
@@ -68,6 +71,7 @@
 }
 
 .cresciva-markdown-editor .cresciva-markdown-content {
+  overflow-wrap: anywhere;
   min-height: 25rem;
   padding: 1.5rem;
   color: hsl(var(--foreground));

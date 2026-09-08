@@ -12,7 +12,7 @@ import {
   verifyBachsSignature,
   type BachsWebhookEvent,
 } from "../_shared/bachs.ts";
-import { isPlanCode, resolvePlanAmount, type PlanCode } from "../_shared/billing.ts";
+import { isCurrency, isPlanCode, resolvePlanAmount, type PlanCode } from "../_shared/billing.ts";
 import { readBoundedText } from "../_shared/requestBody.ts";
 import { sendPaymentReceipt } from "../_shared/email/receipt.ts";
 
@@ -23,8 +23,11 @@ const BACHS_WEBHOOK_SIGNING_SECRET = Deno.env.get("BACHS_WEBHOOK_SIGNING_SECRET"
 const BACHS_BASE_URL_CONFIG = Deno.env.get("BACHS_BASE_URL");
 const BACHS_ORGANIZATION_ID = Deno.env.get("BACHS_ORGANIZATION_ID") ?? "";
 const BACHS_MONTHLY_PRODUCT_USD = Deno.env.get("BACHS_MONTHLY_PRODUCT_USD") ?? "";
+const BACHS_MONTHLY_PRODUCT_NGN = Deno.env.get("BACHS_MONTHLY_PRODUCT_NGN") ?? "";
 const BACHS_QUARTERLY_PRODUCT_USD = Deno.env.get("BACHS_QUARTERLY_PRODUCT_USD") ?? "";
+const BACHS_QUARTERLY_PRODUCT_NGN = Deno.env.get("BACHS_QUARTERLY_PRODUCT_NGN") ?? "";
 const BACHS_ANNUAL_PRODUCT_USD = Deno.env.get("BACHS_ANNUAL_PRODUCT_USD") ?? "";
+const BACHS_ANNUAL_PRODUCT_NGN = Deno.env.get("BACHS_ANNUAL_PRODUCT_NGN") ?? "";
 const MAX_WEBHOOK_BYTES = 256 * 1024;
 type LooseSupabaseClient = SupabaseClient<any, "public", "public", any, any>;
 
@@ -107,8 +110,16 @@ async function handleInvoicePaid(admin: LooseSupabaseClient, event: BachsWebhook
     .select("user_id, plan_code, bachs_initial_reference").eq("bachs_subscription_id", invoice.subscription_id).maybeSingle();
   if (subscriptionError || !subscription || !isPlanCode(subscription.plan_code)) return new Response("", { status: 500 });
   const planCode = subscription.plan_code as PlanCode;
-  const expectedAmount = resolvePlanAmount(planCode, "USD");
-  if (expectedAmount == null || !invoiceMatchesExpected(invoice, expectedAmount, "USD")) {
+  // Bind renewals to the original server-priced checkout currency.
+  const { data: initialPayment, error: paymentError } = await admin.from("payments")
+    .select("currency").eq("reference", subscription.bachs_initial_reference)
+    .eq("user_id", subscription.user_id).maybeSingle();
+  if (paymentError || !initialPayment || !isCurrency(initialPayment.currency)) {
+    return new Response("", { status: 500 });
+  }
+  const currency = initialPayment.currency;
+  const expectedAmount = resolvePlanAmount(planCode, currency);
+  if (expectedAmount == null || !invoiceMatchesExpected(invoice, expectedAmount, currency)) {
     console.error("bachs-webhook: invoice rejected", invoice.invoice_id);
     return await markProcessed(admin, eventRowId, "rejected");
   }
@@ -117,7 +128,7 @@ async function handleInvoicePaid(admin: LooseSupabaseClient, event: BachsWebhook
   const { data: paymentId, error } = await admin.rpc("record_bachs_invoice_paid", {
     _user_id: subscription.user_id, _reference: reference, _provider_invoice_id: invoice.invoice_id,
     _provider_charge_id: providerChargeId, _provider_subscription_id: invoice.subscription_id, _plan_code: planCode,
-    _amount: expectedAmount, _currency: "USD", _channel: stringFrom(event.data?.payment_method) ?? stringFrom(event.data?.collection_method),
+    _amount: expectedAmount, _currency: currency, _channel: stringFrom(event.data?.payment_method) ?? stringFrom(event.data?.collection_method),
     _paid_at: event.created_at ?? new Date().toISOString(), _period_start: invoice.period_start, _period_end: invoice.period_end,
     _next_payment_at: stringFrom(event.data?.next_payment_at) ?? invoice.period_end, _gateway_response: safeInvoiceSummary(event, invoice),
   });
@@ -146,7 +157,8 @@ async function resolveUserId(admin: LooseSupabaseClient, metadata: Record<string
 function resolvePlanCode(metadata: Record<string, unknown>, productId: string | null): PlanCode | null {
   const metadataPlan = stringFrom(metadata.plan_code);
   if (isPlanCode(metadataPlan)) return metadataPlan;
-  return planCodeFromBachsProductId(productId, { monthly: BACHS_MONTHLY_PRODUCT_USD, quarterly: BACHS_QUARTERLY_PRODUCT_USD, annual: BACHS_ANNUAL_PRODUCT_USD });
+  return planCodeFromBachsProductId(productId, { monthly: BACHS_MONTHLY_PRODUCT_USD, quarterly: BACHS_QUARTERLY_PRODUCT_USD, annual: BACHS_ANNUAL_PRODUCT_USD })
+    ?? planCodeFromBachsProductId(productId, { monthly: BACHS_MONTHLY_PRODUCT_NGN, quarterly: BACHS_QUARTERLY_PRODUCT_NGN, annual: BACHS_ANNUAL_PRODUCT_NGN });
 }
 
 function safeParseEvent(raw: string): BachsWebhookEvent | null {

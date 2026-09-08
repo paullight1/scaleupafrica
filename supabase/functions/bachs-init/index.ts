@@ -20,8 +20,11 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BACHS_SECRET_KEY = Deno.env.get("BACHS_SECRET_KEY") ?? "";
 const BACHS_BASE_URL_CONFIG = Deno.env.get("BACHS_BASE_URL");
 const BACHS_MONTHLY_PRODUCT_USD = Deno.env.get("BACHS_MONTHLY_PRODUCT_USD") ?? "";
+const BACHS_MONTHLY_PRODUCT_NGN = Deno.env.get("BACHS_MONTHLY_PRODUCT_NGN") ?? "";
 const BACHS_QUARTERLY_PRODUCT_USD = Deno.env.get("BACHS_QUARTERLY_PRODUCT_USD") ?? "";
+const BACHS_QUARTERLY_PRODUCT_NGN = Deno.env.get("BACHS_QUARTERLY_PRODUCT_NGN") ?? "";
 const BACHS_ANNUAL_PRODUCT_USD = Deno.env.get("BACHS_ANNUAL_PRODUCT_USD") ?? "";
+const BACHS_ANNUAL_PRODUCT_NGN = Deno.env.get("BACHS_ANNUAL_PRODUCT_NGN") ?? "";
 const APP_URL_CONFIG = Deno.env.get("APP_URL") ?? "";
 
 interface BachsCheckoutCreateResponse {
@@ -65,18 +68,15 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const planCode = body.plan_code;
     const currency = body.currency;
-    if (!isPlanCode(planCode) || !isCurrency(currency) || currency !== "USD") {
-      if (currency === "NGN") {
-        return json({ error: "Recurring memberships are currently available in USD only.", code: "USD_REQUIRED" }, 400);
-      }
+    if (!isPlanCode(planCode) || !isCurrency(currency)) {
       return json({ error: "Invalid plan or currency.", code: "INVALID_PLAN" }, 400);
     }
 
     const amount = resolvePlanAmount(planCode, currency);
     const productId = resolveBachsPlanProductId(planCode, currency, {
-      monthly: { USD: BACHS_MONTHLY_PRODUCT_USD },
-      quarterly: { USD: BACHS_QUARTERLY_PRODUCT_USD },
-      annual: { USD: BACHS_ANNUAL_PRODUCT_USD },
+      monthly: { NGN: BACHS_MONTHLY_PRODUCT_NGN, USD: BACHS_MONTHLY_PRODUCT_USD },
+      quarterly: { NGN: BACHS_QUARTERLY_PRODUCT_NGN, USD: BACHS_QUARTERLY_PRODUCT_USD },
+      annual: { NGN: BACHS_ANNUAL_PRODUCT_NGN, USD: BACHS_ANNUAL_PRODUCT_USD },
     });
     if (amount == null || !productId) {
       console.error("bachs-init: missing/invalid product configuration", planCode, currency);

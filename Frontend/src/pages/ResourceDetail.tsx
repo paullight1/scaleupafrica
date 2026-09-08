@@ -13,6 +13,7 @@ import {
 import { supabase } from "@shared/integrations/supabase/client";
 import { requestResourceDownload } from "@/lib/email";
 import { trackEvent } from "@shared/lib/analytics";
+import { resourceDeliveryKind } from "@shared/lib/resourceLinks";
 import { Markdown } from "@shared/lib/markdown";
 import { SEO } from "@shared/components/common/SEO";
 import { ErrorState } from "@shared/components/common/ErrorState";
@@ -63,6 +64,7 @@ const ResourceDetail = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
+  const [openingDownload, setOpeningDownload] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
@@ -152,15 +154,40 @@ const ResourceDetail = () => {
   };
   const seoImage = resource.cover_image_url || undefined;
 
-  const handleDownload = () => {
-    if (!resource.file_url) return;
-    void trackEvent("resource_download", {
-      entityType: "resource",
-      entityId: resource.id,
-      metadata: { resource_title: resource.title },
-    });
-    incrementDownload(resource.id);
-    window.open(resource.file_url, "_blank", "noopener,noreferrer");
+  const handleDownload = async () => {
+    if (openingDownload) return;
+    setOpeningDownload(true);
+    // Reserve a tab during the click so the async refresh is not popup-blocked.
+    const destination = window.open("about:blank", "_blank");
+    if (destination) destination.opener = null;
+    try {
+      const latest = await refetch();
+      if (latest.error) throw latest.error;
+      const saved = latest.data;
+      if (!saved || resourceDeliveryKind(saved.file_url) === "none") {
+        destination?.close();
+        toast.error("This download is no longer available.");
+        return;
+      }
+      if (saved.gated && !user && !unlocked) {
+        destination?.close();
+        setAccessOpen(true);
+        return;
+      }
+      // Preserve the saved URL, query parameters and fragment exactly.
+      if (destination) destination.location.replace(saved.file_url!);
+      else window.location.assign(saved.file_url!);
+      void trackEvent("resource_download", {
+        entityType: "resource", entityId: saved.id,
+        metadata: { resource_title: saved.title },
+      });
+      incrementDownload(saved.id);
+    } catch {
+      destination?.close();
+      toast.error("Couldn't verify the latest download link. Please try again.");
+    } finally {
+      setOpeningDownload(false);
+    }
   };
 
   const handleLeadSubmit = async (e: React.FormEvent) => {
@@ -257,7 +284,7 @@ const ResourceDetail = () => {
       <div className="mx-auto max-w-4xl px-6 py-8">
         <div className="grid gap-8 md:grid-cols-3">
           {/* Main column */}
-          <div className="space-y-6 md:col-span-2">
+          <div className="min-w-0 space-y-6 md:col-span-2">
             {resource.cover_image_url && (
               <img
                 src={resource.cover_image_url}
@@ -307,8 +334,8 @@ const ResourceDetail = () => {
                 </div>
 
                 {canDownloadNow ? (
-                  <Button className="w-full" size="lg" onClick={handleDownload}>
-                    <Download className="h-4 w-4" /> Download
+                  <Button className="w-full" size="lg" onClick={() => void handleDownload()} disabled={openingDownload} aria-busy={openingDownload}>
+                    <Download className="h-4 w-4" /> {openingDownload ? "Opening…" : "Download"}
                   </Button>
                 ) : !user && resource.gated ? (
                   <Button className="w-full" size="lg" onClick={() => setAccessOpen(true)}><Lock className="h-4 w-4" /> Sign in to access</Button>

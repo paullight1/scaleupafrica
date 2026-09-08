@@ -7,7 +7,7 @@ Cresciva is a Pan-African SME platform: a public, searchable directory where fou
 - **Frontend:** Vite + React 18 + TypeScript, shadcn/ui (Radix + Tailwind CSS), React Router, TanStack Query, Framer Motion.
 - **Admin:** a separate Vite/React app assembled under `/admin/` in the production artifact.
 - **Backend today:** Supabase Auth, Postgres/RLS, Storage and Deno Edge Functions.
-- **Payments:** Bachs recurring product checkout, signed lifecycle webhooks, customer billing portal, and a Cresciva-owned payment/entitlement ledger. Plans are $10/month, $25/3 months, or $90/year and renew automatically until canceled.
+- **Payments:** Bachs recurring product checkout, signed lifecycle webhooks, customer billing portal, and a Cresciva-owned payment/entitlement ledger. Plans are $6.67/month, $16.67/3 months, or $60/year and renew automatically until canceled.
 - **Email:** Resend for transactional/visitor-triggered messages; Brevo for administrator-authored newsletter campaigns, segmented audiences and delivery reporting.
 - **Funding intelligence:** deterministic profile recommendations over the curated feed, verified-first opportunity search, and AI-assisted long-tail discovery that is always labelled unverified until source verification upgrades it.
 - **API server:** NestJS + Drizzle under `Backend/`, introduced behind domain-by-domain cutover flags.
@@ -26,7 +26,7 @@ cp Frontend/.env.example Frontend/.env
 cp AdminPanel/.env.example AdminPanel/.env
 
 npm run dev          # public site: http://localhost:8080
-npm run dev:admin    # admin panel: http://localhost:8081/admin/
+npm run dev:admin    # admin panel: http://localhost:8082/admin/
 npm run dev:api      # NestJS API: http://localhost:3001
 ```
 
@@ -117,9 +117,12 @@ BACHS_SECRET_KEY
 BACHS_BASE_URL
 BACHS_WEBHOOK_SIGNING_SECRET
 BACHS_ORGANIZATION_ID       # recommended provider/account pin
-BACHS_MONTHLY_PRODUCT_USD   # recurring product, exact $10/month price
-BACHS_QUARTERLY_PRODUCT_USD # recurring product, exact $25/3 months price
-BACHS_ANNUAL_PRODUCT_USD    # recurring product, exact $90/year price
+BACHS_MONTHLY_PRODUCT_USD   # recurring product, exact $6.67/month price
+BACHS_QUARTERLY_PRODUCT_USD # recurring product, exact $16.67/3 months price
+BACHS_ANNUAL_PRODUCT_USD    # recurring product, exact $60/year price
+BACHS_MONTHLY_PRODUCT_NGN   # recurring product, exact ₦10,000/month price
+BACHS_QUARTERLY_PRODUCT_NGN # recurring product, exact ₦25,000/3 months price
+BACHS_ANNUAL_PRODUCT_NGN    # recurring product, exact ₦90,000/year price
 APP_URL                     # official Cresciva web origin used for checkout return/cancel URLs
 LOVABLE_API_KEY             # current funding AI gateway key; verified-only search still works without it
 RESEND_API_KEY
@@ -139,7 +142,7 @@ Bachs environments must not be mixed:
 
 The code rejects a Bachs key/base-URL environment mismatch.
 
-Each `BACHS_*_PRODUCT_USD` variable must point to a **recurring Bachs product** with the matching billing cycle and exact Cresciva price. Sandbox/live product IDs may differ and must be deployed with the matching Bachs key environment. Bachs recurring billing currently settles these memberships in USD.
+Each `BACHS_*_PRODUCT_USD` variable must point to a **recurring Bachs product** with the matching billing cycle and exact Cresciva price. Sandbox/live product IDs may differ and must be deployed with the matching Bachs key environment. NGN prices use a fixed ₦1,500 per USD. Configure the three matching `BACHS_*_PRODUCT_NGN` recurring products and deploy `bachs-init` and `bachs-webhook` before enabling live naira checkout. Missing product configuration returns NOT_CONFIGURED; checkout never silently switches currency.
 
 ### NestJS Backend (when deployed)
 
@@ -180,12 +183,12 @@ docs/production-readiness launch-hardening plans and evidence
 ## Payment flow
 
 1. A signed-in user selects the monthly, quarterly, or annual USD plan.
-2. `bachs-init` resolves the canonical $10/$25/$90 amount and selects the configured recurring Bachs product.
+2. `bachs-init` resolves the canonical $6.67/$16.67/$60 amount and selects the configured recurring Bachs product.
 3. Cresciva creates the internal `payments` row first, then creates a Bachs hosted checkout with `product_cart`, `billing_currency`, a stable idempotency key, and metadata containing the internal reference/user/plan.
 4. The browser redirects to Bachs.
 5. Bachs returns to `<APP_URL>/payment/callback?reference=<crv_…>`. The reference is only a lookup key; the redirect is not payment proof.
 6. The callback posts `{ reference }` to `bachs-verify`, which reports checkout state but never grants access from the browser redirect.
-7. `bachs-webhook` syncs subscription lifecycle events and treats `invoice.paid` as the authoritative asynchronous settlement path. It validates exact USD amount/status before extending access.
+7. `bachs-webhook` syncs subscription lifecycle events and treats `invoice.paid` as the authoritative asynchronous settlement path. It validates the exact amount, original checkout currency (NGN or USD), and paid status before extending access.
 8. `record_bachs_invoice_paid(...)` atomically records the invoice and extends access through the paid period; failed invoices never extend access.
 9. `bachs-portal` creates a hosted Bachs billing-management session for authenticated members.
 10. `/admin/payments` exposes read-only reconciliation of provider settlement, ledger status, entitlement state, webhook processing and receipt delivery.
@@ -224,3 +227,9 @@ The repository is still named `paullight1/scaleupafrica` even though the product
 ## License & contact
 
 The repository currently has no finalized public license or support/contact address recorded here. Those owner decisions remain launch-operations items; do not invent them in code or documentation.
+
+### Resource link previews in development
+
+The admin Vite server provides `/admin/__resource-link-preview` locally, using the same metadata parser and bounded external-fetch policy as the hosted function. It verifies the caller with Supabase Auth and checks their admin/editor role before fetching. It requires the existing `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; no service-role key is used locally.
+
+Production uses the `resource-link-preview` Edge Function. Deploy that function and its shared dependencies to the application's Supabase project. A missing function is reported separately from a restricted source. Google Slides links that require sign-in cannot be fetched anonymously; manually authored details and the original destination can still be saved.

@@ -43,7 +43,7 @@ export const FAQS: Faq[] = [
     id: "payment",
     question: "How do I pay, and in which currency?",
     answer:
-      "Online payments use Bachs hosted checkout. Monthly, quarterly, and annual recurring plans are available in US Dollars (USD). Bachs shows the payment methods available for your checkout, and your bank may apply its own conversion rate or charges.",
+      "Online payments use Bachs hosted checkout. Monthly, quarterly, and annual recurring plans are available in Nigerian naira (NGN) for Nigeria and US dollars (USD) elsewhere, using a fixed ₦1,500 per $1. Bachs shows the payment methods available for your checkout, and your bank may apply its own conversion rate or charges.",
     homepage: true,
   },
   {
@@ -57,7 +57,7 @@ export const FAQS: Faq[] = [
     id: "monthly",
     question: "Is there a monthly plan?",
     answer:
-      "Yes. You can choose monthly, quarterly, or annual membership in USD. The annual plan offers the lowest monthly equivalent.",
+      "Yes. You can choose monthly, quarterly, or annual membership in NGN or USD. The annual plan offers the lowest monthly equivalent.",
     homepage: false,
   },
   {

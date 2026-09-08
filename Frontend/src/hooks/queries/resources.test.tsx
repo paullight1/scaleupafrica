@@ -80,6 +80,13 @@ describe("useResourceBySlug", () => {
     expect(result.current.data).toEqual(databaseResource);
   });
 
+  it("does not substitute a hardcoded download when loading fails", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: new Error("offline") });
+    const { result } = renderHook(() => useResourceBySlug(ADVISORS_PLAYBOOK_SLUG), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.data).toBeUndefined();
+  });
+
   it("does not synthesize a resource when the database confirms the slug is missing", async () => {
     maybeSingle.mockResolvedValue({ data: null, error: null });
 

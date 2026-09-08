@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -119,7 +119,7 @@ describe("AdminResourceEdit delivery methods", () => {
     );
     expect(screen.getByRole("link", { name: "View original link" })).toHaveAttribute(
       "href",
-      "https://example.com/guides/funding",
+      "https://short.example/funding",
     );
     expect(screen.getByRole("img", { name: "Link preview" })).toHaveAttribute(
       "src",
@@ -131,6 +131,65 @@ describe("AdminResourceEdit delivery methods", () => {
       target: { value: "Administrator-written description." },
     });
     expect(screen.getByLabelText("Excerpt")).toHaveValue("Administrator-written description.");
+  });
+
+  it("saves an exact link with its fragment without fetching metadata", async () => {
+    createResource.mockResolvedValue({ id: "resource-2", updated_at: "2026-09-08T00:00:00Z" });
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Paste a link/i }));
+    const destination = "https://docs.google.com/presentation/d/example/copy?mode=preview#slide=id.42";
+    fireEvent.change(await screen.findByLabelText("Resource link"), { target: { value: destination } });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "My slides" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+    await waitFor(() => expect(createResource).toHaveBeenCalledWith(expect.objectContaining({ file_url: destination })));
+    expect(fetchResourceLinkPreview).not.toHaveBeenCalled();
+  });
+
+  it("keeps author-written fields and the exact destination when fetching a preview", async () => {
+    fetchResourceLinkPreview.mockResolvedValue({ url: "https://example.com/canonical", title: "Remote title", description: "Remote summary", imageUrl: null, siteName: "Example" });
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Paste a link/i }));
+    fireEvent.change(await screen.findByLabelText("Resource link"), { target: { value: "https://example.com/copy#section" } });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "My title" } });
+    fireEvent.change(screen.getByLabelText("Excerpt"), { target: { value: "My summary" } });
+    fireEvent.click(screen.getByRole("button", { name: "Fetch link details" }));
+    await waitFor(() => expect(fetchResourceLinkPreview).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Fetch link details" })).toBeEnabled());
+    expect(screen.getByLabelText("Title")).toHaveValue("My title");
+    expect(screen.getByLabelText("Excerpt")).toHaveValue("My summary");
+    expect(screen.getByRole("link", { name: "View original link" })).toHaveAttribute("href", "https://example.com/copy#section");
+  });
+
+  it("allows saving a valid link when its optional preview is unavailable", async () => {
+    fetchResourceLinkPreview.mockRejectedValue(new Error("This document requires sign-in or sharing permission."));
+    createResource.mockResolvedValue({ id: "resource-3", updated_at: "2026-09-08T00:00:00Z" });
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Paste a link/i }));
+    fireEvent.change(await screen.findByLabelText("Resource link"), { target: { value: "https://example.com/private-slides" } });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "My presentation" } });
+    fireEvent.click(screen.getByRole("button", { name: "Fetch link details" }));
+    expect(await screen.findByText("This document requires sign-in or sharing permission.")).toHaveAttribute("role", "status");
+    expect(screen.getByLabelText("Resource link")).toHaveAttribute("aria-invalid", "false");
+    fireEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+    await waitFor(() => expect(createResource).toHaveBeenCalledWith(expect.objectContaining({ file_url: "https://example.com/private-slides" })));
+  });
+
+  it("previews unsaved resources without navigating, saving, or publishing", async () => {
+    renderNewResource();
+    fireEvent.click(screen.getByRole("button", { name: /Paste a link/i }));
+    fireEvent.change(await screen.findByLabelText("Title"), { target: { value: "My unsaved resource" } });
+    fireEvent.change(screen.getByLabelText("Excerpt"), { target: { value: "Current draft description" } });
+    fireEvent.change(screen.getByLabelText("Resource link"), { target: { value: "https://example.com/slides#page=3" } });
+    fireEvent.click(screen.getByRole("button", { name: "Preview resource" }));
+    const preview = within(await screen.findByRole("dialog", { name: "Resource preview" }));
+    expect(preview.getByRole("heading", { name: "My unsaved resource" })).toBeInTheDocument();
+    expect(preview.getByText("Current draft description")).toBeInTheDocument();
+    expect(preview.getByRole("link", { name: "Open resource" })).toHaveAttribute("href", "https://example.com/slides#page=3");
+    expect(createResource).not.toHaveBeenCalled();
+    expect(updateResource).not.toHaveBeenCalled();
+    fireEvent.click(preview.getByRole("button", { name: "Close" }));
+    expect(screen.getByLabelText("Title")).toHaveValue("My unsaved resource");
+    expect(screen.getByLabelText("Current route")).toHaveTextContent("/admin/resources/new");
   });
 
   it("shows existing Markdown in a rich editor with formatting controls", async () => {

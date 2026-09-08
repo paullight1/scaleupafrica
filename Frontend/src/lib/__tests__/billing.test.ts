@@ -8,6 +8,7 @@ import {
   PLANS as CLIENT_PLANS,
   PLAN_TERM_MONTHS,
   SUPPORTED_CURRENCIES,
+  currencyForCountry,
 } from "@/lib/billing";
 
 describe("plan price parity (client mirror ⇄ server source of truth)", () => {
@@ -36,15 +37,15 @@ describe("plan price parity (client mirror ⇄ server source of truth)", () => {
 
 describe("resolvePlanAmount (server never trusts a client amount)", () => {
   it("resolves the requested USD tier", () => {
-    expect(resolvePlanAmount("monthly", "USD")).toBe(1_000);
-    expect(resolvePlanAmount("quarterly", "USD")).toBe(2_500);
-    expect(resolvePlanAmount("annual", "USD")).toBe(9_000);
+    expect(resolvePlanAmount("monthly", "USD")).toBe(667);
+    expect(resolvePlanAmount("quarterly", "USD")).toBe(1_667);
+    expect(resolvePlanAmount("annual", "USD")).toBe(6_000);
   });
 
-  it("rejects NGN because recurring memberships settle in USD", () => {
-    expect(resolvePlanAmount("annual", "NGN")).toBeNull();
-    expect(resolvePlanAmount("monthly", "NGN")).toBeNull();
-    expect(resolvePlanAmount("quarterly", "NGN")).toBeNull();
+  it("prices NGN at the fixed 1500 exchange rate", () => {
+    expect(resolvePlanAmount("annual", "NGN")).toBe(9_000_000);
+    expect(resolvePlanAmount("monthly", "NGN")).toBe(1_000_000);
+    expect(resolvePlanAmount("quarterly", "NGN")).toBe(2_500_000);
   });
 
   it("rejects unknown plan or currency", () => {
@@ -52,3 +53,7 @@ describe("resolvePlanAmount (server never trusts a client amount)", () => {
     expect(resolvePlanAmount("annual", "eu")).toBeNull();
   });
 });
+
+ it.each([["Nigeria", "NGN"], ["ng", "NGN"], [" NG ", "NGN"], ["Kenya", "USD"], ["US", "USD"], [null, null]])("selects currency for %s", (country, expected) => {
+   expect(currencyForCountry(country)).toBe(expected);
+ });

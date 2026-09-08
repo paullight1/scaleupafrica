@@ -4,14 +4,13 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { supabase } from "@shared/integrations/supabase/client";
-import { HARD_CODED_RESOURCE, HARD_CODED_RESOURCES } from "@/content/hardcodedResources";
 
 /**
  * Public Resource Library data layer. All server reads go through TanStack Query.
  * RLS returns only `status = 'published'` rows to anonymous visitors, but every
  * query still filters `status = 'published'` explicitly so the intent is clear.
- * The database is authoritative. The original local playbook is used only as
- * an outage fallback so a successful query can never mask Admin edits.
+ * The database is authoritative. Failed reads never substitute a local resource
+ * or download destination for the saved admin content.
  */
 
 export const RESOURCE_TYPES = [
@@ -151,11 +150,7 @@ export function useResources(filters: ResourceFilters) {
         .order("published_at", { ascending: false })
         .range(pageParam, pageParam + PAGE_SIZE - 1);
 
-      // Keep the local playbook available even when the resource table is not configured yet.
-      if (error) {
-        const rows = filterLocalResources(filters);
-        return { rows: rows.slice(pageParam, pageParam + PAGE_SIZE), count: rows.length, nextOffset: pageParam + PAGE_SIZE };
-      }
+      if (error) throw error;
       const remoteRows = (data ?? []) as ResourceCardRow[];
       return {
         rows: remoteRows,
@@ -181,7 +176,7 @@ export function useFeaturedResources(limit = 3) {
         .eq("featured", true)
         .order("published_at", { ascending: false })
         .limit(limit);
-      if (error) return HARD_CODED_RESOURCES.slice(0, limit);
+      if (error) throw error;
       return ((data ?? []) as ResourceCardRow[]).slice(0, limit);
     },
   });
@@ -197,7 +192,7 @@ export function useResourceTopics() {
         .from("resources")
         .select("topics")
         .eq("status", "published");
-      if (error) return [...new Set(HARD_CODED_RESOURCES.flatMap((r) => r.topics))].sort();
+      if (error) throw error;
       const counts = new Map<string, number>();
       for (const row of (data ?? []) as { topics: string[] | null }[]) {
         for (const t of row.topics ?? []) {
@@ -222,9 +217,7 @@ export function useResourceBySlug(slug: string | undefined) {
         .eq("slug", slug as string)
         .eq("status", "published")
         .maybeSingle();
-      if (error) {
-        return slug === HARD_CODED_RESOURCE.slug ? HARD_CODED_RESOURCE : null;
-      }
+      if (error) throw error;
       return (data ?? null) as ResourceDetailRow | null;
     },
   });
@@ -249,17 +242,8 @@ export function useRelatedResources(
         .order("featured", { ascending: false })
         .order("published_at", { ascending: false })
         .limit(limit);
-      if (error) return HARD_CODED_RESOURCES.filter((r) => r.id !== excludeId).slice(0, limit);
+      if (error) throw error;
       return ((data ?? []) as ResourceCardRow[]).slice(0, limit);
     },
   });
-}
-
-function filterLocalResources(filters: ResourceFilters): ResourceCardRow[] {
-  const q = (filters.q ?? "").trim().toLowerCase();
-  return HARD_CODED_RESOURCES.filter((resource) =>
-    (!filters.type || resource.type === filters.type) &&
-    (!filters.topic || resource.topics.includes(filters.topic)) &&
-    (!q || `${resource.title} ${resource.excerpt ?? ""}`.toLowerCase().includes(q)),
-  );
 }

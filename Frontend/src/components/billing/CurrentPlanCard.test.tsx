@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CurrentPlanCard } from "./CurrentPlanCard";
 
 const startCheckout = vi.fn();
+vi.mock("@/hooks/usePricingCurrency", () => ({ usePricingCurrency: () => ({ currency: "USD", setCurrency: vi.fn() }) }));
 
 vi.mock("@/lib/subscription", () => ({
   useSubscription: () => ({
@@ -29,9 +30,9 @@ describe("CurrentPlanCard plan selection", () => {
     fireEvent.click(screen.getByRole("button", { name: /choose your plan/i }));
 
     expect(screen.getByRole("dialog", { name: /choose your membership/i })).toBeInTheDocument();
-    expect(screen.getByText("$10")).toBeInTheDocument();
-    expect(screen.getByText("$25")).toBeInTheDocument();
-    expect(screen.getByText("$90")).toBeInTheDocument();
+    expect(screen.getByText("$6.67")).toBeInTheDocument();
+    expect(screen.getByText("$16.67")).toBeInTheDocument();
+    expect(screen.getByText("$60")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: /quarterly/i }));
     fireEvent.click(screen.getByRole("button", { name: /continue with quarterly/i }));

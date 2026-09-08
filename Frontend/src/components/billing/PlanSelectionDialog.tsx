@@ -1,3 +1,5 @@
+import { usePricingCurrency } from "@/hooks/usePricingCurrency";
+import { CurrencyToggle } from "./CurrencyToggle";
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@shared/components/ui/badge";
@@ -20,8 +22,8 @@ const PLAN_OPTIONS: Array<{
   badge?: string;
 }> = [
   { code: "monthly", name: "Monthly", cadence: "every month", note: "Flexible month-to-month access" },
-  { code: "quarterly", name: "Quarterly", cadence: "every 3 months", note: "Save $5 each quarter" },
-  { code: "annual", name: "Annual", cadence: "per year", note: "Save $30 across the year", badge: "Best value" },
+  { code: "quarterly", name: "Quarterly", cadence: "every 3 months", note: "Save compared with monthly billing" },
+  { code: "annual", name: "Annual", cadence: "per year", note: "Save 25% compared with monthly billing", badge: "Best value" },
 ];
 
 interface PlanSelectionDialogProps {
@@ -30,6 +32,7 @@ interface PlanSelectionDialogProps {
 }
 
 export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogProps) {
+  const { currency, setCurrency } = usePricingCurrency();
   const [selectedPlan, setSelectedPlan] = useState<PlanCode>("annual");
   const selectedName = PLAN_OPTIONS.find((plan) => plan.code === selectedPlan)?.name ?? "Annual";
 
@@ -44,6 +47,7 @@ export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogP
         </DialogHeader>
 
         <div className="space-y-5 px-5 pb-5 sm:px-6 sm:pb-6">
+          <CurrencyToggle value={currency} onChange={setCurrency} />
           <fieldset>
             <legend className="sr-only">Membership billing cycle</legend>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -73,7 +77,7 @@ export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogP
                       {plan.badge ? <Badge variant="success">{plan.badge}</Badge> : null}
                     </div>
                     <p className="mt-4 font-display text-2xl font-bold text-navy">
-                      {formatPlanPrice(plan.code, "USD")}
+                      {formatPlanPrice(plan.code, currency)}
                     </p>
                     <p className="text-xs text-muted-foreground">{plan.cadence}</p>
                     <p className="mt-3 text-xs leading-5 text-foreground">{plan.note}</p>
@@ -91,7 +95,7 @@ export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogP
           </div>
 
           <CheckoutButton
-            currency="USD"
+            currency={currency}
             planCode={selectedPlan}
             next="/dashboard/account/membership"
             className="w-full"
