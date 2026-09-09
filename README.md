@@ -165,6 +165,28 @@ AI_MODEL
 
 Payment fulfillment is intentionally single-homed in Supabase Edge Functions during the current production-readiness phase; the NestJS API does not mount a competing Bachs webhook handler.
 
+### Edutu opportunity engine
+
+The funding-engine admin screen uses the `edutu-grants` Supabase Edge Function
+as its server-side relay. Configure the same random secret on both services;
+never expose it through a `VITE_` variable.
+
+```text
+# Edutu API
+CRESCIVA_ENGINE_API_KEY=<at-least-32-random-bytes>
+
+# Cresciva Supabase Edge Function secrets
+EDUTU_ENGINE_URL=https://edutu-platform.onrender.com
+EDUTU_ENGINE_API_KEY=<the-same-secret>
+```
+
+In local development the AdminPanel Vite middleware relays to
+`http://localhost:3000`; the production build invokes the authenticated
+`edutu-grants` Edge Function. Cresciva runs are always submitted with the Edutu
+`grants` scope. Edutu performs the scrape and classification, attaches the
+exact `grants` tag, and only exposes grant-scoped run history and results
+through this integration API.
+
 ## Project structure
 
 ```text

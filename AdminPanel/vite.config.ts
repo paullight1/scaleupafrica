@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { resourceLinkPreview } from "./dev/resourceLinkPreview";
+import { fundingEngineProxy } from "./dev/fundingEngineProxy";
 
 // Staff admin panel. Built under /admin/ so it can be served either as a subpath
 // of the public site or from its own host — the routes are identical either way.
@@ -25,21 +26,24 @@ const redirectBareBase = (): Plugin => ({
   },
 });
 
-export default defineConfig(({ mode }) => ({
-  base: "/admin/",
-  server: {
-    host: "::",
-    port: 8082,
-    strictPort: true,
-    hmr: { overlay: false },
-    proxy: { "/api": "http://localhost:3001" },
-  },
-  plugins: [react(), redirectBareBase(), resourceLinkPreview(loadEnv(mode, __dirname, "VITE_"))],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@shared": path.resolve(__dirname, "../Shared/src"),
-      "@contracts": path.resolve(__dirname, "../Shared/contracts"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, __dirname, "");
+  return {
+    base: "/admin/",
+    server: {
+      host: "::",
+      port: 8082,
+      strictPort: true,
+      hmr: { overlay: false },
+      proxy: { "/api": "http://localhost:3001" },
     },
-  },
-}));
+    plugins: [react(), redirectBareBase(), resourceLinkPreview(env), fundingEngineProxy(env)],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+        "@shared": path.resolve(__dirname, "../Shared/src"),
+        "@contracts": path.resolve(__dirname, "../Shared/contracts"),
+      },
+    },
+  };
+});

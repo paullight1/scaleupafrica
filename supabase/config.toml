@@ -67,5 +67,11 @@ verify_jwt = true
 [functions.resource-link-preview]
 verify_jwt = true
 
+# Cresciva Admin's server-side bridge to the deployed Edutu grant engine.
+# The function re-checks the caller's administrator role and keeps the shared
+# Edutu API key in Supabase secrets, outside the browser bundle.
+[functions.edutu-grants]
+verify_jwt = true
+
 [functions.brevo-webhook]
 verify_jwt = false
