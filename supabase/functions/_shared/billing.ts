@@ -7,8 +7,8 @@
 //
 // Cresciva stores money internally as integer subunits (kobo/cents), never
 // floats. The browser NEVER sends an amount; it sends { plan_code, currency }
-// and the server resolves the amount here. Bachs expects decimal strings, so
-// conversion happens only in _shared/bachs.ts at the provider boundary.
+// and the server resolves the amount here. Paystack expects integer minor units,
+// so conversion happens only at the provider boundary.
 // =============================================================================
 
 export type PlanCode = "monthly" | "quarterly" | "annual";
@@ -21,19 +21,22 @@ export const PLANS: Record<
   monthly: {
     term_months: 1,
     prices: {
-      USD: 1_000, // $10 in cents
+      NGN: 1_000_000, // ₦10,000 in kobo (fixed ₦1,500 per USD)
+      USD: 667, // $6.67 in cents
     },
   },
   quarterly: {
     term_months: 3,
     prices: {
-      USD: 2_500, // $25 in cents
+      NGN: 2_500_000, // ₦25,000 in kobo
+      USD: 1_667, // $16.67 in cents
     },
   },
   annual: {
     term_months: 12,
     prices: {
-      USD: 9_000, //     $90 in cents
+      NGN: 9_000_000, // ₦90,000 in kobo
+      USD: 6_000, //     $60 in cents
     },
   },
 };

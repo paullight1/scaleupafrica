@@ -3,9 +3,9 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PaymentCallback from "../PaymentCallback";
-import { readPaymentStatus, verifyPayment } from "@/lib/bachs";
+import { readPaymentStatus, verifyPayment } from "@/lib/paystack";
 
-vi.mock("@/lib/bachs", () => ({
+vi.mock("@/lib/paystack", () => ({
   readPaymentStatus: vi.fn(),
   verifyPayment: vi.fn(),
 }));
@@ -99,7 +99,7 @@ describe("PaymentCallback", () => {
 
     await act(async () => {
       fireEvent.click(
-        screen.getByRole("button", { name: /Check with Bachs/i }),
+        screen.getByRole("button", { name: /Check with Paystack/i }),
       );
       await Promise.resolve();
     });

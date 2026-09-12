@@ -156,9 +156,11 @@ const AuthSignUp = () => {
           <StepProfile
             fullName={wizard.values.fullName}
             businessName={wizard.values.businessName}
+            organizationSize={wizard.values.organizationSize}
             errors={{
               fullName: wizard.errors.fullName,
               businessName: wizard.errors.businessName,
+              organizationSize: wizard.errors.organizationSize,
             }}
             busy={wizard.busy}
             onChange={wizard.setValue}

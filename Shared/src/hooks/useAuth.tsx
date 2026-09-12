@@ -13,7 +13,10 @@ type SignUpResult = { error: AuthError | null; confirmationRequired: boolean };
  */
 export type SignUpMetadata = {
   full_name?: string;
+  first_name?: string;
   business_name?: string;
+  company_name?: string;
+  organization_size?: "0" | "1-20" | "21-50" | "51-100" | "101+";
 };
 
 type AuthContextValue = {

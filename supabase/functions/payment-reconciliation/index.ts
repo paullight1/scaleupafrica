@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     const processedCheckoutIds = new Set<string>();
     const processedInvoiceIds = new Set<string>();
     for (const event of (webhookResult.data ?? []) as WebhookEventRow[]) {
-      if (event.provider !== "bachs" || !event.processed) continue;
+      if (event.provider !== "paystack" || !event.processed) continue;
       const checkoutId = objectString(event.payload, "checkout_id");
       const invoiceId = objectString(event.payload, "invoice_id");
       if (checkoutId) processedCheckoutIds.add(checkoutId);

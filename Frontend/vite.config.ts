@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
       // Supabase persists its session in localStorage, which is scoped by port;
       // serving /admin through :8080 prevents the sign-in redirect loop.
       "/admin": {
-        target: "http://localhost:8081",
+        target: "http://localhost:8082",
         changeOrigin: true,
         ws: true,
       },

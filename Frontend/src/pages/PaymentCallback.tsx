@@ -14,7 +14,7 @@ import {
   readPaymentStatus,
   verifyPayment,
   type VerifyStatus,
-} from "@/lib/bachs";
+} from "@/lib/paystack";
 import { conciergeWhatsappUrl, BILLING_ROUTE } from "@/lib/billing";
 
 type UiState = "verifying" | "success" | "pending" | "failed" | "missing";
@@ -25,10 +25,10 @@ const BACKGROUND_AFTER = 30_000;
 const ACTIVATING_AFTER_SECONDS = 8;
 
 /**
- * Bachs returns to this route with Cresciva's random payment `reference` that was
+ * Paystack returns to this route with Cresciva's random payment `reference` that was
  * embedded into return_url at checkout creation. The reference is only a lookup
- * key — the browser redirect is never proof of payment. bachs-verify retrieves
- * the linked Bachs checkout server-side and revalidates settlement.
+ * key — the browser redirect is never proof of payment. paystack-verify retrieves
+ * the linked Paystack checkout server-side and revalidates settlement.
  */
 export default function PaymentCallback() {
   const [params] = useSearchParams();
@@ -138,7 +138,7 @@ export default function PaymentCallback() {
     ? "Activating your membership…"
     : "Confirming your payment…";
   const verifyingBody = activating
-    ? "Bachs is finishing the payment while Cresciva prepares your access."
+    ? "Paystack is finishing the payment while Cresciva prepares your access."
     : "We're securely checking your payment record. You can keep this page open.";
 
   return (
@@ -182,7 +182,7 @@ export default function PaymentCallback() {
             icon={<Clock className="h-8 w-8" />}
             tone="navy"
             title="Payment is processing"
-            body="Bachs is still finishing the payment in the background. You can safely leave this page; Cresciva will unlock your access when the signed confirmation arrives."
+            body="Paystack is still finishing the payment in the background. You can safely leave this page; Cresciva will unlock your access when the signed confirmation arrives."
             busy
           >
             <ElapsedTime seconds={elapsedSeconds} />
@@ -192,7 +192,7 @@ export default function PaymentCallback() {
                 onClick={() => void checkProvider()}
                 disabled={providerCheckPending}
               >
-                {providerCheckPending ? "Checking Bachs…" : "Check with Bachs"}
+                {providerCheckPending ? "Checking Paystack…" : "Check with Paystack"}
               </Button>
               <Button asChild variant="outline">
                 <Link to={BILLING_ROUTE}>Go to billing</Link>

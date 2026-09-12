@@ -1,19 +1,13 @@
 project_id = "fqragjhmunphhdnmvpgs"
 
-# Bachs payment functions (production-readiness Phase 1).
-# init/verify require the caller's Supabase JWT. The webhook does not receive a
-# Supabase JWT; it authenticates Bachs with timestamped HMAC-SHA256 over raw body.
-[functions.bachs-init]
+[functions.paystack-init]
 verify_jwt = true
 
-[functions.bachs-verify]
+[functions.paystack-verify]
 verify_jwt = true
 
-[functions.bachs-webhook]
+[functions.paystack-webhook]
 verify_jwt = false
-
-[functions.bachs-portal]
-verify_jwt = true
 
 # Admin-only payment reconciliation. JWT is required at the edge and the
 # function performs an explicit administrator-role check before service-role reads.
@@ -65,6 +59,12 @@ verify_jwt = true
 # Staff-only URL metadata completion for Resources. The edge validates the JWT,
 # re-checks the caller's admin/editor role, and blocks private-network fetches.
 [functions.resource-link-preview]
+verify_jwt = true
+
+# Cresciva Admin's server-side bridge to the deployed Edutu grant engine.
+# The function re-checks the caller's administrator role and keeps the shared
+# Edutu API key in Supabase secrets, outside the browser bundle.
+[functions.edutu-grants]
 verify_jwt = true
 
 [functions.brevo-webhook]

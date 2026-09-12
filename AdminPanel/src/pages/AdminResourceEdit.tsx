@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useRole } from "@shared/hooks/useRole";
 import { contentPermissions, type ContentStatus } from "@/lib/contentPermissions";
+import { Markdown } from "@shared/lib/markdown";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@shared/components/ui/dialog";
 import { slugify } from "@shared/lib/analytics";
 import { logAdminAction } from "@shared/lib/audit";
 import { resourceDeliveryKind, type ResourceLinkMetadata } from "@shared/lib/resourceLinks";
@@ -212,12 +214,14 @@ const AdminResourceEdit = () => {
     initialLocalDraft?.deliveryKind ?? (isEdit ? "upload" : null),
   );
   const linkUrlRef = useRef(initialLocalDraft?.linkUrl ?? "");
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const [deliveryKind, setDeliveryKind] = useState<DeliveryKind | null>(
     initialLocalDraft?.deliveryKind ?? (isEdit ? "upload" : null),
   );
   const [linkUrl, setLinkUrl] = useState(initialLocalDraft?.linkUrl ?? "");
   const [linkMetadata, setLinkMetadata] = useState<ResourceLinkMetadata | null>(null);
+  const [linkPreviewNotice, setLinkPreviewNotice] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [isFetchingLink, setIsFetchingLink] = useState(false);
   const [recoveredDraftAt, setRecoveredDraftAt] = useState<string | null>(
@@ -402,6 +406,10 @@ const AdminResourceEdit = () => {
     const nextPublishedAt =
       willPublish && !publishedAt ? new Date().toISOString() : publishedAt;
 
+    if (deliveryKind === "link" && resourceDeliveryKind(linkUrl.trim()) === "none") {
+      setLinkError("Enter a valid http or https resource link.");
+      return;
+    }
     const authorName = user?.email ?? null;
     const payload: ResourceInsert = {
       title: values.title.trim(),
@@ -411,7 +419,7 @@ const AdminResourceEdit = () => {
       excerpt: values.excerpt.trim() || null,
       content: values.content || null,
       cover_image_url: values.cover_image_url,
-      file_url: values.file_url,
+      file_url: deliveryKind === "link" ? linkUrl.trim() : values.file_url,
       file_name: values.file_name,
       file_size_kb: values.file_size_kb,
       topics: parseTopics(values.topics),
@@ -477,24 +485,25 @@ const AdminResourceEdit = () => {
 
     setIsFetchingLink(true);
     setLinkError(null);
+    setLinkPreviewNotice(null);
     try {
       const metadata = await fetchResourceLinkPreview(candidate);
       setLinkMetadata(metadata);
-      setLinkUrl(metadata.url);
-      setValue("file_url", metadata.url, { shouldDirty: true });
+      // Preview metadata must not change the destination the author entered.
+      setValue("file_url", candidate, { shouldDirty: true });
       setValue("file_name", metadata.siteName, { shouldDirty: true });
       setValue("file_size_kb", null, { shouldDirty: true });
-      if (metadata.title) {
+      if (metadata.title && !getValues("title").trim()) {
         setValue("title", metadata.title, { shouldDirty: true, shouldValidate: true });
       }
-      if (metadata.description) {
+      if (metadata.description && !getValues("excerpt").trim()) {
         setValue("excerpt", metadata.description, { shouldDirty: true, shouldValidate: true });
       }
-      if (metadata.imageUrl) {
+      if (metadata.imageUrl && !getValues("cover_image_url")) {
         setValue("cover_image_url", metadata.imageUrl, { shouldDirty: true });
       }
     } catch (error) {
-      setLinkError(
+      setLinkPreviewNotice(
         error instanceof Error
           ? error.message
           : "Couldn't read link details. Check the URL and try again.",
@@ -582,15 +591,39 @@ const AdminResourceEdit = () => {
           </Link>
         }
         actions={
-          isEdit && status === "published" && slug ? (
-            <Button variant="outline" asChild>
-              <a href={`/resources/${slug}`} target="_blank" rel="noopener noreferrer">
-                View public <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          ) : undefined
+          <Button type="button" variant="outline" onClick={() => setPreviewOpen(true)}>
+            Preview resource
+          </Button>
         }
       />
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="pr-6">
+            <DialogTitle>Resource preview</DialogTitle>
+            <DialogDescription>Preview of your current edits. Opening this preview does not save or publish them.</DialogDescription>
+          </DialogHeader>
+          <article className="min-w-0 space-y-6 break-words">
+            <header className="rounded-xl bg-navy p-5 text-white sm:p-8">
+              <p className="mb-2 text-sm">{RESOURCE_TYPES.find((type) => type.value === getValues("type"))?.label}{getValues("category") ? ` · ${getValues("category")}` : ""}</p>
+              <h1 className="font-display text-2xl font-bold sm:text-3xl">{getValues("title") || "Untitled resource"}</h1>
+              {getValues("excerpt") && <p className="mt-3">{getValues("excerpt")}</p>}
+            </header>
+            {coverUrl && <img src={coverUrl} alt="Resource cover" className="max-h-96 w-full rounded-xl object-contain" />}
+            {getValues("content") ? <Markdown content={getValues("content")} /> : <p className="text-sm text-muted-foreground">No content added yet.</p>}
+            {resourceDeliveryKind(deliveryKind === "link" ? linkUrl : fileUrl) !== "none" && (
+              <div className="space-y-2 rounded-xl border border-border p-4">
+                <Button asChild>
+                  <a href={deliveryKind === "link" ? linkUrl.trim() : fileUrl ?? undefined} target="_blank" rel="noopener noreferrer">
+                    {deliveryKind === "link" ? "Open resource" : "Download resource"} <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+                {getValues("gated") && <p className="text-xs text-muted-foreground">Readers must sign in to access this resource.</p>}
+              </div>
+            )}
+          </article>
+        </DialogContent>
+      </Dialog>
 
       {recoveredDraftAt && !isEdit && (
         <section className="flex flex-col gap-4 rounded-xl border border-primary/25 bg-primary/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -653,7 +686,7 @@ const AdminResourceEdit = () => {
       )}
 
       {!deliveryKind && (
-        <section className="rounded-xl border border-border bg-card p-6 shadow-soft">
+        <section className="rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="font-display text-2xl font-semibold text-ink-strong">
               How are you sharing this resource?
@@ -693,16 +726,16 @@ const AdminResourceEdit = () => {
         </section>
       )}
 
-      {deliveryKind && <form className="grid gap-6 lg:grid-cols-3" onSubmit={(e) => e.preventDefault()}>
+      {deliveryKind && <form className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-3" onSubmit={(e) => e.preventDefault()}>
         <fieldset disabled={!permissions.canEdit} className="contents">
         {/* Main column */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 xl:col-span-2">
           {deliveryKind === "link" && (
-            <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
+            <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
               <div>
                 <h2 className="font-display text-lg font-semibold text-ink-strong">Link details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Fetch the page title, description, and preview image, then edit them below.
+                  Paste the exact destination readers should open. Fetching details fills empty fields without replacing your edits.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -714,6 +747,9 @@ const AdminResourceEdit = () => {
                     value={linkUrl}
                     onChange={(event) => {
                       setLinkUrl(event.target.value);
+                      setValue("file_url", event.target.value.trim() || null, { shouldDirty: true });
+                      setLinkMetadata(null);
+                      setLinkPreviewNotice(null);
                       setLinkError(null);
                     }}
                     placeholder="https://example.com/resource"
@@ -730,19 +766,20 @@ const AdminResourceEdit = () => {
                   Fetch link details
                 </Button>
               </div>
-              {linkError && <p className="text-sm text-destructive-strong">{linkError}</p>}
-              {(linkMetadata?.imageUrl || (fileUrl && coverUrl)) && (
+              {linkError && <p role="alert" className="text-sm text-destructive-strong">{linkError}</p>}
+              {linkPreviewNotice && <p role="status" className="rounded-lg bg-secondary p-3 text-sm text-muted-foreground">{linkPreviewNotice}</p>}
+              {fileUrl && resourceDeliveryKind(fileUrl) !== "none" && (
                 <div className="overflow-hidden rounded-lg border border-border bg-surface-muted/40">
                   {(linkMetadata?.imageUrl || coverUrl) && (
                     <img
-                      src={linkMetadata?.imageUrl ?? coverUrl ?? undefined}
+                      src={coverUrl ?? linkMetadata?.imageUrl ?? undefined}
                       alt="Link preview"
                       className="aspect-[16/7] w-full object-cover"
                     />
                   )}
                   {fileUrl && (
-                    <div className="flex items-center justify-between gap-3 p-4">
-                      <span className="truncate text-sm text-muted-foreground">
+                    <div className="flex min-w-0 flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="min-w-0 max-w-full truncate text-sm text-muted-foreground">
                         {linkMetadata?.siteName ?? fileUrl}
                       </span>
                       <a
@@ -760,7 +797,7 @@ const AdminResourceEdit = () => {
             </section>
           )}
 
-          <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
+          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input id="title" {...register("title")} aria-invalid={!!errors.title} />
@@ -780,7 +817,7 @@ const AdminResourceEdit = () => {
                 })}
                 aria-invalid={!!errors.slug}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="break-all text-xs text-muted-foreground">
                 Public URL: /resources/{slug || "your-slug"}
               </p>
               {errors.slug && (
@@ -803,8 +840,8 @@ const AdminResourceEdit = () => {
             </div>
           </section>
 
-          <section className="space-y-3 rounded-xl border border-border bg-card p-6 shadow-soft">
-            <div className="flex items-center justify-between">
+          <section className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <Label>Content</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -831,8 +868,8 @@ const AdminResourceEdit = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
+        <div className="min-w-0 space-y-6">
+          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
             <h2 className="font-display text-lg font-semibold text-ink-strong">Publishing</h2>
 
             <div className="space-y-2">
@@ -902,7 +939,7 @@ const AdminResourceEdit = () => {
               {permissions.canSaveDraft && <Button type="button" variant="outline" onClick={onSaveDraft} disabled={busy}>
                 Save as draft
               </Button>}
-              {permissions.canEdit && isEdit && status !== "draft" && status !== "published" && (
+              {permissions.canEdit && isEdit && status !== "draft" && (
                 <Button type="button" variant="ghost" onClick={onSave} disabled={busy}>
                   Save changes
                 </Button>
@@ -910,7 +947,7 @@ const AdminResourceEdit = () => {
             </div>
           </section>
 
-          <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
+          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
             <h2 className="font-display text-lg font-semibold text-ink-strong">Details</h2>
 
             <div className="space-y-2">
@@ -982,7 +1019,7 @@ const AdminResourceEdit = () => {
             </div>
           </section>
 
-          <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-soft">
+          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
             <h2 className="font-display text-lg font-semibold text-ink-strong">Media</h2>
 
             <div className="space-y-2">

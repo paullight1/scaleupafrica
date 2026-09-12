@@ -51,13 +51,13 @@ export interface SettlementIdentifiers {
   providerInvoiceId?: string | null;
 }
 
-/** A Bachs recurring settlement is keyed by invoice id; one-off checkout rows may use checkout id. */
+/** Paystack settlements are keyed by the transaction reference. */
 export function settlementEventProcessed(
   payment: SettlementIdentifiers,
   processedCheckoutIds: ReadonlySet<string>,
   processedInvoiceIds: ReadonlySet<string>,
 ): boolean {
-  if (payment.provider !== "bachs") return true;
+  if (payment.provider !== "paystack") return true;
   return Boolean(
     (payment.checkoutId && processedCheckoutIds.has(payment.checkoutId)) ||
       (payment.providerInvoiceId && processedInvoiceIds.has(payment.providerInvoiceId)),

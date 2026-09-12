@@ -36,12 +36,12 @@ const Terms = () => (
 
           <h2>2. Membership and payments</h2>
           <p>
-            Funding Radar and other premium features require an active membership. Cresciva offers monthly, quarterly, and annual automatically recurring subscriptions through Bachs. The amount, currency and billing interval shown at checkout control your subscription.
+            Funding Radar and other premium features require an active membership. Cresciva offers monthly, quarterly, and annual access plans through Paystack. The amount and currency shown at checkout control your access period.
           </p>
           <ul>
-            <li><strong>Payments.</strong> Checkout is processed by Bachs. Cresciva does not store full card or bank-account credentials.</li>
+            <li><strong>Payments.</strong> Checkout is processed by Paystack. Cresciva does not store full card or bank-account credentials.</li>
             <li><strong>Activation.</strong> Access is granted only after Cresciva verifies a successful provider settlement against the internal payment ledger.</li>
-            <li><strong>Renewal and cancellation.</strong> Your subscription renews automatically at the selected interval until canceled. Manage payment methods or cancel through the Bachs billing portal. Cancellation normally stops the next renewal while access remains available through the paid period.</li>
+            <li><strong>Access period.</strong> Plans are paid upfront and do not renew automatically. Renew through Paystack when your paid period ends.</li>
             <li><strong>Refunds.</strong> Refund requests are reviewed according to applicable law, the circumstances of the transaction and the support process communicated by Cresciva. Contact us promptly if you believe a charge is incorrect.</li>
           </ul>
 

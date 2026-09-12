@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { CalendarClock, CheckCircle2, ExternalLink, Info, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { CalendarClock, CheckCircle2, Info } from "lucide-react";
 import { Badge } from "@shared/components/ui/badge";
 import { Button } from "@shared/components/ui/button";
 import { LoadingState } from "@shared/components/common/LoadingState";
 import { ErrorState } from "@shared/components/common/ErrorState";
 import { useSubscription } from "@/lib/subscription";
-import { createPortalSession } from "@/lib/bachs";
 import { MEMBERSHIP_FEATURES } from "@/lib/billing";
 import { PlanSelectionDialog } from "@/components/billing/PlanSelectionDialog";
 
@@ -21,7 +19,6 @@ function planLabel(plan: string | null | undefined): string {
 
 export function CurrentPlanCard() {
   const { status, data, active, refetch } = useSubscription();
-  const [portalPending, setPortalPending] = useState(false);
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
 
   if (status === "loading") return <div className="rounded-xl border border-border bg-card p-6 shadow-soft"><LoadingState label="Loading your membership…" /></div>;
@@ -29,17 +26,9 @@ export function CurrentPlanCard() {
 
   const expiresAt = data?.expires_at;
   const billingStatus = data?.billing_status?.toLowerCase();
-  const hasBillingAccount = Boolean(data?.bachs_subscription_id);
   const isPastDue = billingStatus === "past_due" || billingStatus === "unpaid";
   const isCanceled = billingStatus === "canceled";
   const neverSubscribed = !data?.has_access && !expiresAt;
-  async function openPortal() {
-    setPortalPending(true);
-    const result = await createPortalSession();
-    if (result.portal_url) window.location.assign(result.portal_url);
-    else toast.error(result.error || "Could not open billing management. Please try again.");
-    setPortalPending(false);
-  }
 
   return (
     <section aria-labelledby="current-plan-heading" className="rounded-xl border border-border bg-card p-4 sm:p-5 md:p-6">
@@ -58,18 +47,16 @@ export function CurrentPlanCard() {
       <div className="mt-4 flex items-start gap-2 text-sm text-foreground">
         <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         {active ? <p>Your membership is active until <strong>{formatDate(expiresAt)}</strong>{data?.next_payment_at && !data.cancel_at_period_end ? <>. Next payment: <strong>{formatDate(data.next_payment_at)}</strong>.</> : "."}</p>
-          : isPastDue ? <p>Your latest recurring payment needs attention. Update your payment method in the Bachs billing portal.</p>
+          : isPastDue ? <p>Your latest payment needs attention. Choose a plan to try again.</p>
           : expiresAt ? <p>Your membership ended on <strong>{formatDate(expiresAt)}</strong>. Choose a plan to restore the Funding Radar.</p>
           : <p>You're not a member yet. Choose a recurring plan to unlock the Funding Radar.</p>}
       </div>
 
       {neverSubscribed && <ul className="mt-5 grid gap-x-5 gap-y-2 sm:grid-cols-2">{MEMBERSHIP_FEATURES.map((feature) => <li key={feature} className="flex min-w-0 items-start gap-2 text-sm leading-5 text-foreground"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-dark" /><span>{feature}</span></li>)}</ul>}
 
-      {hasBillingAccount && <Button variant="outline" className="mt-6 w-full sm:w-auto" onClick={openPortal} disabled={portalPending}>{portalPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening billing…</> : <><ExternalLink className="h-4 w-4" /> Manage billing</>}</Button>}
+      {!active && <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4"><p className="font-display text-xl font-bold text-ink-strong">Plans from ₦10,000<span className="ml-1 text-sm font-normal text-muted-foreground">/ month</span></p><p className="mt-1 text-xs text-muted-foreground">Choose a one-time Paystack payment in NGN or USD.</p><Button className="mt-4 w-full sm:w-auto" size="lg" onClick={() => setPlanDialogOpen(true)}>Choose your plan</Button><PlanSelectionDialog open={planDialogOpen} onOpenChange={setPlanDialogOpen} /></div>}
 
-      {!hasBillingAccount && !active && <div className="mt-6 rounded-lg border border-border bg-surface-subtle p-4"><p className="font-display text-xl font-bold text-ink-strong">Plans from $10<span className="ml-1 text-sm font-normal text-muted-foreground">/ month</span></p><p className="mt-1 text-xs text-muted-foreground">Choose monthly, quarterly, or annual recurring billing through Bachs.</p><Button className="mt-4 w-full sm:w-auto" size="lg" onClick={() => setPlanDialogOpen(true)}>Choose your plan</Button><PlanSelectionDialog open={planDialogOpen} onOpenChange={setPlanDialogOpen} /></div>}
-
-      <p className="mt-6 flex items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><span>Plans renew automatically through Bachs. Manage or cancel your subscription from the Bachs billing portal. Cresciva does not receive your card details.</span></p>
+      <p className="mt-6 flex items-start gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><span>Paystack processes the payment securely. Memberships are one-time purchases and do not auto-renew. Cresciva does not receive your card details.</span></p>
     </section>
   );
 }

@@ -1,3 +1,5 @@
+import { usePricingCurrency } from "@/hooks/usePricingCurrency";
+import { CurrencyToggle } from "@/components/billing/CurrencyToggle";
 import { Link } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@shared/components/ui/button";
@@ -39,7 +41,7 @@ const PLAN_CARDS: Array<{
 /** Membership pricing and plan selection. Prices are resolved by the server at checkout. */
 const Pricing = () => {
   const { user } = useAuth();
-  const currency = "USD" as const;
+  const { currency, setCurrency } = usePricingCurrency();
 
   return (
     <Section id="pricing" tone="light">
@@ -55,9 +57,10 @@ const Pricing = () => {
 
       <div className="mx-auto max-w-3xl text-center">
         <div className="mt-8 flex flex-col items-center justify-center gap-3">
+          <CurrencyToggle value={currency} onChange={setCurrency} />
           <p className="max-w-md text-xs text-muted-foreground">
-            All plans renew automatically in USD through Bachs. Your bank may apply its own currency
-            conversion rate or charges.
+            Nigeria prices are in naira; other countries use USD. Prices use a fixed ₦1,500 per $1.
+            Plans renew in your selected currency.
           </p>
         </div>
       </div>
@@ -78,14 +81,14 @@ const Pricing = () => {
                 <p className="min-h-12 text-sm text-muted-foreground">{plan.description}</p>
               </div>
 
-              <div className="mb-7 flex min-h-16 items-baseline gap-2">
+              <div className="mb-7 flex min-h-16 flex-wrap items-baseline gap-2">
                 {available ? (
                   <>
-                    <span className="font-display text-5xl font-bold text-foreground">{price}</span>
+                    <span className="font-display text-4xl font-bold text-foreground">{price}</span>
                     <span className="text-lg text-muted-foreground">/{plan.term}</span>
                   </>
                 ) : (
-                  <span className="text-sm font-semibold text-muted-foreground">Available in USD</span>
+                  <span className="text-sm font-semibold text-muted-foreground">Price unavailable</span>
                 )}
               </div>
 
@@ -108,7 +111,7 @@ const Pricing = () => {
                 </Button>
               ) : (
                 <Button disabled size="lg" className="mb-4 w-full">
-                  USD plan required
+                  Plan unavailable
                 </Button>
               )}
 
@@ -127,7 +130,7 @@ const Pricing = () => {
 
       <p className="mx-auto mt-12 max-w-xl text-center text-sm text-muted-foreground">
         Access is activated automatically once payment is confirmed — usually under a minute. Plans renew
-        automatically until you cancel them in the Bachs billing portal.{" "}
+        for the selected access period. Renew when you are ready.{" "}
         <Link
           to="/disclaimer"
           className="font-semibold text-navy underline-offset-4 hover:underline"

@@ -3,9 +3,9 @@
 //
 // SOURCE OF TRUTH: supabase/functions/_shared/billing.ts (PLANS).
 // The client never charges and never supplies an arbitrary amount — it sends
-// { plan_code, currency } to bachs-init, and the server resolves the price.
-// These constants are only for rendering. Bachs decimal-string conversion lives
-// exclusively at the server/provider boundary in _shared/bachs.ts.
+// { plan_code, currency } to paystack-init, and the server resolves the price.
+// These constants are only for rendering. Paystack minor-unit conversion lives
+// exclusively at the server/provider boundary in _shared/billing.ts.
 // =============================================================================
 
 export type PlanCode = "monthly" | "quarterly" | "annual";
@@ -18,13 +18,13 @@ export const PLANS: Record<
 > = {
   monthly: {
     term_months: 1,
-    prices: { USD: 1_000 },
+    prices: { NGN: 1_000_000, USD: 667 },
   },
   quarterly: {
     term_months: 3,
-    prices: { USD: 2_500 },
+    prices: { NGN: 2_500_000, USD: 1_667 },
   },
-    annual: { term_months: 12, prices: { USD: 9_000 } },
+    annual: { term_months: 12, prices: { NGN: 9_000_000, USD: 6_000 } },
 };
 
 export const PLAN_TERM_MONTHS: Record<PlanCode, number> = {
@@ -56,7 +56,7 @@ export function getPlanPrice(plan: PlanCode, currency: Currency): number | null 
   return PLANS[plan].prices[currency] ?? null;
 }
 
-/** Format a plan price for a charge currency, e.g. "₦95,000" / "$90". */
+/** Format a plan price for a charge currency, e.g. "₦95,000" / "$60". */
 export function formatPlanPrice(plan: PlanCode, currency: Currency): string | null {
   const amount = getPlanPrice(plan, currency);
   return amount === null ? null : formatMoney(amount, currency);
@@ -71,16 +71,25 @@ export function formatMoney(subunits: number, currency: string): string {
     return new Intl.NumberFormat(meta?.locale ?? "en-US", {
       style: "currency",
       currency,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: Number.isInteger(major) ? 0 : 2,
+      maximumFractionDigits: 2,
     }).format(major);
   } catch {
     return `${major.toLocaleString()} ${currency}`;
   }
 }
 
-/** Recurring Bachs memberships currently settle in USD. */
+/** Nigeria uses fixed naira prices; other countries use the USD equivalent. */
+export function currencyForCountry(country: unknown): Currency | null {
+  if (typeof country !== "string" || !country.trim()) return null;
+  return ["ng", "nga", "nigeria"].includes(country.trim().toLowerCase()) ? "NGN" : "USD";
+}
+
+/** Browser hints are a fallback; customers can always change the selection. */
 export function defaultCurrency(): Currency {
-  return "USD";
+  if (Intl.DateTimeFormat().resolvedOptions().timeZone === "Africa/Lagos") return "NGN";
+  const locale = typeof navigator === "undefined" ? "" : navigator.language;
+  return /(?:^|-)NG(?:-|$)/i.test(locale) ? "NGN" : "USD";
 }
 
 /** Where upgrade / renew CTAs point — the Membership section of the account page. */

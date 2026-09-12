@@ -10,10 +10,10 @@
 //  - The token authorises exactly one action (unsubscribe THIS address) and
 //    leaks nothing beyond the address the recipient already knows — their own.
 //  - Comparison is timing-safe, reusing the audited Web-Crypto helper shared by
-//    the Bachs payment boundary.
+//    the Paystack payment boundary.
 // =============================================================================
 
-import { timingSafeEqualHex } from "../bachs.ts";
+import { timingSafeEqualHex } from "../paystack.ts";
 
 const PURPOSE = "unsub";
 

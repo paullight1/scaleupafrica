@@ -45,4 +45,9 @@ describe("fetchResourceLinkMetadata", () => {
       fetchResourceLinkMetadata("http://127.0.0.1/private", fetcher),
     ).resolves.toEqual({ ok: false, error: "blocked_host" });
   });
+  it.each([401, 403])("identifies a source requiring permission (%s)", async (status) => {
+    const fetcher = vi.fn().mockResolvedValue({ ok: false, status, error: "http_status" });
+    await expect(fetchResourceLinkMetadata("https://docs.google.com/presentation/d/example", fetcher))
+      .resolves.toEqual({ ok: false, error: "source_requires_access" });
+  });
 });
