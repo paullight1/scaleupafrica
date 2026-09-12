@@ -43,14 +43,14 @@ export const FAQS: Faq[] = [
     id: "payment",
     question: "How do I pay, and in which currency?",
     answer:
-      "Online payments use Bachs hosted checkout. Monthly, quarterly, and annual recurring plans are available in Nigerian naira (NGN) for Nigeria and US dollars (USD) elsewhere, using a fixed ₦1,500 per $1. Bachs shows the payment methods available for your checkout, and your bank may apply its own conversion rate or charges.",
+      "Online payments use Paystack hosted checkout. Monthly, quarterly, and annual plans are available in Nigerian naira (NGN) for Nigeria and US dollars (USD) elsewhere, using a fixed ₦1,500 per $1. Paystack shows the payment methods available for your checkout, and your bank may apply its own conversion rate or charges.",
     homepage: true,
   },
   {
     id: "speed",
     question: "How fast is access after I pay?",
     answer:
-      "Access is activated automatically after Bachs confirms a successful collection — often within seconds, although some payment methods can take longer to settle. If confirmation is delayed, your billing page remains available and support can trace the checkout using its reference.",
+      "Access is activated automatically after Paystack confirms a successful payment — often within seconds, although some payment methods can take longer to settle. If confirmation is delayed, your billing page remains available and support can trace the checkout using its reference.",
     homepage: true,
   },
   {
@@ -64,7 +64,7 @@ export const FAQS: Faq[] = [
     id: "renewal",
     question: "Does my membership auto-renew? Can I cancel?",
     answer:
-      "Memberships renew automatically through Bachs. Payment details are handled by Bachs, and Cresciva does not receive your card details. You can manage or cancel your subscription in the Bachs billing portal; access remains available through the paid period. Any refund rights are governed by our Terms.",
+      "Plans do not renew automatically. Payment details are handled by Paystack, and Cresciva does not receive your card details. Renew access through Paystack when your paid period ends. Any refund rights are governed by our Terms.",
     homepage: true,
   },
   {

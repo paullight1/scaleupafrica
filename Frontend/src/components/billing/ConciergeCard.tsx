@@ -4,7 +4,7 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { conciergeWhatsappUrl } from "@/lib/billing";
 
 /**
- * Billing support lane for questions about recurring Bachs membership payments.
+ * Billing support lane for questions about Paystack membership payments.
  */
 export function ConciergeCard() {
   const { user } = useAuth();
@@ -24,7 +24,7 @@ export function ConciergeCard() {
             Need help with billing?
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Message us on WhatsApp if you have a question about your recurring membership or Bachs billing.
+            Message us on WhatsApp if you have a question about your membership or Paystack payment.
           </p>
         </div>
       </div>
@@ -40,7 +40,7 @@ export function ConciergeCard() {
       <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
         <Landmark className="mt-0.5 h-4 w-4 shrink-0 text-navy" />
         <span>
-          Never share card details in chat. We will help you use the official Bachs checkout or billing portal.
+          Never share card details in chat. We will help you use the official Paystack checkout.
         </span>
       </p>
     </section>

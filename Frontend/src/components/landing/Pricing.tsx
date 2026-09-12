@@ -130,7 +130,7 @@ const Pricing = () => {
 
       <p className="mx-auto mt-12 max-w-xl text-center text-sm text-muted-foreground">
         Access is activated automatically once payment is confirmed — usually under a minute. Plans renew
-        automatically until you cancel them in the Bachs billing portal.{" "}
+        for the selected access period. Renew when you are ready.{" "}
         <Link
           to="/disclaimer"
           className="font-semibold text-navy underline-offset-4 hover:underline"

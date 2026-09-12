@@ -1,13 +1,13 @@
 # Cresciva
 
-Cresciva is a Pan-African SME platform: a public, searchable directory where founders publish one credible business profile, plus membership-gated funding intelligence for African SMEs. Browsing the directory is free and open; the Funding Radar is available to members with an active recurring membership.
+Cresciva is a Pan-African SME platform: a public, searchable directory where founders publish one credible business profile, plus membership-gated funding intelligence for African SMEs. Browsing the directory is free and open; the Funding Radar is available to members with an active paid membership.
 
 ## Stack
 
 - **Frontend:** Vite + React 18 + TypeScript, shadcn/ui (Radix + Tailwind CSS), React Router, TanStack Query, Framer Motion.
 - **Admin:** a separate Vite/React app assembled under `/admin/` in the production artifact.
 - **Backend today:** Supabase Auth, Postgres/RLS, Storage and Deno Edge Functions.
-- **Payments:** Bachs recurring product checkout, signed lifecycle webhooks, customer billing portal, and a Cresciva-owned payment/entitlement ledger. Plans are $6.67/month, $16.67/3 months, or $60/year and renew automatically until canceled.
+- **Payments:** Paystack hosted checkout, signed webhooks, and a Cresciva-owned payment/entitlement ledger. Plans are ₦10,000/month, ₦25,000/3 months, or ₦90,000/year and are paid upfront.
 - **Email:** Resend for transactional/visitor-triggered messages; Brevo for administrator-authored newsletter campaigns, segmented audiences and delivery reporting.
 - **Funding intelligence:** deterministic profile recommendations over the curated feed, verified-first opportunity search, and AI-assisted long-tail discovery that is always labelled unverified until source verification upgrades it.
 - **API server:** NestJS + Drizzle under `Backend/`, introduced behind domain-by-domain cutover flags.

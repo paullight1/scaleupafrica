@@ -35,7 +35,7 @@ const Privacy = () => (
             <li><strong>Business profile data</strong> — business/founder name, country, sector, descriptions, links, images and other information you choose to add.</li>
             <li><strong>Contact visibility choices</strong> — phone, email and WhatsApp details may be collected for your profile, but their public availability depends on the supported visibility/reveal settings rather than being treated as universally public.</li>
             <li><strong>Funding intelligence data</strong> — funding preferences, business-enrichment confirmations, searches, saved opportunities, member opportunity states and notification preferences.</li>
-            <li><strong>Payment and membership data</strong> — payment references, amount/currency, settlement status, membership state and operational reconciliation records. Full payment credentials are handled by Bachs and are not stored by Cresciva.</li>
+            <li><strong>Payment and membership data</strong> — payment references, amount/currency, settlement status, membership state and operational reconciliation records. Full payment credentials are handled by Paystack and are not stored by Cresciva.</li>
             <li><strong>Communications and marketing data</strong> — contact-form messages, resource requests, newsletter state and email delivery/unsubscribe events.</li>
             <li><strong>Operational and analytics data</strong> — product events, pseudonymous session identifiers, error/diagnostic information and salted hashes used for public-endpoint abuse prevention. Raw private funding queries are not copied into general product analytics.</li>
           </ul>
@@ -62,7 +62,7 @@ const Privacy = () => (
           <ul>
             <li><strong>Supabase</strong> for database, authentication, storage and Edge Functions;</li>
             <li><strong>Vercel</strong> for web/application hosting and deployment;</li>
-            <li><strong>Bachs</strong> for payment checkout and settlement;</li>
+            <li><strong>Paystack</strong> for payment checkout and settlement;</li>
             <li><strong>Resend</strong> for transactional email when enabled;</li>
             <li>AI/search/infrastructure providers used by Business Enrichment and AI-assisted funding discovery;</li>
             <li>monitoring/analytics providers that Cresciva enables for production operations.</li>

@@ -24,8 +24,8 @@ vi.mock("@/components/dashboard/ClosingSoonCard", () => ({ ClosingSoonCard: () =
 vi.mock("@/components/dashboard/MatchedOpportunities", () => ({ MatchedOpportunities: () => null }));
 vi.mock("@/components/dashboard/FundingTeaserPanel", () => ({ FundingTeaserPanel: () => null }));
 vi.mock("@/components/dashboard/OnboardingCard", () => ({ OnboardingCard: () => null }));
-vi.mock("@/hooks/useBachs", () => ({
-  useBachsCheckout: () => ({ startCheckout: vi.fn(), isPending: false }),
+vi.mock("@/lib/paystack", () => ({
+  usePaystackCheckout: () => ({ startCheckout: vi.fn(), isPending: false }),
 }));
 
 describe("DashboardHome funding fallback", () => {

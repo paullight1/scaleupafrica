@@ -3,7 +3,7 @@ import { Button } from "@shared/components/ui/button";
 import { Checkbox } from "@shared/components/ui/checkbox";
 import { Lock, AlertTriangle, ShieldAlert } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { useBachsCheckout } from "@/hooks/useBachs";
+import { usePaystackCheckout } from "@/lib/paystack";
 import { isPlanCode, type PlanCode } from "@/lib/billing";
 
 interface FundingPaywallProps {
@@ -13,7 +13,7 @@ interface FundingPaywallProps {
 /**
  * Shown when the subscription status is "inactive" (never on a fetch ERROR — that
  * renders ErrorState instead). Owns the fraud-warning + acknowledgement gate
- * before the Bachs hosted checkout begins.
+ * before the Paystack hosted checkout begins.
  *
  * The example-opportunity cards that used to sit at the bottom are gone:
  * FundingTeaserPanel renders real currently-open opportunities directly above
@@ -22,7 +22,7 @@ interface FundingPaywallProps {
 export function FundingPaywall({ userEmail }: FundingPaywallProps) {
   const [acknowledged, setAcknowledged] = useState(false);
   const [params] = useSearchParams();
-  const { startCheckout, isPending } = useBachsCheckout();
+  const { startCheckout, isPending } = usePaystackCheckout();
   const requestedPlan = params.get("plan");
   const planCode: PlanCode = isPlanCode(requestedPlan) ? requestedPlan : "annual";
 

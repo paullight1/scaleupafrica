@@ -10,7 +10,7 @@ const NOW = Date.parse("2026-08-20T18:00:00Z");
 const payment = {
   id: "pay_internal_1",
   user_id: "user_1",
-  provider: "bachs",
+  provider: "paystack",
   reference: "crv_1",
   status: "success",
   amount: 20_000,
@@ -104,16 +104,16 @@ describe("payment reconciliation invariants", () => {
     expect(statuses.has("pay_internal_2")).toBe(false);
   });
 
-  it("matches recurring Bachs settlement by invoice id when no checkout id exists", () => {
+  it("matches Paystack settlement by checkout reference", () => {
     expect(
       settlementEventProcessed(
         {
-          provider: "bachs",
-          checkoutId: null,
-          providerInvoiceId: "inv_paid_1",
+          provider: "paystack",
+          checkoutId: "crv_1",
+          providerInvoiceId: null,
         },
+        new Set(["crv_1"]),
         new Set(),
-        new Set(["inv_paid_1"]),
       ),
     ).toBe(true);
   });

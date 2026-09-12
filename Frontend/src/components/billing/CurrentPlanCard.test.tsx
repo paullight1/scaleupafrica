@@ -10,15 +10,14 @@ vi.mock("@/hooks/usePricingCurrency", () => ({ usePricingCurrency: () => ({ curr
 vi.mock("@/lib/subscription", () => ({
   useSubscription: () => ({
     status: "success",
-    data: { has_access: false, expires_at: null, bachs_subscription_id: null },
+    data: { has_access: false, expires_at: null },
     active: false,
     refetch: vi.fn(),
   }),
 }));
 
-vi.mock("@/lib/bachs", () => ({
-  createPortalSession: vi.fn(),
-  useBachsCheckout: () => ({ startCheckout, isPending: false }),
+vi.mock("@/lib/paystack", () => ({
+  usePaystackCheckout: () => ({ startCheckout, isPending: false }),
 }));
 
 describe("CurrentPlanCard plan selection", () => {

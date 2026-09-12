@@ -91,7 +91,7 @@ export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogP
           </fieldset>
 
           <div className="rounded-lg bg-navy px-4 py-3 text-sm text-white">
-            Full Funding Radar access, member resources, and recurring billing through Bachs.
+            Full Funding Radar access, member resources, and secure Paystack checkout.
           </div>
 
           <CheckoutButton
@@ -103,7 +103,7 @@ export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogP
             Continue with {selectedName.toLowerCase()}
           </CheckoutButton>
           <p className="text-center text-xs leading-5 text-muted-foreground">
-            Your plan renews automatically at the selected interval. You can cancel before the next renewal in the Bachs billing portal.
+            Plans are paid upfront through Paystack. Access remains active for the selected period and can be renewed when it expires.
           </p>
         </div>
       </DialogContent>

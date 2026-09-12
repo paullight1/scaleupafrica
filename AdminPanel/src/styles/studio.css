@@ -93,6 +93,28 @@
   min-height: 25rem;
 }
 
+/* MDXEditor mounts link dialogs in a body-level portal. Keep that portal
+   independent from the studio canvas sizing rules so it cannot become a
+   full-page blank layer on smaller screens. */
+.mdxeditor-popup-container {
+  position: relative;
+  z-index: 60;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mdxeditor-popup-container [role="dialog"] {
+  max-width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.mdxeditor-popup-container input,
+.mdxeditor-popup-container textarea {
+  max-width: 100%;
+}
+
 @media (max-width: 767px) {
   .studio-toolbar > * {
     max-width: 100%;

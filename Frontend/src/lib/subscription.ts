@@ -23,7 +23,6 @@ export type SubscriptionRow = {
   auto_renew?: boolean;
   billing_email?: string | null;
   next_payment_at?: string | null;
-  bachs_subscription_id?: string | null;
   current_period_start?: string | null;
   cancel_at_period_end?: boolean;
 } | null;
@@ -61,7 +60,7 @@ export function useSubscription(): UseSubscriptionResult {
     queryFn: async (): Promise<SubscriptionRow> => {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("has_access, expires_at, plan_code, billing_status, auto_renew, billing_email, next_payment_at, bachs_subscription_id, current_period_start, cancel_at_period_end")
+        .select("has_access, expires_at, plan_code, billing_status, auto_renew, billing_email, next_payment_at, current_period_start, cancel_at_period_end")
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error; // <-- errors become status:"error", never "no access"

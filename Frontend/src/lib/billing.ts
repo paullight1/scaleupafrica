@@ -3,9 +3,9 @@
 //
 // SOURCE OF TRUTH: supabase/functions/_shared/billing.ts (PLANS).
 // The client never charges and never supplies an arbitrary amount — it sends
-// { plan_code, currency } to bachs-init, and the server resolves the price.
-// These constants are only for rendering. Bachs decimal-string conversion lives
-// exclusively at the server/provider boundary in _shared/bachs.ts.
+// { plan_code, currency } to paystack-init, and the server resolves the price.
+// These constants are only for rendering. Paystack minor-unit conversion lives
+// exclusively at the server/provider boundary in _shared/billing.ts.
 // =============================================================================
 
 export type PlanCode = "monthly" | "quarterly" | "annual";
