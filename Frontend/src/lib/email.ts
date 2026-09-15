@@ -92,6 +92,7 @@ export interface ResourceRequest {
   name?: string;
   company?: string;
   resourceId: string;
+  answers?: Record<string, string>;
   hp?: string;
 }
 

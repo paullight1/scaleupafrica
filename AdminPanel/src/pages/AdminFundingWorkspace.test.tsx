@@ -11,6 +11,8 @@ vi.mock("@/hooks/queries/fundingEngine", () => ({
   useFundingEngineSources: () => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() }),
   useFundingEngineRuns: () => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() }),
   useFundingEngineOpportunities: () => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() }),
+  useAddFundingEngineSource: () => ({ mutate: vi.fn(), isPending: false }),
+  useImportFundingEngineGrants: () => ({ mutate: vi.fn(), isPending: false }),
   useStartFundingEngineRun: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 

@@ -806,6 +806,7 @@ export type Database = {
           channel: string | null
           created_at: string
           currency: string
+          exclude_from_reporting: boolean
           gateway_response: Json | null
           id: string
           paid_at: string | null
@@ -824,6 +825,7 @@ export type Database = {
           channel?: string | null
           created_at?: string
           currency: string
+          exclude_from_reporting?: boolean
           gateway_response?: Json | null
           id?: string
           paid_at?: string | null
@@ -842,6 +844,7 @@ export type Database = {
           channel?: string | null
           created_at?: string
           currency?: string
+          exclude_from_reporting?: boolean
           gateway_response?: Json | null
           id?: string
           paid_at?: string | null
@@ -1011,6 +1014,7 @@ export type Database = {
         Row: {
           author_id: string | null
           author_name: string | null
+          additional_questions: Json
           category: string | null
           content: string | null
           cover_image_url: string | null
@@ -1036,6 +1040,7 @@ export type Database = {
         Insert: {
           author_id?: string | null
           author_name?: string | null
+          additional_questions?: Json
           category?: string | null
           content?: string | null
           cover_image_url?: string | null
@@ -1061,6 +1066,7 @@ export type Database = {
         Update: {
           author_id?: string | null
           author_name?: string | null
+          additional_questions?: Json
           category?: string | null
           content?: string | null
           cover_image_url?: string | null

@@ -43,7 +43,7 @@ const IP_SALT = CONFIG.tokenSecret || SERVICE_ROLE_KEY;
 
 const RATE_LIMIT_PER_HOUR = 10;
 
-const MAX = { name: 120, email: 254, company: 160, message: 2000, source: 60, area: 60, sector: 120 } as const;
+const MAX = { name: 120, email: 254, company: 160, message: 2000, source: 60, area: 60, sector: 120, answer: 500 } as const;
 const SUPPORT_AREA_LABELS: Record<string, string> = {
   general: "General support",
   account_profile: "Account & profile",
@@ -264,18 +264,22 @@ async function handleResource(
   const name = str(body.name, MAX.name);
   const company = str(body.company, MAX.company);
   const resourceId = str(body.resourceId, 64);
+  const answers = body.answers && typeof body.answers === "object" && !Array.isArray(body.answers) ? body.answers as Record<string, unknown> : {};
 
   if (!email) return json({ error: "Enter a valid email address.", fields: { email: "Enter a valid email address." } }, 400);
   if (!resourceId) return json({ error: "Missing resource." }, 400);
 
   const { data: resource } = await admin
     .from("resources")
-    .select("id, title, slug, file_url, status")
+    .select("id, title, slug, file_url, status, additional_questions")
     .eq("id", resourceId)
     .eq("status", "published")
     .maybeSingle();
 
   if (!resource) return json({ error: "Resource not found.", code: "NOT_FOUND" }, 404);
+
+  const validatedAnswers = validateResourceAnswers(resource.additional_questions, answers);
+  if (!validatedAnswers.ok) return json({ error: validatedAnswers.error, code: "INVALID_ANSWERS" }, 400);
 
   const { data: lead, error } = await admin
     .from("leads")
@@ -285,7 +289,7 @@ async function handleResource(
       company: company || null,
       source: "resource_download",
       resource_id: resource.id,
-      metadata: { resource_title: resource.title },
+      metadata: { resource_title: resource.title, answers: validatedAnswers.answers },
     })
     .select("id")
     .single();
@@ -314,6 +318,31 @@ async function handleResource(
 }
 
 // --- helpers -----------------------------------------------------------------
+
+function validateResourceAnswers(
+  configured: unknown,
+  submitted: Record<string, unknown>,
+): { ok: true; answers: Record<string, string> } | { ok: false; error: string } {
+  const questions = Array.isArray(configured) ? configured : [
+    { id: "company_name", label: "Company name", type: "text", required: true, enabled: true },
+    { id: "employee_range", label: "Number of employees", type: "select", options: ["1–5", "6–10", "11–20", "21–50", "51–100", "101+"], required: true, enabled: true },
+    { id: "hear_about_us", label: "How did you hear about us?", type: "select", options: ["Instagram", "WhatsApp", "LinkedIn", "Email", "Through a friend"], required: true, enabled: true },
+    { id: "country", label: "Which country do you reside in?", type: "text", required: true, enabled: true },
+  ];
+  const answers: Record<string, string> = {};
+  for (const question of questions) {
+    if (!question || typeof question !== "object") continue;
+    const raw = question as { id?: unknown; label?: unknown; type?: unknown; options?: unknown; required?: unknown; enabled?: unknown };
+    if (raw.enabled === false || typeof raw.id !== "string" || typeof raw.label !== "string") continue;
+    const value = typeof submitted[raw.id] === "string" ? submitted[raw.id].trim().slice(0, MAX.answer) : "";
+    if (raw.required !== false && !value) return { ok: false, error: `${raw.label} is required.` };
+    if (value && raw.type === "select" && Array.isArray(raw.options) && !raw.options.includes(value)) {
+      return { ok: false, error: `Choose a valid answer for ${raw.label}.` };
+    }
+    if (value) answers[raw.id] = value;
+  }
+  return { ok: true, answers };
+}
 
 function str(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";

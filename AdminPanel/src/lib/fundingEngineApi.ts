@@ -16,7 +16,17 @@ export interface EngineRun {
   opportunities_found?: number;
   items_found?: number;
   urls_scraped?: number;
-  warnings?: Array<{ name?: string | null }>;
+  urls_saved?: number;
+  urls_skipped?: number;
+  duration_seconds?: number;
+  warnings?: Array<{
+    name?: string | null;
+    status?: string | null;
+    itemsFound?: number;
+    itemsSkipped?: number;
+    urlsDiscovered?: number;
+    error?: string | null;
+  }>;
   created_at?: string;
   started_at?: string;
   completed_at?: string | null;
@@ -46,7 +56,21 @@ export interface EngineGrant {
   created_at?: string | null;
 }
 
-type EngineAction = "status" | "sources" | "runs" | "opportunities" | "start-run";
+export interface CreateEngineSourceInput {
+  name: string;
+  url: string;
+  category?: string;
+  tier?: number;
+}
+
+export interface EngineSourceMutationResult {
+  success: boolean;
+  data?: EngineSource;
+  duplicate?: boolean;
+  error?: string;
+}
+
+type EngineAction = "status" | "sources" | "runs" | "opportunities" | "start-run" | "add-source";
 
 async function request<T>(
   action: EngineAction,
@@ -81,6 +105,11 @@ async function request<T>(
 export const fundingEngineApi = {
   status: () => request<EngineStatus>("status", "/status"),
   sources: () => request<EngineSource[]>("sources", "/sources"),
+  addSource: (input: CreateEngineSourceInput) =>
+    request<EngineSourceMutationResult>("add-source", "/sources", { ...input }, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   runs: () => request<EngineRun[]>("runs", "/runs?limit=20", { limit: 20 }),
   opportunities: () => request<EngineGrant[]>("opportunities", "/opportunities?limit=50", { limit: 50 }),
   startRun: (input: { sourceId?: number; allSources?: boolean; maxPages: number; incremental: boolean }) =>

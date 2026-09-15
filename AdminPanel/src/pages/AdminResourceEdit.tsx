@@ -31,6 +31,8 @@ import { ErrorState } from "@shared/components/common/ErrorState";
 import { CardSkeleton } from "@shared/components/common/LoadingState";
 import FileUpload from "@/components/FileUpload";
 import { RichMarkdownEditor } from "@/components/RichMarkdownEditor";
+import { ResourceQuestionsEditor } from "@/components/resources/ResourceQuestionsEditor";
+import { DEFAULT_RESOURCE_QUESTIONS, normalizeResourceQuestions, type ResourceQuestion } from "@shared/lib/resourceQuestions";
 
 import { Button } from "@shared/components/ui/button";
 import { Input } from "@shared/components/ui/input";
@@ -50,6 +52,7 @@ import {
   RESOURCE_TYPES,
   SlugConflictError,
   useAdminResource,
+  useResourceResponseStats,
   useCreateResource,
   useUpdateResource,
   type ResourceInsert,
@@ -92,6 +95,14 @@ const schema = z.object({
   file_url: z.string().nullable(),
   file_name: z.string().nullable(),
   file_size_kb: z.number().nullable(),
+  additional_questions: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    type: z.enum(["text", "select"]),
+    options: z.array(z.string()),
+    required: z.boolean(),
+    enabled: z.boolean(),
+  })),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -121,6 +132,7 @@ const DEFAULTS: FormValues = {
   file_url: null,
   file_name: null,
   file_size_kb: null,
+  additional_questions: DEFAULT_RESOURCE_QUESTIONS,
 };
 
 const LOCAL_DRAFT_PREFIX = "cresciva:admin:resource-draft:v1";
@@ -229,6 +241,7 @@ const AdminResourceEdit = () => {
   );
   const [localSavedAt, setLocalSavedAt] = useState<string | null>(null);
   const [remoteSavedAt, setRemoteSavedAt] = useState<string | null>(null);
+  const [questionsOpen, setQuestionsOpen] = useState(false);
 
   const {
     register,
@@ -250,6 +263,8 @@ const AdminResourceEdit = () => {
   const status = watch("status");
   const coverUrl = watch("cover_image_url");
   const fileUrl = watch("file_url");
+  const additionalQuestions = watch("additional_questions");
+  const responseStats = useResourceResponseStats(id);
 
   const clearBrowserDraft = useCallback(() => {
     if (localDraftTimer.current !== null) {
@@ -387,6 +402,7 @@ const AdminResourceEdit = () => {
       file_url: row.file_url,
       file_name: row.file_name,
       file_size_kb: row.file_size_kb,
+      additional_questions: normalizeResourceQuestions(row.additional_questions),
     });
   }, [resourceQuery.data, reset]);
 
@@ -430,6 +446,7 @@ const AdminResourceEdit = () => {
       author_id: user?.id ?? null,
       author_name: authorName,
       published_at: nextPublishedAt,
+      additional_questions: normalizeResourceQuestions(values.additional_questions),
     };
 
     try {
@@ -625,6 +642,13 @@ const AdminResourceEdit = () => {
         </DialogContent>
       </Dialog>
 
+      <ResourceQuestionsEditor
+        open={questionsOpen}
+        onOpenChange={setQuestionsOpen}
+        questions={normalizeResourceQuestions(additionalQuestions)}
+        onSave={(questions: ResourceQuestion[]) => setValue("additional_questions", questions, { shouldDirty: true })}
+      />
+
       {recoveredDraftAt && !isEdit && (
         <section className="flex flex-col gap-4 rounded-xl border border-primary/25 bg-primary/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
@@ -731,16 +755,16 @@ const AdminResourceEdit = () => {
         {/* Main column */}
         <div className="min-w-0 space-y-6 xl:col-span-2">
           {deliveryKind === "link" && (
-            <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-soft">
               <div>
-                <h2 className="font-display text-lg font-semibold text-ink-strong">Link details</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <h2 className="font-display text-base font-semibold text-ink-strong">Link details</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
                   Paste the exact destination readers should open. Fetching details fills empty fields without replacing your edits.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <div className="min-w-0 flex-1 space-y-2">
-                  <Label htmlFor="resource-link">Resource link</Label>
+                  <Label htmlFor="resource-link" className="text-xs">Resource link</Label>
                   <Input
                     id="resource-link"
                     type="url"
@@ -774,11 +798,11 @@ const AdminResourceEdit = () => {
                     <img
                       src={coverUrl ?? linkMetadata?.imageUrl ?? undefined}
                       alt="Link preview"
-                      className="aspect-[16/7] w-full object-cover"
+                      className="aspect-[16/5] w-full object-cover"
                     />
                   )}
                   {fileUrl && (
-                    <div className="flex min-w-0 flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 flex-col items-start gap-2 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                       <span className="min-w-0 max-w-full truncate text-sm text-muted-foreground">
                         {linkMetadata?.siteName ?? fileUrl}
                       </span>
@@ -868,8 +892,8 @@ const AdminResourceEdit = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="min-w-0 space-y-6">
-          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
+        <div className="flex min-w-0 flex-col gap-6">
+          <section className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-soft">
             <h2 className="font-display text-lg font-semibold text-ink-strong">Publishing</h2>
 
             <div className="space-y-2">
@@ -932,6 +956,16 @@ const AdminResourceEdit = () => {
               />
             </div>
 
+            <div className="rounded-lg border border-primary/15 bg-primary/[0.04] p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-ink-strong">Additional questions</p>
+                  <p className="text-xs text-muted-foreground">{additionalQuestions.filter((question) => question.enabled).length} enabled · asked before access</p>
+                </div>
+                <Button type="button" size="sm" variant="outline" onClick={() => setQuestionsOpen(true)}>Edit questions</Button>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-2 pt-2">
               {permissions.canPublish && <Button type="button" onClick={onPublish} disabled={busy}>
                 {busy ? "Saving…" : "Publish"}
@@ -947,10 +981,22 @@ const AdminResourceEdit = () => {
             </div>
           </section>
 
-          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
-            <h2 className="font-display text-lg font-semibold text-ink-strong">Details</h2>
+          <section className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-semibold text-ink-strong">Response snapshot</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Answers from resource access requests.</p>
+              </div>
+              <span className="rounded-full bg-surface-subtle px-2.5 py-1 text-sm font-semibold text-ink-strong">{responseStats.data?.totalResponses ?? 0}</span>
+            </div>
+            {!id ? <p className="text-sm text-muted-foreground">Save this resource to start collecting responses.</p> : responseStats.isLoading ? <p className="text-sm text-muted-foreground">Loading responses…</p> : responseStats.isError ? <p className="text-sm text-muted-foreground">Response stats are unavailable right now.</p> : responseStats.data?.questions.some((question) => question.answers.length > 0) ? <div className="space-y-3">{responseStats.data.questions.filter((question) => question.answers.length > 0).slice(0, 3).map((question) => <div key={question.id}><p className="text-xs font-semibold text-ink-strong">{question.label}</p><div className="mt-1 flex flex-wrap gap-1.5">{question.answers.slice(0, 4).map((answer) => <span key={answer.value} className="rounded-full bg-surface-subtle px-2 py-1 text-xs text-muted-foreground">{answer.value} · {answer.count}</span>)}</div></div>)}</div> : <p className="text-sm text-muted-foreground">No responses yet.</p>}
+          </section>
 
-            <div className="space-y-2">
+          <section className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-soft">
+            <h2 className="font-display text-base font-semibold text-ink-strong">Details</h2>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
               <Label htmlFor="type">Type</Label>
               <Controller
                 control={control}
@@ -972,7 +1018,7 @@ const AdminResourceEdit = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="category">Category</Label>
               <Input
                 id="category"
@@ -984,8 +1030,10 @@ const AdminResourceEdit = () => {
                 <p className="text-sm text-destructive-strong">{errors.category.message}</p>
               )}
             </div>
+            </div>
 
-            <div className="space-y-2">
+            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
               <Label htmlFor="topics">Topics</Label>
               <Input
                 id="topics"
@@ -999,7 +1047,7 @@ const AdminResourceEdit = () => {
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="read_time_min">Read time (minutes)</Label>
               <Input
                 id="read_time_min"
@@ -1017,9 +1065,10 @@ const AdminResourceEdit = () => {
                 </p>
               )}
             </div>
+            </div>
           </section>
 
-          <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-6">
+          <section className="order-first space-y-3 rounded-xl border border-border bg-card p-4 shadow-soft">
             <h2 className="font-display text-lg font-semibold text-ink-strong">Media</h2>
 
             <div className="space-y-2">

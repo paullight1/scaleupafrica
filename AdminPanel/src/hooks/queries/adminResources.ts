@@ -5,6 +5,7 @@ import type {
   TablesInsert,
   TablesUpdate,
 } from "@shared/integrations/supabase/types";
+import { buildResourceQuestionStats, type ResourceQuestionStats } from "@shared/lib/resourceQuestions";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,6 +110,25 @@ export function useAdminResource(id: string | undefined) {
         .maybeSingle();
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useResourceResponseStats(id: string | undefined) {
+  return useQuery<{
+    totalResponses: number;
+    questions: ResourceQuestionStats[];
+  }>({
+    queryKey: [...resourceKeys.detail(id ?? ""), "response-stats"],
+    enabled: !!id,
+    queryFn: async () => {
+      const [{ data: resource, error: resourceError }, { data: responses, error: responseError }] = await Promise.all([
+        supabase.from("resources").select("additional_questions").eq("id", id!).single(),
+        supabase.from("leads").select("metadata, created_at").eq("resource_id", id!).eq("source", "resource_download").order("created_at", { ascending: false }).limit(5000),
+      ]);
+      if (resourceError) throw resourceError;
+      if (responseError) throw responseError;
+      return buildResourceQuestionStats(resource?.additional_questions, responses ?? []);
     },
   });
 }
@@ -228,6 +248,7 @@ export function useDuplicateResource() {
         read_time_min: row.read_time_min,
         author_id: row.author_id,
         author_name: row.author_name,
+        additional_questions: row.additional_questions,
         status: "draft",
         published_at: null,
       };

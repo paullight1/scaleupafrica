@@ -4,6 +4,7 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { supabase } from "@shared/integrations/supabase/client";
+import type { ResourceQuestion } from "@shared/lib/resourceQuestions";
 
 /**
  * Public Resource Library data layer. All server reads go through TanStack Query.
@@ -89,6 +90,7 @@ export type ResourceCardRow = {
   read_time_min: number | null;
   view_count: number;
   download_count: number;
+  additional_questions?: ResourceQuestion[];
   published_at: string | null;
 };
 
@@ -99,7 +101,7 @@ export type ResourceDetailRow = ResourceCardRow & {
 };
 
 const CARD_COLUMNS =
-  "id, title, slug, type, category, excerpt, cover_image_url, file_url, file_name, file_size_kb, topics, gated, featured, read_time_min, view_count, download_count, published_at";
+  "id, title, slug, type, category, excerpt, cover_image_url, file_url, file_name, file_size_kb, topics, gated, featured, read_time_min, view_count, download_count, published_at, additional_questions";
 
 const DETAIL_COLUMNS = `${CARD_COLUMNS}, content, author_name, created_at`;
 

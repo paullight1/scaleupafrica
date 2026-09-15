@@ -34,6 +34,7 @@ vi.mock("@/hooks/queries/adminResources", () => ({
   RESOURCE_STATUSES: [{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }],
   SlugConflictError: class SlugConflictError extends Error {},
   useAdminResource: () => ({ data: adminResource, isLoading: false, isError: false, refetch: vi.fn() }),
+  useResourceResponseStats: () => ({ data: { totalResponses: 0, questions: [] }, isLoading: false, isError: false }),
   useCreateResource: () => ({ mutateAsync: createResource, isPending: false }),
   useUpdateResource: () => ({ mutateAsync: updateResource, isPending: false }),
 }));

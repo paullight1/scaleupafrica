@@ -35,7 +35,7 @@ begin
         from (
           select upper(currency) currency, sum(amount)::bigint amount_total
           from public.payments
-          where status = 'success' and paid_at >= since_at
+          where status = 'success' and paid_at >= since_at and not exclude_from_reporting
           group by upper(currency)
         ) currency_totals
       ), '{}'::jsonb),
@@ -44,12 +44,12 @@ begin
         from (
           select plan_code, upper(currency) currency, sum(amount)::bigint amount_total, count(*)::bigint payment_count
           from public.payments
-          where status = 'success' and paid_at >= since_at
+          where status = 'success' and paid_at >= since_at and not exclude_from_reporting
           group by plan_code, upper(currency)
           order by payment_count desc
         ) plan_totals
       ), '[]'::jsonb),
-      'successful_payments', (select count(*) from public.payments where status = 'success' and paid_at >= since_at),
+      'successful_payments', (select count(*) from public.payments where status = 'success' and paid_at >= since_at and not exclude_from_reporting),
       'failed_payments', (select count(*) from public.payments where status in ('failed', 'abandoned') and created_at >= since_at)
     ),
     'operations', jsonb_build_object(

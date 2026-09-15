@@ -3,7 +3,8 @@ export type EdutuGrantAction =
   | "sources"
   | "runs"
   | "opportunities"
-  | "start-run";
+  | "start-run"
+  | "add-source";
 
 type ProxyInput = {
   action?: unknown;
@@ -12,6 +13,10 @@ type ProxyInput = {
   allSources?: unknown;
   maxPages?: unknown;
   incremental?: unknown;
+  name?: unknown;
+  url?: unknown;
+  category?: unknown;
+  tier?: unknown;
 };
 
 export type EdutuGrantProxyOptions = {
@@ -62,7 +67,7 @@ export async function proxyEdutuGrantRequest(
     );
   }
   return Response.json(payload, {
-    status: request.action === "start-run" ? 202 : 200,
+    status: request.action === "start-run" ? 202 : response.status,
     headers: { "Cache-Control": "no-store" },
   });
 }
@@ -94,6 +99,22 @@ function buildUpstreamRequest(input: ProxyInput): {
           maxPages: integer(input.maxPages, 3, 1, 20),
           incremental: input.incremental !== false,
           opportunityScope: "grants",
+        },
+      };
+    }
+    case "add-source": {
+      const name = typeof input.name === "string" ? input.name.trim() : "";
+      const url = typeof input.url === "string" ? input.url.trim() : "";
+      if (!name || !url) return null;
+      return {
+        action: input.action,
+        method: "POST",
+        path: "/sources",
+        body: {
+          name,
+          url,
+          category: typeof input.category === "string" && input.category.trim() ? input.category.trim() : "grant",
+          ...(Number.isSafeInteger(Number(input.tier)) ? { tier: Number(input.tier) } : {}),
         },
       };
     }

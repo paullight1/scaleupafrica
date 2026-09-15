@@ -14,6 +14,7 @@ import { supabase } from "@shared/integrations/supabase/client";
 import { requestResourceDownload } from "@/lib/email";
 import { trackEvent } from "@shared/lib/analytics";
 import { resourceDeliveryKind } from "@shared/lib/resourceLinks";
+import { enabledResourceQuestions, type ResourceQuestion } from "@shared/lib/resourceQuestions";
 import { Markdown } from "@shared/lib/markdown";
 import { SEO } from "@shared/components/common/SEO";
 import { ErrorState } from "@shared/components/common/ErrorState";
@@ -64,6 +65,7 @@ const ResourceDetail = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [openingDownload, setOpeningDownload] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -145,9 +147,14 @@ const ResourceDetail = () => {
   }
 
   const typeLabel = resourceTypeLabel(resource.type);
+  const questions = enabledResourceQuestions(resource.additional_questions);
+  const hasCompanyQuestion = questions.some(
+    (question) => question.id === "company_name" || question.label.trim().toLowerCase() === "company name",
+  );
   const size = formatFileSize(resource.file_size_kb);
   const hasFile = !!resource.file_url;
   const canDownloadNow = hasFile && (!resource.gated || !!user || unlocked);
+  const needsQuestions = questions.length > 0 && hasFile && !unlocked;
   const openSignIn = (create = false) => {
     const next = encodeURIComponent(location.pathname);
     navigate(create ? `/auth/signup?next=${next}` : `/auth?next=${next}`);
@@ -197,6 +204,11 @@ const ResourceDetail = () => {
       toast.error("Enter a valid email address to get your download.");
       return;
     }
+    const missingQuestion = questions.find((question) => question.required && !answers[question.id]?.trim());
+    if (missingQuestion) {
+      toast.error(`Please answer: ${missingQuestion.label}`);
+      return;
+    }
     setSubmitting(true);
     // The edge function captures the lead and emails the file. It resolves the
     // download URL from the database itself, so the link in the inbox can never
@@ -204,8 +216,9 @@ const ResourceDetail = () => {
     const result = await requestResourceDownload({
       email: trimmedEmail,
       name: name.trim() || undefined,
-      company: company.trim() || undefined,
+      company: company.trim() || answers.company_name?.trim() || undefined,
       resourceId: resource.id,
+      answers,
       hp: honeypot.current?.value ?? "",
     });
     setSubmitting(false);
@@ -333,10 +346,24 @@ const ResourceDetail = () => {
                   </div>
                 </div>
 
-                {canDownloadNow ? (
+                {canDownloadNow && !needsQuestions ? (
                   <Button className="w-full" size="lg" onClick={() => void handleDownload()} disabled={openingDownload} aria-busy={openingDownload}>
                     <Download className="h-4 w-4" /> {openingDownload ? "Opening…" : "Download"}
                   </Button>
+                ) : needsQuestions ? (
+                  <form onSubmit={handleLeadSubmit} className="space-y-3" noValidate>
+                    <input ref={honeypot} type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute left-[-9999px] h-px w-px opacity-0" />
+                    <p className="flex items-center gap-1.5 text-sm font-medium text-foreground"><Lock className="h-3.5 w-3.5 text-primary-dark" aria-hidden /> A few details before you access this resource.</p>
+                    {questions.map((question: ResourceQuestion) => question.type === "select" ? (
+                      <div key={question.id} className="space-y-1.5"><Label htmlFor={`resource-question-${question.id}`}>{question.label}{question.required ? <span className="text-destructive-strong"> *</span> : null}</Label><select id={`resource-question-${question.id}`} value={answers[question.id] ?? ""} onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: event.target.value }))} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose an option</option>{question.options.map((option) => <option key={option} value={option}>{option}</option>)}</select></div>
+                    ) : (
+                      <div key={question.id} className="space-y-1.5"><Label htmlFor={`resource-question-${question.id}`}>{question.label}{question.required ? <span className="text-destructive-strong"> *</span> : null}</Label><Input id={`resource-question-${question.id}`} value={answers[question.id] ?? ""} onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: event.target.value }))} /></div>
+                    ))}
+                    <div className="space-y-1.5"><Label htmlFor="lead-email">Email <span className="text-destructive-strong">*</span></Label><Input id="lead-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="you@company.com" /></div>
+                    <div className={hasCompanyQuestion ? "space-y-1.5" : "grid gap-3 sm:grid-cols-2"}><div className="space-y-1.5"><Label htmlFor="lead-name">Name</Label><Input id="lead-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></div>{!hasCompanyQuestion && <div className="space-y-1.5"><Label htmlFor="lead-company">Company</Label><Input id="lead-company" value={company} onChange={(e) => setCompany(e.target.value)} autoComplete="organization" /></div>}</div>
+                    <Button type="submit" className="w-full" size="lg" disabled={submitting}>{submitting ? "Submitting…" : "Continue to access"}</Button>
+                    <p className="text-xs text-muted-foreground">We’ll use these answers to improve the resources we create.</p>
+                  </form>
                 ) : !user && resource.gated ? (
                   <Button className="w-full" size="lg" onClick={() => setAccessOpen(true)}><Lock className="h-4 w-4" /> Sign in to access</Button>
                 ) : (

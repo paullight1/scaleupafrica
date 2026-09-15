@@ -48,3 +48,30 @@ Deno.test("grant proxy only exposes allowlisted actions", async () => {
   assert(response.status === 400, "unknown actions should be rejected");
   assert(!called, "unknown actions must not reach Edutu");
 });
+
+Deno.test("grant proxy forwards a new source to Edutu", async () => {
+  let upstreamUrl = "";
+  let upstreamBody: Record<string, unknown> = {};
+  const response = await proxyEdutuGrantRequest(
+    {
+      action: "add-source",
+      name: "Grant source",
+      url: "https://grants.example",
+      category: "grant",
+    },
+    {
+      baseUrl: "https://edutu.example.com",
+      apiKey: "x".repeat(32),
+      fetcher: async (input, init) => {
+        upstreamUrl = String(input);
+        upstreamBody = JSON.parse(String(init?.body));
+        return Response.json({ success: true }, { status: 201 });
+      },
+    },
+  );
+
+  assert(response.status === 201, "source creation should preserve the upstream success status");
+  assert(upstreamUrl.endsWith("/api/integrations/cresciva/engine/sources"), "wrong source route");
+  assert(upstreamBody.name === "Grant source", "source name was not forwarded");
+  assert(upstreamBody.url === "https://grants.example", "source URL was not forwarded");
+});

@@ -56,6 +56,7 @@ begin
           count(*)::bigint as payment_count
         from public.payments
         where status = 'success'
+          and not exclude_from_reporting
           and paid_at is not null
           and (range_start is null or paid_at >= range_start)
           and (range_end is null or paid_at < range_end)
@@ -66,6 +67,7 @@ begin
       select count(*)::bigint
       from public.payments
       where status = 'success'
+        and not exclude_from_reporting
         and paid_at is not null
         and (range_start is null or paid_at >= range_start)
         and (range_end is null or paid_at < range_end)
