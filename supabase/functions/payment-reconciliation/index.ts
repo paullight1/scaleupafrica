@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
       admin
         .from("payments")
         .select("id,user_id,provider,reference,status,amount,currency,paid_at,created_at,gateway_response,provider_invoice_id")
+        .eq("provider", "paystack")
         .order("created_at", { ascending: false })
         .limit(MAX_PAYMENTS),
       admin
@@ -227,6 +228,7 @@ Deno.serve(async (req) => {
         .from("payments")
         .select("user_id")
         .eq("status", "success")
+        .eq("provider", "paystack")
         .in("user_id", activeUserIds);
       if (error) {
         console.error("payment-reconciliation: successful payment query failed", error.message);

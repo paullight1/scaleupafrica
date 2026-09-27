@@ -113,16 +113,7 @@ Never commit these values:
 SUPABASE_URL
 SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
-BACHS_SECRET_KEY
-BACHS_BASE_URL
-BACHS_WEBHOOK_SIGNING_SECRET
-BACHS_ORGANIZATION_ID       # recommended provider/account pin
-BACHS_MONTHLY_PRODUCT_USD   # recurring product, exact $6.67/month price
-BACHS_QUARTERLY_PRODUCT_USD # recurring product, exact $16.67/3 months price
-BACHS_ANNUAL_PRODUCT_USD    # recurring product, exact $60/year price
-BACHS_MONTHLY_PRODUCT_NGN   # recurring product, exact ₦10,000/month price
-BACHS_QUARTERLY_PRODUCT_NGN # recurring product, exact ₦25,000/3 months price
-BACHS_ANNUAL_PRODUCT_NGN    # recurring product, exact ₦90,000/year price
+PAYSTACK_SECRET_KEY         # server-only Paystack secret key
 APP_URL                     # official Cresciva web origin used for checkout return/cancel URLs
 LOVABLE_API_KEY             # current funding AI gateway key; verified-only search still works without it
 RESEND_API_KEY
@@ -135,14 +126,10 @@ BREVO_SENDER_ID
 BREVO_WEBHOOK_TOKEN
 ```
 
-Bachs environments must not be mixed:
-
-- sandbox API: `https://sandbox-api.bachs.io` with an `sk_sandbox_…` key
-- live API: `https://api.bachs.io` with an `sk_live_…` key
-
-The code rejects a Bachs key/base-URL environment mismatch.
-
-Each `BACHS_*_PRODUCT_USD` variable must point to a **recurring Bachs product** with the matching billing cycle and exact Cresciva price. Sandbox/live product IDs may differ and must be deployed with the matching Bachs key environment. NGN prices use a fixed ₦1,500 per USD. Configure the three matching `BACHS_*_PRODUCT_NGN` recurring products and deploy `bachs-init` and `bachs-webhook` before enabling live naira checkout. Missing product configuration returns NOT_CONFIGURED; checkout never silently switches currency.
+Paystack uses `https://api.paystack.co` for both test and live mode. Use an
+`sk_test_…` key for test mode and an `sk_live_…` key for production. The
+checkout resolves the canonical plan amount server-side and never exposes the
+secret key to the browser.
 
 ### NestJS Backend (when deployed)
 
@@ -154,16 +141,13 @@ SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 SUPABASE_JWT_SECRET         # only if the configured auth path requires it
 CORS_ORIGINS
-BACHS_SECRET_KEY
-BACHS_BASE_URL
-BACHS_WEBHOOK_SIGNING_SECRET
-BACHS_ORGANIZATION_ID
+PAYSTACK_SECRET_KEY
 AI_GATEWAY_URL
 AI_GATEWAY_KEY
 AI_MODEL
 ```
 
-Payment fulfillment is intentionally single-homed in Supabase Edge Functions during the current production-readiness phase; the NestJS API does not mount a competing Bachs webhook handler.
+Payment fulfillment is intentionally single-homed in Supabase Edge Functions during the current production-readiness phase; the NestJS API does not mount a competing Paystack webhook handler.
 
 ### Edutu opportunity engine
 
@@ -204,16 +188,14 @@ docs/production-readiness launch-hardening plans and evidence
 
 ## Payment flow
 
-1. A signed-in user selects the monthly, quarterly, or annual USD plan.
-2. `bachs-init` resolves the canonical $6.67/$16.67/$60 amount and selects the configured recurring Bachs product.
-3. Cresciva creates the internal `payments` row first, then creates a Bachs hosted checkout with `product_cart`, `billing_currency`, a stable idempotency key, and metadata containing the internal reference/user/plan.
-4. The browser redirects to Bachs.
-5. Bachs returns to `<APP_URL>/payment/callback?reference=<crv_…>`. The reference is only a lookup key; the redirect is not payment proof.
-6. The callback posts `{ reference }` to `bachs-verify`, which reports checkout state but never grants access from the browser redirect.
-7. `bachs-webhook` syncs subscription lifecycle events and treats `invoice.paid` as the authoritative asynchronous settlement path. It validates the exact amount, original checkout currency (NGN or USD), and paid status before extending access.
-8. `record_bachs_invoice_paid(...)` atomically records the invoice and extends access through the paid period; failed invoices never extend access.
-9. `bachs-portal` creates a hosted Bachs billing-management session for authenticated members.
-10. `/admin/payments` exposes read-only reconciliation of provider settlement, ledger status, entitlement state, webhook processing and receipt delivery.
+1. A signed-in user selects the monthly, quarterly, or annual plan.
+2. `paystack-init` resolves the canonical NGN/USD amount and creates the internal `payments` row with provider `paystack`.
+3. Cresciva creates a Paystack hosted checkout with the internal reference and callback URL.
+4. The browser redirects to Paystack.
+5. Paystack returns to `<APP_URL>/payment/callback?reference=<sua_…>`. The reference is only a lookup key; the redirect is not payment proof.
+6. The callback posts `{ reference }` to `paystack-verify`, which checks the transaction server-side.
+7. `paystack-webhook` verifies Paystack's HMAC signature, validates amount/currency, deduplicates the event, and grants the paid access period.
+8. `/admin/payments` exposes read-only reconciliation of Paystack settlement, ledger status, entitlement state, webhook processing and receipt delivery.
 
 ## Deployment
 
@@ -238,7 +220,7 @@ npm run build:api
 
 Supabase database migrations and Edge Function deployment must target the Cresciva project declared in `supabase/config.toml`. Do not substitute another project when the intended project is unavailable to the current credentials.
 
-Current active payment functions are `bachs-init`, `bachs-verify`, `bachs-webhook`, `bachs-portal`, plus the admin-only `payment-reconciliation` function. Newsletter marketing additionally requires the `newsletter-admin` and `brevo-webhook` functions; public `send-email` persists consent, sends the transactional welcome through Resend and synchronizes the contact to Brevo. Full provider setup and smoke-test steps are in `docs/EMAIL.md`.
+Current active payment functions are `paystack-init`, `paystack-verify`, `paystack-webhook`, plus the admin-only `payment-reconciliation` function. Newsletter marketing additionally requires the `newsletter-admin` and `brevo-webhook` functions; public `send-email` persists consent, sends the transactional welcome through Resend and synchronizes the contact to Brevo. Full provider setup and smoke-test steps are in `docs/EMAIL.md`.
 
 ## Operations
 

@@ -104,7 +104,7 @@ vi.mock("../hooks/queries/adminPayments", async (importOriginal) => ({
       payments: [
         {
           id: "payment-1",
-          provider: "bachs",
+          provider: "paystack",
           reference: "CRES-001",
           status: "success",
           amount: 1500000,
