@@ -15,6 +15,7 @@ Cresciva's public website and admin panel are deployed as one static Nginx appli
 | Source | `https://github.com/paullight1/scaleupafrica.git` |
 | Deployment branch | `codex/free-grants-dokploy` |
 | First release | `11fcc9e` |
+| Verified Nginx header release | `0683865` |
 | Build | Dockerfile, repository root context `.` |
 | Container port | `80` |
 | Temporary HTTPS origin | `https://cresciva.169.58.121.207.sslip.io` |
@@ -62,7 +63,7 @@ No persistent deployment API key is committed or retained. The temporary server-
 - Dokploy deployment status `done`; runtime container healthy.
 - Valid HTTPS on the temporary hostname.
 - `/`, `/directory`, `/dashboard/funding`, `/auth`, `/admin/`, `/admin/funding`, public/admin assets and `/healthz` returned HTTP 200.
-- `nginx -t` passed inside the deployed container.
+- `nginx -t` passed inside the deployed container. SPA/admin/asset responses retain `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin` alongside their cache policy.
 - Real Supabase member password sign-in succeeded on Dokploy; Explore displayed 15 opportunities and the British Council grant with **Unverified**, **Current status unconfirmed** and **View source listing**.
 - Grant parser/card/workspace regressions: 36 passed. Workspace typechecks and both web builds passed. Earlier full workspace tests exposed pre-existing landing/design/admin failures; the full suite is not claimed clean.
 - Other existing Dokploy services remained at 1/1 replicas.

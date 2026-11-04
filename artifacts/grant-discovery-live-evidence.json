@@ -58,5 +58,9 @@
   "browser_verified": "Real member sign-in on Dokploy HTTPS host; Explore15 and British Council grant displayed with unverified labels",
   "security_advisor_new_findings": 0,
   "migration_followup": "20261104151540_keep_grant_listings_out_of_verification_queue",
-  "authoritative_source_queue_rows": 0
+  "authoritative_source_queue_rows": 0,
+  "dokploy_release": "0683865",
+  "dokploy_health": "HTTPS200 ok",
+  "nginx_response_headers_verified": true,
+  "temporary_deployment_keys_remaining": 0
 }
