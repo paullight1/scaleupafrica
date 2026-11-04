@@ -4,13 +4,18 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='cresciva_backend') THEN
     RAISE EXCEPTION 'Missing dedicated backend role';
   END IF;
-  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='cresciva_backend' AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls)) THEN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='cresciva_backend' AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls OR rolreplication)) THEN
     RAISE EXCEPTION 'Backend role must not have cluster/DDL/RLS bypass privileges';
   END IF;
   IF has_table_privilege('cresciva_backend','public.subscriptions','UPDATE')
     OR has_table_privilege('cresciva_backend','public.user_roles','INSERT')
     OR has_table_privilege('cresciva_backend','public.funding_opportunities','UPDATE') THEN
     RAISE EXCEPTION 'Backend must not edit subscriptions, roles or curated funding';
+  END IF;
+  IF pg_has_role('cresciva_backend','service_role','MEMBER')
+    OR pg_has_role('cresciva_backend','postgres','MEMBER')
+    OR has_table_privilege('cresciva_backend','auth.users','SELECT') THEN
+    RAISE EXCEPTION 'Backend role must not inherit privileged roles or read auth users';
   END IF;
   IF NOT has_table_privilege('cresciva_backend','public.profiles','UPDATE') THEN
     RAISE EXCEPTION 'Backend requires member profile writes';

@@ -6,6 +6,8 @@ DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cresciva_backend') THEN
     CREATE ROLE cresciva_backend NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS CONNECTION LIMIT 10;
+  ELSIF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='cresciva_backend' AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls OR rolreplication)) THEN
+    RAISE EXCEPTION 'Existing cresciva_backend role has unexpected elevated attributes';
   END IF;
 END $$;
 -- Permit the existing database owner to manage/test the private runtime role.

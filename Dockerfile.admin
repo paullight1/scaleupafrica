@@ -8,7 +8,7 @@ COPY Backend/package.json Backend/package.json
 RUN npm ci --no-audit --no-fund
 COPY . .
 ARG VITE_SITE_ORIGIN=https://www.crescivacapital.com
-ENV VITE_SITE_ORIGIN=$VITE_SITE_ORIGIN
+ENV VITE_SITE_ORIGIN=$VITE_SITE_ORIGIN VITE_SITE_URL=$VITE_SITE_ORIGIN
 RUN npm run build:admin
 
 FROM nginx:1.28-alpine AS runtime
