@@ -7,6 +7,7 @@ Cresciva's public website and admin panel are deployed as one static Nginx appli
 | Setting | Value |
 |---|---|
 | Server | `169.58.121.207` |
+| Management console | `https://console.top100afl.com` |
 | Dokploy project | Cresciva, `UYSFztIqa57EyENxlt_GM` |
 | Environment | production, `2fzepjNW988xaG0QNwzKK` |
 | Application | Cresciva web, `oSXR15kbAwQhI2e_PktZ6` |
