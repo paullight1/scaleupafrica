@@ -1,6 +1,6 @@
 # Cresciva on Dokploy
 
-Cresciva's public website and admin panel are deployed as one static Nginx application on the owner's existing server. Supabase remains responsible for auth, database, storage, payments/webhooks and scheduled free grant discovery. The optional NestJS API remains off under the existing frontend flags.
+Cresciva now has separate public-web, admin and NestJS API applications on the owner's existing server. Supabase remains responsible for auth, database, storage, payments/webhooks and scheduled free grant discovery. The API is deployed behind `/api/v1`; existing frontend domain-routing flags remain unchanged. See [DOKPLOY_SERVICES.md](DOKPLOY_SERVICES.md) for the dedicated services and verification.
 
 ## Production service
 
@@ -39,7 +39,7 @@ Until this manual step finishes, use the temporary HTTPS origin for inspection. 
 
 ## Build and routing
 
-The Node 22 build installs the locked npm workspaces and runs `npm run build`; `assemble` includes the admin artifact under `/admin/`. The runtime image contains only static output and Nginx. Frontend Supabase configuration is publishable; no service-role, scraper secret or payment secret is sent to the runtime or browser.
+The public Node22 build installs locked npm workspaces and runs `npm run build`; its assembled admin artifact remains available as a fallback. More-specific Dokploy routes now send `/admin` to the dedicated admin container and `/api/v1` to the dedicated API container. Frontend Supabase configuration is publishable; no service-role, scraper secret or payment secret is sent to the runtime or browser.
 
 Nginx serves:
 
