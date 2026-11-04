@@ -150,6 +150,15 @@ describe("FundingWorkspace paid surfaces", () => {
     expect(screen.getByText(/We’ll keep checking verified sources/i)).toBeInTheDocument();
   });
 
+  it("leads members from an empty primary view to imported grants without enabling Apply", () => {
+    state.feed = [item("discovered-grant", { verificationStatus: "unverified", verification_status: "unverified", applicationStatus: "unknown", storedApplicationStatus: "unknown" })];
+    render(<FundingWorkspace />);
+    fireEvent.click(screen.getByRole("button", { name: /Explore 1 opportunity/i }));
+    expect(screen.getByText("Opportunity discovered-grant")).toBeInTheDocument();
+    expect(screen.getByText("not-primary")).toBeInTheDocument();
+    expect(screen.queryByText("primary-apply")).toBeNull();
+  });
+
   it("keeps AI discovery in Explore", () => {
     state.feed = [item("ai", { verificationStatus: "unverified", verification_status: "unverified", discovery_source: "ai_assisted", applicationStatus: "unknown", storedApplicationStatus: "unknown" })];
     render(<FundingWorkspace />);

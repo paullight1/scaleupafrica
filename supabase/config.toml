@@ -69,3 +69,7 @@ verify_jwt = true
 
 [functions.brevo-webhook]
 verify_jwt = false
+
+# Dedicated scheduler secret or explicitly validated staff JWT; no public writes.
+[functions.grant-discovery]
+verify_jwt = false

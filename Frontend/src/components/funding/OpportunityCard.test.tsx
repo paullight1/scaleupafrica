@@ -43,6 +43,12 @@ describe("OpportunityCard", () => {
     expect(screen.getByRole("link", { name: /official source/i })).toHaveAttribute("href", "https://alpha.example/");
   });
 
+  it("labels an aggregator discovery as a source listing rather than an official funder", () => {
+    render(<OpportunityCard opportunity={{ ...opA, verification_status: "unverified" }} open={false} onToggle={() => {}} verificationStatus="unverified" />);
+    expect(screen.getByRole("link", { name: /view source listing/i })).toHaveAttribute("href", "https://alpha.example/");
+    expect(screen.queryByRole("link", { name: /official source/i })).toBeNull();
+  });
+
   it("renders match evidence and verified trust state", () => {
     render(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} matchScore={92} confidenceScore={94} matchReasons={["Nigeria is in the eligible geography.", "Agritech aligns with this program's focus."]} verificationStatus="verified" lastVerifiedAt="2026-08-20T00:00:00Z" />);
     expect(screen.getByText("92% match")).toBeInTheDocument();

@@ -1,0 +1,18 @@
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY Shared/package.json Shared/package.json
+COPY Frontend/package.json Frontend/package.json
+COPY AdminPanel/package.json AdminPanel/package.json
+COPY Backend/package.json Backend/package.json
+RUN npm ci --no-audit --no-fund
+COPY . .
+ARG VITE_SITE_ORIGIN=https://www.crescivacapital.com
+ENV VITE_SITE_ORIGIN=$VITE_SITE_ORIGIN
+RUN npm run build
+
+FROM nginx:1.28-alpine AS runtime
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/Frontend/dist /usr/share/nginx/html
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1/healthz || exit 1

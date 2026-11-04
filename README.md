@@ -237,3 +237,10 @@ The repository currently has no finalized public license or support/contact addr
 The admin Vite server provides `/admin/__resource-link-preview` locally, using the same metadata parser and bounded external-fetch policy as the hosted function. It verifies the caller with Supabase Auth and checks their admin/editor role before fetching. It requires the existing `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; no service-role key is used locally.
 
 Production uses the `resource-link-preview` Edge Function. Deploy that function and its shared dependencies to the application's Supabase project. A missing function is reported separately from a restricted source. Google Slides links that require sign-in cannot be fetched anonymously; manually authored details and the original destination can still be saved.
+
+### Free automatic grant feed
+
+Funding Radar now has a standalone free RSS importer and a six-hour Supabase scheduler.
+Listings appear in members' Explore view with publisher links and unverified status.
+See [FUNDING_DISCOVERY.md](docs/FUNDING_DISCOVERY.md) for sources, operations,
+production verification and the current public-hosting blocker.

@@ -258,7 +258,7 @@ export function OpportunityCard({
         )}
         {o.url && (
           <Button asChild variant={canApplyNow ? "outline" : "default"} size="sm">
-            <a href={o.url} target="_blank" rel="noopener noreferrer nofollow" onClick={trackSourceClick}>Official source <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" /></a>
+            <a href={o.url} target="_blank" rel="noopener noreferrer nofollow" onClick={trackSourceClick}>{resolvedVerification === "unverified" ? "View source listing" : "Official source"} <ExternalLink className="ml-1 h-3 w-3" aria-hidden="true" /></a>
           </Button>
         )}
       </div>
