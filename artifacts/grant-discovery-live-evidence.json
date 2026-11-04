@@ -53,8 +53,10 @@
   },
   "test_user_remaining": 0,
   "verified_date": "2026-11-04",
-  "public_host_status": "HTTP 402 DEPLOYMENT_DISABLED; owning Vercel account not connected",
-  "focused_tests_passed": 34,
-  "browser_verified": "Local production frontend with real authenticated Supabase membership and feed",
-  "security_advisor_new_findings": 0
+  "public_host_status": "Dokploy HTTPS deployment healthy at https://cresciva.169.58.121.207.sslip.io; canonical Squarespace DNS update delegated to user",
+  "focused_tests_passed": 36,
+  "browser_verified": "Real member sign-in on Dokploy HTTPS host; Explore15 and British Council grant displayed with unverified labels",
+  "security_advisor_new_findings": 0,
+  "migration_followup": "20261104151540_keep_grant_listings_out_of_verification_queue",
+  "authoritative_source_queue_rows": 0
 }

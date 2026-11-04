@@ -4,7 +4,7 @@ Cresciva now imports public RSS listings directly into the existing member Fundi
 
 ## Where members see listings
 
-Members with a business profile can use **Funding → Explore**. The empty Open for you screen also offers an Explore button when records are available. Records retain publisher links and are explicitly unverified, with unknown application status. They cannot enter Apply now without the existing authoritative verification and eligibility checks. Publisher links are labelled **View source listing**.
+Members with a business profile can use **Funding → Explore**. The empty Open for you screen also offers an Explore button when records are available. Records retain publisher links in `url` (not the authoritative `source_url` field) and are explicitly unverified, with unknown application status. They cannot enter Apply now without the existing authoritative verification and eligibility checks. Publisher links are labelled **View source listing**.
 
 The public site's usual membership gates remain in force. “Free” here means the ingestion does not purchase services; it does not change Cresciva's membership pricing.
 
@@ -23,7 +23,7 @@ URL tracking parameters are removed. Stable IDs and transactional insert-only wr
 Project: `fqragjhmunphhdnmvpgs`.
 
 - Edge Function: `grant-discovery` (deployed).
-- SQL migration: `20261104064435_free_grant_discovery.sql` (applied and recorded).
+- SQL migrations: `20261104064435_free_grant_discovery.sql` and `20261104151540_keep_grant_listings_out_of_verification_queue.sql` (applied and recorded).
 - Cron job: `cresciva-free-grant-discovery`, schedule `17 */6 * * *` UTC (01:17, 07:17, 13:17 and 19:17 Lagos).
 - Edge secret: `GRANT_DISCOVERY_SECRET`.
 - Vault secret: `grant_discovery_secret`, with the same random value.
@@ -60,7 +60,7 @@ The function also accepts a Supabase staff JWT for an explicit HTTP POST. It doe
 ## Verified on 4 November 2026
 
 - Initial production run: 14 published discoveries, including seven grants; all six feed pages succeeded.
-- Repeat run: zero new rows, 14 discoveries; no duplicates.
+- Repeat run: zero new rows, 14 discoveries; no duplicates. A later scheduled-path run discovered one new listing automatically, bringing the total to 15 (seven grants).
 - Scheduler command through pg_net and Vault: HTTP 200, no timeout.
 - Missing/incorrect scheduler secret: HTTP 401.
 - SQL regression checks: repeated imports, preserved staff edits/draft state, unverified/unknown trust status and service-only grants passed.
@@ -68,6 +68,10 @@ The function also accepts a Supabase staff JWT for an explicit HTTP POST. It doe
 - Changed frontend files pass ESLint; frontend and admin production builds succeed. Focused funding tests pass. The broad workspace run also exposed existing/concurrently edited coupon, landing-page, design-scan and admin-finance failures; it was not a clean whole-repository pass.
 - Security advisor results before/after the schema change are identical; the new function/table introduce no additional findings.
 
-## Remaining public hosting blocker
+## Dokploy migration
 
-`https://www.crescivacapital.com` and `https://cresciva-m.vercel.app` return HTTP 402 with Vercel `DEPLOYMENT_DISABLED`. GitHub deployment records identify the production owner as `tech-4366s-projects`; that project is not accessible through the currently authenticated Vercel CLI or connected accounts. No hosting purchase or domain/DNS change has been made. The database feed and scheduler are live independently, but this hosting issue prevents public-site verification and deployment of the small frontend wording/Explore improvements. Restore access to that Vercel project or choose a free replacement host before declaring the public website complete.
+The public and admin apps are now deployed on the existing Dokploy VPS at `169.58.121.207`. The live temporary origin is [cresciva.169.58.121.207.sslip.io](https://cresciva.169.58.121.207.sslip.io). A real member sign-in and Explore 15 were verified there over HTTPS. The separate Cresciva application retains the same Supabase project and six-hour import schedule.
+
+The user chose to update Squarespace DNS themselves. The original canonical domain still points to disabled Vercel hosting until that change propagates. Both canonical domain routes have already been configured in Dokploy.
+
+See [DOKPLOY.md](DOKPLOY.md) for service IDs, DNS records, health checks, deployment and rollback. No new hosting subscription was purchased.
