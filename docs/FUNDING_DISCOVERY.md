@@ -83,3 +83,13 @@ The user updated Squarespace DNS. On 6 November 2026, both canonical hostnames r
 - Public, admin and API containers remain healthy with one replica each.
 
 See [DOKPLOY.md](DOKPLOY.md) for service IDs, DNS records, health checks, deployment and rollback. No new hosting subscription was purchased.
+
+## Official review and global research, 6 November 2026
+
+Reviewed all eight imported grant records against official sources. One UNESCO duplicate was archived and the Equality Fund record was corrected to a fellowship. HCLTech and Keeling Curve were also checked. Seven additional global opportunities were added, without duplicating the existing Global EbA Fund call.
+
+The resulting feed has 23 published opportunities, including 13 grants. Sixteen records have registered official sources, application links and source-check audit entries; fifteen are open/closing soon/rolling, and the undated AECF window remains unknown. Date-only deadlines retain their published text without invented timestamps. Equality Fund's conflicting closing times and Pollination Project's conflicting award caps are explicit in the notes. FBIS uses a downloadable form and email submission, described in the record; no applications or emails were sent.
+
+Evidence is in `artifacts/funding-verification/2026-11-06-*.json`. The card now displays confirmed source deadline text, including published timezones or time conflicts. Focused card/workspace/recommendation tests: 47 passed; frontend build, typecheck and changed-file lint passed. Public deployment `7b33b9c` completed and its container is healthy.
+
+This is a dated source review, not a new continuous verification service. Existing freshness limits still downgrade application status to unknown when checks expire. Six-hour RSS discovery continues; global web research was performed for this review without a paid search API. Source/application portal access limitations are recorded in the evidence files.

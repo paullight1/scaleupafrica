@@ -1,0 +1,596 @@
+{
+  "reviewed_on": "2026-11-06",
+  "method": "Official programme and linked application pages reviewed; evidence summaries are paraphrases. No paid extraction.",
+  "records": [
+    {
+      "id": "5f2e2f75-36f2-996e-a975-8fb3c16d5dea",
+      "title": "UNESCO SCRS Research Continuity Grants for Africa 2026",
+      "funder": "UNESCO",
+      "type": "grant",
+      "source_url": "https://www.unesco.org/en/articles/call-applications-science-crisis-response-and-solutions-research-continuity-grants-africa",
+      "application_url": "https://forms.cloud.microsoft/e/ZPZXMxni9A",
+      "application_status": "closing_soon",
+      "deadline": "15 November 2026, 23:59 Paris time (CET)",
+      "deadline_at": "2026-11-15T22:59:00Z",
+      "deadline_timezone": "Europe/Paris",
+      "deadline_status": "confirmed",
+      "cycle": "2026 pilot call",
+      "amount": "Up to US$2,000",
+      "summary": "Six institutional grants to resume natural-science research disrupted by conflict or natural/biological hazards. For African researchers at recognized universities or research institutes; not general SME working capital.",
+      "eligibility": "African nationals at recognized African universities/research institutes; relevant Master’s degree or equivalent; crisis-interrupted natural-science research; institutional support required.",
+      "geography_scope": "pan_african",
+      "countries": [],
+      "entity_types": [
+        "academic"
+      ],
+      "tags": [
+        "Research",
+        "Africa",
+        "Science",
+        "Crisis recovery"
+      ],
+      "notes": "Activities must finish within six months. Institutional support and required research authorizations must accompany the application.",
+      "evidence": {
+        "state": "Official current call confirms applications are open.",
+        "deadline": "The call specifies 15 November 2026 at 23:59 Paris time.",
+        "application_link": "The official call links its English application form to Microsoft Forms."
+      }
+    },
+    {
+      "id": "47fd54b2-1613-914d-6379-e5b495ea72a3",
+      "title": "IKI Medium Grants 2026",
+      "funder": "German Government — International Climate Initiative (IKI)",
+      "type": "grant",
+      "source_url": "https://www.international-climate-initiative.com/en/find-funding/medium-grants/medium-grants-2026/",
+      "application_url": "https://ideas.international-climate-initiative.com/",
+      "application_status": "open",
+      "deadline": "12 January 2027, 11:59 CET",
+      "deadline_at": "2027-01-12T10:59:00Z",
+      "deadline_timezone": "Europe/Berlin",
+      "deadline_status": "confirmed",
+      "cycle": "IMG 2026",
+      "amount": "€300,000–€800,000",
+      "summary": "Climate and biodiversity projects with local partners in the Global South. Requires an eligible German/EU nonprofit lead and local implementing partners; African organisations generally participate as partners, not standalone lead applicants.",
+      "eligibility": "Nonprofit/civil-society or academic lead meeting German establishment requirements; local Global South implementing partners. Commercial enterprises excluded.",
+      "geography_scope": "unknown",
+      "countries": [],
+      "entity_types": [
+        "nonprofit",
+        "academic"
+      ],
+      "tags": [
+        "Climate",
+        "Biodiversity",
+        "Partnership",
+        "Green skills"
+      ],
+      "notes": "Two- to three-year projects. Confirm lead establishment, turnover and experience requirements in the official funding announcement before applying.",
+      "evidence": {
+        "state": "Current official call runs from 13 October 2026 to 12 January 2027.",
+        "deadline": "The official call specifies 11.59 am CET on 12 January 2027.",
+        "application_link": "Official Submit Project Outline links to the IKI ideas portal."
+      }
+    },
+    {
+      "id": "92b4d496-9d92-d6ff-abae-9270135df2a2",
+      "title": "Global EbA Fund — Medium-Size Grants 2026",
+      "funder": "Global EbA Fund — IUCN and UNEP",
+      "type": "grant",
+      "source_url": "https://globalebafund.org/medium-size-grants/",
+      "application_url": "https://gms-portal.iucn.org/public/calls/4c6561a2-74bc-436a-8a0c-c0eccd87fe65",
+      "application_status": "closing_soon",
+      "deadline": "16 November 2026 (closing time and timezone not stated)",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "confirmed",
+      "cycle": "Medium-size grants 2026",
+      "amount": "Up to US$500,000",
+      "summary": "Catalytic ecosystem-based adaptation projects that build on existing work, improve enabling conditions and scale climate resilience. Legally recognized organisations, including private companies under public-interest restrictions, may apply with local partners.",
+      "eligibility": "Legally recognized NGOs, community organisations, academic/research institutions, eligible private companies or consortia; projects global/thematic or in ODA-eligible countries; local partners required.",
+      "geography_scope": "global",
+      "countries": [],
+      "entity_types": [
+        "nonprofit",
+        "academic",
+        "for_profit",
+        "social_enterprise"
+      ],
+      "tags": [
+        "Climate",
+        "Adaptation",
+        "Biodiversity",
+        "Environment"
+      ],
+      "notes": "Private-sector awards cannot fund for-profit activities or compensatory obligations. Project duration up to 24 months. Deadline date is confirmed; do not assume an unpublished closing time. The funder links to IUCN’s portal, which restricts automated access.",
+      "evidence": {
+        "state": "Official submission window is 12 October to 16 November 2026.",
+        "deadline": "Official page confirms 16 November 2026 but does not publish a closing time/timezone.",
+        "application_link": "Official Apply Here links to the IUCN grant-management call."
+      }
+    },
+    {
+      "id": "0b97b2e7-b5d3-ac75-9e53-ffc104441855",
+      "title": "Keeling Curve Prize 2027",
+      "funder": "Climate Curve",
+      "type": "competition",
+      "source_url": "https://www.climatecurve.org/kcp",
+      "application_url": "https://kcp-conduit.org/apply/kcp/",
+      "status_evidence_url": "https://kcp-conduit.org/apply/kcp/",
+      "application_status": "open",
+      "deadline": "15 January 2027, 23:59 IDLW (UTC−12); first 500 qualifying applications",
+      "deadline_at": "2027-01-16T11:59:00Z",
+      "deadline_timezone": "Etc/GMT+12",
+      "deadline_status": "confirmed",
+      "cycle": "2027 Keeling Curve Prize",
+      "amount": "US$50,000 per winner",
+      "summary": "Ten prizes for active projects that reduce, remove or replace greenhouse-gas emissions worldwide. Open to climate solutions across carbon sinks, energy, finance, social change and transport.",
+      "eligibility": "Active greenhouse-gas reduction projects worldwide; review official criteria. Only the first 500 qualifying applications are eligible.",
+      "geography_scope": "global",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Climate",
+        "Innovation",
+        "Energy",
+        "Competition"
+      ],
+      "notes": "Applications opened 1 November. Application cap can be reached before the stated deadline; submit early. Account required on the official Conduit portal.",
+      "evidence": {
+        "state": "Official programme invites 2027 applications; portal contains current submission instructions.",
+        "deadline": "Official linked portal gives 15 January 2027, 11:59 PM IDLW (UTC-12), subject to the 500-application cap.",
+        "application_link": "Climate Curve programme links directly to its Conduit application portal."
+      }
+    },
+    {
+      "id": "0e5d3f0b-043e-cfc1-2c6e-d51e790029f5",
+      "title": "HCLTech Global Grant for Climate Action 2026–2027",
+      "funder": "HCLTech",
+      "type": "grant",
+      "source_url": "https://globalgrant.hcltech.com/",
+      "application_url": "https://globalgrant.hcltech.com/profile-dashboard",
+      "eligibility_evidence_url": "https://globalgrant.hcltech.com/faq",
+      "application_status": "open",
+      "deadline": "24 January 2027, 23:59 ET (New York)",
+      "deadline_at": "2027-01-25T04:59:00Z",
+      "deadline_timezone": "America/New_York",
+      "deadline_status": "confirmed",
+      "cycle": "2026–2027",
+      "amount": "US$250,000–US$500,000",
+      "summary": "Climate-action grants for nonprofit organisations registered in the country where their two-year project will be implemented. Eligible African registration/project countries are Morocco and South Africa.",
+      "eligibility": "Nonprofit organisations registered and implementing in an eligible country; Africa: Morocco or South Africa. See official eligibility requirements.",
+      "geography_scope": "countries",
+      "countries": [
+        "Morocco",
+        "South Africa",
+        "United States",
+        "Philippines",
+        "Canada",
+        "United Kingdom",
+        "Germany",
+        "Sri Lanka",
+        "Mexico",
+        "Australia",
+        "Bulgaria",
+        "Poland",
+        "Guatemala",
+        "Singapore",
+        "Brazil",
+        "Romania",
+        "Sweden",
+        "Malaysia",
+        "Spain",
+        "Japan",
+        "Netherlands",
+        "Italy",
+        "France",
+        "Vietnam"
+      ],
+      "entity_types": [
+        "nonprofit"
+      ],
+      "tags": [
+        "Climate",
+        "Nonprofit",
+        "Morocco",
+        "South Africa"
+      ],
+      "notes": "One US$500,000 winner and three US$250,000 runners-up. Official FAQ lists 24 countries. The application dashboard may require sign-in and blocks automated requests.",
+      "evidence": {
+        "state": "Official homepage advertises Apply now and the current January 2027 deadline.",
+        "deadline": "Homepage confirms 24 January 2027 at 11:59 PM ET (New York).",
+        "application_link": "Official Grant application link targets /profile-dashboard."
+      }
+    },
+    {
+      "id": "3cbab021-6a99-5b96-8843-ef23a2dd929d",
+      "title": "Rufford Small Grants for Nature Conservation",
+      "funder": "The Rufford Foundation",
+      "type": "grant",
+      "source_url": "https://apply.ruffordsmallgrants.org/",
+      "application_url": "https://apply.ruffordsmallgrants.org/apply/",
+      "application_status": "rolling",
+      "deadline": "There are no deadlines; applications can be submitted at any time of year.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "rolling",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "£7,000–£18,000, depending on grant stage",
+      "summary": "Biodiversity and nature conservation. Early-career conservationists (including MSc/PhD/recent graduates) from eligible emerging/developing-economy countries; project must be nature conservation-focused, typically involving threatened species. Payment is made through an eligible NGO/university rather than a personal account.",
+      "eligibility": "Early-career conservationists (including MSc/PhD/recent graduates) from eligible emerging/developing-economy countries; project must be nature conservation-focused, typically involving threatened species. Payment is made through an eligible NGO/university rather than a personal account.",
+      "geography_scope": "unknown",
+      "countries": [],
+      "entity_types": [
+        "academic",
+        "nonprofit"
+      ],
+      "tags": [
+        "Global search",
+        "Biodiversity and nature conservation"
+      ],
+      "notes": "Not a general SME grant. Confirm country list, fiscal-host requirements and the appropriate staged grant in the live portal before applying.",
+      "evidence": {
+        "state": "rolling",
+        "deadline": "There are no deadlines; applications can be submitted at any time of year.",
+        "eligibility": "Early-career conservationists (including MSc/PhD/recent graduates) from eligible emerging/developing-economy countries; project must be nature conservation-focused, typically involving threatened species. Payment is made through an eligible NGO/university rather than a personal account.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "d7960b3d-4a6e-5403-879d-381f7feac18f",
+      "title": "Pollination Project Seed Grants",
+      "funder": "The Pollination Project",
+      "type": "grant",
+      "source_url": "https://thepollinationproject.org/apply/",
+      "application_url": "https://thepollinationproject.org/apply/",
+      "application_status": "rolling",
+      "deadline": "Applications are accepted on a rolling basis with a brief closure at year-end.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "rolling",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "US$500–US$1,000; official caps differ—confirm in form",
+      "summary": "Grassroots social impact / community development. Individuals, informally organized groups and formally registered not-for-profit organizations anywhere in the world. Early-stage, volunteer-led/no paid staff, charitable projects with total project budget under USD 10,000 and organization budget under USD 50,000; not for personal gain or political campaigns.",
+      "eligibility": "Individuals, informally organized groups and formally registered not-for-profit organizations anywhere in the world. Early-stage, volunteer-led/no paid staff, charitable projects with total project budget under USD 10,000 and organization budget under USD 50,000; not for personal gain or political c",
+      "geography_scope": "global",
+      "countries": [],
+      "entity_types": [
+        "nonprofit"
+      ],
+      "tags": [
+        "Global search",
+        "Grassroots social impact / community dev"
+      ],
+      "notes": "Official pages conflict on the cap (USD 500 versus USD 1,000); use the amount shown in the current application form. English application and referee requirements apply to international applicants.",
+      "evidence": {
+        "state": "rolling",
+        "deadline": "Applications are accepted on a rolling basis with a brief closure at year-end.",
+        "eligibility": "Individuals, informally organized groups and formally registered not-for-profit organizations anywhere in the world. Early-stage, volunteer-led/no paid staff, charitable projects with total project budget under USD 10,000 and organization budget under USD 50,000; not for personal gain or political campaigns.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "2e7d99f3-c4df-54cd-87df-02240e2ee1c3",
+      "title": "REACT 2.0 Regional Digital Innovation Fund for Energy & Climate (DIFEC) - Windows 1 and 2",
+      "funder": "Africa Enterprise Challenge Fund (AECF), with Sida REACT 2.0",
+      "type": "grant",
+      "source_url": "https://www.aecfafrica.org/approach/our-programmes/renewable-energy/react-2-0-regional-digital-innovation-fund-for-energy-climate-programme-difec/window-1-growing-digital-innovation-funding-window/",
+      "application_url": "https://aecf.submittable.com",
+      "application_status": "unknown",
+      "deadline": "The current official window page has a live Apply link but does not state a closing deadline.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "unknown",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "US$150,000–US$400,000 by window; 1:1 match required",
+      "summary": "Digital clean energy, climate and resource management. Private for-profit companies with an MVP (Window 1) or commercially deployed/revenue-generating digital innovation (Window 2). Activities must be implemented on the African continent and fit digital distributed renewable energy, clean cooking, productive-use energy, climate or resource-management themes. A 1:1 matching contribution is required; grants are explicitly non-repayable.",
+      "eligibility": "Private for-profit companies with an MVP (Window 1) or commercially deployed/revenue-generating digital innovation (Window 2). Activities must be implemented on the African continent and fit digital distributed renewable energy, clean cooking, productive-use energy, climate or resource-management th",
+      "geography_scope": "unknown",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Global search",
+        "Digital clean energy"
+      ],
+      "notes": "No competition closing date is shown on the current official page, so this is a live undated application rather than a confirmed rolling call. The 1:1 match may include founder equity, supplier credit or inventory; confirm accepted match sources in Submittable.",
+      "evidence": {
+        "state": "open_undated_live_application",
+        "deadline": "The current official window page has a live Apply link but does not state a closing deadline.",
+        "eligibility": "Private for-profit companies with an MVP (Window 1) or commercially deployed/revenue-generating digital innovation (Window 2). Activities must be implemented on the African continent and fit digital distributed renewable energy, clean cooking, productive-use energy, climate or resource-management themes. A 1:1 matching contribution is required; grants are explicitly non-repayable.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "db07e149-e483-58d0-8b74-e93f7d42fa08",
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets",
+      "funder": "Lacuna Fund / Wellcome Trust; implementing partner ACTS",
+      "type": "grant",
+      "source_url": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+      "application_url": "https://ai4dafrica.submittable.com/submit",
+      "application_status": "closing_soon",
+      "deadline": "Application Deadline: November 13, 2026. The Submittable listing displays 9:00 PM, but its timezone is not labelled.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "confirmed",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "Up to US$10,000 per award",
+      "summary": "Data/AI for societal good across SDG domains (health, agriculture, education, climate, water, energy and others). Researchers/research teams headquartered in an LMIC Global South country, including nonprofit organizations, research institutions and for-profit social enterprises/teams. Must have ML/data and SDG-domain capability and use a Lacuna dataset; individuals generally need an institutional sponsor.",
+      "eligibility": "Researchers/research teams headquartered in an LMIC Global South country, including nonprofit organizations, research institutions and for-profit social enterprises/teams. Must have ML/data and SDG-domain capability and use a Lacuna dataset; individuals generally need an institutional sponsor.",
+      "geography_scope": "unknown",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Global search",
+        "Data/AI for societal good across SDG dom"
+      ],
+      "notes": "ACTS gives the date but no timezone; the Submittable time is shown without a labelled timezone. The Lacuna page linked from the RFP was unavailable during checking, so use ACTS plus the live Submittable portal.",
+      "evidence": {
+        "state": "open",
+        "deadline": "Application Deadline: November 13, 2026. The Submittable listing displays 9:00 PM, but its timezone is not labelled.",
+        "eligibility": "Researchers/research teams headquartered in an LMIC Global South country, including nonprofit organizations, research institutions and for-profit social enterprises/teams. Must have ML/data and SDG-domain capability and use a Lacuna dataset; individuals generally need an institutional sponsor.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "title": "Creatives For Our Future 2026",
+      "funder": "Swarovski Foundation",
+      "type": "grant",
+      "source_url": "https://creatives.swarovskifoundation.org/",
+      "application_url": "https://creatives.swarovskifoundation.org/application",
+      "application_status": "closing_soon",
+      "deadline": "Applications are open from 9 September 2026 00:00 GMT until 9 November 2026 11:59pm GMT.",
+      "deadline_at": "2026-11-09T23:59:00Z",
+      "deadline_timezone": "Etc/GMT",
+      "deadline_status": "confirmed",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "€20,000",
+      "summary": "Sustainable creative industries and SDG innovation. Individuals or sole proprietors aged 21-30 worldwide, with a creative project using fashion, design, art, architecture or engineering to produce measurable sustainability/SDG outcomes by September 2028. Valid passport and travel eligibility are required for the programme elements.",
+      "eligibility": "Individuals or sole proprietors aged 21-30 worldwide, with a creative project using fashion, design, art, architecture or engineering to produce measurable sustainability/SDG outcomes by September 2028. Valid passport and travel eligibility are required for the programme elements.",
+      "geography_scope": "global",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Global search",
+        "Sustainable creative industries and SDG "
+      ],
+      "notes": "This is not a general established-SME or nonprofit call: age, creative-medium and travel requirements are strict, and the monetary award is for the 2027 cohort rather than immediate operating cash.",
+      "evidence": {
+        "state": "open",
+        "deadline": "Applications are open from 9 September 2026 00:00 GMT until 9 November 2026 11:59pm GMT.",
+        "eligibility": "Individuals or sole proprietors aged 21-30 worldwide, with a creative project using fashion, design, art, architecture or engineering to produce measurable sustainability/SDG outcomes by September 2028. Valid passport and travel eligibility are required for the programme elements.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "8da19996-ac7d-5137-8465-61eed913fc0d",
+      "title": "2027 Digital Financial Services Grant - Expression of Interest",
+      "funder": "Interledger Foundation",
+      "type": "grant",
+      "source_url": "https://interledger.org/grant/innovation/financial-services/",
+      "application_url": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest",
+      "application_status": "open",
+      "deadline": "Phase 1 EOI closes Friday, December 11, 2026 at 11:59 pm ET.",
+      "deadline_at": "2026-12-12T04:59:00Z",
+      "deadline_timezone": "America/New_York",
+      "deadline_status": "confirmed",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "Up to US$350,000",
+      "summary": "Digital financial services and financial inclusion. Regulated or regulation-ready credit unions, savings cooperatives, remittance providers, community-based financial institutions and digital-wallet providers integrating or piloting Interledger/Rhyza digital financial services. Applications are global, with priority interest in Colombia and the broader Americas.",
+      "eligibility": "Regulated or regulation-ready credit unions, savings cooperatives, remittance providers, community-based financial institutions and digital-wallet providers integrating or piloting Interledger/Rhyza digital financial services. Applications are global, with priority interest in Colombia and the broad",
+      "geography_scope": "global",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Global search",
+        "Digital financial services and financial"
+      ],
+      "notes": "This is only Phase 1 EOI, not the full grant proposal; regulation/readiness and sanctions screening apply. Africa is eligible by the global wording but is not the stated regional priority.",
+      "evidence": {
+        "state": "open",
+        "deadline": "Phase 1 EOI closes Friday, December 11, 2026 at 11:59 pm ET.",
+        "eligibility": "Regulated or regulation-ready credit unions, savings cooperatives, remittance providers, community-based financial institutions and digital-wallet providers integrating or piloting Interledger/Rhyza digital financial services. Applications are global, with priority interest in Colombia and the broader Americas.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "0bd42376-e009-5a9d-bd18-596efc713552",
+      "title": "D-Prize Global Competition 2026",
+      "funder": "D-Prize",
+      "type": "competition",
+      "source_url": "https://d-prize.org/",
+      "application_url": "https://d-prize.org/submit",
+      "application_status": "closing_soon",
+      "deadline": "Regular Submission Deadline: 15 November 2026 at midnight PT (Pacific Time); extension: 6 December 2026 at midnight PT after pre-registration.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "confirmed",
+      "cycle": "Current call reviewed 6 November 2026",
+      "amount": "Up to US$20,000",
+      "summary": "Poverty alleviation through distribution of evidence-based interventions (health, education, agriculture, WASH, livelihoods and related areas). Applicants aged 18+ anywhere may apply; winners must operate in a developing country and distribute a proven poverty-fighting intervention. New for-profit or nonprofit organizations/social enterprises are eligible; existing organizations generally need to be under 18 months old or have raised under USD 30,000.",
+      "eligibility": "Applicants aged 18+ anywhere may apply; winners must operate in a developing country and distribute a proven poverty-fighting intervention. New for-profit or nonprofit organizations/social enterprises are eligible; existing organizations generally need to be under 18 months old or have raised under ",
+      "geography_scope": "global",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Global search",
+        "Poverty alleviation through distribution"
+      ],
+      "notes": "The regular deadline is stated as midnight PT, but the start/end convention is not specified. The extension requires pre-registration before the regular deadline. Official FAQ describes a grant and does not state repayment or equity; verify the current application packet.",
+      "evidence": {
+        "state": "open",
+        "deadline": "Regular Submission Deadline: 15 November 2026 at midnight PT (Pacific Time); extension: 6 December 2026 at midnight PT after pre-registration.",
+        "eligibility": "Applicants aged 18+ anywhere may apply; winners must operate in a developing country and distribute a proven poverty-fighting intervention. New for-profit or nonprofit organizations/social enterprises are eligible; existing organizations generally need to be under 18 months old or have raised under USD 30,000.",
+        "method": "Official source and linked application portal research"
+      }
+    },
+    {
+      "id": "08ffdc08-2211-d3d7-18fa-43590bc9e8f7",
+      "title": "Green and Digital Employability and Enterprise programme",
+      "funder": "British Council",
+      "type": "grant",
+      "source_url": "https://opportunities-insight.britishcouncil.org/short-articles/opportunities/green-and-digital-employability-and-enterprise-programme",
+      "application_url": "https://goingglobalpartnerships.grantplatform.com/",
+      "application_status": "closing_soon",
+      "deadline": "17 November 2026, 11:00 UK time",
+      "deadline_at": "2026-11-17T11:00:00Z",
+      "deadline_timezone": "Europe/London",
+      "deadline_status": "confirmed",
+      "cycle": "2026 application / 2027 programme",
+      "amount": "One grant of £150,000",
+      "summary": "A practical pilot for at least 50 current South African TVET and university students, combining green/digital skills, entrepreneurship, industry exposure, education-industry partnerships and institutional embedding; the call is not for a broad research, mapping or scoping exercise. The applicant must be a UK higher-education institution or UK TVET/further-education institution acting as UK Lead Partner. The consortium must include one South African TVET college, one South African university (one designated South African lead), and one or more relevant South African industry partners. Only the UK lead institution can start and submit the online application.",
+      "eligibility": "The applicant must be a UK higher-education institution or UK TVET/further-education institution acting as UK Lead Partner. The consortium must include one South African TVET college, one South African university (one designated South African lead), and one or more relevant South African industry pa",
+      "geography_scope": "unknown",
+      "countries": [],
+      "entity_types": [
+        "academic"
+      ],
+      "tags": [
+        "Education and TVET",
+        "Employability and workforce development",
+        "Green economy and sustainability",
+        "Digital skills and enterprise"
+      ],
+      "notes": "The official British Council Opportunities & Insight URL is the primary source linked from the publisher listing and the official British Council Going Global Partnerships page. The web fetcher returned 403 for the Opportunities & Insight page, but a direct HTTP retrieval of that same official URL on 2026-11-06 returned the page and its current call details. Treat the URL as authoritative but retain this access limitation. The application portal is a JavaScript Good Grants page; its public shell was reachable, but the opportunity list requires JavaScript.",
+      "evidence": {
+        "state": "open",
+        "deadline": {
+          "date": "2026-11-17",
+          "time_as_published": "11:00 a.m.",
+          "timezone_as_published": "UK time",
+          "deadline_at": null,
+          "time_note": "The official opportunity page says 'UK time' rather than a fixed UTC offset; preserve that wording.",
+          "deadline_status_as_of": "open"
+        },
+        "official_research": "The British Council page identifies one £150,000 grant, a 21-month pilot beginning December 2026, a UK–South Africa tertiary/TVET/industry consortium, a minimum cohort of 50 South African students, and a 17 November 2026 11:00 a.m. UK-time submission deadline."
+      }
+    },
+    {
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "title": "Research Grants on University Ecosystems",
+      "funder": "Council for the Development of Social Science Research in Africa (CODESRIA), with funding support from the Andrew Carnegie Foundation",
+      "type": "grant",
+      "source_url": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "application_url": "https://apply.codesria.org/grants-subventions/",
+      "application_status": "open",
+      "deadline": "2027-01-16 (closing time and timezone not stated)",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "confirmed",
+      "cycle": "2026 application / 2027 programme",
+      "amount": "US$5,000–US$15,000 proposed budget",
+      "summary": "Crosscutting interdisciplinary research on higher education, gender, academic freedom and quality associational life in African universities, with publishable research/policy outputs and engagement activities. Applicants must be affiliated with a recognized African higher-education or research institution. African scholars in the diaspora may apply with colleagues from an African-based institution. Individual and collaborative proposals are eligible; collaborative teams should have 3–5 members. Applicants with outstanding or pending deliverables from current or prior CODESRIA-funded projects are not encouraged to apply.",
+      "eligibility": "Applicants must be affiliated with a recognized African higher-education or research institution. African scholars in the diaspora may apply with colleagues from an African-based institution. Individual and collaborative proposals are eligible; collaborative teams should have 3–5 members. Applicants",
+      "geography_scope": "pan_african",
+      "countries": [],
+      "entity_types": [
+        "academic"
+      ],
+      "tags": [
+        "Higher-education research",
+        "Social sciences and humanities",
+        "Gender and university associational life",
+        "Academic and intellectual freedom"
+      ],
+      "notes": "The official application link redirects to the CODESRIA Applications System login/sign-up page, confirming the application route. No official closing time or timezone could be confirmed because the call states only 16 January 2027.",
+      "evidence": {
+        "state": "open",
+        "deadline": {
+          "date": "2027-01-16",
+          "time_as_published": null,
+          "timezone_as_published": null,
+          "deadline_at": null,
+          "time_note": "The official call gives the date only and says late applications will not be considered; no time or timezone is stated.",
+          "deadline_status_as_of": "open"
+        },
+        "official_research": "CODESRIA's current call, dated 23 October 2026, names African university/research-institution affiliation as the core eligibility requirement, gives a USD 5,000–15,000 draft-budget range, links to the CODESRIA application system, and sets 16 January 2027 as the late-submission cutoff."
+      }
+    },
+    {
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "funder": "Freshwater Research Centre (FBIS-Africa project), supported by the JRS Biodiversity Foundation and the GBIF Biodiversity Information for Development (BID) programme",
+      "type": "grant",
+      "source_url": "https://fbisafrica.org/small-grants/",
+      "application_url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "application_status": "closing_soon",
+      "deadline": "2026-11-09 (closing time and timezone not stated)",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "deadline_status": "confirmed",
+      "cycle": "2026 application / 2027 programme",
+      "amount": "USD 5,000–10,000",
+      "summary": "Proposed records must be African freshwater occurrence data not already published to GBIF, include at least taxon name, sampling date and spatial coordinates, have clear ownership/custodianship and publication permission, and be mobilisable during January–June 2027. Eligible groups are freshwater fishes, amphibians, molluscs, crustaceans, Odonata, Ephemeroptera, Plecoptera, Trichoptera and Megaloptera. African freshwater-biodiversity data holders, including universities, research institutions, museums/natural-history collections, government agencies, NGOs, freshwater-biodiversity programmes, and individual researchers/data custodians working through eligible host institutions.",
+      "eligibility": "African freshwater-biodiversity data holders, including universities, research institutions, museums/natural-history collections, government agencies, NGOs, freshwater-biodiversity programmes, and individual researchers/data custodians working through eligible host institutions.",
+      "geography_scope": "pan_african",
+      "countries": [],
+      "entity_types": [
+        "nonprofit",
+        "academic",
+        "government"
+      ],
+      "tags": [
+        "Freshwater biodiversity",
+        "Biodiversity data mobilisation",
+        "Conservation and GBIF data publication"
+      ],
+      "notes": "Complete the linked application form and submit it with the Project Leader's CV by email to nazley@frcsa.org.za, using the subject 'FBIS-Africa small grant application submission'. The official FBIS application form is a DOCX; the web fetcher could not render that content type, but the official call page links it and provides the submission email and deadline. The FBIS Africa About page identifies the Freshwater Research Centre and the JRS Biodiversity Foundation's four-year grant supporting the platform.",
+      "evidence": {
+        "state": "open",
+        "deadline": {
+          "date": "2026-11-09",
+          "time_as_published": null,
+          "timezone_as_published": null,
+          "deadline_at": null,
+          "time_note": "The official call gives 9 November 2026 but no closing time or timezone.",
+          "deadline_status_as_of": "closing_soon"
+        },
+        "official_research": "The FBIS-Africa call identifies the Freshwater Research Centre as project lead and names JRS Biodiversity Foundation and GBIF BID support; it states USD 5,000–10,000 grants, a January–June 2027 period, the 9 November 2026 deadline, eligible African data-holder entities and the required unpublished freshwater occurrence-data conditions."
+      }
+    },
+    {
+      "id": "fd2f89cd-fd79-5c56-fce0-688a3e939c96",
+      "title": "Equality Fund Journalism Fellowship (Jan–September 2027 cohort)",
+      "funder": "Equality Fund, in partnership with Canadian Journalists for Free Expression (CJFE) and African Women in Media (AWiM)",
+      "type": "fellowship",
+      "source_url": "https://equalityfund.ca/en/posts/journalism-fellowship",
+      "application_url": "https://docs.google.com/forms/d/e/1FAIpQLSem0kc9i25IphLwxfPuUha08LPgrPJwIdw6AZVkvsN1vI-t_g/viewform?usp=publish-editor",
+      "application_status": "closing_soon",
+      "deadline": "8 November 2026 EST; official page conflicts: 23:00 vs midnight—submit before 23:00",
+      "deadline_at": null,
+      "deadline_timezone": "America/New_York",
+      "deadline_status": "confirmed",
+      "cycle": "2026 application / 2027 programme",
+      "amount": "CAD 4,000 stipend + up to CAD 500 expenses",
+      "summary": "Each fellow develops and publishes at least one reported story about local solutions to a global crisis, with a focus on gender, while retaining editorial independence. Individual working journalists (full-time or independent freelance), not organisations. The official application guidelines require at least three years of journalism experience, residence in and reporting on communities in ODA-recipient countries, three strong journalism samples, English fluency, ability to attend meetings during Eastern Standard Time daytime, and a bank account able to receive international wire transfers. The programme page welcomes women, men and LGBTQI+ people and any text, digital, video or audio platform.",
+      "eligibility": "Individual working journalists (full-time or independent freelance), not organisations. The official application guidelines require at least three years of journalism experience, residence in and reporting on communities in ODA-recipient countries, three strong journalism samples, English fluency, a",
+      "geography_scope": "unknown",
+      "countries": [],
+      "entity_types": [],
+      "tags": [
+        "Journalism and media",
+        "Fact-based reporting",
+        "Gender-focused local solutions to global crises"
+      ],
+      "notes": "The official application-guidelines page conflicts with itself on the closing time. A single exact deadline cannot be confirmed; to avoid a late submission, treat 11:00 p.m. EST on 8 November 2026 as the conservative cutoff. The official Google Form link returned HTTP 401 to automated fetches; it is nevertheless the form linked by the official Equality Fund application-guidelines page. The official application-guidelines page title says 2026, while the official programme announcement says the cohort/programme runs in early 2027; preserve the 2026 application / 2027 cohort distinction rather than relabelling it as an unqualified 2027 call.",
+      "evidence": {
+        "state": "open",
+        "deadline": {
+          "date": "2026-11-08",
+          "timezone_as_published": "Eastern Standard Time (EST)",
+          "time_as_published_conflicting": [
+            "11:00 p.m. EST (introductory sentence)",
+            "midnight EST (closing-date line)"
+          ],
+          "deadline_at": null,
+          "time_note": "The official application-guidelines page conflicts with itself on the closing time. A single exact deadline cannot be confirmed; to avoid a late submission, treat 11:00 p.m. EST on 8 November 2026 as the conservative cutoff.",
+          "deadline_status_as_of": "closing_soon"
+        },
+        "official_research": "Equality Fund's official announcement describes a 2027 programme for up to five journalists in ODA-eligible countries with a CAD 4,000 stipend and up to CAD 500 reporting expenses. Its official application-guidelines page links the Google Form and sets 8 November 2026 as the closing date, but uses both 11 p.m. and midnight EST wording."
+      }
+    }
+  ],
+  "duplicate": {
+    "archive_id": "b5905465-8eb8-467a-a56f-939234e4abbd",
+    "canonical_id": "5f2e2f75-36f2-996e-a975-8fb3c16d5dea"
+  }
+}
