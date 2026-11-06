@@ -79,7 +79,8 @@ interface SchemaEvidence {
 }
 
 const MAX_VISIBLE_TEXT = 200_000;
-const MAX_RAW_HTML = 120_000;
+const MAX_RAW_HTML = 1_000_000;
+const MAX_FINGERPRINT_INPUT = 120_000;
 const MAX_SCHEMA_SCRIPT = 100_000;
 const MAX_LINKS = 100;
 const MAX_APPLICATION_CANDIDATES = 20;
@@ -125,12 +126,13 @@ export function extractFreeGrantEvidence(
 ): FreeGrantEvidence {
   const raw = typeof rawHTML === "string" ? rawHTML : "";
   const sourceUrl = normalizeHttpUrl(sourceURL);
-  const fingerprintInput = raw.length > MAX_RAW_HTML
-    ? `${raw.slice(0, MAX_RAW_HTML)}\u0000${raw.length}`
+  const fingerprintInput = raw.length > MAX_FINGERPRINT_INPUT
+    ? `${raw.slice(0, MAX_FINGERPRINT_INPUT)}\u0000${raw.length}`
     : raw;
   const contentFingerprint = fingerprint(fingerprintInput);
   const boundedRaw = raw.slice(0, MAX_RAW_HTML);
-  const visibleText = extractVisibleText(boundedRaw);
+  const fullVisibleText = extractVisibleText(boundedRaw);
+  const visibleText = fullVisibleText.slice(0, MAX_VISIBLE_TEXT);
   const emptyResult = createBaseEvidence(sourceUrl, contentFingerprint, visibleText);
 
   if (!sourceUrl) {
@@ -148,7 +150,7 @@ export function extractFreeGrantEvidence(
     };
   }
 
-  const sourceTruncated = raw.length > MAX_RAW_HTML;
+  const sourceTruncated = raw.length > MAX_RAW_HTML || fullVisibleText.length > MAX_VISIBLE_TEXT;
   const cleanMarkup = removeNonVisibleMarkup(boundedRaw);
   const anchorLinks = extractMarkupLinks(cleanMarkup, sourceUrl);
   const schema = extractSchemaEvidence(boundedRaw, sourceUrl, now);
@@ -197,8 +199,16 @@ export function extractFreeGrantEvidence(
   }
   if (explicitOpen && !selectedDeadline && !explicitRolling) uncertainty.push("deadline_missing");
 
+  const futureOpening = findDateMatches(visibleText).some((match) => {
+    const before = visibleText.slice(Math.max(0, match.index - 100), match.index);
+    const parsed = parseDateValue(match.raw);
+    return /\b(?:applications?|submissions?|calls?)\s+(?:will\s+)?(?:open|opens|begin|begins|start|starts)\s+(?:(?:on|from)\s+)?$/i.test(before)
+      && Boolean(parsed && isFutureDeadline(parsed.parts, now));
+  });
+  if (futureOpening) uncertainty.push("opening_date_in_future");
+
   let applicationStatus: FreeApplicationStatus = "unknown";
-  if (!pageIsHistorical && !statusConflict) {
+  if (!futureOpening && !sourceTruncated && !pageIsHistorical && !statusConflict) {
     if (explicitPaused) {
       applicationStatus = "paused";
     } else if (explicitClosed) {
@@ -297,8 +307,7 @@ function extractVisibleText(raw: string): string {
     .replace(/[\u0000-\u0009\u000b-\u001f\u007f]+/g, " ")
     .replace(/[ \t\r\f\v]+/g, " ")
     .replace(/\n+/g, "\n")
-    .trim()
-    .slice(0, MAX_VISIBLE_TEXT);
+    .trim();
 }
 
 function extractHeadings(raw: string): string[] {
@@ -476,9 +485,10 @@ function extractDeadlineCandidates(text: string, now: Date): DeadlineCandidate[]
     const suffix = temporalSuffix(text.slice(match.end, Math.min(text.length, match.end + 80)));
     const parsed = parseDateValue(`${match.raw}${suffix}`);
     if (!parsed) continue;
-    const context = contextWindow(text, label.index, (match.end + suffix.length) - label.index);
+    const labelIndex = Math.max(0, match.index - 160) + label.index;
+    const context = contextWindow(text, labelIndex, (match.end + suffix.length) - labelIndex);
     candidates.push({
-      text: compactEvidence(text.slice(label.index, Math.min(text.length, match.end + suffix.length))),
+      text: compactEvidence(text.slice(labelIndex, Math.min(text.length, match.end + suffix.length))),
       dateKey: dateKey(parsed.parts),
       dateParts: parsed.parts,
       deadlineAt: toDeadlineAt(parsed.parts),
@@ -522,7 +532,7 @@ function findDeadlineLabel(before: string): { index: number; text: string } | nu
 }
 
 function temporalSuffix(afterDate: string): string {
-  const match = /^(?:\s*(?:at|by|before|until)?\s*(?:(?:\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?)|(?:midnight|noon))\s*(?:(?:in|at|\()\s*)?(?:UTC|GMT(?:\s*[+-]\s*\d{1,2})?|EST|EDT|ET|CET|CEST|PT|PST|PDT|IDLW|Z)?\s*\)?)/i.exec(afterDate);
+  const match = /^(?:\s*(?:at|by|before|until)?\s*(?:(?:\d{1,2}(?:[:.]\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?)|(?:midnight|noon))\s*(?:(?:in|at|\()\s*)?(?:UTC|GMT(?:\s*[+-]\s*\d{1,2})?|EST|EDT|ET|CET|CEST|PT|PST|PDT|IDLW|Z)?\s*\)?)/i.exec(afterDate);
   return match?.[0] ?? "";
 }
 
@@ -579,7 +589,7 @@ function parseDateValue(value: string): { parts: DateParts } | null {
 
   const dateEnd = dmy?.[0].length ?? mdy?.[0].length ?? numeric?.[0].length ?? 0;
   const suffix = text.slice(dateEnd);
-  const clockMatch = /(?:^|\s)(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?|midnight|noon)\b/i.exec(suffix);
+  const clockMatch = /(?:^|\s)(\d{1,2}(?:[:.]\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?|midnight|noon)\b/i.exec(suffix);
   if (clockMatch) {
     minutes = parseClock(clockMatch[1]);
     hasExplicitTime = minutes !== null;
@@ -591,9 +601,9 @@ function parseDateValue(value: string): { parts: DateParts } | null {
 
 function parseClock(raw: string): number | null {
   const value = raw.trim().toLowerCase().replace(/\s+/g, "");
-  if (value === "midnight") return 0;
+  if (value === "midnight") return null;
   if (value === "noon") return 12 * 60;
-  const match = /^(\d{1,2})(?::(\d{2}))?(a\.?m\.?|p\.?m\.?)?$/.exec(value);
+  const match = /^(\d{1,2})(?:[:.](\d{2}))?(a\.?m\.?|p\.?m\.?)?$/.exec(value);
   if (!match) return null;
   let hours = Number(match[1]);
   const minutes = Number(match[2] ?? "0");

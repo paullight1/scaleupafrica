@@ -73,3 +73,7 @@ verify_jwt = false
 # Dedicated scheduler secret or explicitly validated staff JWT; no public writes.
 [functions.grant-discovery]
 verify_jwt = false
+
+# Hourly deterministic checks use the existing dedicated scheduler secret.
+[functions.free-grant-maintenance]
+verify_jwt = false

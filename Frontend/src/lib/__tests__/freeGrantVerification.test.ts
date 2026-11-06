@@ -232,4 +232,36 @@ describe("extractFreeGrantEvidence", () => {
     expect(result.applicationStatus).toBe("open");
     expect(result.visibleText).toContain("&#x110000;");
   });
+  it("reads call content after a large script without truncating the evidence", () => {
+    const html = `<script>${"x".repeat(180_000)}</script><h1>Grant 2027</h1><p>Applications are open until 16 January 2027.</p><a href="/apply">Apply now</a>`;
+    expect(extractFreeGrantEvidence(html, "https://funder.test/grant", NOW).applicationStatus).toBe("open");
+  });
+  it("does not promote a truncated prefix that could omit a later closure notice", () => {
+    const html = `<p>Applications are open until 16 January 2027.</p><a href="/apply">Apply now</a>${"x".repeat(1_000_001)}<p>Applications are closed.</p>`;
+    const result = extractFreeGrantEvidence(html, "https://funder.test/grant", NOW);
+    expect(result.applicationStatus).toBe("unknown");
+    expect(result.uncertainty).toContain("source_truncated");
+  });
+
+  it("keeps deadline evidence anchored to its label after a long page introduction", () => {
+    const html = `<h1>Grant 2027</h1><p>${"Background information. ".repeat(50)}</p><p>Applications are open.</p><p>Deadline: 16 January 2027.</p><a href="/apply">Apply now</a>`;
+    const result = extractFreeGrantEvidence(html, "https://funder.test/grant", NOW);
+    expect(result.applicationStatus).toBe("open");
+    expect(result.deadlineText).toBe("Deadline: 16 January 2027");
+  });
+
+  it("preserves dotted GMT closing times and leaves midnight boundaries unresolved", () => {
+    const dotted = extractFreeGrantEvidence(`<p>Applications are open. Deadline: 16 January 2027 at 11.59 pm GMT.</p><a href="/apply">Apply now</a>`, "https://funder.test/grant", NOW);
+    expect(dotted.deadlineAt).toBe("2027-01-16T23:59:00.000Z");
+    expect(dotted.deadlineText).toContain("11.59 pm GMT");
+    const midnight = extractFreeGrantEvidence(`<p>Applications are open. Deadline: 16 January 2027 at midnight UTC.</p><a href="/apply">Apply now</a>`, "https://funder.test/grant", NOW);
+    expect(midnight.deadlineAt).toBeNull();
+  });
+
+  it("does not mark a future opening window open just because its deadline is later", () => {
+    const result = extractFreeGrantEvidence(`<h1>Grant 2027</h1><p>Applications open on 15 December 2026.</p><p>Deadline: 16 January 2027.</p><a href="/apply">Apply now</a>`, "https://funder.test/grant", NOW);
+    expect(result.applicationStatus).toBe("unknown");
+    expect(result.uncertainty).toContain("opening_date_in_future");
+  });
+
 });
