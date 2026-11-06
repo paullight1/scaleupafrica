@@ -30,9 +30,23 @@
   "admin_site_link": "https://www.crescivacapital.com/",
   "admin_redirect": "308 relative /admin/ preserves HTTPS",
   "backend_db_role": "cresciva_backend (private five-table permissions, no elevated roles/auth.users access)",
-  "canonical_dns": "User-owned Squarespace update remains pending",
+  "canonical_dns": "Verified 2026-11-06: apex and www resolve to 169.58.121.207",
   "same_origin_admin_matches_standalone": true,
   "all_three_services_healthy": true,
   "temporary_test_users_remaining": 0,
-  "temporary_deployment_keys_remaining": 0
+  "temporary_deployment_keys_remaining": 0,
+  "canonical_cutover_verification": {
+    "date": "2026-11-06",
+    "https_certificate": "Valid Lets Encrypt certificates; original router config restored after scoped reload",
+    "homepage_browser": "Canonical homepage rendered successfully",
+    "www_health": 200,
+    "apex_health": 200,
+    "admin": 200,
+    "api_health": "200; database ready",
+    "published_automatic_opportunities": 17,
+    "grants": 8,
+    "latest_scheduled_import_utc": "2026-11-06T06:17:03Z",
+    "latest_scheduled_import_status": "success; six source pages succeeded",
+    "cron_active": true
+  }
 }

@@ -72,6 +72,14 @@ The function also accepts a Supabase staff JWT for an explicit HTTP POST. It doe
 
 The public and admin apps are now deployed on the existing Dokploy VPS at `169.58.121.207`. The live temporary origin is [cresciva.169.58.121.207.sslip.io](https://cresciva.169.58.121.207.sslip.io). A real member sign-in and Explore 15 were verified there over HTTPS. The separate Cresciva application retains the same Supabase project and six-hour import schedule.
 
-The user chose to update Squarespace DNS themselves. The original canonical domain still points to disabled Vercel hosting until that change propagates. Both canonical domain routes have already been configured in Dokploy.
+The user updated Squarespace DNS. On 6 November 2026, both canonical hostnames resolved to the Dokploy server, valid Let's Encrypt certificates were issued, and the canonical website, admin and DB-backed API health returned 200. The canonical homepage was also verified in a real browser.
+
+## Follow-up verification, 6 November 2026
+
+- 17 published automatic imports, including eight grants.
+- Latest scheduled run succeeded at 06:17 UTC / 07:17 Lagos; all six source pages succeeded.
+- The preceding evening run automatically inserted two new opportunities, confirming ingestion continues without manual intervention.
+- Six-hour cron remains active. No paid scraper, extraction API or new hosting subscription was added.
+- Public, admin and API containers remain healthy with one replica each.
 
 See [DOKPLOY.md](DOKPLOY.md) for service IDs, DNS records, health checks, deployment and rollback. No new hosting subscription was purchased.

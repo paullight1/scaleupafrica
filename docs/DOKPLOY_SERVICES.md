@@ -19,7 +19,7 @@ Source is `paullight1/scaleupafrica`, branch `codex/free-grants-dokploy`, root D
 - Direct API health: https://cresciva-api.169.58.121.207.sslip.io/api/v1/health
 - Direct admin process health: https://cresciva-admin.169.58.121.207.sslip.io/healthz
 
-Dokploy/Traefik routes `/admin` to the admin container and `/api/v1` to the API, preserving the path. The same rules are registered on `www.crescivacapital.com` and `crescivacapital.com`. The main-domain DNS update still belongs to the user; the existing A/CNAME instructions in [DOKPLOY.md](DOKPLOY.md) are valid for this confirmed server. No additional DNS record is required for these path routes.
+Dokploy/Traefik routes `/admin` to the admin container and `/api/v1` to the API, preserving the path. The same rules are registered on `www.crescivacapital.com` and `crescivacapital.com`. The main-domain DNS cutover and valid Let's Encrypt HTTPS were verified complete on 6 November 2026; see [DOKPLOY.md](DOKPLOY.md). No additional DNS record is required for these path routes.
 
 Admin uses its own staff sign-in and corporate-email/database-role checks. `VITE_SITE_URL` follows `VITE_SITE_ORIGIN` for View site/sign-out navigation; production canonical links still target `https://www.crescivacapital.com`. Nginx emits relative redirects to preserve HTTPS behind Traefik. A staff session on the same public origin can also be used through `/admin`; independent hostnames maintain separate browser storage.
 

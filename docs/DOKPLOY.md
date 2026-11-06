@@ -24,18 +24,18 @@ Cresciva now has separate public-web, admin and NestJS API applications on the o
 
 The branch isolates the grant and migration work from concurrently edited coupon/directory features. Merge/repoint the deployment branch deliberately when those changes are ready; this server does not consume unstaged files from another checkout.
 
-## Squarespace DNS cutover — user-owned step
+## Squarespace DNS cutover — completed 6 November 2026
 
-The user requested these records and will update DNS:
+The user updated DNS. Both apex and www now resolve to `169.58.121.207`:
 
 | Type | Host | Target |
 |---|---|---|
 | A | `@` | `169.58.121.207` |
 | CNAME | `www` | `crescivacapital.com` |
 
-Replace old Vercel records for these two web hostnames; remove old AAAA records for them if present. Retain email MX/TXT records and unrelated subdomains. Both apex and www routes are registered in Dokploy with Let's Encrypt HTTPS. After DNS propagates, verify that their certificates are issued and `/healthz` returns 200. If needed, save the domain configuration in Dokploy again to trigger certificate reconciliation.
+Keep email MX/TXT records and unrelated subdomains intact. Both apex and www routes have valid Let's Encrypt certificates and return 200 from `/healthz`.
 
-Until this manual step finishes, use the temporary HTTPS origin for inspection. The build keeps the canonical production origin, so email/OAuth redirects and share URLs still target the main domain; only ordinary password sign-in was tested on the temporary host.
+The initial certificate challenges ran while DNS still pointed at Vercel. After confirming public and server DNS had propagated, temporarily renaming only the two Cresciva web TLS routers triggered a configuration reload and successful issuance. The original router configuration was then restored. No proxy restart or application redeployment was needed. The canonical homepage renders in a real browser; `/admin/` and `/api/v1/health` return 200 over verified HTTPS. Email/OAuth redirect flows were not retested during this cutover.
 
 ## Build and routing
 
@@ -67,4 +67,4 @@ No persistent deployment API key is committed or retained. The temporary server-
 - Real Supabase member password sign-in succeeded on Dokploy; Explore displayed 15 opportunities and the British Council grant with **Unverified**, **Current status unconfirmed** and **View source listing**.
 - Grant parser/card/workspace regressions: 36 passed. Workspace typechecks and both web builds passed. Earlier full workspace tests exposed pre-existing landing/design/admin failures; the full suite is not claimed clean.
 - Other existing Dokploy services remained at 1/1 replicas.
-- Canonical DNS update remains delegated to the user and is not claimed complete here.
+- Canonical DNS and HTTPS were subsequently verified complete on 6 November 2026, as described above.
