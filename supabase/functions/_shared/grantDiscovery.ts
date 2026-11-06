@@ -7,6 +7,9 @@ export const GRANT_FEEDS: GrantFeed[] = [
   { name: 'Opportunities for Africans', url: 'https://www.opportunitiesforafricans.com/feed/?paged=2', africaFocused: true },
   { name: 'Terra Viva Grants', url: 'https://www.terravivagrants.org/feed/', africaFocused: false },
   { name: 'Terra Viva Grants', url: 'https://www.terravivagrants.org/feed/?paged=2', africaFocused: false },
+  { name: 'FundsforNGOs', url: 'https://www2.fundsforngos.org/feed/', africaFocused: false },
+  { name: 'Adaptation Fund', url: 'https://www.adaptation-fund.org/feed/', africaFocused: false },
+  { name: 'IDRC', url: 'https://idrc-crdi.ca/en/rss.xml', africaFocused: false },
 ];
 export const DISCOVERY_IMPORTER = 'free_rss_v1';
 const AFRICA = /\b(africa[n]?|nigeria[n]?|kenya[n]?|ghana[ian]*|uganda[n]?|rwanda[n]?|tanzania[n]?|ethiopia[n]?|zambia[n]?|zimbabwe[an]*|senegal[ese]*|cameroon[ian]*|morocco|egypt[ian]*|tunisia[n]?|algeria[n]?|malawi[an]*|mozambique|botswana|namibia[n]?|sierra leone|liberia[n]?|somalia[n]?|sudan[ese]*|sahel|congo|burkina faso|cote d.ivoire|ivory coast|mauritius|mauritania|madagascar|benin|togo|eswatini|lesotho|gambia|guinea|gabon|chad|niger|mali|angola|eritrea|burundi|djibouti|seychelles|comoros|cabo verde|cape verde)\b/i;
@@ -54,7 +57,8 @@ export function parseGrantFeed(xml: string, source: GrantFeed, now = new Date())
     if (!url || seen.has(url)) continue;
     const body = plainText(field(item, 'description') + ' ' + field(item, 'content:encoded'));
     const text = title + ' ' + body;
-    if (!FUNDING.test(title) || EXCLUDED.test(title) || ROUNDUP.test(title)) continue;
+    const fundingInDescription = FUNDING.test(body) && /\b(?:call|apply|application|applications|eligible|deadline|open|opportunity)\b/i.test(body);
+    if ((!FUNDING.test(title) && !fundingInDescription) || EXCLUDED.test(title) || ROUNDUP.test(title)) continue;
     if (!source.africaFocused && !AFRICA.test(text) && !GLOBAL.test(text)) continue;
     const type = /\baccelerator|incubat(?:or|ion)\b/i.test(title) ? 'accelerator' : /\bprize|awards?|competition|challenge\b/i.test(title) ? 'competition' : /\bgrants?|funding|fund|seed capital\b/i.test(title) ? 'grant' : 'other';
     seen.add(url);

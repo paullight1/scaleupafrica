@@ -33,6 +33,11 @@ describe('free grant discovery', () => {
   expect(parseGrantFeed(feed(item('Innovation grant', undefined, 'Open worldwide to entrepreneurs in any country.')), source, now)).toHaveLength(1);
   expect(parseGrantFeed(feed(item('Africa business news', undefined, 'News for entrepreneurs.')), source, now)).toHaveLength(0);
  });
+ it('recognizes a funding call named in the description while retaining global relevance filtering', () => {
+  const description = 'IDRC funding opportunity: applications are open for field research benefiting communities in developing countries.';
+  expect(parseGrantFeed(feed(item('IDRC invites applications for the Bene Fellowship 2026', undefined, description)), source, now)).toHaveLength(1);
+  expect(parseGrantFeed(feed(item('Africa business news', undefined, 'A panel discussed funding trends for local companies.')), source, now)).toHaveLength(0);
+ });
  it('rejects invalid payloads and never executes or renders source markup', () => {
   expect(() => parseGrantFeed('<html>Cloudflare challenge</html>', source, now)).toThrow();
   expect(() => parseGrantFeed('<!DOCTYPE rss [<!ENTITY x SYSTEM "file:///etc/passwd">]><rss/>', source, now)).toThrow();
@@ -56,7 +61,12 @@ describe('free grant discovery', () => {
   }
  });
  it('uses only bounded fixed public feeds', () => {
-  expect(GRANT_FEEDS.length).toBeLessThanOrEqual(10);
+  expect(GRANT_FEEDS.length).toBeLessThanOrEqual(12);
   expect(GRANT_FEEDS.every(s => s.url.startsWith('https://'))).toBe(true);
+  expect(GRANT_FEEDS).toEqual(expect.arrayContaining([
+   { name: 'FundsforNGOs', url: 'https://www2.fundsforngos.org/feed/', africaFocused: false },
+   { name: 'Adaptation Fund', url: 'https://www.adaptation-fund.org/feed/', africaFocused: false },
+   { name: 'IDRC', url: 'https://idrc-crdi.ca/en/rss.xml', africaFocused: false },
+  ]));
  });
 });
