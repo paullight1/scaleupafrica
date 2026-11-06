@@ -98,4 +98,12 @@ describe("OpportunityCard", () => {
     rerender(<OpportunityCard opportunity={opA} open={false} onToggle={() => {}} deadlineStatus="unknown" deadlineAt="2026-09-15T23:59:59Z" />);
     expect(screen.queryByText(/confirmed deadline/i)).toBeNull();
   });
+
+  it("shows the confirmed source deadline without inventing a time or timezone", () => {
+    const opportunity = { ...opA, deadline: "16 November 2026 (closing time and timezone not stated)" };
+    const { rerender } = render(<OpportunityCard opportunity={opportunity} open={false} onToggle={() => {}} deadlineStatus="confirmed" />);
+    expect(screen.getByText("Confirmed deadline: 16 November 2026 (closing time and timezone not stated)")).toBeInTheDocument();
+    rerender(<OpportunityCard opportunity={opportunity} open={false} onToggle={() => {}} deadlineStatus="unknown" />);
+    expect(screen.queryByText(/confirmed deadline/i)).toBeNull();
+  });
 });
