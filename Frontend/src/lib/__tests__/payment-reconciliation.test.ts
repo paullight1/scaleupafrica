@@ -122,4 +122,9 @@ describe("payment reconciliation invariants", () => {
     expect(reconcileActiveSubscription(subscription, false, NOW)).toEqual(["access_no_paid_payment"]);
     expect(reconcileActiveSubscription(subscription, true, NOW)).toEqual([]);
   });
+  it("recognizes coupon-granted access without inventing a successful payment", () => {
+    expect(reconcileActiveSubscription(subscription, false, NOW, subscription.expires_at)).toEqual([]);
+    expect(reconcileActiveSubscription(subscription, false, NOW, "2026-08-20T17:00:00Z")).toEqual(["access_no_paid_payment"]);
+    expect(reconcileActiveSubscription(subscription, false, NOW, "invalid")).toEqual(["access_no_paid_payment"]);
+  });
 });

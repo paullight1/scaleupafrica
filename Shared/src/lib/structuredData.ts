@@ -132,3 +132,37 @@ export function breadcrumbLd(items: { name: string; url: string }[]): JsonLd {
     })),
   };
 }
+
+/** A crawlable collection page, such as the public business directory. */
+export function collectionPageLd(opts: {
+  name: string;
+  description?: string;
+  url: string;
+}): JsonLd {
+  return compact({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: opts.name,
+    description: opts.description,
+    url: absoluteUrl(opts.url),
+    isPartOf: {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: absoluteUrl("/"),
+    },
+  });
+}
+
+/** The visible profile cards on a collection page. */
+export function itemListLd(items: { name: string; url: string }[]): JsonLd {
+  return compact({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: absoluteUrl(item.url),
+    })),
+  });
+}

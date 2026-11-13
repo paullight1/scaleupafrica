@@ -1,10 +1,4 @@
-import {
-  useInfiniteQuery,
-  useQuery,
-  useMutation,
-  useQueryClient,
-  keepPreviousData,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@shared/integrations/supabase/client";
 import { useApiFor } from "@/lib/api/flags";
@@ -17,8 +11,8 @@ import {
 } from "@/lib/api/profiles";
 
 const db = supabase as unknown as SupabaseClient;
-export const PAGE_SIZE = 24;
-export type DirectoryFilters = { q: string; country: string | null; sector: string | null };
+export const PAGE_SIZE = 10;
+export type DirectoryFilters = { q: string; country: string | null; sector: string | null; page?: number };
 export const directoryKeys = {
   all: ["directory"] as const,
   list: (f: DirectoryFilters) => ["directory", "list", f] as const,
@@ -52,7 +46,7 @@ const UPSERT_KEYS=[
 ] as const;
 function pickUpsertPayload(payload:Record<string,unknown>):Record<string,unknown>{const out:Record<string,unknown>={};for(const k of UPSERT_KEYS)if(payload[k]!==undefined)out[k]=payload[k];return out;}
 
-export function useDirectorySearch(filters:DirectoryFilters){const viaApi=useApiFor("directory");return useInfiniteQuery({queryKey:directoryKeys.list(filters),initialPageParam:0,queryFn:async({pageParam}):Promise<DirectoryPage>=>{if(viaApi){const page=Math.floor(pageParam/PAGE_SIZE)+1;const res=await listProfiles({q:filters.q||undefined,country:filters.country??undefined,sector:filters.sector??undefined,page,pageSize:PAGE_SIZE,sort:"featured"});return{rows:res.items as unknown as DirectoryCardRow[],count:res.total,nextOffset:pageParam+PAGE_SIZE};}const base=db.from("profiles").select(CARD_COLUMNS,{count:"exact"});// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useDirectorySearch(filters:DirectoryFilters){const viaApi=useApiFor("directory");const page=Math.max(1,filters.page??1);const offset=(page-1)*PAGE_SIZE;return useInfiniteQuery({queryKey:directoryKeys.list(filters),initialPageParam:offset,queryFn:async({pageParam}):Promise<DirectoryPage>=>{if(viaApi){const apiPage=Math.floor(pageParam/PAGE_SIZE)+1;const res=await listProfiles({q:filters.q||undefined,country:filters.country??undefined,sector:filters.sector??undefined,page:apiPage,pageSize:PAGE_SIZE,sort:"featured"});return{rows:res.items as unknown as DirectoryCardRow[],count:res.total,nextOffset:pageParam+PAGE_SIZE};}const base=db.from("profiles").select(CARD_COLUMNS,{count:"exact"});// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const filtered=buildDirectoryQuery(base as any,filters) as any;const{data,error,count}=await filtered.order("featured",{ascending:false}).order("created_at",{ascending:false}).range(pageParam,pageParam+PAGE_SIZE-1);if(error)throw error;return{rows:(data??[]) as DirectoryCardRow[],count:count??0,nextOffset:pageParam+PAGE_SIZE};},getNextPageParam:directoryNextPageParam,placeholderData:keepPreviousData});}
 export function useDirectoryFacets(){return useQuery<DirectoryFacets>({queryKey:directoryKeys.facets,staleTime:5*60_000,queryFn:async()=>{const{data,error}=await db.rpc("directory_facets");if(error)throw error;const rows=(data??[]) as{facet:string;value:string|null;count:number}[];const countries:FacetValue[]=[];const sectors:FacetValue[]=[];for(const r of rows){if(!r.value)continue;const bucket=r.facet==="country"?countries:r.facet==="sector"?sectors:null;if(bucket)bucket.push({value:r.value,count:Number(r.count)});}countries.sort((a,b)=>b.count-a.count||a.value.localeCompare(b.value));sectors.sort((a,b)=>b.count-a.count||a.value.localeCompare(b.value));return{countries,sectors};}});}
 export function useProfileBySlug(slug:string|undefined){const viaApi=useApiFor("directory");return useQuery<ProfileDetailRow|null>({queryKey:directoryKeys.profile(slug??""),enabled:!!slug,queryFn:async()=>{if(viaApi){try{return(await getProfileBySlug(slug as string)) as unknown as ProfileDetailRow;}catch(e){if(e instanceof ApiError&&e.status===404)return null;throw e;}}const{data,error}=await db.from("profiles").select(PROFILE_COLUMNS).eq("slug",slug as string).maybeSingle();if(error)throw error;return(data??null) as ProfileDetailRow|null;}});}

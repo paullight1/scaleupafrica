@@ -5,6 +5,7 @@ import { Lock, AlertTriangle, ShieldAlert } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { usePaystackCheckout } from "@/lib/paystack";
 import { isPlanCode, type PlanCode } from "@/lib/billing";
+import { CouponRedeemCard } from "@/components/billing/CouponRedeemCard";
 
 interface FundingPaywallProps {
   userEmail?: string;
@@ -37,6 +38,8 @@ export function FundingPaywall({ userEmail }: FundingPaywallProps) {
           Funding opportunities are a benefit for active members. Before you subscribe, please read and accept the
           notice below.
         </p>
+
+        <div className="mb-6"><CouponRedeemCard /></div>
 
         <div className="mb-6 space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-5">
           <div className="flex items-start gap-3">

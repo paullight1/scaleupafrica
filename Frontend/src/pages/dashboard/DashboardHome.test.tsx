@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import { DashboardHome } from "./DashboardHome";
 
@@ -31,8 +32,10 @@ vi.mock("@/lib/paystack", () => ({
 describe("DashboardHome funding fallback", () => {
   it("shows the useful membership paywall when the non-member teaser cannot load", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <QueryClientProvider client={new QueryClient()}>
         <DashboardHome />
+        </QueryClientProvider>
       </MemoryRouter>,
     );
 

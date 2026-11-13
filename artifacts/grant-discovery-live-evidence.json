@@ -1,0 +1,60 @@
+{
+  "latest_run": {
+    "discovered_count": 15,
+    "id": "039410c6-0f66-4295-b40e-0a7857aba349",
+    "imported_count": 1,
+    "sources": [
+      {
+        "count": 2,
+        "error": null,
+        "ok": true,
+        "url": "https://opportunitydesk.org/category/grants/feed/"
+      },
+      {
+        "count": 1,
+        "error": null,
+        "ok": true,
+        "url": "https://opportunitydesk.org/category/grants/feed/?paged=2"
+      },
+      {
+        "count": 3,
+        "error": null,
+        "ok": true,
+        "url": "https://www.opportunitiesforafricans.com/feed/"
+      },
+      {
+        "count": 3,
+        "error": null,
+        "ok": true,
+        "url": "https://www.opportunitiesforafricans.com/feed/?paged=2"
+      },
+      {
+        "count": 3,
+        "error": null,
+        "ok": true,
+        "url": "https://www.terravivagrants.org/feed/"
+      },
+      {
+        "count": 3,
+        "error": null,
+        "ok": true,
+        "url": "https://www.terravivagrants.org/feed/?paged=2"
+      }
+    ],
+    "status": "success"
+  },
+  "published_discoveries": 15,
+  "published_grants": 7,
+  "schedule": "17 */6 * * *",
+  "scheduler_response": {
+    "error_msg": null,
+    "status_code": 200,
+    "timed_out": false
+  },
+  "test_user_remaining": 0,
+  "verified_date": "2026-11-04",
+  "public_host_status": "HTTP 402 DEPLOYMENT_DISABLED; owning Vercel account not connected",
+  "focused_tests_passed": 34,
+  "browser_verified": "Local production frontend with real authenticated Supabase membership and feed",
+  "security_advisor_new_findings": 0
+}

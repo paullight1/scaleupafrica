@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DashboardFunding from "@/pages/dashboard/DashboardFunding";
 
 // Controllable subscription status (vi.hoisted so the mock factory can read it).
@@ -47,8 +48,10 @@ vi.mock("@/components/dashboard/SavedOpportunities", () => ({
 
 function renderPage() {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <QueryClientProvider client={new QueryClient()}>
       <DashboardFunding />
+      </QueryClientProvider>
     </MemoryRouter>,
   );
 }
@@ -75,6 +78,7 @@ describe("Funding gate", () => {
     sub.status = "inactive";
     renderPage();
     expect(screen.getByText(/members only/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Redeem coupon" })).toBeInTheDocument();
     expect(screen.queryByTestId("funding-workspace")).toBeNull();
   });
 

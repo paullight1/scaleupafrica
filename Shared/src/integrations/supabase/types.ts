@@ -252,6 +252,38 @@ export type Database = {
           },
         ]
       }
+      coupon_redemptions: {
+        Row: {
+          access_expires_at: string
+          coupon_id: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          access_expires_at: string
+          coupon_id: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          access_expires_at?: string
+          coupon_id?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "membership_coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_events: {
         Row: {
           created_at: string
@@ -259,6 +291,7 @@ export type Database = {
           id: string
           ip_hash: string | null
           kind: string
+          payment_id: string | null
           provider_id: string | null
           status: string
           subject: string | null
@@ -270,6 +303,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           kind: string
+          payment_id?: string | null
           provider_id?: string | null
           status?: string
           subject?: string | null
@@ -281,12 +315,21 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           kind?: string
+          payment_id?: string | null
           provider_id?: string | null
           status?: string
           subject?: string | null
           to_email?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "email_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       funding_opportunities: {
         Row: {
@@ -608,6 +651,36 @@ export type Database = {
         }
         Relationships: []
       }
+      grant_discovery_runs: {
+        Row: {
+          discovered_count: number
+          finished_at: string | null
+          id: string
+          imported_count: number
+          sources: Json
+          started_at: string
+          status: string
+        }
+        Insert: {
+          discovered_count?: number
+          finished_at?: string | null
+          id?: string
+          imported_count?: number
+          sources?: Json
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          discovered_count?: number
+          finished_at?: string | null
+          id?: string
+          imported_count?: number
+          sources?: Json
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           company: string | null
@@ -689,6 +762,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      membership_coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          max_redemptions: number | null
+          redemption_count: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          max_redemptions?: number | null
+          redemption_count?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          max_redemptions?: number | null
+          redemption_count?: number
+        }
+        Relationships: []
       }
       newsletter_subscribers: {
         Row: {
@@ -811,10 +917,10 @@ export type Database = {
           id: string
           paid_at: string | null
           plan_code: string
+          provider: string
           provider_charge_id: string | null
           provider_invoice_id: string | null
           provider_subscription_id: string | null
-          provider: string
           reference: string
           status: string
           updated_at: string
@@ -830,10 +936,10 @@ export type Database = {
           id?: string
           paid_at?: string | null
           plan_code: string
+          provider?: string
           provider_charge_id?: string | null
           provider_invoice_id?: string | null
           provider_subscription_id?: string | null
-          provider?: string
           reference: string
           status?: string
           updated_at?: string
@@ -849,10 +955,10 @@ export type Database = {
           id?: string
           paid_at?: string | null
           plan_code?: string
+          provider?: string
           provider_charge_id?: string | null
           provider_invoice_id?: string | null
           provider_subscription_id?: string | null
-          provider?: string
           reference?: string
           status?: string
           updated_at?: string
@@ -885,9 +991,9 @@ export type Database = {
           linkedin: string | null
           logo_url: string | null
           long_description: string | null
+          offerings: Json
           operating_countries: string[]
           organisation_type: string | null
-          offerings: Json
           phone: string | null
           preferred_funding_types: string[]
           sector: string
@@ -897,8 +1003,8 @@ export type Database = {
           show_whatsapp: boolean
           slug: string
           status: string
-          twitter: string | null
           target_customers: string | null
+          twitter: string | null
           updated_at: string
           user_id: string
           view_count: number
@@ -929,9 +1035,9 @@ export type Database = {
           linkedin?: string | null
           logo_url?: string | null
           long_description?: string | null
+          offerings?: Json
           operating_countries?: string[]
           organisation_type?: string | null
-          offerings?: Json
           phone?: string | null
           preferred_funding_types?: string[]
           sector: string
@@ -941,8 +1047,8 @@ export type Database = {
           show_whatsapp?: boolean
           slug: string
           status?: string
-          twitter?: string | null
           target_customers?: string | null
+          twitter?: string | null
           updated_at?: string
           user_id: string
           view_count?: number
@@ -973,9 +1079,9 @@ export type Database = {
           linkedin?: string | null
           logo_url?: string | null
           long_description?: string | null
+          offerings?: Json
           operating_countries?: string[]
           organisation_type?: string | null
-          offerings?: Json
           phone?: string | null
           preferred_funding_types?: string[]
           sector?: string
@@ -985,8 +1091,8 @@ export type Database = {
           show_whatsapp?: boolean
           slug?: string
           status?: string
-          twitter?: string | null
           target_customers?: string | null
+          twitter?: string | null
           updated_at?: string
           user_id?: string
           view_count?: number
@@ -1012,9 +1118,9 @@ export type Database = {
       }
       resources: {
         Row: {
+          additional_questions: Json
           author_id: string | null
           author_name: string | null
-          additional_questions: Json
           category: string | null
           content: string | null
           cover_image_url: string | null
@@ -1038,9 +1144,9 @@ export type Database = {
           view_count: number
         }
         Insert: {
+          additional_questions?: Json
           author_id?: string | null
           author_name?: string | null
-          additional_questions?: Json
           category?: string | null
           content?: string | null
           cover_image_url?: string | null
@@ -1064,9 +1170,9 @@ export type Database = {
           view_count?: number
         }
         Update: {
+          additional_questions?: Json
           author_id?: string | null
           author_name?: string | null
-          additional_questions?: Json
           category?: string | null
           content?: string | null
           cover_image_url?: string | null
@@ -1150,8 +1256,8 @@ export type Database = {
           billing_email: string | null
           billing_status: string
           cancel_at_period_end: boolean
-          current_period_start: string | null
           created_at: string
+          current_period_start: string | null
           expires_at: string | null
           has_access: boolean
           id: string
@@ -1172,8 +1278,8 @@ export type Database = {
           billing_email?: string | null
           billing_status?: string
           cancel_at_period_end?: boolean
-          current_period_start?: string | null
           created_at?: string
+          current_period_start?: string | null
           expires_at?: string | null
           has_access?: boolean
           id?: string
@@ -1194,8 +1300,8 @@ export type Database = {
           billing_email?: string | null
           billing_status?: string
           cancel_at_period_end?: boolean
-          current_period_start?: string | null
           created_at?: string
+          current_period_start?: string | null
           expires_at?: string | null
           has_access?: boolean
           id?: string
@@ -1279,7 +1385,30 @@ export type Database = {
         }[]
       }
       admin_dashboard_stats: { Args: never; Returns: Json }
-      admin_reporting_summary: { Args: { _days?: number }; Returns: Json }
+      admin_generate_membership_coupons: {
+        Args: {
+          _code?: string
+          _count: number
+          _expiry: string
+          _unlimited?: boolean
+        }
+        Returns: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          max_redemptions: number | null
+          redemption_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "membership_coupons"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_users: {
         Args: { _limit?: number; _search?: string }
         Returns: {
@@ -1294,6 +1423,15 @@ export type Database = {
           last_sign_in_at: string
           user_id: string
         }[]
+      }
+      admin_payment_report: {
+        Args: { _from?: string; _to?: string }
+        Returns: Json
+      }
+      admin_reporting_summary: { Args: { _days?: number }; Returns: Json }
+      admin_revoke_membership_coupon: {
+        Args: { _coupon_id: string }
+        Returns: undefined
       }
       admin_set_role: {
         Args: {
@@ -1388,6 +1526,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      import_grant_discoveries: { Args: { _rows: Json }; Returns: number }
       increment_post_views: { Args: { _id: string }; Returns: undefined }
       increment_profile_views: { Args: { _id: string }; Returns: undefined }
       increment_resource_metric: {
@@ -1396,6 +1535,25 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      record_bachs_invoice_paid: {
+        Args: {
+          _amount: number
+          _channel: string
+          _currency: string
+          _gateway_response: Json
+          _next_payment_at: string
+          _paid_at: string
+          _period_end: string
+          _period_start: string
+          _plan_code: string
+          _provider_charge_id: string
+          _provider_invoice_id: string
+          _provider_subscription_id: string
+          _reference: string
+          _user_id: string
+        }
+        Returns: string
+      }
       record_funding_status_check: {
         Args: {
           _application_url?: string
@@ -1425,9 +1583,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_membership_coupon: { Args: { _code: string }; Returns: Json }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { _txt: string }; Returns: string }
+      sync_bachs_subscription: {
+        Args: {
+          _bachs_customer_id: string
+          _bachs_initial_reference: string
+          _bachs_subscription_id: string
+          _billing_email: string
+          _billing_status: string
+          _cancel_at_period_end: boolean
+          _current_period_end: string
+          _current_period_start: string
+          _event_at: string
+          _next_payment_at: string
+          _plan_code: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       unaccent: { Args: { "": string }; Returns: string }
       update_funding_source_and_invalidate: {
         Args: {
@@ -1477,12 +1653,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1506,11 +1682,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1531,11 +1707,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1556,11 +1732,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1573,11 +1749,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

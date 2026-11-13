@@ -222,6 +222,7 @@ Deno.serve(async (req) => {
     }));
     const activeUserIds = activeSubs.map((sub: ReconciliationSubscription) => sub.user_id);
     const successfulPaymentUsers = new Set<string>();
+    const couponAccessByUser = new Map<string, string>();
 
     if (activeUserIds.length > 0) {
       const { data: paidRows, error } = await admin
@@ -237,13 +238,26 @@ Deno.serve(async (req) => {
       for (const row of (paidRows ?? []) as PaidUserRow[]) {
         successfulPaymentUsers.add(String(row.user_id));
       }
+      const { data: couponRows, error: couponError } = await admin
+        .from("coupon_redemptions")
+        .select("user_id,access_expires_at")
+        .in("user_id", activeUserIds)
+        .gt("access_expires_at", new Date().toISOString())
+        .order("access_expires_at", { ascending: false });
+      if (couponError) {
+        console.error("payment-reconciliation: coupon query failed", couponError.message);
+        return json({ error: "unavailable" }, 500);
+      }
+      for (const row of couponRows ?? []) {
+        if (!couponAccessByUser.has(String(row.user_id))) couponAccessByUser.set(String(row.user_id), String(row.access_expires_at));
+      }
     }
 
     const accessDiscrepancies = activeSubs
       .map((sub: ReconciliationSubscription) => ({
         user_id: sub.user_id,
         expires_at: sub.expires_at,
-        issues: reconcileActiveSubscription(sub, successfulPaymentUsers.has(sub.user_id)),
+        issues: reconcileActiveSubscription(sub, successfulPaymentUsers.has(sub.user_id), Date.now(), couponAccessByUser.get(sub.user_id)),
       }))
       .filter((row: { issues: string[] }) => row.issues.length > 0);
 

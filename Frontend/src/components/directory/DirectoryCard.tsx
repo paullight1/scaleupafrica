@@ -13,7 +13,7 @@ export function DirectoryCard({ profile }: { profile: DirectoryCardRow }) {
         {profile.logo_url ? (
           <img
             src={profile.logo_url}
-            alt=""
+            alt={`${profile.business_name} logo`}
             className="h-14 w-14 shrink-0 rounded-xl object-cover"
             loading="lazy"
           />

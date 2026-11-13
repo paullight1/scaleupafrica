@@ -1,4 +1,10 @@
-import { cn } from "@shared/lib/utils";
+import { SlidersHorizontal, X } from "lucide-react";
+import { Button } from "@shared/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@shared/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -8,97 +14,7 @@ import {
 } from "@shared/components/ui/select";
 import type { FacetValue } from "@/hooks/queries/directory";
 
-const TOP_CHIPS = 8;
-
-function Chip({
-  label,
-  count,
-  active,
-  onClick,
-}: {
-  label: string;
-  count?: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "inline-flex min-h-[44px] items-center rounded-full border px-4 text-sm font-medium transition-colors",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-secondary text-secondary-foreground hover:border-primary/40",
-      )}
-    >
-      {label}
-      {typeof count === "number" && (
-        <span className={cn("ml-1.5 text-xs", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
-          {count}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function FacetRow({
-  legend,
-  values,
-  selected,
-  onSelect,
-}: {
-  legend: string;
-  values: FacetValue[];
-  selected: string | null;
-  onSelect: (value: string | null) => void;
-}) {
-  if (values.length === 0) return null;
-  const top = values.slice(0, TOP_CHIPS);
-  const overflow = values.slice(TOP_CHIPS);
-  // Ensure the selected value is always visible as a chip even if it lives in the overflow.
-  const showSelectedChip = selected && !top.some((v) => v.value === selected);
-
-  return (
-    <fieldset className="flex flex-wrap items-center gap-2">
-      <legend className="sr-only">{legend}</legend>
-      <Chip label={`All ${legend.toLowerCase()}`} active={!selected} onClick={() => onSelect(null)} />
-      {top.map((v) => (
-        <Chip
-          key={v.value}
-          label={v.value}
-          count={v.count}
-          active={selected === v.value}
-          onClick={() => onSelect(selected === v.value ? null : v.value)}
-        />
-      ))}
-      {showSelectedChip && (
-        <Chip label={selected as string} active onClick={() => onSelect(null)} />
-      )}
-      {overflow.length > 0 && (
-        <Select
-          value={selected && overflow.some((v) => v.value === selected) ? selected : ""}
-          onValueChange={(val) => onSelect(val || null)}
-        >
-          <SelectTrigger
-            className="h-11 min-h-[44px] w-auto rounded-full border-border bg-secondary px-4 text-sm"
-            aria-label={`More ${legend.toLowerCase()}`}
-          >
-            <SelectValue placeholder={`More ${legend.toLowerCase()}…`} />
-          </SelectTrigger>
-          <SelectContent>
-            {overflow.map((v) => (
-              <SelectItem key={v.value} value={v.value}>
-                {v.value} ({v.count})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-    </fieldset>
-  );
-}
+const ALL = "__all__";
 
 export function DirectoryFilters({
   countries,
@@ -107,6 +23,7 @@ export function DirectoryFilters({
   selectedSector,
   onCountry,
   onSector,
+  onClear,
 }: {
   countries: FacetValue[];
   sectors: FacetValue[];
@@ -114,12 +31,94 @@ export function DirectoryFilters({
   selectedSector: string | null;
   onCountry: (value: string | null) => void;
   onSector: (value: string | null) => void;
+  onClear?: () => void;
 }) {
+  const activeCount = Number(Boolean(selectedCountry)) + Number(Boolean(selectedSector));
+
   return (
-    <div className="space-y-3">
-      <FacetRow legend="Countries" values={countries} selected={selectedCountry} onSelect={onCountry} />
-      <FacetRow legend="Sectors" values={sectors} selected={selectedSector} onSelect={onSector} />
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-9 shrink-0 gap-1.5 rounded-md px-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+          aria-label={`Filter directory${activeCount ? `, ${activeCount} active` : ""}`}
+        >
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Filters</span>
+          {activeCount > 0 && (
+            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[min(20rem,calc(100vw-2rem))] space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="font-semibold text-foreground">Filter directory</p>
+            <p className="text-xs text-muted-foreground">Narrow results by location or sector.</p>
+          </div>
+          {activeCount > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-mr-2 -mt-2 h-8 gap-1 px-2 text-xs text-muted-foreground"
+              onClick={() => onClear?.()}
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+              Clear
+            </Button>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="directory-country-filter" className="text-sm font-medium text-foreground">
+            Country
+          </label>
+          <Select
+            value={selectedCountry ?? ALL}
+            onValueChange={(value) => onCountry(value === ALL ? null : value)}
+          >
+            <SelectTrigger id="directory-country-filter" className="h-10">
+              <SelectValue placeholder="All countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All countries</SelectItem>
+              {countries.map((country) => (
+                <SelectItem key={country.value} value={country.value}>
+                  {country.value} ({country.count})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="directory-sector-filter" className="text-sm font-medium text-foreground">
+            Sector
+          </label>
+          <Select
+            value={selectedSector ?? ALL}
+            onValueChange={(value) => onSector(value === ALL ? null : value)}
+          >
+            <SelectTrigger id="directory-sector-filter" className="h-10">
+              <SelectValue placeholder="All sectors" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All sectors</SelectItem>
+              {sectors.map((sector) => (
+                <SelectItem key={sector.value} value={sector.value}>
+                  {sector.value} ({sector.count})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

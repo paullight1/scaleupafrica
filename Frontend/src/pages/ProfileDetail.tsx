@@ -113,10 +113,15 @@ const ProfileDetail = () => {
     );
   }
 
-  const seoDescription =
-    profile.short_description ||
-    (profile.long_description ? profile.long_description.slice(0, 160) : undefined);
+  const seoDescription = [
+    profile.short_description || (profile.long_description ? profile.long_description.slice(0, 120) : ""),
+    `${profile.business_name} is a ${profile.sector} business based in ${profile.country}.`,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .slice(0, 160);
   const seoImage = profile.logo_url || profile.founder_photo_url || undefined;
+  const seoImageAlt = profile.logo_url ? `${profile.business_name} logo` : `${profile.business_name} profile image`;
 
   const about = profile.long_description || profile.short_description || "";
   const paragraphs = about ? toParagraphs(about) : [];
@@ -133,6 +138,7 @@ const ProfileDetail = () => {
         title={`${profile.business_name} — ${profile.sector} in ${profile.country}`}
         description={seoDescription}
         ogImage={seoImage}
+        ogImageAlt={seoImageAlt}
         canonical={`/directory/${profile.slug}`}
         jsonLd={[
           localBusinessLd({
@@ -166,7 +172,7 @@ const ProfileDetail = () => {
             {profile.logo_url ? (
               <img
                 src={profile.logo_url}
-                alt=""
+                alt={`${profile.business_name} logo`}
                 className="h-20 w-20 shrink-0 rounded-xl object-cover"
               />
             ) : (
@@ -183,7 +189,7 @@ const ProfileDetail = () => {
                   {profile.founder_photo_url && (
                     <img
                       src={profile.founder_photo_url}
-                      alt=""
+                      alt={`${profile.founder_name} profile photo`}
                       className="h-9 w-9 rounded-full object-cover"
                     />
                   )}

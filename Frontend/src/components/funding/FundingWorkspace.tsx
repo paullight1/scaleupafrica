@@ -92,7 +92,7 @@ function surfaceDescription(surface: FundingSurface): string {
     case "open_for_you": return "Verified, current opportunities where your known eligibility passes the primary gate.";
     case "closing_soon": return "Your verified eligible opportunities with source-confirmed deadlines within 14 days.";
     case "watchlist": return "Verified opportunities worth watching because they are upcoming, paused, stale, unknown, or need more eligibility details.";
-    case "explore": return "Other verified records plus clearly separated AI discoveries. Explore never promotes these into Apply now.";
+    case "explore": return "Browse funding listings from public sources and other discoveries. Check each source for current availability and eligibility.";
   }
 }
 
@@ -165,6 +165,7 @@ export function FundingWorkspace() {
     return map;
   }, [memberStateQuery.data]);
   const surfaceItems = useMemo(() => evaluated.filter((entry) => entry.surfaces.includes(surface)).sort(sortSurface), [evaluated, surface]);
+  const exploreCount = evaluated.filter((entry) => entry.surfaces.includes("explore")).length;
   const filtered = useMemo(() => surfaceItems.filter(({ item }) => matches(item, filter)), [surfaceItems, filter]);
 
   useEffect(() => {
@@ -232,9 +233,9 @@ export function FundingWorkspace() {
       <div aria-live="polite" className="sr-only">{filtered.length} opportunities shown.</div>
 
       {surfaceItems.length === 0 && surface === "open_for_you" ? (
-        <EmptyState variant="search" title="You’re not currently eligible for any verified open opportunities." description="We’ll keep checking verified sources. Review Watchlist for upcoming programs or missing profile details." action={{ label: "Review Watchlist", onClick: () => setSurface("watchlist") }} />
+        <EmptyState variant="search" title="You’re not currently eligible for any verified open opportunities." description="We’ll keep checking verified sources. Review Watchlist for upcoming programs or missing profile details." action={exploreCount > 0 ? { label: `Explore ${exploreCount} ${exploreCount === 1 ? "opportunity" : "opportunities"}`, onClick: () => setSurface("explore") } : { label: "Review Watchlist", onClick: () => setSurface("watchlist") }} />
       ) : surfaceItems.length === 0 ? (
-        <EmptyState variant="search" title={surface === "closing_soon" ? "Nothing is closing soon for you right now" : surface === "watchlist" ? "Your Watchlist is clear" : "Nothing else to explore right now"} description={surface === "closing_soon" ? "This view only contains verified eligible opportunities whose confirmed deadline is within 14 days." : surface === "watchlist" ? "Upcoming, uncertain, stale, paused and eligibility-incomplete verified opportunities will appear here." : "Try Opportunity search for a niche request; AI discoveries will remain clearly separated and unverified."} />
+        <EmptyState variant="search" title={surface === "closing_soon" ? "Nothing is closing soon for you right now" : surface === "watchlist" ? "Your Watchlist is clear" : "Nothing else to explore right now"} description={surface === "closing_soon" ? "This view only contains verified eligible opportunities whose confirmed deadline is within 14 days." : surface === "watchlist" ? "Upcoming, uncertain, stale, paused and eligibility-incomplete verified opportunities will appear here." : "New funding listings will appear here as sources are checked. You can also try Opportunity search."} />
       ) : filtered.length === 0 ? (
         <EmptyState variant="search" title="No opportunities match that filter" description="Clear the filter to see the full view." />
       ) : (

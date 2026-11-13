@@ -25,6 +25,7 @@ import {
   Inbox,
   Mail,
   CreditCard,
+  Ticket,
   Settings,
   ScrollText,
   LogOut,
@@ -66,6 +67,7 @@ const NAV: NavGroup[] = [
     heading: "System",
     items: [
       { label: "Payments", to: "/admin/payments", icon: CreditCard, adminOnly: true },
+      { label: "Coupons", to: "/admin/coupons", icon: Ticket, adminOnly: true },
       { label: "Settings", to: "/admin/settings", icon: Settings, adminOnly: true },
       { label: "Audit Log", to: "/admin/audit", icon: ScrollText, adminOnly: true },
     ],

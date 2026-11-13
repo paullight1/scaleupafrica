@@ -2,6 +2,7 @@ import { PageHeader } from "@shared/components/common/PageHeader";
 import { CurrentPlanCard } from "@/components/billing/CurrentPlanCard";
 import { PaymentHistory } from "@/components/billing/PaymentHistory";
 import { ConciergeCard } from "@/components/billing/ConciergeCard";
+import { CouponRedeemCard } from "@/components/billing/CouponRedeemCard";
 
 interface BillingPanelProps {
   /** Set false when the host page already renders its own title (e.g. dashboard shell). */
@@ -29,6 +30,7 @@ export function BillingPanel({ showHeader = true, className }: BillingPanelProps
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
         <div className="min-w-0 space-y-5">
           <CurrentPlanCard />
+          <CouponRedeemCard />
           <PaymentHistory />
         </div>
         <div className="min-w-0">

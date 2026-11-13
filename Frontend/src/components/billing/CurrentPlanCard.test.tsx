@@ -3,6 +3,8 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CurrentPlanCard } from "./CurrentPlanCard";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 
 const startCheckout = vi.fn();
 vi.mock("@/hooks/usePricingCurrency", () => ({ usePricingCurrency: () => ({ currency: "USD", setCurrency: vi.fn() }) }));
@@ -24,7 +26,7 @@ describe("CurrentPlanCard plan selection", () => {
   beforeEach(() => startCheckout.mockClear());
 
   it("lets a new member choose a quarterly plan before checkout", () => {
-    render(<CurrentPlanCard />);
+    render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><QueryClientProvider client={new QueryClient()}><CurrentPlanCard /></QueryClientProvider></MemoryRouter>);
 
     fireEvent.click(screen.getByRole("button", { name: /choose your plan/i }));
 

@@ -117,8 +117,11 @@ export function reconcileActiveSubscription(
   subscription: ReconciliationSubscription,
   hasSuccessfulPayment: boolean,
   nowMs = Date.now(),
+  couponAccessExpiresAt?: string | null,
 ): ReconciliationIssue[] {
   const expiryMs = subscription.expires_at ? Date.parse(subscription.expires_at) : Number.NaN;
   const active = subscription.has_access && Number.isFinite(expiryMs) && expiryMs > nowMs;
-  return active && !hasSuccessfulPayment ? ["access_no_paid_payment"] : [];
+  const couponExpiryMs = couponAccessExpiresAt ? Date.parse(couponAccessExpiresAt) : Number.NaN;
+  const coveredByCoupon = Number.isFinite(couponExpiryMs) && couponExpiryMs >= expiryMs;
+  return active && !hasSuccessfulPayment && !coveredByCoupon ? ["access_no_paid_payment"] : [];
 }

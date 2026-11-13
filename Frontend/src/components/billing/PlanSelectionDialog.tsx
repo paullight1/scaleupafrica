@@ -13,6 +13,7 @@ import {
 import { cn } from "@shared/lib/utils";
 import { CheckoutButton } from "@/components/billing/CheckoutButton";
 import { formatPlanPrice, type PlanCode } from "@/lib/billing";
+import { CouponRedeemCard } from "./CouponRedeemCard";
 
 const PLAN_OPTIONS: Array<{
   code: PlanCode;
@@ -47,6 +48,7 @@ export function PlanSelectionDialog({ open, onOpenChange }: PlanSelectionDialogP
         </DialogHeader>
 
         <div className="space-y-5 px-5 pb-5 sm:px-6 sm:pb-6">
+          <CouponRedeemCard onRedeemed={() => onOpenChange(false)} />
           <CurrencyToggle value={currency} onChange={setCurrency} />
           <fieldset>
             <legend className="sr-only">Membership billing cycle</legend>

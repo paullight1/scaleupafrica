@@ -100,6 +100,26 @@ export const subscriptions = pgTable("subscriptions", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// ---- seven-day membership coupons ----
+export const membershipCoupons = pgTable("membership_coupons", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  maxRedemptions: integer("max_redemptions"),
+  redemptionCount: integer("redemption_count").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+}, (t) => [index("membership_coupons_created_idx").on(t.createdAt.desc(), t.id), index("membership_coupons_creator_idx").on(t.createdBy)]);
+
+export const couponRedemptions = pgTable("coupon_redemptions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  couponId: uuid("coupon_id").notNull().references(() => membershipCoupons.id),
+  userId: uuid("user_id").notNull(),
+  redeemedAt: timestamp("redeemed_at", { withTimezone: true }).notNull().defaultNow(),
+  accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }).notNull(),
+}, (t) => [uniqueIndex("coupon_redemptions_coupon_id_user_id_key").on(t.couponId, t.userId), index("coupon_redemptions_user_idx").on(t.userId, t.accessExpiresAt.desc())]);
+
 // ---- user_roles ----
 export const userRoles = pgTable(
   "user_roles",

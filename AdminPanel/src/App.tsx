@@ -24,6 +24,7 @@ const AdminFundingEngine = lazy(() => import("./pages/AdminFundingEngine"));
 const AdminLeads = lazy(() => import("./pages/AdminLeads"));
 const AdminNewsletter = lazy(() => import("./pages/AdminNewsletter"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const AdminCoupons = lazy(() => import("./pages/AdminCoupons"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="leads" element={<AdminGuard require="admin"><AdminLeads /></AdminGuard>} />
               <Route path="newsletter" element={<AdminGuard require="admin"><AdminNewsletter /></AdminGuard>} />
               <Route path="payments" element={<AdminGuard require="admin"><AdminPayments /></AdminGuard>} />
+              <Route path="coupons" element={<AdminGuard require="admin"><AdminCoupons /></AdminGuard>} />
               <Route path="settings" element={<AdminGuard require="admin"><AdminSettings /></AdminGuard>} />
               <Route path="audit" element={<AdminGuard require="admin"><AdminAuditLog /></AdminGuard>} />
             </Route>
