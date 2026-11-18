@@ -12,6 +12,7 @@ Source is `paullight1/scaleupafrica`, branch `codex/free-grants-dokploy`, root D
 
 ## URLs and routing
 
+- Canonical admin: https://admin.crescivacapital.com/ (redirects to `/admin/`).
 - Web: https://cresciva.169.58.121.207.sslip.io/
 - Admin through the public origin: https://cresciva.169.58.121.207.sslip.io/admin/
 - Standalone admin: https://cresciva-admin.169.58.121.207.sslip.io/admin/
@@ -22,6 +23,29 @@ Source is `paullight1/scaleupafrica`, branch `codex/free-grants-dokploy`, root D
 Dokploy/Traefik routes `/admin` to the admin container and `/api/v1` to the API, preserving the path. The same rules are registered on `www.crescivacapital.com` and `crescivacapital.com`. The main-domain DNS cutover and valid Let's Encrypt HTTPS were verified complete on 6 November 2026; see [DOKPLOY.md](DOKPLOY.md). No additional DNS record is required for these path routes.
 
 Admin uses its own staff sign-in and corporate-email/database-role checks. `VITE_SITE_URL` follows `VITE_SITE_ORIGIN` for View site/sign-out navigation; production canonical links still target `https://www.crescivacapital.com`. Nginx emits relative redirects to preserve HTTPS behind Traefik. A staff session on the same public origin can also be used through `/admin`; independent hostnames maintain separate browser storage.
+
+### Admin subdomain repair, 18 November 2026
+
+`admin.crescivacapital.com` already resolved to the VPS but had no Dokploy domain
+record or Traefik host rule. HTTP returned the proxy's plain 404, and HTTPS
+presented `TRAEFIK DEFAULT CERT`. The application itself remained healthy.
+
+Added the canonical admin host to the existing admin application on port 80,
+path `/`, HTTPS enabled with the `letsencrypt` resolver. Domain ID:
+`acc1be11-b8f1-5a33-bfe7-b910998ab85f`; unique config key: `27`. Both the Dokploy
+domain record and its application Traefik configuration were saved, so future
+configuration generation retains the host. Existing routers were preserved;
+no application deployment or proxy restart was required. Backup of the original
+configuration and added domain metadata is on the VPS at
+`/root/cresciva-admin-domain-backup-20261118/`.
+
+Verified a trusted Let's Encrypt certificate for the exact admin hostname,
+HTTP-to-HTTPS redirect, root-to-`/admin/` redirect, admin/funding SPA fallback,
+JavaScript/CSS assets and `/healthz`. A real browser loaded **Staff sign in**
+without a certificate warning. Existing public-origin admin, website health and
+database-backed API health still returned 200; Nginx configuration validation
+passed. Existing staff account/role checks remain in force. No staff sign-in
+credentials were used for this infrastructure repair.
 
 ## Backend runtime
 

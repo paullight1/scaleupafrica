@@ -482,6 +482,10 @@ function extractDeadlineCandidates(text: string, now: Date): DeadlineCandidate[]
     const before = text.slice(Math.max(0, match.index - 160), match.index);
     const label = findDeadlineLabel(before);
     if (!label) continue;
+    const labelEnd = label.index + label.text.length;
+    const qualifier = /\b(?:questions?|enquir(?:y|ies)|inquir(?:y|ies)|clarifications?|webinars?|information sessions?)\b/i;
+    const labelPrefix = before.slice(0, label.index).match(/[^.?!\n]*$/)?.[0] ?? "";
+    if (qualifier.test(labelPrefix) || qualifier.test(before.slice(labelEnd))) continue;
     const suffix = temporalSuffix(text.slice(match.end, Math.min(text.length, match.end + 80)));
     const parsed = parseDateValue(`${match.raw}${suffix}`);
     if (!parsed) continue;
@@ -522,7 +526,7 @@ function findDateMatches(text: string): DateMatch[] {
 }
 
 function findDeadlineLabel(before: string): { index: number; text: string } | null {
-  const labelPattern = /(?:application|submission|proposal|grant|call)?\s*(?:deadline|closing\s+date|closing|closes?|due\s+date|apply\s+by|applications?\s+(?:close|closes|end|ends)|submissions?\s+(?:close|closes|end|ends)|(?:open|opened)\s+(?:until|through)|valid\s+through)\b/gi;
+  const labelPattern = /(?:application|submission|proposal|grant|call)?\s*(?:deadline|closing\s+date|closing|closes?|due\s+date|(?:applications?|submissions?)\s+(?:are\s+)?due(?:\s+by)?|apply\s+by|applications?\s+(?:close|closes|end|ends)|submissions?\s+(?:close|closes|end|ends)|(?:open|opened)\s+(?:until|through)|valid\s+through)\b/gi;
   let last: RegExpExecArray | null = null;
   let match: RegExpExecArray | null;
   while ((match = labelPattern.exec(before)) !== null) last = match;
@@ -659,6 +663,8 @@ function rankApplicationLinks(records: LinkRecord[], now: Date, pageText = ""): 
 function applicationScore(record: LinkRecord): number {
   const text = record.text.toLowerCase();
   const url = record.url.toLowerCase();
+  if (/\b(?:webinars?|information sessions?|info sessions?)\b/.test(text)
+    || /(?:^|\.)zoom\.us(?:[/:]|$)|\/webinars?(?:[/?#-]|$)/.test(url)) return 0;
   const path = (() => {
     try {
       const parsed = new URL(url);

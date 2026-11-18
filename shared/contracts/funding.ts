@@ -1,16 +1,5 @@
 import { z } from "zod";
 
-/**
- * Funding contracts — ports the `aggregate-funding` edge-function output shape
- * (see supabase/functions/aggregate-funding/index.ts + src/lib/fundingSchema.ts).
- * Canonical home once the API owns AI aggregation (FOUNDATION §8.3). Pure zod.
- */
-
-/**
- * Return a safe absolute href only for http/https URLs. Everything else — including
- * `javascript:`, `data:`, `vbscript:`, relative strings, and garbage — becomes null.
- * No model-supplied string may reach an <a href> without passing through here.
- */
 export function sanitizeExternalUrl(raw: unknown): string | null {
   if (typeof raw !== "string" && typeof raw !== "number") return null;
   try {
@@ -23,6 +12,23 @@ export function sanitizeExternalUrl(raw: unknown): string | null {
 }
 
 const trimmed = (max: number) => z.string().trim().max(max);
+
+export const DiscoverySourceSchema = z.enum(["verified_feed", "ai_assisted"]);
+export const VerificationStatusSchema = z.enum(["verified", "unverified", "stale"]);
+export const ApplicationStatusSchema = z.enum([
+  "open",
+  "closing_soon",
+  "rolling",
+  "upcoming",
+  "closed",
+  "paused",
+  "unknown",
+]);
+export const DeadlineStatusSchema = z.enum(["confirmed", "rolling", "unknown"]);
+export type DiscoverySource = z.infer<typeof DiscoverySourceSchema>;
+export type VerificationStatus = z.infer<typeof VerificationStatusSchema>;
+export type ApplicationStatus = z.infer<typeof ApplicationStatusSchema>;
+export type DeadlineStatus = z.infer<typeof DeadlineStatusSchema>;
 
 export const RecipientSchema = z.object({
   business_name: z.string().trim().min(1).max(200),
@@ -41,7 +47,7 @@ export const OpportunitySchema = z.object({
   opens: trimmed(300).default(""),
   deadline: trimmed(300).default(""),
   eligibility: trimmed(300).default(""),
-  url: z.unknown().transform(sanitizeExternalUrl), // nullable — card hides button if null
+  url: z.unknown().transform(sanitizeExternalUrl),
   tags: z.array(z.string().trim().max(40)).max(6).default([]),
   funder_about: trimmed(1000).optional(),
   travel_component: trimmed(1000).optional(),
@@ -49,30 +55,32 @@ export const OpportunitySchema = z.object({
   sdg_focus: z.array(z.string().trim().max(80)).max(8).default([]),
   past_recipients: z.array(RecipientSchema).max(6).default([]),
   application_tips: z.array(z.string().trim().max(300)).max(8).default([]),
+  discovery_source: DiscoverySourceSchema.optional(),
+  verification_status: VerificationStatusSchema.optional(),
+  source_checked_at: trimmed(100).optional(),
+  application_status: ApplicationStatusSchema.optional(),
+  status_checked_at: trimmed(100).optional(),
+  status_evidence_url: z.unknown().transform(sanitizeExternalUrl).optional(),
+  opens_at: trimmed(100).optional(),
+  deadline_at: trimmed(100).optional(),
+  deadline_timezone: trimmed(80).optional(),
+  deadline_status: DeadlineStatusSchema.optional(),
+  current_cycle_label: trimmed(120).optional(),
+  application_url: z.unknown().transform(sanitizeExternalUrl).optional(),
+  match_reasons: z.array(z.string().trim().max(240)).max(6).default([]),
 });
 export type Opportunity = z.infer<typeof OpportunitySchema>;
 
 const MAX_ITEMS = 30;
-
-/**
- * Validate model / cache / storage output into a clean Opportunity[]. Accepts an
- * array or `{ opportunities: [...] }`. Invalid ITEMS are dropped (an empty array is
- * a valid "no matches" result). A payload that is neither object nor array is an
- * ERROR — callers distinguish "no results" from "bad response".
- */
 export function parseOpportunities(input: unknown): Opportunity[] {
   let items: unknown[];
-  if (Array.isArray(input)) {
-    items = input;
-  } else if (
+  if (Array.isArray(input)) items = input;
+  else if (
     input &&
     typeof input === "object" &&
     Array.isArray((input as { opportunities?: unknown[] }).opportunities)
-  ) {
-    items = (input as { opportunities: unknown[] }).opportunities;
-  } else {
-    throw new Error("invalid_opportunities_payload");
-  }
+  ) items = (input as { opportunities: unknown[] }).opportunities;
+  else throw new Error("invalid_opportunities_payload");
 
   const out: Opportunity[] = [];
   for (const item of items.slice(0, MAX_ITEMS)) {
@@ -82,11 +90,6 @@ export function parseOpportunities(input: unknown): Opportunity[] {
   return out;
 }
 
-/**
- * Deterministic cache key. Lowercase, strip to [a-z0-9\s-], collapse whitespace,
- * sort tokens, join with single space, cap 200 chars. Order/case-insensitive.
- * MUST match src/lib/fundingSchema.ts and the edge fn exactly (shared cache keys).
- */
 export function normalizeKeywords(raw: string): string {
   return String(raw ?? "")
     .toLowerCase()
@@ -100,21 +103,16 @@ export function normalizeKeywords(raw: string): string {
     .slice(0, 200);
 }
 
-// --- request / response contracts ----------------------------------------
-
-export const FundingSearchSchema = z
-  .object({ keywords: z.string().trim().max(200).default("") })
-  .strict();
+export const FundingSearchSchema = z.object({ keywords: z.string().trim().max(200).default("") }).strict();
 export type FundingSearchInput = z.infer<typeof FundingSearchSchema>;
 
 export interface FundingSearchResult {
   opportunities: Opportunity[];
   cached: boolean;
-  generatedAt: string; // ISO
+  generatedAt: string;
   keywordsRaw: string;
 }
 
-/** Admin-curated funding_opportunities row (public list). */
 export interface CuratedOpportunity {
   id: string;
   title: string;
@@ -130,5 +128,17 @@ export interface CuratedOpportunity {
   countryFocus: string[];
   featured: boolean;
   lastVerifiedAt: string | null;
+  sourceUrl: string | null;
+  sourceName: string | null;
+  verificationStatus: VerificationStatus;
   details: Record<string, unknown>;
+  applicationStatus: ApplicationStatus;
+  statusCheckedAt: string | null;
+  statusEvidenceUrl: string | null;
+  opensAt: string | null;
+  deadlineAt: string | null;
+  deadlineTimezone: string | null;
+  deadlineStatus: DeadlineStatus;
+  currentCycleLabel: string | null;
+  applicationUrl: string | null;
 }

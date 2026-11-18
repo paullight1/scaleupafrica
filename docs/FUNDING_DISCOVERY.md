@@ -10,11 +10,13 @@ The public site's usual membership gates remain in force. “Free” here means 
 
 ## Sources and limits
 
-- Opportunity Desk: Grants RSS, first two pages.
-- Opportunities for Africans: RSS, first two pages.
-- Terra Viva Grants: RSS, first two pages.
+Current configuration: 22 fixed public feed pages from 11 publishers, every six
+hours. Opportunity Desk has three pages; Opportunities for Africans, Terra Viva
+Grants and FundsforNGOs have four each. Single feeds cover Adaptation Fund, IDRC,
+Youth Opportunities Hub, IHS, Enabel, NRF South Africa and African Culture Fund.
+The daily global research guide is [FUNDING_GLOBAL_SEARCH.md](FUNDING_GLOBAL_SEARCH.md).
 
-The importer accepts recent items (45 days), checks funding relevance and Africa/worldwide relevance, excludes obvious employment/scholarship/roundup/advice articles, and requires HTTPS links to the expected publisher. Each request has an 18-second timeout and a 2 MB cap; at most 50 items per page are examined. Sources fail independently. Metadata stays bounded and article bodies are not republished.
+The importer accepts recent items (45 days), checks funding relevance and Africa/worldwide relevance, requires application-call language, excludes obvious employment/scholarship/bursary/roundup/advice/results articles, and requires HTTPS links to the expected publisher. Each request has an 18-second timeout and a 2 MB cap; at most 50 items per page are examined. Sources fail independently. Metadata stays bounded and article bodies are not republished.
 
 URL tracking parameters are removed. Stable IDs and transactional insert-only writes prevent duplicate imports and preserve staff edits and archived records. Different publishers may cover the same program; those listings remain separate until editorial verification establishes a shared official source. Unedited automatic records expire after 60 days. A publisher's own listing is evidence of discovery, not evidence that applications remain open.
 
@@ -111,3 +113,40 @@ Migration: `20261106103200_free_grant_maintenance.sql`. The new worker authentic
 Known first-party discoveries from IDRC and Adaptation Fund now enter the hourly queue automatically through `queue_official_feed_discoveries`, deployed in migration `20261106111040_queue_official_feed_discoveries.sql`. The function admits only untouched automatic listings from the exact known feed and host, and does not mark them verified/open. Other new funders need the daily official-source admission step. Application links that are blocked, missing or ambiguous remain unconfirmed.
 
 Final verification: 36 focused parser/discovery/network-boundary tests passed; frontend typecheck passed. Both SQL regression transactions passed, including public execution denial, concurrent-edit protection, registered child paths, failed-check deadline history, changed-source eligibility invalidation and first-party host/editorial boundaries. The real Vault/pg_net path returned HTTP 200 for rotating eight-record batches; all 18 currently registered records have maintenance metadata, including two first-party discoveries. Both database cron jobs and the daily app automation are active. Security advisor findings are unchanged from before these migrations. Visible-text fingerprints ignore script/tracking churn when detecting changes to eligibility evidence. Large scripts, truncated bodies, future opening dates, dotted GMT times and ambiguous midnight boundaries are covered by tests.
+
+## Verification safeguards and discovery coverage, 10 November 2026
+
+The hourly checker keeps established application links and verified deadline text, timestamps and timezones. It records its own findings in the audit and can close a call after a verified cutoff or downgrade it when the source or application route fails. A current editorial status can survive an inconclusive parse for up to 24 hours when the source and saved application route are reachable and the source content has not changed. An hourly check does not renew the editorial review or eligibility verification timestamp. Application downloads in PDF or DOCX format use the same network and size checks as portals.
+
+Discovery scans 13 fixed public RSS pages per six-hour run. It now checks a third page from Opportunity Desk, Opportunities for Africans and Terra Viva Grants, plus the second FundsforNGOs page. The first expanded production run found 31 candidates and imported five new listings, including two grant candidates. A repeat run found the same 31 candidates and inserted zero duplicates. Imports remain unconfirmed until verified against official sources.
+
+## Wider free coverage, 18 November 2026
+
+Expanded production discovery from 13 to 22 pages and from six to 11 distinct
+publishers. New feeds cover Youth Opportunities Hub, IHS, Enabel, NRF South Africa
+and African Culture Fund; deeper pages cover FundsforNGOs, Opportunities for
+Africans and Terra Viva Grants. Probed but excluded blocked, missing, redirecting
+or stale feeds rather than adding unreliable requests. CODESRIA remains in the
+manual official watchlist because its RSS endpoint redirects inconsistently.
+
+Broader feeds now require application-call language and filter bursaries, winners
+announcements and general funder/software news. The first deployed run succeeded
+on all 22 pages, found 28 distinct candidates and imported one new listing. The
+count is lower than the earlier 33-candidate run because the relevance filters are
+stricter; expanded coverage is not a promise that every run finds more live grants.
+
+Added four independently verified grants with exact official application routes:
+Awesome Conservation and Climate (November 27, 2026, no published time/timezone),
+Pollock-Krasner visual artist grants (explicit rolling intake), Front Line Defenders
+protection grants (live application invitation; no published deadline) and
+UAF-Africa Protection (explicit year-round intake). Programme-specific country,
+individual/organisation, payment-channel and activity restrictions are preserved.
+No applications were submitted. Normal application authentication was inspected
+only as far as the loaded public sign-in screen.
+
+The existing daily automation remains at 07:30 Lagos with its notification
+preference unchanged. It now uses FUNDING_GLOBAL_SEARCH.md to rotate African
+regions, sectors and English/French/Portuguese queries, aiming to screen up to 20
+candidates and verify up to 12 when existing access/allowances permit. No result
+quota may weaken verification. Search/extraction remains limited to free public
+sources and existing connected tools; no service or API subscription was added.

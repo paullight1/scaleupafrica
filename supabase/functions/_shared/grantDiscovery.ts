@@ -3,20 +3,36 @@ export interface GrantFeed { name: string; url: string; africaFocused: boolean }
 export const GRANT_FEEDS: GrantFeed[] = [
   { name: 'Opportunity Desk', url: 'https://opportunitydesk.org/category/grants/feed/', africaFocused: false },
   { name: 'Opportunity Desk', url: 'https://opportunitydesk.org/category/grants/feed/?paged=2', africaFocused: false },
+  { name: 'Opportunity Desk', url: 'https://opportunitydesk.org/category/grants/feed/?paged=3', africaFocused: false },
   { name: 'Opportunities for Africans', url: 'https://www.opportunitiesforafricans.com/feed/', africaFocused: true },
   { name: 'Opportunities for Africans', url: 'https://www.opportunitiesforafricans.com/feed/?paged=2', africaFocused: true },
+  { name: 'Opportunities for Africans', url: 'https://www.opportunitiesforafricans.com/feed/?paged=3', africaFocused: true },
   { name: 'Terra Viva Grants', url: 'https://www.terravivagrants.org/feed/', africaFocused: false },
   { name: 'Terra Viva Grants', url: 'https://www.terravivagrants.org/feed/?paged=2', africaFocused: false },
+  { name: 'Terra Viva Grants', url: 'https://www.terravivagrants.org/feed/?paged=3', africaFocused: false },
   { name: 'FundsforNGOs', url: 'https://www2.fundsforngos.org/feed/', africaFocused: false },
+  { name: 'FundsforNGOs', url: 'https://www2.fundsforngos.org/feed/?paged=2', africaFocused: false },
   { name: 'Adaptation Fund', url: 'https://www.adaptation-fund.org/feed/', africaFocused: false },
   { name: 'IDRC', url: 'https://idrc-crdi.ca/en/rss.xml', africaFocused: false },
+  { name: 'FundsforNGOs', url: 'https://www2.fundsforngos.org/feed/?paged=3', africaFocused: false },
+  { name: 'FundsforNGOs', url: 'https://www2.fundsforngos.org/feed/?paged=4', africaFocused: false },
+  { name: 'Opportunities for Africans', url: 'https://www.opportunitiesforafricans.com/feed/?paged=4', africaFocused: true },
+  { name: 'Terra Viva Grants', url: 'https://www.terravivagrants.org/feed/?paged=4', africaFocused: false },
+  { name: 'Youth Opportunities Hub', url: 'https://www.youthopportunitieshub.com/feed/', africaFocused: false },
+  { name: 'Institute for Humane Studies', url: 'https://theihs.org/feed.xml', africaFocused: false },
+  { name: 'Enabel', url: 'https://www.enabel.be/feed/', africaFocused: false },
+  { name: 'National Research Foundation South Africa', url: 'https://www.nrf.ac.za/feed/', africaFocused: true },
+  { name: 'African Culture Fund', url: 'https://www.africanculturefund.net/en/feed/', africaFocused: true },
 ];
 export const DISCOVERY_IMPORTER = 'free_rss_v1';
 const AFRICA = /\b(africa[n]?|nigeria[n]?|kenya[n]?|ghana[ian]*|uganda[n]?|rwanda[n]?|tanzania[n]?|ethiopia[n]?|zambia[n]?|zimbabwe[an]*|senegal[ese]*|cameroon[ian]*|morocco|egypt[ian]*|tunisia[n]?|algeria[n]?|malawi[an]*|mozambique|botswana|namibia[n]?|sierra leone|liberia[n]?|somalia[n]?|sudan[ese]*|sahel|congo|burkina faso|cote d.ivoire|ivory coast|mauritius|mauritania|madagascar|benin|togo|eswatini|lesotho|gambia|guinea|gabon|chad|niger|mali|angola|eritrea|burundi|djibouti|seychelles|comoros|cabo verde|cape verde)\b/i;
 const GLOBAL = /\b(worldwide|global|any country|all countries|developing countries|least developed countries)\b/i;
 const FUNDING = /\b(grants?|funding|fund|seed capital|prize|awards?|pitch|accelerator|incubat(?:or|ion)|entrepreneur(?:ship)?|startups?|start-ups?|smes?|msmes?)\b/i;
 const ROUNDUP = /^(?:(?:top|best)\s+\d+\b|how to\b)|\b(?:list|roundup|collection) of\b/i;
-const EXCLUDED = /\b(scholarships?|graduate programme|graduate program|internships?|job vacancy|job vacancies|recruitment|master.s degree|phd scholarship)\b/i;
+const EXCLUDED = /\b(scholarships?|bursar(?:y|ies)|graduate programme|graduate program|internships?|job vacancy|job vacancies|recruitment|master.s degree|phd scholarship|announcement of (?:the )?winners|results of (?:the )?call)\b/i;
+// Broader official feeds also contain funder news and software “applications”.
+// Require an invitation to apply, rather than isolated “open”/“applications”.
+const APPLICATION_CALL = /\b(call for (?:proposals|applications|concept notes)|invites? (?:proposals|applications)|applications? (?:are |is |now )?open|open worldwide|open to (?:applications|proposals|applicants)|apply (?:now|for)|can apply|funding opportunit(?:y|ies)|application deadline|deadline for (?:applications|proposals|submissions))\b/i;
 
 export interface GrantDiscoveryRow {
   title: string; funder: string; type: string; summary: string; url: string;
@@ -57,8 +73,7 @@ export function parseGrantFeed(xml: string, source: GrantFeed, now = new Date())
     if (!url || seen.has(url)) continue;
     const body = plainText(field(item, 'description') + ' ' + field(item, 'content:encoded'));
     const text = title + ' ' + body;
-    const fundingInDescription = FUNDING.test(body) && /\b(?:call|apply|application|applications|eligible|deadline|open|opportunity)\b/i.test(body);
-    if ((!FUNDING.test(title) && !fundingInDescription) || EXCLUDED.test(title) || ROUNDUP.test(title)) continue;
+    if (!FUNDING.test(text) || !APPLICATION_CALL.test(text) || EXCLUDED.test(title) || ROUNDUP.test(title)) continue;
     if (!source.africaFocused && !AFRICA.test(text) && !GLOBAL.test(text)) continue;
     const type = /\baccelerator|incubat(?:or|ion)\b/i.test(title) ? 'accelerator' : /\bprize|awards?|competition|challenge\b/i.test(title) ? 'competition' : /\bgrants?|funding|fund|seed capital\b/i.test(title) ? 'grant' : 'other';
     seen.add(url);

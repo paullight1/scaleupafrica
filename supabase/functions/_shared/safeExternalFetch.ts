@@ -44,6 +44,7 @@ export interface SafeExternalFetchOptions {
   timeoutMs?: number;
   maxBytes?: number;
   maxRedirects?: number;
+  allowApplicationDocuments?: boolean;
   headers?: Record<string, string>;
   /**
    * Runtime-neutral DNS seam. Deno source workers use Deno.resolveDns by
@@ -129,7 +130,11 @@ export async function safeExternalFetch(
       .split(";", 1)[0]
       .trim()
       .toLowerCase();
-    if (!ALLOWED_CONTENT_TYPES.includes(contentType as (typeof ALLOWED_CONTENT_TYPES)[number])) {
+    const isApplicationDocument = options.allowApplicationDocuments && (
+      contentType === "application/pdf"
+      || contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    if (!isApplicationDocument && !ALLOWED_CONTENT_TYPES.includes(contentType as (typeof ALLOWED_CONTENT_TYPES)[number])) {
       return failure(current.href, response.status, "unsupported_content_type");
     }
 

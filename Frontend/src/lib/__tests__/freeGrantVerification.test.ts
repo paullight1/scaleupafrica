@@ -25,6 +25,22 @@ describe("extractFreeGrantEvidence", () => {
     expect(result.visibleText).not.toContain("Applications are closed");
   });
 
+  it("excludes question deadlines and webinar registration from application evidence", () => {
+    const result = extractFreeGrantEvidence(
+      `<h1>Public Services Grant</h1>
+       <p>Applications are open.</p>
+       <p>The deadline to submit questions was October 31, 2026.</p>
+       <p>Application deadline: November 29, 2026.</p>
+       <a href="https://us06web.zoom.us/webinar/register/example">Register now</a>
+       <a href="https://funder.submittable.com/submit">Link</a>`,
+      "https://funder.test/grants",
+      NOW,
+    );
+    expect(result.applicationStatus).toBe("open");
+    expect(result.deadlineText).toBe("Application deadline: November 29, 2026");
+    expect(result.applicationUrl).toBe("https://funder.submittable.com/submit");
+  });
+
   it("fails closed when an open statement is paired with an expired deadline", () => {
     const result = extractFreeGrantEvidence(
       `<h1>Climate Grant 2025</h1>

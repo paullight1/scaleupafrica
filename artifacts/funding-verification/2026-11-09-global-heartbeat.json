@@ -1,0 +1,594 @@
+{
+  "reviewed_on": "2026-11-09",
+  "project": "fqragjhmunphhdnmvpgs",
+  "records": [
+    {
+      "title": "ArcX Regional Centres of Excellence on Climate Change Resilience",
+      "source": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+      "app": "https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+      "deadline": "09 December 2026, 14:00 (CET)",
+      "at": "2026-12-09T13:00:00Z",
+      "tz": "Europe/Brussels",
+      "funder": "ECMWF and European Union",
+      "amount": "€50,000–€350,000 by tier",
+      "cycle": "2026_ArcX_G261",
+      "eligibility": "The lead must be a prospective regional centre with a relevant formal mandate from at least two African governments or territories, or from one or more intergovernmental organisations. It must operate in Eastern, Western, Central or Southern Africa, the Indian Ocean Islands, or across Sub-Saharan Africa. Projects must take place in Sub-Saharan Africa.",
+      "summary": "Lump-sum grants to establish up to six regional climate resilience centres. The coordinating organisation should use the official portal to register interest and complete the call questionnaire.",
+      "notes": "The European Commission explicitly lists the call as open. The ECMWF notice and ProContract advert identify the same call. The funder publishes 14:00 CET and the portal displays 13:00 in its UK time context.",
+      "fetch": "ECMWF",
+      "new": true,
+      "state": "open",
+      "id": "7d496b51-81e6-550c-84c2-4e545a76ae77",
+      "outcome": "verified in production"
+    },
+    {
+      "title": "CIEIF Climate Intervention Environmental Impact Grants, Sixth Round",
+      "source": "https://cieif.org/guidelines-for-grant-applicants/",
+      "app": "https://cieif.org/guidelines-for-grant-applicants/",
+      "deadline": "December 1, 2026",
+      "at": null,
+      "tz": null,
+      "funder": "Climate Intervention Environmental Impact Fund",
+      "amount": "US$75,000 per grant",
+      "cycle": "Sixth grant round",
+      "eligibility": "Worldwide nonprofit institutions are prioritised. Private businesses preparing a small-scale climate intervention field test are eligible. Government agencies, individuals and students are excluded. The proposal must focus on predictive environmental impact assessment, impact modelling or stakeholder engagement for the field test.",
+      "summary": "Three grants for independent assessments, modelling or stakeholder engagement for small-scale climate intervention field tests. Prepare the proposal using the official guidelines, then contact info@CIEIF.org to arrange delivery.",
+      "notes": "The funder provides current sixth-round instructions and explicitly asks applicants to contact its manager before delivery. No closing time or timezone is published. The funder prohibits AI use in application materials.",
+      "fetch": "CIEIF",
+      "new": true,
+      "state": "open",
+      "id": "b9575e01-5a7c-590d-854e-9ad4f3fa6c18",
+      "outcome": "verified in production"
+    },
+    {
+      "title": "People Powered Climate Democracy Accelerator Implementation Grant",
+      "source": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "app": "https://forms.gle/J7516hMhnE2akkrNA",
+      "deadline": "November 27, 2026, 11:59 pm UTC",
+      "at": "2026-11-27T23:59:00Z",
+      "tz": "Etc/UTC",
+      "funder": "People Powered",
+      "amount": "US$10,000 implementation grant after programme requirements",
+      "cycle": "March–August 2027 cohort",
+      "eligibility": "Open worldwide, including Africa. A government and civil society partnership is required. The grant recipient must be a registered nonprofit in its country of operations with paid staff, a board or advisory committee, at least one year of operations and evidence of fundraising and finances. Projects must focus on participatory approaches to renewable energy or regenerative agriculture.",
+      "summary": "Six months of support and an implementation grant for eligible nonprofit partners that complete the programme requirements.",
+      "notes": "The funder explicitly says the current cohort is open. Its official linked Google Form returned HTTP 200, displayed the programme title and a live submission form, and did not show a closure notice.",
+      "fetch": "People Powered",
+      "new": true,
+      "state": "open",
+      "id": "af59ebaa-40ae-5758-9bf2-209db30825a6",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "c41254c0-de07-5722-bc25-36e2bcfeeabc",
+      "title": "Cities Deliver: AI Solutions for Public Services",
+      "source": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+      "app": "https://citiesdeliver.rockefellerfoundation.org/",
+      "deadline": "11:59pm ET on November 29, 2026",
+      "at": "2026-11-30T04:59:00Z",
+      "tz": "America/New_York",
+      "state": "open",
+      "evidence": "https://citiesdeliver.rockefellerfoundation.org/default.asp?login=true",
+      "notes": "The official portal lists the round one submission cutoff. October 31 was the question deadline.",
+      "previous_status": "unknown",
+      "previous_deadline": "deadline to submit questions was October 31, 2026",
+      "previous_app": "https://citiesdeliver.rockefellerfoundation.org/",
+      "updated_at": "2026-11-09 04:23:02.621116+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "d62522fc-a404-587a-870b-a484dce0ccf5",
+      "title": "Oilwatch Small Grants Programme 2026",
+      "source": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "app": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "deadline": "Friday, November 13, 2026, 23:59 hrs GMT",
+      "at": "2026-11-13T23:59:00Z",
+      "tz": "Etc/GMT",
+      "state": "closing_soon",
+      "evidence": null,
+      "notes": "The call invites submissions by email to grants@oilwatch.africa with the subject GGF Application.",
+      "previous_status": "unknown",
+      "previous_deadline": "13 November 2026, 23:59 GMT",
+      "previous_app": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "updated_at": "2026-11-09 04:23:02.580869+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "title": "Creatives For Our Future 2026",
+      "source": "https://creatives.swarovskifoundation.org/",
+      "app": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "at": "2026-11-09T23:59:00Z",
+      "tz": "Etc/GMT",
+      "state": "closing_soon",
+      "evidence": "https://creatives.swarovskifoundation.org/application",
+      "notes": "Current application page explicitly states the window and the 2026 Formstack form is accessible.",
+      "previous_status": "unknown",
+      "previous_deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "previous_app": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "updated_at": "2026-11-09 04:23:03.459047+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "source": "https://fbisafrica.org/small-grants/",
+      "app": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "deadline": "Application deadline 9 November 2026",
+      "at": null,
+      "tz": null,
+      "state": "closing_soon",
+      "evidence": null,
+      "notes": "Official current call and downloadable DOCX are accessible. Submit the completed form and CV by email. Closing time and timezone are unstated.",
+      "previous_status": "unknown",
+      "previous_deadline": "Application deadline 9 November 2026",
+      "previous_app": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "updated_at": "2026-11-09 04:23:03.663823+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "59028315-01d4-5ff6-95a3-9f8c1e9b3cf8",
+      "title": "ILCM Community Impact Fund – Africa",
+      "source": "https://ilcm.global/community-grants.html",
+      "app": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "deadline": "Application deadline: 15 November 2026",
+      "at": null,
+      "tz": null,
+      "state": "closing_soon",
+      "evidence": null,
+      "notes": "Official current call and linked PDF are accessible. Submit the completed form, budget and timeline by email.",
+      "previous_status": "unknown",
+      "previous_deadline": "Application deadline: 15 November 2026",
+      "previous_app": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "updated_at": "2026-11-09 04:23:03.912592+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "title": "Research Grants on University Ecosystems",
+      "source": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "app": "https://apply.codesria.org/grants-subventions/",
+      "deadline": "deadline for submission of applications is 16 January 2027",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "evidence": null,
+      "notes": "Official call invites submissions and links the accessible CODESRIA login for the grant.",
+      "previous_status": "unknown",
+      "previous_deadline": "deadline for submission of applications is 16 January 2027",
+      "previous_app": "https://apply.codesria.org/grants-subventions/",
+      "updated_at": "2026-11-09 04:23:03.569658+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "1a1f7ce0-afec-dc26-178e-07aa08ba01b7",
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "source": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "app": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "deadline": "November 30, 2026 (6:00 PM Pacific)",
+      "at": "2026-12-01T02:00:00Z",
+      "tz": "America/Los_Angeles",
+      "state": "open",
+      "evidence": null,
+      "notes": "Funder timeline confirms the 6:00 PM Pacific cutoff and the linked cohort portal is reachable.",
+      "previous_status": "open",
+      "previous_deadline": "Proposal deadline: November 30, 2026",
+      "previous_app": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "updated_at": "2026-11-09 05:23:06.592473+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "db07e149-e483-58d0-8b74-e93f7d42fa08",
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets",
+      "source": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+      "app": "https://ai4dafrica.submittable.com/submit",
+      "deadline": "November 13, 2026, 21:00 UTC (application portal)",
+      "at": "2026-11-13T21:00:00Z",
+      "tz": "Etc/UTC",
+      "state": "closing_soon",
+      "evidence": "https://ai4dafrica.submittable.com/submit",
+      "notes": "ACTS explicitly accepts proposals only through Submittable. The cycle-specific listing offers an Apply link and encodes its cutoff as 2026-11-13 21:00:00Z. The prior link was a webinar.",
+      "previous_status": "open",
+      "previous_deadline": "Application Deadline: November 13, 2026",
+      "previous_app": "https://us06web.zoom.us/webinar/register/WN_Xkw_Lm5-TyC3kNY70VJIFg",
+      "updated_at": "2026-11-09 05:23:05.980196+00",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "8da19996-ac7d-5137-8465-61eed913fc0d",
+      "title": "2027 Digital Financial Services Grant - Expression of Interest",
+      "source": "https://interledger.org/grant/innovation/financial-services/",
+      "app": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+      "deadline": "Application deadline: Friday, December 11, 2026 at 11:59 pm ET",
+      "at": "2026-12-12T04:59:00Z",
+      "tz": "America/New_York",
+      "state": "open",
+      "evidence": null,
+      "notes": "Funder and official portal confirm the current EOI and the December 11 11:59 PM Eastern cutoff.",
+      "previous_status": "open",
+      "previous_deadline": "Application deadline: Friday, December 11, 2026 at 11:59 pm ET",
+      "previous_app": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+      "updated_at": "2026-11-09 06:23:03.628961+00",
+      "outcome": "verified in production"
+    }
+  ],
+  "official_portal_retrievals": [
+    {
+      "title": "2027 Digital Financial Services Grant - Expression of Interest",
+      "source": {
+        "url": "https://interledger.org/grant/innovation/financial-services/",
+        "response": "200 text/html; charset=UTF-8 https://interledger.org/grant/innovation/financial-services/"
+      },
+      "application": {
+        "url": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+        "response": "200 text/html; charset=utf-8 https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility"
+      }
+    },
+    {
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets",
+      "source": {
+        "url": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+        "response": "200 text/html; charset=UTF-8 https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/"
+      },
+      "application": {
+        "url": "https://us06web.zoom.us/webinar/register/WN_Xkw_Lm5-TyC3kNY70VJIFg",
+        "response": "200 text/html;charset=utf-8 https://us06web.zoom.us/webinar/register/WN_Xkw_Lm5-TyC3kNY70VJIFg"
+      }
+    },
+    {
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "source": {
+        "url": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+        "response": "200 text/html; charset=UTF-8 https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/"
+      },
+      "application": {
+        "url": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+        "response": "200 text/html; charset=UTF-8 https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal"
+      }
+    },
+    {
+      "title": "Pollination Project Seed Grants",
+      "source": {
+        "url": "https://thepollinationproject.org/apply/",
+        "response": "200 text/html; charset=UTF-8 https://thepollinationproject.org/apply/"
+      },
+      "application": {
+        "url": "https://thepollinationproject.smapply.us/prog/daily_grants_program",
+        "response": "200 text/html; charset=utf-8 https://thepollinationproject.smapply.us/prog/daily_grants_program/"
+      }
+    },
+    {
+      "title": "Rufford Small Grants for Nature Conservation",
+      "source": {
+        "url": "https://apply.ruffordsmallgrants.org/",
+        "response": "200 text/html; charset=utf-8 https://apply.ruffordsmallgrants.org/"
+      },
+      "application": {
+        "url": "https://apply.ruffordsmallgrants.org/apply/",
+        "response": "200 text/html; charset=utf-8 https://apply.ruffordsmallgrants.org/apply/"
+      }
+    },
+    {
+      "title": "Cities Deliver: AI Solutions for Public Services",
+      "source": {
+        "url": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+        "response": "200 text/html; charset=UTF-8 https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/"
+      },
+      "application": {
+        "url": "https://citiesdeliver.rockefellerfoundation.org/",
+        "response": "200 text/html; Charset=UTF-8 https://citiesdeliver.rockefellerfoundation.org/"
+      }
+    },
+    {
+      "title": "Creatives For Our Future 2026",
+      "source": {
+        "url": "https://creatives.swarovskifoundation.org/",
+        "response": "200 text/html; charset=UTF-8 https://creatives.swarovskifoundation.org/"
+      },
+      "application": {
+        "url": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+        "response": "200 text/html; charset=UTF-8 https://swarovskifoundation.formstack.com/forms/cfof_2026"
+      }
+    },
+    {
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "source": {
+        "url": "https://fbisafrica.org/small-grants/",
+        "response": "200 text/html; charset=utf-8 https://fbisafrica.org/small-grants/"
+      },
+      "application": {
+        "url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+        "response": "200 application/vnd.openxmlformats-officedocument.wordprocessingml.document https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx"
+      }
+    },
+    {
+      "title": "ILCM Community Impact Fund – Africa",
+      "source": {
+        "url": "https://ilcm.global/community-grants.html",
+        "response": "200 text/html; charset=UTF-8 https://ilcm.global/community-grants.html"
+      },
+      "application": {
+        "url": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+        "response": "200 application/pdf https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf"
+      }
+    },
+    {
+      "title": "Oilwatch Small Grants Programme 2026",
+      "source": {
+        "url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+        "response": "200 text/html; charset=utf-8 https://oilwatch.africa/en/news/small-grants-programme-2026"
+      },
+      "application": {
+        "url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+        "response": "200 text/html; charset=utf-8 https://oilwatch.africa/en/news/small-grants-programme-2026"
+      }
+    },
+    {
+      "title": "Research Grants on University Ecosystems",
+      "source": {
+        "url": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+        "response": "200 text/html; charset=UTF-8 https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/"
+      },
+      "application": {
+        "url": "https://apply.codesria.org/grants-subventions/",
+        "response": "200 text/html; charset=utf-8 https://apply.codesria.org/auth/?next=/grants-subventions/"
+      }
+    },
+    {
+      "title": "People Powered",
+      "source": {
+        "url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+        "response": "200 text/html;charset=utf-8 https://www.peoplepowered.org/climate-democracy-accelerator"
+      },
+      "application": {
+        "url": "https://forms.gle/J7516hMhnE2akkrNA",
+        "response": "200 text/html; charset=utf-8 https://docs.google.com/forms/d/e/1FAIpQLSesD2j8quh_XcUOhY3vVeE-YkbMw4SGJ2YKFlK7NZZcA_aT5Q/viewform?usp=send_form"
+      }
+    },
+    {
+      "title": "CIEIF",
+      "source": {
+        "url": "https://cieif.org/",
+        "response": "200 text/html; charset=UTF-8 https://cieif.org/"
+      },
+      "application": {
+        "url": "https://cieif.org/guidelines-for-grant-applicants/",
+        "response": "200 text/html; charset=UTF-8 https://cieif.org/guidelines-for-grant-applicants/"
+      }
+    },
+    {
+      "title": "ECMWF",
+      "source": {
+        "url": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+        "response": "200 text/html; charset=UTF-8 https://www.ecmwf.int/en/about/grants/arcx-grants"
+      },
+      "application": {
+        "url": "https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+        "response": "200 text/html; charset=utf-8 https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545"
+      }
+    }
+  ],
+  "additional_portal_checks": [
+    {
+      "url": "https://ai4dafrica.submittable.com/submit",
+      "finding": "Lists the active Lacuna cycle and its Apply button; the page encodes a 2026-11-13 21:00:00Z cutoff."
+    },
+    {
+      "url": "https://citiesdeliver.rockefellerfoundation.org/default.asp?login=true",
+      "finding": "Round one cutoff confirmed from the portal timeline."
+    }
+  ],
+  "rechecked_without_changes": [
+    "Pollination Project Seed Grants",
+    "Rufford Small Grants for Nature Conservation"
+  ],
+  "held_or_excluded": [
+    {
+      "source": "https://www.elrha.org/funding-opportunities/expression-of-interest-humanitarian-health-and-climate-collaborative-ethiopia-anchor-institution",
+      "finding": "Programme funding is subject to confirmation. Most of the £2.4 million envelope covers grants distributed by the anchor, so it was not attributed as an applicant award."
+    },
+    {
+      "source": "https://www.afro.who.int/call-for-applications-joint-who-afro-tdr-impact-grants-2026-2027",
+      "finding": "The 2026–2027 cycle closed September 15, 2026."
+    },
+    {
+      "source": "https://wcva.cymru/wales-and-africa-grants-now-open-5/",
+      "finding": "Only Wales-based organisations can apply."
+    }
+  ],
+  "limitations": [
+    "The hourly verifier previously picked the Cities Deliver questions cutoff, the Lacuna webinar registration link, and an incomplete Microsoft deadline. This daily review corrected the fields. The hourly parser can overwrite them again."
+  ],
+  "read_back": [
+    {
+      "application_status": "open",
+      "application_url": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+      "audited": true,
+      "deadline": "Application deadline: Friday, December 11, 2026 at 11:59 pm ET",
+      "deadline_at": "2026-12-12 04:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "id": "8da19996-ac7d-5137-8465-61eed913fc0d",
+      "registered": true,
+      "source_url": "https://interledger.org/grant/innovation/financial-services/",
+      "status": "published",
+      "title": "2027 Digital Financial Services Grant - Expression of Interest",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://ai4dafrica.submittable.com/submit",
+      "audited": true,
+      "deadline": "November 13, 2026, 21:00 UTC (application portal)",
+      "deadline_at": "2026-11-13 21:00:00+00",
+      "deadline_timezone": "Etc/UTC",
+      "id": "db07e149-e483-58d0-8b74-e93f7d42fa08",
+      "registered": true,
+      "source_url": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+      "status": "published",
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+      "audited": true,
+      "deadline": "09 December 2026, 14:00 (CET)",
+      "deadline_at": "2026-12-09 13:00:00+00",
+      "deadline_timezone": "Europe/Brussels",
+      "id": "7d496b51-81e6-550c-84c2-4e545a76ae77",
+      "registered": true,
+      "source_url": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+      "status": "published",
+      "title": "ArcX Regional Centres of Excellence on Climate Change Resilience",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://cieif.org/guidelines-for-grant-applicants/",
+      "audited": true,
+      "deadline": "December 1, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "b9575e01-5a7c-590d-854e-9ad4f3fa6c18",
+      "registered": true,
+      "source_url": "https://cieif.org/guidelines-for-grant-applicants/",
+      "status": "published",
+      "title": "CIEIF Climate Intervention Environmental Impact Grants, Sixth Round",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://citiesdeliver.rockefellerfoundation.org/",
+      "audited": true,
+      "deadline": "11:59pm ET on November 29, 2026",
+      "deadline_at": "2026-11-30 04:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "id": "c41254c0-de07-5722-bc25-36e2bcfeeabc",
+      "registered": true,
+      "source_url": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+      "status": "published",
+      "title": "Cities Deliver: AI Solutions for Public Services",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "audited": true,
+      "deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "deadline_at": "2026-11-09 23:59:00+00",
+      "deadline_timezone": "Etc/GMT",
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "registered": true,
+      "source_url": "https://creatives.swarovskifoundation.org/",
+      "status": "published",
+      "title": "Creatives For Our Future 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "audited": true,
+      "deadline": "Application deadline 9 November 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "registered": true,
+      "source_url": "https://fbisafrica.org/small-grants/",
+      "status": "published",
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "audited": true,
+      "deadline": "Application deadline: 15 November 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "59028315-01d4-5ff6-95a3-9f8c1e9b3cf8",
+      "registered": true,
+      "source_url": "https://ilcm.global/community-grants.html",
+      "status": "published",
+      "title": "ILCM Community Impact Fund – Africa",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "audited": true,
+      "deadline": "November 30, 2026 (6:00 PM Pacific)",
+      "deadline_at": "2026-12-01 02:00:00+00",
+      "deadline_timezone": "America/Los_Angeles",
+      "id": "1a1f7ce0-afec-dc26-178e-07aa08ba01b7",
+      "registered": true,
+      "source_url": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "status": "published",
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "audited": true,
+      "deadline": "Friday, November 13, 2026, 23:59 hrs GMT",
+      "deadline_at": "2026-11-13 23:59:00+00",
+      "deadline_timezone": "Etc/GMT",
+      "id": "d62522fc-a404-587a-870b-a484dce0ccf5",
+      "registered": true,
+      "source_url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "status": "published",
+      "title": "Oilwatch Small Grants Programme 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://forms.gle/J7516hMhnE2akkrNA",
+      "audited": true,
+      "deadline": "November 27, 2026, 11:59 pm UTC",
+      "deadline_at": "2026-11-27 23:59:00+00",
+      "deadline_timezone": "Etc/UTC",
+      "id": "af59ebaa-40ae-5758-9bf2-209db30825a6",
+      "registered": true,
+      "source_url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "status": "published",
+      "title": "People Powered Climate Democracy Accelerator Implementation Grant",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://apply.codesria.org/grants-subventions/",
+      "audited": true,
+      "deadline": "deadline for submission of applications is 16 January 2027",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "registered": true,
+      "source_url": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "status": "published",
+      "title": "Research Grants on University Ecosystems",
+      "type": "grant",
+      "verification_status": "verified"
+    }
+  ]
+}

@@ -1,0 +1,2044 @@
+{
+  "reviewed_on": "2026-11-18",
+  "project": "fqragjhmunphhdnmvpgs",
+  "method": "Free public global search and direct official source/application retrieval. Existing authenticated Supabase CLI; record_funding_status_check RPC and exact source/updated_at guards. Staff eligibility, summary, type and unrelated metadata preserved. No paid APIs, messaging, applications or other product changes.",
+  "new_records": 0,
+  "audited_records": 30,
+  "records": [
+    {
+      "new": false,
+      "id": "c41254c0-de07-5722-bc25-36e2bcfeeabc",
+      "title": "Cities Deliver: AI Solutions for Public Services",
+      "source": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+      "app": "https://citiesdeliver.rockefellerfoundation.org/",
+      "deadline": "11:59pm ET on November 29, 2026",
+      "at": "2026-11-30T04:59:00Z",
+      "tz": "America/New_York",
+      "state": "open",
+      "updated_at": "2026-11-18 04:23:03.469275+00",
+      "previous_status": "open",
+      "previous_source": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+      "notes": "The official portal lists the round one submission cutoff. October 31 was the question deadline.",
+      "evidence": "https://citiesdeliver.rockefellerfoundation.org/default.asp?login=true",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "db07e149-e483-58d0-8b74-e93f7d42fa08",
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets",
+      "source": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+      "app": "https://ai4dafrica.submittable.com/submit",
+      "deadline": "November 13, 2026, 21:00 UTC (application portal)",
+      "at": "2026-11-13T21:00:00Z",
+      "tz": "Etc/UTC",
+      "state": "closed",
+      "updated_at": "2026-11-18 04:23:09.667836+00",
+      "previous_status": "closed",
+      "previous_source": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+      "notes": "The previously verified cutoff has passed, including any possible date-only closing window. The official source and historical submission route were rechecked; details retained.",
+      "evidence": "https://ai4dafrica.submittable.com/submit",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "7d496b51-81e6-550c-84c2-4e545a76ae77",
+      "title": "ArcX Regional Centres of Excellence on Climate Change Resilience",
+      "source": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+      "app": "https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+      "deadline": "09 December 2026, 14:00 (CET)",
+      "at": "2026-12-09T13:00:00Z",
+      "tz": "Europe/Brussels",
+      "state": "open",
+      "updated_at": "2026-11-18 04:23:10.374064+00",
+      "previous_status": "open",
+      "previous_source": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+      "notes": "The European Commission explicitly lists the call as open. The ECMWF notice and ProContract advert identify the same call. The funder publishes 14:00 CET and the portal displays 13:00 in its UK time context.",
+      "evidence": null,
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "b9575e01-5a7c-590d-854e-9ad4f3fa6c18",
+      "title": "CIEIF Climate Intervention Environmental Impact Grants, Sixth Round",
+      "source": "https://cieif.org/guidelines-for-grant-applicants/",
+      "app": "https://cieif.org/guidelines-for-grant-applicants/",
+      "deadline": "December 1, 2026",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "updated_at": "2026-11-18 04:23:10.496552+00",
+      "previous_status": "open",
+      "previous_source": "https://cieif.org/guidelines-for-grant-applicants/",
+      "notes": "The funder provides current sixth-round instructions and explicitly asks applicants to contact its manager before delivery. No closing time or timezone is published. The funder prohibits AI use in application materials.",
+      "evidence": null,
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "59028315-01d4-5ff6-95a3-9f8c1e9b3cf8",
+      "title": "ILCM Community Impact Fund – Africa",
+      "source": "https://ilcm.global/community-grants.html",
+      "app": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "deadline": "Application deadline: 15 November 2026",
+      "at": null,
+      "tz": null,
+      "state": "closed",
+      "updated_at": "2026-11-18 04:23:10.409783+00",
+      "previous_status": "closed",
+      "previous_source": "https://ilcm.global/community-grants.html",
+      "notes": "The previously verified cutoff has passed, including any possible date-only closing window. The official source and historical submission route were rechecked; details retained.",
+      "evidence": null,
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "d62522fc-a404-587a-870b-a484dce0ccf5",
+      "title": "Oilwatch Small Grants Programme 2026",
+      "source": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "app": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "deadline": "Friday, November 13, 2026, 23:59 hrs GMT",
+      "at": "2026-11-13T23:59:00Z",
+      "tz": "Etc/GMT",
+      "state": "closed",
+      "updated_at": "2026-11-18 04:23:10.136471+00",
+      "previous_status": "closed",
+      "previous_source": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "notes": "The previously verified cutoff has passed, including any possible date-only closing window. The official source and historical submission route were rechecked; details retained.",
+      "evidence": null,
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "af59ebaa-40ae-5758-9bf2-209db30825a6",
+      "title": "People Powered Climate Democracy Accelerator Implementation Grant",
+      "source": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "app": "https://forms.gle/J7516hMhnE2akkrNA",
+      "deadline": "November 27, 2026, 11:59 pm UTC",
+      "at": "2026-11-27T23:59:00Z",
+      "tz": "Etc/UTC",
+      "state": "open",
+      "updated_at": "2026-11-18 05:23:03.481631+00",
+      "previous_status": "open",
+      "previous_source": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "notes": "The funder explicitly says the current cohort is open. Its official linked Google Form returned HTTP 200, displayed the programme title and a live submission form, and did not show a closure notice.",
+      "evidence": null,
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "title": "Research Grants on University Ecosystems",
+      "source": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "app": "https://apply.codesria.org/grants-subventions/",
+      "deadline": "deadline for submission of applications is 16 January 2027",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "updated_at": "2026-11-18 05:23:03.013707+00",
+      "previous_status": "unknown",
+      "previous_source": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "notes": "Official call invites submissions and links the accessible CODESRIA login for the grant.",
+      "evidence": null,
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "1a1f7ce0-afec-dc26-178e-07aa08ba01b7",
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "source": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "app": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "deadline": "December 31, 2026 (6:00 PM Pacific)",
+      "at": "2027-01-01T02:00:00Z",
+      "tz": "America/Los_Angeles",
+      "state": "open",
+      "updated_at": "2026-11-18 05:23:04.78898+00",
+      "previous_status": "unknown",
+      "previous_source": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "notes": "Material deadline extension: the official funder timeline now publishes December 31, 2026 (6:00 PM Pacific), replacing November 30. The official-linked submission portal returns HTTP 200 and provides active sign-in/sign-up instructions. Global university/research-institution eligibility remains explicitly published; no application was submitted.",
+      "evidence": null,
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "0e5d3f0b-043e-cfc1-2c6e-d51e790029f5",
+      "title": "HCLTech Global Grant for Climate Action 2026–2027",
+      "source": "https://globalgrant.hcltech.com/",
+      "app": "https://globalgrant.hcltech.com/profile-dashboard",
+      "deadline": "January 24, 2027 at 11:59 PM ET (New York)",
+      "at": "2027-01-25T04:59:00Z",
+      "tz": "America/New_York",
+      "state": "open",
+      "updated_at": "2026-11-18 05:23:03.412509+00",
+      "previous_status": "open",
+      "previous_source": "https://globalgrant.hcltech.com/",
+      "notes": "Funder says Apply now and confirms 2026–2027 intake. FAQ lists Morocco and South Africa among eligible countries. The official dashboard link redirected to a functional HCLTech grant account registration page with HTTP 200.",
+      "evidence": "https://globalgrant.hcltech.com/",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "2a74be84-40da-5895-b229-e51d4833bfe4",
+      "title": "Conservation, Food & Health Foundation Concept Grants, Fall 2026",
+      "source": "https://cfhfoundation.grantsmanagement08.com/?page_id=6",
+      "app": "https://www.grantinterface.com/Home/Logon?urlkey=gma",
+      "deadline": "December 22",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "updated_at": "2026-11-18 05:23:06.3666+00",
+      "previous_status": "unknown",
+      "previous_source": "https://cfhfoundation.grantsmanagement08.com/?page_id=6",
+      "notes": "The funder explicitly says concept applications are open October 15–December 22 in its recurring schedule. The linked portal is reachable and explains use of the published access code. No closing time or timezone is published.",
+      "evidence": null,
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "8da19996-ac7d-5137-8465-61eed913fc0d",
+      "title": "2027 Digital Financial Services Grant - Expression of Interest",
+      "source": "https://interledger.org/grant/innovation/financial-services/",
+      "app": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+      "deadline": "Application deadline: Friday, December 11, 2026 at 11:59 pm ET",
+      "at": "2026-12-12T04:59:00Z",
+      "tz": "America/New_York",
+      "state": "open",
+      "updated_at": "2026-11-18 05:23:06.032182+00",
+      "previous_status": "unknown",
+      "previous_source": "https://interledger.org/grant/innovation/financial-services/",
+      "notes": "Funder and official portal confirm the current EOI and the December 11 11:59 PM Eastern cutoff.",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "3cbab021-6a99-5b96-8843-ef23a2dd929d",
+      "title": "Rufford Small Grants for Nature Conservation",
+      "source": "https://apply.ruffordsmallgrants.org/",
+      "app": "https://apply.ruffordsmallgrants.org/apply/",
+      "deadline": "There are no deadlines; applications can be submitted at any time of year.",
+      "at": null,
+      "tz": null,
+      "state": "rolling",
+      "updated_at": "2026-11-18 05:23:05.207528+00",
+      "previous_status": "rolling",
+      "previous_source": "https://apply.ruffordsmallgrants.org/",
+      "deadline_status": "rolling",
+      "notes": "Official page explicitly accepts applications year-round; the official linked application account page is reachable.",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "title": "Creatives For Our Future 2026",
+      "source": "https://creatives.swarovskifoundation.org/",
+      "app": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "at": "2026-11-09T23:59:00Z",
+      "tz": "Etc/GMT",
+      "state": "closed",
+      "updated_at": "2026-11-18 05:23:05.35389+00",
+      "previous_status": "closed",
+      "previous_source": "https://creatives.swarovskifoundation.org/",
+      "notes": "The exact verified official deadline has passed. Historical application route and published cutoff are retained.",
+      "evidence": "https://creatives.swarovskifoundation.org/application",
+      "deadline_status": "confirmed",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "source": "https://fbisafrica.org/small-grants/",
+      "app": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "deadline": "Application deadline 9 November 2026",
+      "at": null,
+      "tz": null,
+      "state": "closed",
+      "updated_at": "2026-11-18 06:23:02.578087+00",
+      "previous_status": "closed",
+      "previous_source": "https://fbisafrica.org/small-grants/",
+      "notes": "The official November 9 date has passed in South Africa. No time or timezone was published. Preserve the downloadable form and email submission instructions.",
+      "evidence": null,
+      "deadline_status": "confirmed",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "fd2f89cd-fd79-5c56-fce0-688a3e939c96",
+      "title": "Equality Fund Journalism Fellowship (Jan–September 2027 cohort)",
+      "source": "https://equalityfund.ca/en/posts/journalism-fellowship",
+      "app": "https://docs.google.com/forms/d/e/1FAIpQLSem0kc9i25IphLwxfPuUha08LPgrPJwIdw6AZVkvsN1vI-t_g/viewform?usp=publish-editor",
+      "deadline": "8 November 2026 EST; official page conflicts: 23:00 vs midnight—submit before 23:00",
+      "at": null,
+      "tz": null,
+      "state": "closed",
+      "updated_at": "2026-11-18 06:23:04.337165+00",
+      "previous_status": "closed",
+      "previous_source": "https://equalityfund.ca/en/posts/journalism-fellowship",
+      "notes": "The linked application form explicitly says it no longer accepts responses. Both previously published November 8 cutoffs have passed. The exact cutoff remains unresolved.",
+      "evidence": null,
+      "deadline_status": "unknown",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "d7960b3d-4a6e-5403-879d-381f7feac18f",
+      "title": "Pollination Project Seed Grants",
+      "source": "https://thepollinationproject.org/apply/",
+      "app": "https://thepollinationproject.smapply.us/prog/daily_grants_program",
+      "deadline": "November 30, 2026 at 11:59 p.m. (funder says US Eastern, official portal says Pacific); reopens January 1, 2027.",
+      "at": null,
+      "tz": null,
+      "state": "unknown",
+      "updated_at": "2026-11-18 06:23:03.073493+00",
+      "previous_status": "unknown",
+      "previous_source": "https://thepollinationproject.org/apply/",
+      "notes": "The funder application page says 11:59 p.m. US Eastern and the linked portal says 11:59 p.m. PST for the annual pause. The published times conflict, so no actionable status or exact cutoff was assigned.",
+      "evidence": "https://thepollinationproject.smapply.us/prog/daily_grants_program/",
+      "deadline_status": "unknown",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "128ae7f2-4f62-a47c-b49e-3bf964422707",
+      "title": "Pulitzer Center — Rainforest Reporting Grant",
+      "source": "https://pulitzercenter.org/grants-fellowships/opportunities-journalists/rainforest-reporting-grant",
+      "app": "https://pulitzercenter.tfaforms.net/5052132",
+      "deadline": "We accept grant proposals on a rolling basis.",
+      "at": null,
+      "tz": null,
+      "state": "unknown",
+      "updated_at": "2026-11-18 06:23:02.662821+00",
+      "previous_status": "unknown",
+      "previous_source": "https://pulitzercenter.org/grants-fellowships/opportunities-journalists/rainforest-reporting-grant",
+      "deadline_status": "rolling",
+      "funder": "Pulitzer Center",
+      "amount": "Project-based reporting costs; amount depends on proposal",
+      "eligibility": "Staff and freelance journalists reporting on tropical rainforests in the Amazon, Central Africa or Southeast Asia. Applications may be submitted in English, Spanish, Portuguese, French or Bahasa Indonesia. A project description, budget and distribution plan are required.",
+      "summary": "Reporting grants for underreported issues affecting tropical rainforests, including Central Africa. Submit through the official multilingual application form.",
+      "notes": "The official page was independently readable through public web research and explicitly describes rolling intake. Its linked FormAssembly form is live, but the direct funder-page fetch returned HTTP 403. Current status remains unconfirmed.",
+      "http": 403,
+      "error": "source_access_inconsistent",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "13fb4fb2-30f4-37c9-01ae-57ddd9aa0ea6",
+      "title": "Rare Disease Reporting Fellowship and Grants 2026 (up to $2,000)",
+      "source": "https://nationalpress.org/training/apply-2026-rare-disease-reporting-fellowship-and-grants/",
+      "app": "https://airtable.com/app1hoO0l2ZhVjEg1/pagpVsxKOoTSbdk2G/form",
+      "deadline": "11:59 p.m. ET Oct. 22, 2026",
+      "at": "2026-10-23T03:59:00Z",
+      "tz": "America/New_York",
+      "state": "closed",
+      "updated_at": "2026-11-18 06:23:05.781816+00",
+      "previous_status": "closed",
+      "previous_source": "https://nationalpress.org/training/apply-2026-rare-disease-reporting-fellowship-and-grants/",
+      "type": "fellowship",
+      "funder": "National Press Foundation",
+      "amount": "Up to US$2,000 for up to 20 qualifying fellows",
+      "eligibility": "Working journalists, including freelancers, able to attend the November 16–20 online training and publish a rare disease story by March 1, 2027. Reporting grants are conditional on selection and qualification.",
+      "summary": "Journalism training fellowship with conditional reporting grants. The application deadline has passed.",
+      "notes": "The exact verified official deadline has passed. Historical application route and published cutoff are retained.",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "title": "2026 CEGA Global Networks Research Grant Competition",
+      "source": "https://cega.berkeley.edu/article/2026-research-grant-competition-request-for-proposals-2/",
+      "app": "https://cega.submittable.com/submit",
+      "deadline": "November 15, 2026",
+      "at": null,
+      "tz": null,
+      "state": "closed",
+      "funder": "Center for Effective Global Action",
+      "amount": "Up to US$67,000 per project",
+      "cycle": "2026 Global Networks",
+      "eligibility": "Restricted to teams with at least one CEGA Fellow and one CEGA Affiliate, with eligible research in specified East and West African countries. UC Berkeley PhD students may apply with a CEGA Affiliate sponsoring the study. Research must credibly identify causal effects; purely qualitative or descriptive studies do not qualify.",
+      "summary": "Research funding for policy-relevant impact evaluations in eligible African countries. This call requires CEGA network membership and a joint research team.",
+      "notes": "The previously verified cutoff has passed, including any possible date-only closing window. The official source and historical submission route were rechecked; details retained.",
+      "new": false,
+      "id": "a234b0e1-6b23-55db-b974-600f7ac163fc",
+      "updated_at": "2026-11-18 06:23:06.616879+00",
+      "previous_source": "https://cega.berkeley.edu/article/2026-research-grant-competition-request-for-proposals-2/",
+      "previous_status": "closed",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "title": "Save Our Seas Ocean Storytelling Photography Grant 2026",
+      "source": "https://saveourseas.com/ocean-storytelling-photography-grant-2026/",
+      "app": "https://grants.saveourseas.com/",
+      "deadline": "15 NOVEMBER 2026, 18:00 CET",
+      "at": "2026-11-15T17:00:00Z",
+      "tz": "Europe/Zurich",
+      "state": "closed",
+      "funder": "Save Our Seas Foundation",
+      "amount": "Fully funded conservation photography assignment, including day rate and travel",
+      "cycle": "2026 Photography Grant",
+      "eligibility": "Early-career or emerging conservation photographers worldwide, including African applicants, with no more than five years of experience in a photography-related discipline. Applicants with another current Save Our Seas Foundation grant cannot apply. A portfolio and photo story are required.",
+      "summary": "Two selected photographers receive funded assignments and mentorship to tell ocean conservation stories. Subjects may include marine wildlife, habitats, fisheries and coastal communities.",
+      "notes": "The exact verified official deadline has passed. Historical application route and published cutoff are retained.",
+      "new": false,
+      "id": "839c580c-07fd-54e9-bb60-9be62deda65f",
+      "updated_at": "2026-11-18 06:23:04.799394+00",
+      "previous_source": "https://saveourseas.com/ocean-storytelling-photography-grant-2026/",
+      "previous_status": "closed",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "title": "Commonwealth Blue Charter Incubator Round II",
+      "source": "https://thecommonwealth.org/commonwealth-blue-charter-incubator-round-2",
+      "app": "https://www.surveymonkey.com/r/BCIRoundII",
+      "deadline": "Funder page: Friday 11 December 2026, 23:59 GMT (UTC+0). Application form: 11th December 2026 Midnight GMT (UTC+0).",
+      "at": null,
+      "tz": null,
+      "state": "unknown",
+      "deadline_status": "unknown",
+      "funder": "Commonwealth Secretariat",
+      "amount": "£20,000–£50,000 per project",
+      "cycle": "Round II",
+      "eligibility": "Lead applicants must be legally established national or sub-national government entities from a Commonwealth member country. Eligible African Commonwealth governments may apply. NGO, research and private-sector organisations may participate as confirmed implementation partners. Each country may submit at most two proposals and each government lead at most one.",
+      "summary": "Grants for government-led ocean and sustainable blue economy projects. The official form and call page give different closing-time wording, so applicants need to check the cutoff with the funder.",
+      "notes": "The call explicitly states Round II is live and all 56 Commonwealth member countries are eligible. The linked SurveyMonkey form is active but uses ambiguous midnight wording instead of the page’s 23:59 GMT. No exact instant or actionable open status was assigned.",
+      "new": false,
+      "id": "50c06f49-93e4-5cae-ae29-0ed8639b4af1",
+      "updated_at": "2026-11-18 06:23:05.50295+00",
+      "previous_source": "https://thecommonwealth.org/commonwealth-blue-charter-incubator-round-2",
+      "previous_status": "unknown",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "title": "Crowder-Messersmith Conservation Fund 2027",
+      "source": "https://natureforward.org/crowder-messersmith-fund/",
+      "app": "https://natureforward.org/wp-content/uploads/2026/08/2027-C-M-Proposal-Application-INSTRUCTIONS-and-FORM.pdf",
+      "deadline": "December 1, 2026",
+      "at": null,
+      "tz": null,
+      "funder": "Nature Forward / Crowder-Messersmith Conservation Fund",
+      "amount": "Up to US$3,000",
+      "cycle": "2027 grants",
+      "eligibility": "Early-stage conservation and public education projects in developing countries, including eligible African countries. Projects must benefit threatened or endangered species or habitat, involve local communities, and finish within one year. Funds go to an organisation’s bank account. Projects in conflict zones or countries under US banking sanctions are excluded.",
+      "summary": "Seed grants for local nature conservation and public education. Download the application and instructions and email it as an attachment to CMaward@natureforward.org.",
+      "notes": "The official page still explicitly says 2027 applications are open September 1–December 1, 2026. Its current instructions PDF returned HTTP 200. Email the completed form to CMaward@natureforward.org. No closing time or timezone is published.",
+      "state": "open",
+      "id": "9a082c1a-e3ee-5e1b-91e0-32c9b83ff772",
+      "updated_at": "2026-11-18 02:23:03.008539+00",
+      "previous_source": "https://natureforward.org/crowder-messersmith-fund/",
+      "previous_status": "open",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "title": "MQA Special Projects and Partnerships Discretionary Grants 2026–2027",
+      "source": "https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+      "app": "https://mqa.org.za/wp-content/uploads/2026/10/MQA_Special_Project_Partnership_Funding_Application_Fillable_Form.pdf",
+      "deadline": "23:59 on Friday, 20 November 2026. Later applications may be accepted until 28 February 2027, subject to available funding and programme requirements.",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "funder": "Mining Qualifications Authority",
+      "amount": "Subject to MQA budget, approved proposal and funding rules",
+      "cycle": "Fifth application window, 2026/27",
+      "eligibility": "Legally registered public or private entities in South Africa, including companies, public bodies, universities, colleges, research institutions, NGOs, NPOs and community-based organisations. Projects must address mining and minerals sector skills-development priorities and meet the mandatory registration, tax, financial, capacity and application requirements.",
+      "summary": "Discretionary grants for strategic skills-development initiatives in the mining and minerals sector. Download and complete the prescribed form and email the signed application, proposal and supporting documents to SpecialProjects@mqa.org.za.",
+      "notes": "The current official call invites applications and the linked guidelines confirm South African entity eligibility. The application form is reachable. The published primary cutoff specifies 23:59 but no timezone. The later February date is conditional and is not a guaranteed extension.",
+      "new": false,
+      "id": "5791d305-fcf2-5eb3-b681-9a0b59aa502a",
+      "updated_at": "2026-11-18 02:23:04.954189+00",
+      "previous_source": "https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+      "previous_status": "open",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "title": "Unearthodox Exploration Co-Lab 2027",
+      "source": "https://unearthodox.org/2026/09/open-call-edges-of-possibility-exploration-co-lab-2027/",
+      "app": "https://apply.younoodle.com/showcase/competition/edges_of_possibility_2027",
+      "deadline": "Nov 16, 2026, 11:59 PM GMT+1",
+      "at": "2026-11-16T22:59:00Z",
+      "tz": "Etc/GMT-1",
+      "state": "closed",
+      "type": "accelerator",
+      "funder": "Unearthodox",
+      "amount": "CHF 10,000 grant plus a 10-month incubation programme",
+      "cycle": "Exploration Co-Lab 2027",
+      "eligibility": "Open internationally, including Africa, to initiatives at the intersection of environmental and societal change. Applicants must be beyond the idea stage with groundwork such as research, testing, a pilot or community engagement. The programme is conducted in English and regular online calls use the UTC−6 to UTC+6 range.",
+      "summary": "An online incubation programme for initiatives addressing root causes in the relationship between people and nature, with CHF 10,000 grant funding and tailored support. The cohort runs March–December 2027.",
+      "notes": "The exact verified official deadline has passed. Historical application route and published cutoff are retained.",
+      "new": false,
+      "id": "038e6332-d5e6-5f92-a47b-ece23aff1870",
+      "updated_at": "2026-11-18 02:23:04.495103+00",
+      "previous_source": "https://unearthodox.org/2026/09/open-call-edges-of-possibility-exploration-co-lab-2027/",
+      "previous_status": "closed",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    },
+    {
+      "title": "IKI Small Grants 2027, Eighth Call",
+      "source": "https://iki-small-grants.de/funding/",
+      "app": "https://oap.iki-small-grants.de/",
+      "deadline": "Eligibility check: 8 January 2027 (23:59 CET). Invited eligible organisations must submit project proposals by 16 March 2027.",
+      "at": "2027-01-08T22:59:00Z",
+      "tz": "Europe/Berlin",
+      "state": "open",
+      "funder": "International Climate Initiative / GIZ",
+      "amount": "€60,000–€200,000",
+      "cycle": "2027 Call 8",
+      "eligibility": "Local organisations in eligible ODA countries with at least three years of operations and average annual revenue of €60,000–€500,000 over those years. Eligible nonprofits and private entities must pursue nonprofit Nature-based Solutions projects within one country. Dedicated accounting staff and accounting software are required. Individuals, one-person entities, government organisations (including public universities), branches of non-ODA organisations and consortia are excluded.",
+      "summary": "Funding for local Nature-based Solutions and capacity development. The eighth eligibility-registration call is now open through the official application platform. Full project proposals are invited after eligibility review.",
+      "notes": "The official funder page now provides Apply Now. The linked portal explicitly says Call 8 opened November 15 and gives the exact January 8 eligibility-check cutoff. Full proposals remain a separate invited stage. The funder lists updated theme, accounting requirements and exclusions.",
+      "new": false,
+      "id": "d39aa2a9-90dd-58be-a206-c54ba8837c0a",
+      "updated_at": "2026-11-18 02:23:03.166032+00",
+      "previous_source": "https://iki-small-grants.de/funding/",
+      "previous_status": "closed",
+      "http": 200,
+      "evidence": "https://oap.iki-small-grants.de/",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "d4e1f342-7fdd-5090-b67f-46a368b4ccac",
+      "title": "WomenStrong Francophone West Africa Grants 2026",
+      "source": "https://www.womenstrong.org/news-resources/funding-for-francophone-west-africa-call-for-expressions-of-interest-now-open/",
+      "app": "https://www.surveymonkey.com/r/7V6TNYL",
+      "deadline": "December 1st, 2026",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "funder": "WomenStrong International",
+      "amount": "Up to US$50,000 per year in flexible multiyear funding",
+      "cycle": "Francophone West Africa 2026 EOI",
+      "eligibility": "Women-led locally governed nonprofits in Benin, Burkina Faso, Côte d’Ivoire, Guinea, Mali, Niger, Senegal or Togo. Leaders must be nationals based in the country of operation. Annual budget must be below US$1 million, another donor or income source must already exist, and at least two staff or volunteers are required. Applicants must provide gender-responsive services or advocacy and participate in peer learning.",
+      "summary": "Unrestricted grants and organisational support to strengthen financial resilience and diversify income. Submit the expression of interest through the official French/English online form.",
+      "notes": "The official page explicitly invites expressions of interest. The linked live SurveyMonkey form repeats the December 1 deadline and lists the eight eligible countries. No closing time or timezone is published.",
+      "http": 200,
+      "updated_at": "2026-11-18 02:23:06.186636+00",
+      "previous_source": "https://www.womenstrong.org/news-resources/funding-for-francophone-west-africa-call-for-expressions-of-interest-now-open/",
+      "previous_status": "open",
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "816a569f-39b7-586b-8f3c-ecde91171de8",
+      "title": "IHS AI and the Workforce Faculty Research Grant 2027",
+      "source": "https://theihs.org/ai-and-the-workforce/",
+      "app": "https://theihs.tfaforms.net/4830976?aYCbQb3M=&u6NW89K8=701PM000018ySSX",
+      "deadline": "December 15, 2026",
+      "at": null,
+      "tz": null,
+      "state": "open",
+      "funder": "Institute for Humane Studies",
+      "amount": "Up to US$20,000; larger exceptional awards may be considered",
+      "cycle": "AI and the Workforce 2027",
+      "eligibility": "Faculty researchers at accredited colleges or universities, including international and African institutions. Proposals must address AI and employment, productivity, occupational change, economic opportunity or innovation. The specific call is labelled for faculty. The general funding FAQ accepts applicants outside the United States and requires eligible full-time academic affiliation.",
+      "summary": "Research grants for projects examining the effect of AI on work. Deliverables may include scholarly publications, policy papers or shareable research databases. Eligible budgets cover specified research, collaboration, travel and dissemination costs.",
+      "notes": "The official RFP invites applications, the linked FormAssembly form names AI and the Workforce and is live, and the official FAQ explicitly welcomes non-US scholars. The published cutoff has no closing time or timezone.",
+      "updated_at": "2026-11-18 02:23:07.463611+00",
+      "previous_source": "https://theihs.org/ai-and-the-workforce/",
+      "previous_status": "open",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "417b243e-ba92-532c-b9b8-771ce10b3b20",
+      "title": "Enabel Green Competences in Teacher Training Grants, BEL23004-10148",
+      "source": "https://www.enabel.be/grants/call-for-proposals-scaling-pathways/",
+      "app": "https://enabel.grantplatform.com/",
+      "deadline": "06 December 2026 at 23:59 (Brussels time), concept notes",
+      "at": "2026-12-06T22:59:00Z",
+      "tz": "Europe/Brussels",
+      "state": "unknown",
+      "funder": "Enabel / Regional Teachers Initiative for Africa",
+      "amount": "€200,000–€300,000",
+      "cycle": "BEL23004-10148",
+      "eligibility": "Public legal entities, private nonprofit entities or foundations established in eligible NDICI Global Europe countries. The lead or a co-applicant must be authorised to operate in the proposed implementation countries. Actions must scale eligible existing green-competence innovations in teacher training or professional development in Sub-Saharan Africa. Applicants must manage the action directly and meet all call criteria.",
+      "summary": "Two-stage grant call for scaling, learning and sustainability around green teacher-training innovations. Concept notes use the official online platform. The funding supports the scaling process, with the underlying solution’s core delivery financed separately.",
+      "notes": "The official call is marked Open and the official guidelines specify the grant range and Brussels concept-note deadline. The linked Good Grants portal returned HTTP 403 to the direct check, so current intake remains unconfirmed.",
+      "error": "application_http_403",
+      "updated_at": "2026-11-18 02:23:05.331679+00",
+      "previous_source": "https://www.enabel.be/grants/call-for-proposals-scaling-pathways/",
+      "previous_status": "unknown",
+      "http": 200,
+      "outcome": "verified in production"
+    },
+    {
+      "new": false,
+      "id": "5f2e2f75-36f2-996e-a975-8fb3c16d5dea",
+      "title": "UNESCO SCRS Research Continuity Grants for Africa 2026",
+      "source": "https://www.unesco.org/en/articles/call-applications-science-crisis-response-and-solutions-research-continuity-grants-africa",
+      "app": "https://forms.cloud.microsoft/e/ZPZXMxni9A",
+      "deadline": "15 November 2026, 23:59 Paris time (CET)",
+      "at": "2026-11-15T22:59:00Z",
+      "tz": "Europe/Paris",
+      "state": "closed",
+      "updated_at": "2026-11-18 02:23:05.478986+00",
+      "previous_source": "https://www.unesco.org/en/articles/call-applications-science-crisis-response-and-solutions-research-continuity-grants-africa",
+      "previous_status": "closed",
+      "notes": "The official article is reachable today (HTTP 200). The exact published November 15 cutoff has passed; preserve the historical application link and deadline.",
+      "http": 200,
+      "error": null,
+      "outcome": "verified in production"
+    }
+  ],
+  "source_and_portal_retrievals": {
+    "2026 CEGA Global Networks Research Grant Competition": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://cega.berkeley.edu/article/2026-research-grant-competition-request-for-proposals-2/",
+        "url": "https://cega.berkeley.edu/article/2026-research-grant-competition-request-for-proposals-2/",
+        "snippets": [
+          "2026 Global Networks Research Grant Competition | CEGA 2026 Global Networks Research Grant Competition – CEGA Skip to content Center for Effecti",
+          "2026 Global Networks Research Grant Competition | CEGA 2026 Global Networks Research Grant Competition – CEGA Skip to content Center for Effective Global Action Search all content Search Donate Open ",
+          "rofile Go to our YouTube channel About CEGA News Article 22 September 2026 2026 Global Networks Research Grant Competition Dwelling in Malawi. Photo by Tamara Gerwinat on Unsplash Photo by Tamara Gerwinat on Unspla",
+          "e Go to our YouTube channel About CEGA News Article 22 September 2026 2026 Global Networks Research Grant Competition Dwelling in Malawi. Photo by Tamara Gerwinat on Unsplash Photo by Tamara Gerwinat on Unsplash Au",
+          "ara Gerwinat on Unsplash Photo by Tamara Gerwinat on Unsplash Authors 2026 Global Networks Research Grant Competition See the full request for proposals (RFP) here . RFP Release date: September 23, 2026 Submission ",
+          "ll request for proposals (RFP) here . RFP Release date: September 23, 2026 Submission deadline : November 15, 2026 Notification date: January 19th, 2027 Subaward process: End January—April 2027 Period of Performanc",
+          "roposals (RFP) here . RFP Release date: September 23, 2026 Submission deadline : November 15, 2026 Notification date: January 19th, 2027 Subaward process: End January—April 2027 Period of Performance: May 15th, 2027—Oc",
+          "P Release date: September 23, 2026 Submission deadline : November 15, 2026 Notification date: January 19th, 2027 Subaward process: End January—April 2027 Period of Performance: May 15th, 2027—October 1, 2028 Apply "
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://cega.submittable.com/submit",
+        "url": "https://cega.submittable.com/submit",
+        "snippets": [
+          "on Submission Manager Skip to Main Content Home View Your Submissions 2027-28 CEGA Visiting Fellowship [Final] Ends on Guidelines for 2027-28 CEGA Visiting Fellowship [Final] Guidelines Submit to 2027-28 CEGA Visit",
+          "sions 2027-28 CEGA Visiting Fellowship [Final] Ends on Guidelines for 2027-28 CEGA Visiting Fellowship [Final] Guidelines Submit to 2027-28 CEGA Visiting Fellowship [Final] The Center for Effective Global Action (C",
+          "nes for 2027-28 CEGA Visiting Fellowship [Final] Guidelines Submit to 2027-28 CEGA Visiting Fellowship [Final] The Center for Effective Global Action (CEGA) invites African researchers and practitioners interested ",
+          "valuation to apply for its Fellowship Program to be completed in Fall 2027 or Spring 2028 . Selected fellows will audit coursework, develop skills in quantitative development research, access a personalized mentors",
+          "dent (online) Fellow. Fellows will be given the choice of either Fall 2027 (August through December) or Spring 2028 (January through May). In the application, you will select one preferred track. The application de",
+          "the application, you will select one preferred track. The application deadline is 5:00 PM GMT on January 17, 2027. ELIGIBILITY Across both tracks: To be accepted to the CEGA Fellowship, applicants must demonstrate the ",
+          "eferred track. The application deadline is 5:00 PM GMT on January 17, 2027. ELIGIBILITY Across both tracks: To be accepted to the CEGA Fellowship, applicants must demonstrate the following: Be fluent in English (wr",
+          "SS Research Transparency and Reproducibility Training (RT2), Berkeley 2027 Application Ends on Guidelines for BITSS Research Transparency and Reproducibility Training (RT2), Berkeley 2027 Application Guidelines Sub"
+        ]
+      }
+    },
+    "2027 Digital Financial Services Grant - Expression of Interest": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://interledger.org/grant/innovation/financial-services/",
+        "url": "https://interledger.org/grant/innovation/financial-services/",
+        "snippets": [
+          " to USD $350,000 to implement and complete projects within 18 months. Apply Now (opens in a new tab) At a Glance Who it is for The grant is designed for regulated financial service providers, or organizations with a cre",
+          "cus on projects in Colombia and the broader Americas, although global applications are welcome. Application process: Two stages Phase 1 Application deadline: Friday, December 11, 2026 at 11:59 pm ET 2026 @ 11:59 pm ET. Phase 2",
+          "ions are welcome. Application process: Two stages Phase 1 Application deadline: Friday, December 11, 2026 at 11:59 pm ET 2026 @ 11:59 pm ET. Phase 2 is anticipated to run from February 1 to 26, 2027, and will be open t",
+          "rocess: Two stages Phase 1 Application deadline: Friday, December 11, 2026 at 11:59 pm ET 2026 @ 11:59 pm ET. Phase 2 is anticipated to run from February 1 to 26, 2027, and will be open to selected applications fro",
+          "hase 1 Application deadline: Friday, December 11, 2026 at 11:59 pm ET 2026 @ 11:59 pm ET. Phase 2 is anticipated to run from February 1 to 26, 2027, and will be open to selected applications from Phase 1. What We A",
+          "6 @ 11:59 pm ET. Phase 2 is anticipated to run from February 1 to 26, 2027, and will be open to selected applications from Phase 1. What We Are Looking to Build We want to support institutions that can demonstrate ",
+          "to Apply Applications for Phase 1 are open until Friday, December 11, 2026 at 11:59 pm ET. For Phase 1, we ask all interested organizations to submit a short application form (opens in a new tab) , providing key de",
+          "ll be requested. Phase 2 is anticipated to run from February 1 to 26, 2027. Please review the 2027 Digital Financial Services Grant, EOI Resource Kit (opens in a new tab) and our full FAQ for program guidance and r"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+        "url": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+        "snippets": [
+          "The Interledger Foundation Application Manager - 2027 Digital Financial Services Grant, Expression of Interest Skip to Main Content Home View Your Submissions 2027 Digital Financial Services Gr",
+          "xpression of Interest Skip to Main Content Home View Your Submissions 2027 Digital Financial Services Grant, Expression of Interest Ends on The Financial Services Provider Grant application process, first phase, th",
+          " phase, the Expression of Interest (EOI) opens on Monday, November 2, 2026 , and closes on Friday, December 11, 2026 , at 11:59 PM ET . The EOI is the first phase of the application process and is intended for fina",
+          "pens on Monday, November 2, 2026 , and closes on Friday, December 11, 2026 , at 11:59 PM ET . The EOI is the first phase of the application process and is intended for financial institutions and financial service p",
+          " to date with our news and events. Subscribe Social Links © Copyright 2026 Interledger Foundation Interledger.org Technical Help | Privacy Policy"
+        ]
+      }
+    },
+    "Adaptation Fund Board Approves Nearly US$100M in New Projects, Underscores Urgency of Paris Agreement Transition": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.adaptation-fund.org/adaptation-fund-board-approves-nearly-us100m-in-new-projects-underscores-urgency-of-paris-agreement-transition/",
+        "url": "https://www.adaptation-fund.org/adaptation-fund-board-approves-nearly-us100m-in-new-projects-underscores-urgency-of-paris-agreement-transition/",
+        "snippets": [
+          " Republic. (Photo Credit: Adaptation Fund) Bonn, Germany (October 23, 2026) – The Adaptation Fund Board today approved $98.8 million in new projects at the close of its 47th meeting. With record demand for adaptati",
+          "Board set a resource mobilization target of at least $1.2 billion for 2026–2029, backed by an action plan to engage sovereign and non-sovereign contributors. The Board also called for the Fund’s transition to serve",
+          "chel, Communications Officer mpueschel@adaptation-fund.org 23 October 2026 Website Navigation Projects & Programmes Apply For Funding Readiness Documents & Publications About Contact Legal News & Events News & Even",
+          "lorer AF News Receive the Latest AF News SUBSCRIBE Donate Follow Us © 2026 Adaptation Fund | All Rights Reserved | Privacy Policy | Project & Programme Complaints"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://www.adaptation-fund.org/apply-funding/",
+        "url": "https://www.adaptation-fund.org/apply-funding/",
+        "snippets": [
+          "lorer AF News Receive the Latest AF News SUBSCRIBE Donate Follow Us © 2026 Adaptation Fund | All Rights Reserved | Privacy Policy | Project & Programme Complaints"
+        ]
+      }
+    },
+    "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+        "url": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+        "snippets": [
+          "es Through the Utilization of Lacuna Fund’s Open Datasets Application Deadline: November 13, 2026 description Training and Scaling Machine Learning Models for the Global South Implementing Partner African Centre for Te",
+          "ion of Lacuna Fund’s Open Datasets Application Deadline: November 13, 2026 description Training and Scaling Machine Learning Models for the Global South Implementing Partner African Centre for Technology Studies (A",
+          "hnology Studies (ACTS) Funder Wellcome Trust RFP Opens 14th September 2026 Submission Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months)",
+          "(ACTS) Funder Wellcome Trust RFP Opens 14th September 2026 Submission Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants",
+          "rust RFP Opens 14th September 2026 Submission Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and res",
+          "ssion Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and research teams in Global South LMICs Availa",
+          "wards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and research teams in Global South LMICs Available Funding Up to USD 30,000 (three ",
+          "nced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and research teams in Global South LMICs Available Funding Up to USD 30,000 (three awards of u"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://ai4dafrica.submittable.com/submit",
+        "url": "https://ai4dafrica.submittable.com/submit",
+        "snippets": []
+      }
+    },
+    "ArcX Regional Centres of Excellence on Climate Change Resilience": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.ecmwf.int/en/about/grants/arcx-grants",
+        "url": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+        "snippets": [
+          "re listed below: Call ID Call for Proposals Opening date Closing date 2026_ArcX_G261 Formation of a Network of Regional Centres of Excellence on Climate Change Resilience in Sub-Saharan Africa ArcX RCoE Call for Pr",
+          "e ArcX Guidelines for Applicants ArcX Online Questionnaire 29 October 2026 09 December 2026, 14:00 (CET) To respond to ECMWF Calls for Proposals via ECMWF's Submission Portal, applicants must register at: https://p",
+          " for Applicants ArcX Online Questionnaire 29 October 2026 09 December 2026, 14:00 (CET) To respond to ECMWF Calls for Proposals via ECMWF's Submission Portal, applicants must register at: https://procurement.ecmwf."
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+        "url": "https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+        "snippets": [
+          "2026_ArcX_G261_Call for Proposals 'Formation of a Network of Regional Centres of Excellence on Clima... Proactis 2026_ArcX_G261_Call for Proposa",
+          "n of a Network of Regional Centres of Excellence on Clima... Proactis 2026_ArcX_G261_Call for Proposals 'Formation of a Network of Regional Centres of Excellence on Clima... 2026_ArcX_G261_Call for Proposals 'Forma",
+          "'Formation of a Network of Regional Centres of Excellence on Clima... 2026_ArcX_G261_Call for Proposals 'Formation of a Network of Regional Centres of Excellence on Clima... Main contract details Opportunity Id DN8",
+          "lence on Clima... Main contract details Opportunity Id DN833092 Title 2026_ArcX_G261_Call for Proposals 'Formation of a Network of Regional Centres of Excellence on Climate Change Resilience in Sub-Saharan Africa' ",
+          " main financial instrument for external action during the period 2021–2027. Under the Call, six Grants will be awarded for the establishment of six Regional Centres of Excellence on Climate Change Resilience. Porta",
+          "ub-Saharan Africa Key dates Estimated contract dates Start date 01/04/2027 End date 31/12/2029 Expression of interest window From 29/10/2026 10:30 to 09/12/2026 13:00 Login and register interest in this opportunity",
+          "/04/2027 End date 31/12/2029 Expression of interest window From 29/10/2026 10:30 to 09/12/2026 13:00 Login and register interest in this opportunity New to ProContract? If you are not currently registered on the Pr",
+          "/12/2029 Expression of interest window From 29/10/2026 10:30 to 09/12/2026 13:00 Login and register interest in this opportunity New to ProContract? If you are not currently registered on the ProContract procuremen"
+        ]
+      }
+    },
+    "CIEIF Climate Intervention Environmental Impact Grants, Sixth Round": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://cieif.org/guidelines-for-grant-applicants/",
+        "url": "https://cieif.org/guidelines-for-grant-applicants/",
+        "snippets": [
+          "We will keep all applications confidential. For the sixth grant round applications are due by December 1, 2026 . Decisions on grants should be announced by February 1, 2027. Selected applicants will dialogue with CIEIF personn",
+          "ential. For the sixth grant round applications are due by December 1, 2026 . Decisions on grants should be announced by February 1, 2027. Selected applicants will dialogue with CIEIF personnel about the expert cons",
+          "mber 1, 2026 . Decisions on grants should be announced by February 1, 2027. Selected applicants will dialogue with CIEIF personnel about the expert consulting needs that their proposed field test presents as far as",
+          " Impact Fund, 4507 Maple Avenue, Bethesda, Maryland 20814 USA CIEIF © 2026 Close Home What We Do About Us Resources Grants Grant Guidelines Current Grants Past Grants Testimonials News Contact Donate Translate » < "
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://cieif.org/guidelines-for-grant-applicants/",
+        "url": "https://cieif.org/guidelines-for-grant-applicants/",
+        "snippets": [
+          "We will keep all applications confidential. For the sixth grant round applications are due by December 1, 2026 . Decisions on grants should be announced by February 1, 2027. Selected applicants will dialogue with CIEIF personn",
+          "ential. For the sixth grant round applications are due by December 1, 2026 . Decisions on grants should be announced by February 1, 2027. Selected applicants will dialogue with CIEIF personnel about the expert cons",
+          "mber 1, 2026 . Decisions on grants should be announced by February 1, 2027. Selected applicants will dialogue with CIEIF personnel about the expert consulting needs that their proposed field test presents as far as",
+          " Impact Fund, 4507 Maple Avenue, Bethesda, Maryland 20814 USA CIEIF © 2026 Close Home What We Do About Us Resources Grants Grant Guidelines Current Grants Past Grants Testimonials News Contact Donate Translate » < "
+        ]
+      }
+    },
+    "Cities Deliver: AI Solutions for Public Services": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+        "url": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+        "snippets": [
+          "urces Have questions about the Cities Deliver call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions s",
+          " call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions section. Apply Now Nearly half of the worl",
+          "uestions are now available in the Frequently Asked Questions section. Apply Now Nearly half of the world’s population lives in cities. Public services shape those residents’ everyday lives. They affect whether they can ",
+          " FAQs Have questions about the Cities Deliver call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions s",
+          " call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions section. Apply Now Focus Areas We are seek",
+          "uestions are now available in the Frequently Asked Questions section. Apply Now Focus Areas We are seeking proposals that improve access to and quality of public services in vulnerable or underserved communities in the ",
+          "cludes projects related to voting or elections. Two tracks of funding Applications are accepted in two tracks: Seed $500,000 to < $1 million For: Early concepts ready for a first city pilot Supports: Refining the idea with cit",
+          "onvening to share experiences and lessons and to showcase their work. Apply Now Application Process and Timeline The overall process and timeline as follows: October 14, 2026 – Call for proposals goes live. November 29,"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; Charset=UTF-8 https://citiesdeliver.rockefellerfoundation.org/",
+        "url": "https://citiesdeliver.rockefellerfoundation.org/",
+        "snippets": [
+          "ny additional questions to citiesdeliver@rockfound.org by October 31, 2026 11:59pm Eastern Time (ET). We will update the FAQs based on your questions by November 4, 2026 by 8:00pm ET. The first steps in the process",
+          " (ET). We will update the FAQs based on your questions by November 4, 2026 by 8:00pm ET. The first steps in the process are due at 11:59pm ET on November 29, 2026 , including eligibility screening, Round 1 Proposal",
+          " The first steps in the process are due at 11:59pm ET on November 29, 2026 , including eligibility screening, Round 1 Proposal and a short video. Create an account Cities Deliver is managed by RF Catalytic Capital ",
+          "ister Forgot Password? Key Dates Call for Proposals Open: October 14, 2026 Call for Proposals Close: November 29, 2026 Resources Overview and FAQs FAQs Updated Nov 2026 Terms and Conditions Screening and Round 1 Pr",
+          "oposals Open: October 14, 2026 Call for Proposals Close: November 29, 2026 Resources Overview and FAQs FAQs Updated Nov 2026 Terms and Conditions Screening and Round 1 Proposal Questions Letter of Intent Contact Us",
+          "Close: November 29, 2026 Resources Overview and FAQs FAQs Updated Nov 2026 Terms and Conditions Screening and Round 1 Proposal Questions Letter of Intent Contact Us Email: citiesdeliver@rockfound.org Copyright 2026",
+          "ter of Intent Contact Us Email: citiesdeliver@rockfound.org Copyright 2026 The Rockefeller Foundation All rights reserved. Set Profile Picture Reset Password You can reset your password here. Please enter your emai"
+        ]
+      }
+    },
+    "Commonwealth Blue Charter Incubator Round II": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://thecommonwealth.org/commonwealth-blue-charter-incubator-round-2",
+        "url": "https://thecommonwealth.org/commonwealth-blue-charter-incubator-round-2",
+        "snippets": [
+          " for Round II of the Commonwealth Blue Charter Incubator is now live. Applications are open until 11 December 2026, 23:59 GMT (UTC+0). About the Blue Charter Incubator Addressing major ocean challenges and building a stronger ",
+          "harter Incubator is now live. Applications are open until 11 December 2026, 23:59 GMT (UTC+0). About the Blue Charter Incubator Addressing major ocean challenges and building a stronger pipeline for sustainable blu",
+          " maximum 18 months. Timeline 10 to 15 projects will be selected by Q2 2027. Submission method Online Grant Application Form . Application deadline: Friday 11 December 2026, 23:59 GMT (UTC+0) Priority areas Projects",
+          "2 2027. Submission method Online Grant Application Form . Application deadline: Friday 11 December 2026, 23:59 GMT (UTC+0) Priority areas Projects should contribute to the implementation of the Apia Commonwealth Ocean ",
+          "ine Grant Application Form . Application deadline: Friday 11 December 2026, 23:59 GMT (UTC+0) Priority areas Projects should contribute to the implementation of the Apia Commonwealth Ocean Declaration . Proposals m",
+          "ur Round II Application online via the link below, before 11 December 2026, 23:59 GMT (UTC+0) Blue Charter Incubator Round II - Grant Application Form Supporting Guidance and Resources Document Application Guidelin",
+          "ttings Privacy Terms & Conditions Work with us Contact us Copyright © 2026 Commonwealth Secretariat"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://www.surveymonkey.com/r/BCIRoundII",
+        "url": "https://www.surveymonkey.com/r/BCIRoundII",
+        "snippets": [
+          "und II - Grant Application Form Background & Instructions Application Deadline: 11th December 2026 Midnight GMT (UTC+0) The Commonwealth Blue Charter Incubator provides catalytic grants of £20,000–£50,000 to Commonweal",
+          "on Form Background & Instructions Application Deadline: 11th December 2026 Midnight GMT (UTC+0) The Commonwealth Blue Charter Incubator provides catalytic grants of £20,000–£50,000 to Commonwealth member countries ",
+          " to sign grant agreements with successful applicants by the end of Q2 2027. Thank you Thank you for taking the time to develop and submit your application. We look forward to hearing about your country-led ideas an",
+          " this stage. Please note that the project start date must be after Q3 2027. This will allow sufficient time to complete the grant selection process, sign grant agreements, undertake banking and due diligence checks"
+        ]
+      }
+    },
+    "Conservation, Food & Health Foundation Concept Grants, Fall 2026": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://cfhfoundation.grantsmanagement08.com/?page_id=6",
+        "url": "https://cfhfoundation.grantsmanagement08.com/?page_id=6",
+        "snippets": [
+          "tween October 15 and December 22 or between May 1 and June 15. If the deadline is a weekend or U.S. holiday, the deadline moves to the next business day. We will notify you within a month of the concept application dea",
+          " May 1 and June 15. If the deadline is a weekend or U.S. holiday, the deadline moves to the next business day. We will notify you within a month of the concept application deadline whether you are invited to submit a f",
+          "ess day. We will notify you within a month of the concept application deadline whether you are invited to submit a full proposal. Send in only one application per review cycle. Click here to preview the concept applica",
+          "sal Cycle 1 Online application opens October 15th Concept application deadline December 22nd Proposal invitation issued January 15th Proposal deadline February 15th Grant awards July 1st Proposal Cycle 2 Online applica",
+          "adline December 22nd Proposal invitation issued January 15th Proposal deadline February 15th Grant awards July 1st Proposal Cycle 2 Online application opens May 1st Concept application deadline June 15th Proposal invit",
+          "Proposal Cycle 2 Online application opens May 1st Concept application deadline June 15th Proposal invitation issued July 15th Proposal deadline August 15th Grant awards December 1st January 01 2026 12:00 pm Search Page",
+          "tion deadline June 15th Proposal invitation issued July 15th Proposal deadline August 15th Grant awards December 1st January 01 2026 12:00 pm Search Pages Guidelines How to Apply FAQ’s Forms Past Grants Contact The Con",
+          "th Proposal deadline August 15th Grant awards December 1st January 01 2026 12:00 pm Search Pages Guidelines How to Apply FAQ’s Forms Past Grants Contact The Conservation, Food & Health Foundation GMA Foundations | "
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://www.grantinterface.com/Home/Logon?urlkey=gma",
+        "url": "https://www.grantinterface.com/Home/Logon?urlkey=gma",
+        "snippets": [
+          " visit our website: www.gmafoundations.com GMA Foundations Foundant © 2026 The commonly seen suffixes for KB and MB do not always mean the same thing on different computers. KB can mean 1000 bytes or 1024 bytes and"
+        ]
+      }
+    },
+    "Creatives For Our Future 2026": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://creatives.swarovskifoundation.org/",
+        "url": "https://creatives.swarovskifoundation.org/",
+        "snippets": [
+          "p in mind, click on any of them for more information. 1 9th September 2026 Applications Open More info × 9th September 2026 Applications Open The fifth cycle of the Creatives For Our Future programme will officiall",
+          "ion. 1 9th September 2026 Applications Open More info × 9th September 2026 Applications Open The fifth cycle of the Creatives For Our Future programme will officially open for applications on 9th September 2026 via",
+          "ture programme will officially open for applications on 9th September 2026 via the programme's website ( https://creatives.swarovskifoundation.org/ ). All necessary information, including application guidelines, ca",
+          "lines, can be found on the 'Application' page of the website. 3 April 2027 Cohort Selected and Notified More info × April 2027 Cohort Selected and Notified Successful applicants for the fifth cycle of the Creatives",
+          " website. 3 April 2027 Cohort Selected and Notified More info × April 2027 Cohort Selected and Notified Successful applicants for the fifth cycle of the Creatives For Our Future programme will be selected by the Sw",
+          "arovski Foundation Selection Committee and notified by email in April 2027 (exact date to be confirmed). You are required to respond within 4 days of receiving notification of being successful to keep your position",
+          "eiving notification of being successful to keep your position. 5 Fall 2027 Grants Awarded / Mentors Paired / Masterclasses Begin More info × Fall 2027 Grants Awarded / Mentors Paired / Masterclasses Begin The fifth",
+          "rants Awarded / Mentors Paired / Masterclasses Begin More info × Fall 2027 Grants Awarded / Mentors Paired / Masterclasses Begin The fifth cycle of the Creatives for Our Future programme is set to officially commen"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://swarovskifoundation.formstack.com/forms/cfof_2026",
+        "url": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+        "snippets": [
+          "CFOF Application 2026 - Intellistack"
+        ]
+      }
+    },
+    "Crowder-Messersmith Conservation Fund 2027": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://natureforward.org/crowder-messersmith-fund/",
+        "url": "https://natureforward.org/crowder-messersmith-fund/",
+        "snippets": [
+          "re Forward has administered the Fund since 1999. Applications for the 2027 Grants are open from September 1 to December 1, 202 6 Grant Information Application Form Donate to the Fund CROWDER-MESSERSMITH GRANTEE COU"
+        ]
+      },
+      "application": {
+        "response": "200 application/pdf https://natureforward.org/wp-content/uploads/2026/08/2027-C-M-Proposal-Application-INSTRUCTIONS-and-FORM.pdf",
+        "url": "https://natureforward.org/wp-content/uploads/2026/08/2027-C-M-Proposal-Application-INSTRUCTIONS-and-FORM.pdf",
+        "snippets": []
+      }
+    },
+    "D-Prize Global Competition 2026": {
+      "source": {
+        "response": "200 text/html;charset=utf-8 https://d-prize.org/",
+        "url": "https://d-prize.org/",
+        "snippets": [
+          "elopment 0 Skip to Content Home Our Organizations Our Impact Français Apply now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now Open Menu Close Menu Home Our Organizations Our Impact Français A",
+          "y now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now We seed new organizations distributing proven poverty solutions, ",
+          "y now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now We seed new organizations distributing proven poverty solutions, all aiming to scale. Are you next? Apply Our Impact Poverty solutions exis",
+          "ZbwuujYuB0gB9QwntlPMnscN63rzPMGjjWVdt2itjr8J6EwBxwQA6oA September 11, 2026 Childhood Diarrhea Treatment September 11, 2026 Can you get free ORS and zinc into homes before a child gets sick and prevent one of the le",
+          "xwQA6oA September 11, 2026 Childhood Diarrhea Treatment September 11, 2026 Can you get free ORS and zinc into homes before a child gets sick and prevent one of the leading killers of children under five? Download t",
+          "children under five? Download the Challenge Read more → September 11, 2026 April 6, 2026 DMPA-SC: Reach Underserved Populations April 6, 2026 Can you distribute DMPA-SC to underserved population? Download the Chall",
+          " five? Download the Challenge Read more → September 11, 2026 April 6, 2026 DMPA-SC: Reach Underserved Populations April 6, 2026 Can you distribute DMPA-SC to underserved population? Download the Challenge Read more",
+          "1, 2026 April 6, 2026 DMPA-SC: Reach Underserved Populations April 6, 2026 Can you distribute DMPA-SC to underserved population? Download the Challenge Read more → April 6, 2026 April 6, 2026 DMPA-SC: Improve Provi"
+        ]
+      },
+      "application": {
+        "response": "200 text/html;charset=utf-8 https://d-prize.org/submit",
+        "url": "https://d-prize.org/submit",
+        "snippets": [
+          "elopment 0 Skip to Content Home Our Organizations Our Impact Français Apply now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now Open Menu Close Menu Home Our Organizations Our Impact Français A",
+          "y now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now D-Prize Round 1 Submission Form Formulaire de soumission pour le ",
+          "y now Open Menu Close Menu Home Our Organizations Our Impact Français Apply now D-Prize Round 1 Submission Form Formulaire de soumission pour le premier tour Please note: Your application must be written in English. (At"
+        ]
+      }
+    },
+    "Enabel Green Competences in Teacher Training Grants, BEL23004-10148": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.enabel.be/grants/call-for-proposals-scaling-pathways/",
+        "url": "https://www.enabel.be/grants/call-for-proposals-scaling-pathways/",
+        "snippets": [
+          "ment in sub-Saharan Africa Country : Belgium Close Date : 06 December 2026 23:59 Status : Open Applicable legislation : Belgian law Description : This call for proposals is organised in two phases. Please find all ",
+          "R Privacy notice Cookies policy Accessibility of the site Follow us © 2026 Enabel. All rights reserved. Made with love by CBTW"
+        ]
+      },
+      "application": {
+        "response": "403 text/html;charset=utf-8 https://enabel.grantplatform.com/",
+        "url": "https://enabel.grantplatform.com/",
+        "snippets": []
+      }
+    },
+    "Equality Fund Journalism Fellowship (Jan–September 2027 cohort)": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://equalityfund.ca/en/posts/journalism-fellowship",
+        "url": "https://equalityfund.ca/en/posts/journalism-fellowship",
+        "snippets": [
+          "alist and CJFE co-president Michelle Shephard. Timing and Overview In 2026, the Equality Fund will launch the call for applicants in several phases Fall 2026 and roll out the program in early 2027 with a cohort of ",
+          "ality Fund will launch the call for applicants in several phases Fall 2026 and roll out the program in early 2027 with a cohort of up to 5 journalists. Objective At least one story published per journalist fellow, ",
+          "licants in several phases Fall 2026 and roll out the program in early 2027 with a cohort of up to 5 journalists. Objective At least one story published per journalist fellow, reporting on local solutions to global ",
+          " programming, additional 3 months to finalize publication (Jan - Sept 2027) $4000 CAD stipend Up to $500 in reporting expenses Open to full-time or independent freelance journalists Journalists should be reporting ",
+          "rio, K1P 5H2 Canada Charity registration number : 12303 7939 RR0001 © 2026 Equality Fund. All rights reserved. Careers Contact Accessibility Accountability Annual Reporting Reporting Misconduct Donate now Privacy P"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://docs.google.com/forms/d/e/1FAIpQLSem0kc9i25IphLwxfPuUha08LPgrPJwIdw6AZVkvsN1vI-t_g/closedform",
+        "url": "https://docs.google.com/forms/d/e/1FAIpQLSem0kc9i25IphLwxfPuUha08LPgrPJwIdw6AZVkvsN1vI-t_g/viewform?usp=publish-editor",
+        "snippets": [
+          "Application for the Equality Fund Global Journalism Fellowship 2026 Application for the Equality Fund Global Journalism Fellowship 2026 The form Application for the Equality Fund Global Journalism Fellowship",
+          "p 2026 Application for the Equality Fund Global Journalism Fellowship 2026 The form Application for the Equality Fund Global Journalism Fellowship 2026 is no longer accepting responses. Try contacting the owner of ",
+          "e form Application for the Equality Fund Global Journalism Fellowship 2026 is no longer accepting responses. Try contacting the owner of the form if you think that this is a mistake. This form was created inside Eq",
+          "pplication for the Equality Fund Global Journalism Fellowship 2026 is no longer accepting responses. Try contacting the owner of the form if you think that this is a mistake. This form was created inside Equality Fund. Does this "
+        ]
+      }
+    },
+    "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://fbisafrica.org/small-grants/",
+        "url": "https://fbisafrica.org/small-grants/",
+        "snippets": [
+          " from Africa. Grant amount USD 5,000–10,000 Grant period January–June 2027 (6 months) Application deadline 9 November 2026 What are the grants for? The grants will support the mobilisation, via data uploads to the ",
+          "SD 5,000–10,000 Grant period January–June 2027 (6 months) Application deadline 9 November 2026 What are the grants for? The grants will support the mobilisation, via data uploads to the FBIS Africa platform, of existin",
+          "t period January–June 2027 (6 months) Application deadline 9 November 2026 What are the grants for? The grants will support the mobilisation, via data uploads to the FBIS Africa platform, of existing African freshw",
+          "ot essential but are beneficial if they are available. Who can apply? Applications are welcomed from African freshwater biodiversity data holders, including universities and research institutions, museums and natural history c",
+          "ublication; and Be capable of being mobilised during the January–June 2027 grant period. Requirements Applicants must specify the number of unpublished occurrence records they propose to mobilise, and agree to the ",
+          "utional capacity and ability to complete the work during January–June 2027 15% Additional consideration may be given to historical or irreplaceable datasets, threatened or endemic species, conservation-priority are",
+          "line, ‘ FBIS-Africa small grant application submission ’. Application deadline: 9 November 2026 Note: the application asks for a short project motivation, details of the proposed dataset(s), the number and geographic c",
+          "mall grant application submission ’. Application deadline: 9 November 2026 Note: the application asks for a short project motivation, details of the proposed dataset(s), the number and geographic coverage of record"
+        ]
+      },
+      "application": {
+        "response": "200 application/vnd.openxmlformats-officedocument.wordprocessingml.document https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+        "url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+        "snippets": []
+      }
+    },
+    "Global EbA Fund — Medium-Size Grants 2026": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://globalebafund.org/medium-size-grants/",
+        "url": "https://globalebafund.org/medium-size-grants/",
+        "snippets": [
+          " grant up to USD 500,000 Submission Window: 12 October to 16 November 2026 (NOTE: The application window for Medium-size grants will close at 11:59 pm Pacific Standard Time on 16 November 2026 (PST, UTC-8) / 8:59 a",
+          "ze grants will close at 11:59 pm Pacific Standard Time on 16 November 2026 (PST, UTC-8) / 8:59 am CET on 17 November 2026) Project Duration: up to 24 months Click below to download the Grants Procedures Manual Down",
+          "rd Time on 16 November 2026 (PST, UTC-8) / 8:59 am CET on 17 November 2026) Project Duration: up to 24 months Click below to download the Grants Procedures Manual Download General Track: Strategic Scaling and Globa",
+          "Expected Outcomes Official Launch of the Call for Proposal: 24 August 2026 Application forms and details are available on the Global EbA Fund website. Submissions accepted through the online platform: 12 October to",
+          "ions accepted through the online platform: 12 October to 16 November, 2026 All applications must be submitted on the online platform. We strongly encourage applicants to work on the application form offline before ",
+          ". And if feas ible , plea se p lan ah ead to submit in advance of the deadline so that you can resolve any internet connection issues that arise. Can my organization apply again to the Global EbA Fund? Yes, any organis",
+          " Newsletter Follow us: Privacy Policy | Cookie settings | Copyright © 2026 Global EbA Fund × Subscribe to Global EbA Fund's Newsletter Email Address First Name Last Name Leave this field empty if you're human: × Se",
+          " field empty if you're human: Contact Grievance Mechanism Copyright © 2026 Global EbA Fund Scroll to Top"
+        ]
+      },
+      "application": {
+        "response": "403 text/html; charset=UTF-8 https://gms-portal.iucn.org/public/calls/4c6561a2-74bc-436a-8a0c-c0eccd87fe65",
+        "url": "https://gms-portal.iucn.org/public/calls/4c6561a2-74bc-436a-8a0c-c0eccd87fe65",
+        "snippets": []
+      }
+    },
+    "Green and Digital Employability and Enterprise programme": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://opportunities-insight.britishcouncil.org/short-articles/opportunities/green-and-digital-employability-and-enterprise-programme",
+        "url": "https://opportunities-insight.britishcouncil.org/short-articles/opportunities/green-and-digital-employability-and-enterprise-programme",
+        "snippets": [
+          "tium to deliver a new employability programme Publication date: 09/10/2026 Deadline: 17/11/2026 UK higher education and TVET organisations can apply for grant for a UK-South Africa consortium to deliver a pilot of ",
+          "to deliver a new employability programme Publication date: 09/10/2026 Deadline: 17/11/2026 UK higher education and TVET organisations can apply for grant for a UK-South Africa consortium to deliver a pilot of the new G",
+          " employability programme Publication date: 09/10/2026 Deadline: 17/11/2026 UK higher education and TVET organisations can apply for grant for a UK-South Africa consortium to deliver a pilot of the new Green and Dig",
+          "ne grant will be awarded) Project length: 21 month, starting December 2026 Deadline: 17 November 2026, 11 a.m. UK time If you have any questions relating to the grant call, contact: pertunia.mothiba@britishcouncil.",
+          "ant will be awarded) Project length: 21 month, starting December 2026 Deadline: 17 November 2026, 11 a.m. UK time If you have any questions relating to the grant call, contact: pertunia.mothiba@britishcouncil.org How t",
+          "roject length: 21 month, starting December 2026 Deadline: 17 November 2026, 11 a.m. UK time If you have any questions relating to the grant call, contact: pertunia.mothiba@britishcouncil.org How to apply Apply via ",
+          "stions, please contact pertunia.mothiba@britishcouncil.org Submission deadline:17 November 2026, 11.00 a.m. UK time Deadline 17 November 2026 Attachment GDEEp Call Guidance GDEEp Grant Agreement Template Related opport",
+          "t pertunia.mothiba@britishcouncil.org Submission deadline:17 November 2026, 11.00 a.m. UK time Deadline 17 November 2026 Attachment GDEEp Call Guidance GDEEp Grant Agreement Template Related opportunities Alumni Vo"
+        ]
+      },
+      "application": {
+        "response": "403 text/html;charset=utf-8 https://goingglobalpartnerships.grantplatform.com/",
+        "url": "https://goingglobalpartnerships.grantplatform.com/",
+        "snippets": []
+      }
+    },
+    "HCLTech Global Grant for Climate Action 2026–2027": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://globalgrant.hcltech.com/",
+        "url": "https://globalgrant.hcltech.com/",
+        "snippets": [
+          "al is now LIVE ! HCLTech Global Grant for Climate Action - Edition IV Apply now Our planet is our responsibility Learn more The future is counting on us Learn more No one can solve the climate crisis alone Learn more Ap",
+          "n more Applications for the HCLTech Global Grant close on January 24, 2027 at 11:59 PM ET (New York). Apply now! Applications for the HCLTech Global Grant close on January 24, 2027 at 11:59 PM ET (New York). Apply ",
+          "ech Global Grant close on January 24, 2027 at 11:59 PM ET (New York). Apply now! Applications for the HCLTech Global Grant close on January 24, 2027 at 11:59 PM ET (New York). Apply now! FY 2025-2026 Edition III FY 2024",
+          "y now! Applications for the HCLTech Global Grant close on January 24, 2027 at 11:59 PM ET (New York). Apply now! FY 2025-2026 Edition III FY 2024-2025 Edition II FY 2023-2024 Edition I Meet the winners across every",
+          "ech Global Grant close on January 24, 2027 at 11:59 PM ET (New York). Apply now! FY 2025-2026 Edition III FY 2024-2025 Edition II FY 2023-2024 Edition I Meet the winners across every edition CISP-Comitato Internazionale",
+          "ose on January 24, 2027 at 11:59 PM ET (New York). Apply now! FY 2025-2026 Edition III FY 2024-2025 Edition II FY 2023-2024 Edition I Meet the winners across every edition CISP-Comitato Internazionale per lo Svilup",
+          "ble water management and environmental awareness initiatives. FY 2025-2026 Edition III We’re investing $5.5 million over 5 years on big ideas for climate action. Will yours be one of them? Why you? The world’s grea",
+          " third parties to accept applications or charge fees on its behalf. © 2026 HCL Technologies Limited Privacy | Terms of Use | Disclaimer | Sitemap | Raise a Grievance"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://globalgrant.hcltech.com/user/register",
+        "url": "https://globalgrant.hcltech.com/profile-dashboard",
+        "snippets": [
+          " third parties to accept applications or charge fees on its behalf. © 2026 HCL Technologies Limited Privacy | Terms of Use | Disclaimer | Sitemap | Raise a Grievance"
+        ]
+      }
+    },
+    "IHS AI and the Workforce Faculty Research Grant 2027": {
+      "source": {
+        "response": "200 text/html;charset=utf-8 https://theihs.org/ai-and-the-workforce/",
+        "url": "https://theihs.org/ai-and-the-workforce/",
+        "snippets": [
+          "Funding FAQ or contact us for clarification. Timeline The application deadline is December 15, 2026 . Decisions will be announced on January 15, 2027 . Apply Now Also Consider Other IHS funding opportunities for schola",
+          " for clarification. Timeline The application deadline is December 15, 2026 . Decisions will be announced on January 15, 2027 . Apply Now Also Consider Other IHS funding opportunities for scholars. Requests for Prop",
+          "ine is December 15, 2026 . Decisions will be announced on January 15, 2027 . Apply Now Also Consider Other IHS funding opportunities for scholars. Requests for Proposals Targeted funding for research aligned with c",
+          "December 15, 2026 . Decisions will be announced on January 15, 2027 . Apply Now Also Consider Other IHS funding opportunities for scholars. Requests for Proposals Targeted funding for research aligned with current insti",
+          "lar Events Resources Partner Careers Blog Liberalism.org Contact Us © 2026 Institute for Humane Studies Privacy Policy Cookie Settings"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://theihs.tfaforms.net/4830976?aYCbQb3M=&u6NW89K8=701PM000018ySSX",
+        "url": "https://theihs.tfaforms.net/4830976?aYCbQb3M=&u6NW89K8=701PM000018ySSX",
+        "snippets": []
+      }
+    },
+    "IKI Medium Grants 2026": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://www.international-climate-initiative.com/en/find-funding/medium-grants/medium-grants-2026/",
+        "url": "https://www.international-climate-initiative.com/en/find-funding/medium-grants/medium-grants-2026/",
+        "snippets": [
+          "IKI Medium Grants 2026 | Internationale Klimaschutzinitiative (IKI) Skip to content Skip to search Skip to navigation It looks like you have JavaScript disabled. ",
+          "IKI uses Monitoring and Evaluation Find funding Large Grants ILG Call 2026 ILG Call 2025 Medium Grants IMG Call 2026 IMG Call 2025 IMG Call 2024 IMG Call 2023 IMG Call 2022 IMG Call 2021 IMG Call 2020 Small Grants ",
+          "nding Large Grants ILG Call 2026 ILG Call 2025 Medium Grants IMG Call 2026 IMG Call 2025 IMG Call 2024 IMG Call 2023 IMG Call 2022 IMG Call 2021 IMG Call 2020 Small Grants ISG Call 2026 ISG Call 2025 ISG Call 2024 ",
+          " 2023 IMG Call 2022 IMG Call 2021 IMG Call 2020 Small Grants ISG Call 2026 ISG Call 2025 ISG Call 2024 ISG Call 2023 ISG Call 2022 ISG Call 2021 ISG Call 2020 IKI Invest Funding priorities Manage Project Report on ",
+          "s IKI documents for download Home Find funding Medium Grants IMG Call 2026 Medium Grants 2026 Participation in the ideas competition (call) The Federal Ministry for the Environment, Climate Protection, Nature Conse",
+          " download Home Find funding Medium Grants IMG Call 2026 Medium Grants 2026 Participation in the ideas competition (call) The Federal Ministry for the Environment, Climate Protection, Nature Conservation and Nuclear",
+          "in the Global South. The ideas competition (call) opens on 13 October 2026 and closes on 12 January 2027 at 11.59 am (CET) . Funding will be provided for projects with a budget of between 300,000 and 800,000 euros ",
+          " competition (call) opens on 13 October 2026 and closes on 12 January 2027 at 11.59 am (CET) . Funding will be provided for projects with a budget of between 300,000 and 800,000 euros and a duration of two to three"
+        ]
+      },
+      "application": {
+        "response": "200 text/html;charset=utf-8 https://ideas.international-climate-initiative.com/",
+        "url": "https://ideas.international-climate-initiative.com/",
+        "snippets": []
+      }
+    },
+    "IKI Small Grants 2027, Eighth Call": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://iki-small-grants.de/funding/",
+        "url": "https://iki-small-grants.de/funding/",
+        "snippets": [
+          "o make an impact? Apply for the 8th International Call for Proposals! Apply Now Get Information IKI Small Grants is a global funding and capacity development programme that supports impactful local and regional initiati",
+          "he 8th IKI Small Grants ‘Call for Proposals’ will open on 15 November 2026 and the application period will be closed on 8 January 2027. The thematic focus of this call for proposals is Nature-based Solutions (NbS) ",
+          " November 2026 and the application period will be closed on 8 January 2027. The thematic focus of this call for proposals is Nature-based Solutions (NbS) . NbS refers to an integrated approach that the Internationa",
+          " and confirms eligibility to the eligible organisations by 2 February 2027. Only organisations that qualified eligible are invited to submit their project proposals with details of the project idea and budget. Proj",
+          "t idea and budget. Project proposals have to be submitted by 16 March 2027 and must meet the criteria outlined in the Funding Information below. Organisations will be informed of the results as soon as possible. Do",
+          " soon as possible. Documents: Funding Information Funding Information 2027 Call 8 Application Guidelines Application Guidelines 2027 Call 8 Revenue Template Revenue Template 2027 Call 8 Funding criteria Project dur",
+          "Information 2027 Call 8 Application Guidelines Application Guidelines 2027 Call 8 Revenue Template Revenue Template 2027 Call 8 Funding criteria Project duration The duration of the projects covers a minimum of twe",
+          " Application Guidelines 2027 Call 8 Revenue Template Revenue Template 2027 Call 8 Funding criteria Project duration The duration of the projects covers a minimum of twelve months and a maximum of two years. In exce"
+        ]
+      },
+      "application": {
+        "response": "200 text/html;charset=utf-8 https://oap.iki-small-grants.de/",
+        "url": "https://oap.iki-small-grants.de/",
+        "snippets": [
+          "h international call for proposals for applications on 15 th November 2026. The programme provides funding between 60,0000 and 200,000 euros for local climate and biodiversity action projects. The call addresses lo",
+          " with an average annual revenue between 60,000 and 500,000 euros. The deadline for application submission is 8 January 2027 (23:59 CET). Please note the application platform will be closed after that time and date. Tec",
+          "d 500,000 euros. The deadline for application submission is 8 January 2027 (23:59 CET). Please note the application platform will be closed after that time and date. Technical support is only available until 17:00 ",
+          "d confirm eligibility to the eligible organisations by 02 nd February 2027 . Only organisations that qualified eligible are invited to submit their project proposals with details of the project idea and budget. Pro",
+          "dea and budget. Project proposals have to be submitted by 16 th March 2027 and must meet the criteria. Organisations will be informed of the results as soon as possible. Please visit the IKI Small Grants website (e",
+          "idelines and documents into account before submitting an application. Applications can only be submitted on this platform. The deadline for submitting the eligibility check is 08 January 2027 (23:59 CET) . Please note that the",
+          "application. Applications can only be submitted on this platform. The deadline for submitting the eligibility check is 08 January 2027 (23:59 CET) . Please note that the funding platform will close after this deadline.",
+          "form. The deadline for submitting the eligibility check is 08 January 2027 (23:59 CET) . Please note that the funding platform will close after this deadline. Technical support is only available until 17:00 CET on "
+        ]
+      }
+    },
+    "ILCM Community Impact Fund – Africa": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://ilcm.global/community-grants.html",
+        "url": "https://ilcm.global/community-grants.html",
+        "snippets": [
+          "e Local Action on Liver Cancer Funding available: €10,000 Application deadline: 15 November 2026 Project period: January–July 2027 More information about the grant and how to apply below. About the Fund (ILCM Community",
+          "r Cancer Funding available: €10,000 Application deadline: 15 November 2026 Project period: January–July 2027 More information about the grant and how to apply below. About the Fund (ILCM Community Impact Fund – Afr",
+          "0 Application deadline: 15 November 2026 Project period: January–July 2027 More information about the grant and how to apply below. About the Fund (ILCM Community Impact Fund – Africa) This is a pilot initiative pr",
+          "reative ideas that respond to an important local need. Who can apply? Applications are open to patient organisations, community-based organisations and grassroots advocacy groups based in Africa . We particularly encourage app",
+          "r academic terminology. Applications must be submitted by 15 November 2026. Apply to the ILCM Community Impact Fund Please don’t forget to attach a simple budget and timeline. Once completed, please email your appl",
+          "your application form to grants@ilcm.global no later than 15 November 2026 . What happens next? Applications will be reviewed between 15 November and 15 December 2026, with successful applicants announced on 17 Dec",
+          "xt? Applications will be reviewed between 15 November and 15 December 2026, with successful applicants announced on 17 December 2026. Successful projects will be implemented between January and July 2027. ILCM will",
+          "15 December 2026, with successful applicants announced on 17 December 2026. Successful projects will be implemented between January and July 2027. ILCM will seek opportunities for awardees to share experiences, cha"
+        ]
+      },
+      "application": {
+        "response": "200 application/pdf https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+        "url": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+        "snippets": []
+      }
+    },
+    "Joint Innovation Facility Circularity Call": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://project-spark.africa/joint-innovation-facility-circularity-call/",
+        "url": "https://project-spark.africa/joint-innovation-facility-circularity-call/",
+        "snippets": [
+          "ember States. Expressions of interest must be submitted by 29 January 2027 at the latest and will be reviewed on a rolling basis. We encourage interested businesses to apply early. Final grant proposal deadline: 28",
+          " encourage interested businesses to apply early. Final grant proposal deadline: 28 February 2027 (for applicants who successfully pass pre-screening). Apply Here Why circularity? Africa´s circular economy is creating n",
+          "businesses to apply early. Final grant proposal deadline: 28 February 2027 (for applicants who successfully pass pre-screening). Apply Here Why circularity? Africa´s circular economy is creating new opportunities f",
+          "e Joint Innovation Facility Circularity Call are open from 2 November 2026 to 28 February 2027 via the good grants platform. Applicants must submit their pre-screening application by 29 January 2027 at the latest t",
+          "acility Circularity Call are open from 2 November 2026 to 28 February 2027 via the good grants platform. Applicants must submit their pre-screening application by 29 January 2027 at the latest to allow sufficient t",
+          " Applicants must submit their pre-screening application by 29 January 2027 at the latest to allow sufficient time for the assessment and, if successful, a minimum of two weeks to complete and submit the full grant ",
+          "o weeks to complete and submit the full grant proposal by 28 February 2027 . The application process consists of the following steps: Pre -Screening Interested consortia are invited to submit a short project summar",
+          "ivity Date Time Meeting Links Info Session – 1 Tuesday, 10th November 2026 11:30a.m – 12:30p.m EAT 9:30a.m – 10:30a.m CET Info Session 1 Joint Innovation Facility Circularity Call | Meeting-Join | Microsoft Teams I"
+        ]
+      },
+      "application": {
+        "response": "403 text/html;charset=utf-8 https://jif.grantplatform.com/",
+        "url": "https://jif.grantplatform.com/",
+        "snippets": []
+      }
+    },
+    "Keeling Curve Prize 2027": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.climatecurve.org/kcp",
+        "url": "https://www.climatecurve.org/kcp",
+        "snippets": [
+          "Donate More Use tab to navigate through the menu items. Apply for the 2027 Keeling Curve Prize Applications open on November 1 FAQ's for the KCP Eligibility Requirements What is the Keeling Curve? The Keeling Curve",
+          "as high-quality for efficiency, scalability, and impact. The Team KCP applications are subject to a rigorous review process led by our diverse and talented group of experts who make up our Analysts, Advisory Council, and Judge"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://kcp-conduit.org/apply/kcp/",
+        "url": "https://kcp-conduit.org/apply/kcp/",
+        "snippets": [
+          "ome Create Account Login Sample Application FAQ Conduit × Application Deadline Application submissions close on: January 15, 2027, at 11:59 PM IDLW (UTC-12:00) or when the 500 application cap is reached, if prior to th",
+          " × Application Deadline Application submissions close on: January 15, 2027, at 11:59 PM IDLW (UTC-12:00) or when the 500 application cap is reached, if prior to the deadline Close Apply for the 2027 Keeling Curve P",
+          "TC-12:00) or when the 500 application cap is reached, if prior to the deadline Close Apply for the 2027 Keeling Curve Prize Welcome to the Keeling Curve Prize application portal! We're thrilled to invite you to submit ",
+          "lication cap is reached, if prior to the deadline Close Apply for the 2027 Keeling Curve Prize Welcome to the Keeling Curve Prize application portal! We're thrilled to invite you to submit your innovative climate s",
+          " to submit your innovative climate solutions for consideration in the 2027 prize cycle. Why Apply? The Keeling Curve Prize is dedicated to recognizing and supporting groundbreaking projects addressing the global cl",
+          "cations. Our system will allow applications to be submitted until the deadline, but only the first 500 submissions that meet all the requirements will be eligible for the prize. We encourage you to submit your applicat",
+          " Asked Questions (FAQs): For more details on the application process, deadlines, and more, visit our FAQ page . Ready to apply? All applications must be submitted through our online portal by January 15, 2027, at 11:59",
+          "plications must be submitted through our online portal by January 15, 2027, at 11:59 PM IDLW (UTC-12:00). Follow these steps to apply: Create an Account: Request an account at kcp-conduit.org/requestAccount/ . Log "
+        ]
+      }
+    },
+    "Microsoft AI Economy Institute Cohort 4 research funding": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+        "url": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+        "snippets": [
+          "preneurs, and society? Timeline: Submission portal opens: October 19, 2026 Proposal deadline: December 31, 2026 (6:00 PM Pacific) Award notification: February – March 2027 Research period: Begins May 2027 Book chap",
+          "society? Timeline: Submission portal opens: October 19, 2026 Proposal deadline: December 31, 2026 (6:00 PM Pacific) Award notification: February – March 2027 Research period: Begins May 2027 Book chapter submission: Ju",
+          "ission portal opens: October 19, 2026 Proposal deadline: December 31, 2026 (6:00 PM Pacific) Award notification: February – March 2027 Research period: Begins May 2027 Book chapter submission: June 2027 In-person w",
+          "ember 31, 2026 (6:00 PM Pacific) Award notification: February – March 2027 Research period: Begins May 2027 Book chapter submission: June 2027 In-person workshop: TBD Manuscript submission: March 2028 Book publicat",
+          "Award notification: February – March 2027 Research period: Begins May 2027 Book chapter submission: June 2027 In-person workshop: TBD Manuscript submission: March 2028 Book publication: January 2028 Submit Proposal",
+          "h 2027 Research period: Begins May 2027 Book chapter submission: June 2027 In-person workshop: TBD Manuscript submission: March 2028 Book publication: January 2028 Submit Proposal Cohort 4: AIEI Senior Fellows Coho"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+        "url": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+        "snippets": [
+          "Submission Portal 2027 Msr Aiei Open Call 4 Portal Error Error code Close OK Are you still there? Your session is about to expire due to inactivity. Do you want t"
+        ]
+      }
+    },
+    "MQA Special Projects and Partnerships Discretionary Grants 2026–2027": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+        "url": "https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+        "snippets": [
+          "Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships – MQA Skip to content MQA 011 547 2600 info@mqa.org.za MIS Portal WSP-ATR Portal Lea",
+          "Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships – MQA Skip to content MQA 011 547 2600 info@mqa.org.za MIS Portal WSP-ATR Portal Learner ",
+          "Gallery Contact Us Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships Adverts Anywhere Posted on October 26, 2026 The Mining Qualifications Authority (MQA",
+          "ry Contact Us Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships Adverts Anywhere Posted on October 26, 2026 The Mining Qualifications Authority (MQA) is ",
+          "cial Projects and Partnerships Adverts Anywhere Posted on October 26, 2026 The Mining Qualifications Authority (MQA) is a Sector Education and Training Authority (SETA) for the mining and minerals sector in terms o",
+          " window for Discretionary Grants allocations, for the period 01 April 2026 to 31 March 2027 , will open on Monday, 26 October 2026 at 08H00 . Eligible stakeholders are invited to submit applications for the followi",
+          "etionary Grants allocations, for the period 01 April 2026 to 31 March 2027 , will open on Monday, 26 October 2026 at 08H00 . Eligible stakeholders are invited to submit applications for the following programme: Spe",
+          "riod 01 April 2026 to 31 March 2027 , will open on Monday, 26 October 2026 at 08H00 . Eligible stakeholders are invited to submit applications for the following programme: Special Projects and Partnerships Stakehol"
+        ]
+      },
+      "application": {
+        "response": "200 application/pdf https://mqa.org.za/wp-content/uploads/2026/10/MQA_Special_Project_Partnership_Funding_Application_Fillable_Form.pdf",
+        "url": "https://mqa.org.za/wp-content/uploads/2026/10/MQA_Special_Project_Partnership_Funding_Application_Fillable_Form.pdf",
+        "snippets": []
+      }
+    },
+    "Oilwatch Small Grants Programme 2026": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://oilwatch.africa/en/news/small-grants-programme-2026",
+        "url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+        "snippets": [
+          "Small Grants Programme 2026 | Oilwatch Africa About us Campaigns Resources News Events Contact Act Now! EN FR PT Africa Global Grants Small Grants Programme 2026 7 Aug",
+          "Contact Act Now! EN FR PT Africa Global Grants Small Grants Programme 2026 7 Aug 2026 Earth. Energy. Equity. Supporting Community-Led Action for Climate and Environmental Justice Facilitated by Oilwatch Internation",
+          " Now! EN FR PT Africa Global Grants Small Grants Programme 2026 7 Aug 2026 Earth. Energy. Equity. Supporting Community-Led Action for Climate and Environmental Justice Facilitated by Oilwatch International, in part",
+          "r other false climate solutions will not be considered. Who Can Apply Applications are welcome from grassroots, Indigenous Peoples’, community-based, women’s, and youth-led organizations, environmental justice groups, small ci",
+          "drawing on lessons learned with demonstrated implementation capacity. Deadline and Submission Send completed applications to your regional hub, with ‘GGF Application’ in the subject line: Applications must reach the of",
+          "plications must reach the officers no later than Friday, November 13, 2026, 23:59 hrs GMT. Africa: grants@oilwatch.africa South East Asia: clengjulve@agham.org Latin America: owla.ggf@gmail.com ← Back to News Relat",
+          "am.org Latin America: owla.ggf@gmail.com ← Back to News Related 7 Aug 2026 Africa Don’t Reopen The Wells — Decommission, Clean Up And Restore Ogoniland Port Harcourt, Rivers State | August 2026 The reported emergen",
+          ", Clean Up And Restore Ogoniland Port Harcourt, Rivers State | August 2026 The reported emergence of Dutchford Exploration and Production Company Limited as the successful bidder for the Yorla South oil field in Kh"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://oilwatch.africa/en/news/small-grants-programme-2026",
+        "url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+        "snippets": [
+          "Small Grants Programme 2026 | Oilwatch Africa About us Campaigns Resources News Events Contact Act Now! EN FR PT Africa Global Grants Small Grants Programme 2026 7 Aug",
+          "Contact Act Now! EN FR PT Africa Global Grants Small Grants Programme 2026 7 Aug 2026 Earth. Energy. Equity. Supporting Community-Led Action for Climate and Environmental Justice Facilitated by Oilwatch Internation",
+          " Now! EN FR PT Africa Global Grants Small Grants Programme 2026 7 Aug 2026 Earth. Energy. Equity. Supporting Community-Led Action for Climate and Environmental Justice Facilitated by Oilwatch International, in part",
+          "r other false climate solutions will not be considered. Who Can Apply Applications are welcome from grassroots, Indigenous Peoples’, community-based, women’s, and youth-led organizations, environmental justice groups, small ci",
+          "drawing on lessons learned with demonstrated implementation capacity. Deadline and Submission Send completed applications to your regional hub, with ‘GGF Application’ in the subject line: Applications must reach the of",
+          "plications must reach the officers no later than Friday, November 13, 2026, 23:59 hrs GMT. Africa: grants@oilwatch.africa South East Asia: clengjulve@agham.org Latin America: owla.ggf@gmail.com ← Back to News Relat",
+          "am.org Latin America: owla.ggf@gmail.com ← Back to News Related 7 Aug 2026 Africa Don’t Reopen The Wells — Decommission, Clean Up And Restore Ogoniland Port Harcourt, Rivers State | August 2026 The reported emergen",
+          ", Clean Up And Restore Ogoniland Port Harcourt, Rivers State | August 2026 The reported emergence of Dutchford Exploration and Production Company Limited as the successful bidder for the Yorla South oil field in Kh"
+        ]
+      }
+    },
+    "People Powered Climate Democracy Accelerator Implementation Grant": {
+      "source": {
+        "response": "200 text/html;charset=utf-8 https://www.peoplepowered.org/climate-democracy-accelerator",
+        "url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+        "snippets": [
+          " Climate Democracy Accelerator Announcement: Applications for CDA are open now until November 27! Read below for the details. Climate change affects every aspect of our modern society globally, from declining agricultu",
+          "omic systems such as food sustainability, local economies, and so on. Applications are open to participants from governmental institutions, civil society organizations, or non-governmental organizations. The program prioritize",
+          "tion in 2023. Learn more about the success stories! Featured June 18, 2026 In Indonesia, Communities Are Writing the Climate Policies That Protect Them June 18, 2026 Nearly 1,000 households. Daily flooding. Zero in",
+          "mmunities Are Writing the Climate Policies That Protect Them June 18, 2026 Nearly 1,000 households. Daily flooding. Zero input on policy. Until a local organization brought residents to the table. Read more → June ",
+          "cal organization brought residents to the table. Read more → June 18, 2026 May 19, 2026 A Nairobi climate policy was stuck — until citizens got involved May 19, 2026 Nairobi's Air Quality Bill was enacted in 2022. ",
+          "ion brought residents to the table. Read more → June 18, 2026 May 19, 2026 A Nairobi climate policy was stuck — until citizens got involved May 19, 2026 Nairobi's Air Quality Bill was enacted in 2022. Implementatio",
+          "airobi climate policy was stuck — until citizens got involved May 19, 2026 Nairobi's Air Quality Bill was enacted in 2022. Implementation stalled — until a local civic tech organization applied participatory method",
+          "h People Powered's Climate Democracy Accelerator. Read more → May 19, 2026 December 18, 2025 New Video: 3 strategies behind an effective Climate Assembly December 18, 2025 Learn how inclusion, government partnershi"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://docs.google.com/forms/d/e/1FAIpQLSesD2j8quh_XcUOhY3vVeE-YkbMw4SGJ2YKFlK7NZZcA_aT5Q/viewform?usp=send_form",
+        "url": "https://forms.gle/J7516hMhnE2akkrNA",
+        "snippets": []
+      }
+    },
+    "Pollination Project Seed Grants": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://thepollinationproject.org/apply/",
+        "url": "https://thepollinationproject.org/apply/",
+        "snippets": [
+          "er 30th at 11:59pm US Eastern Time. They will re-open on January 1st, 2027 We believe in you . The Pollination Project exists to uplift grassroots changemakers whose work helps build a kinder, more compassionate wo",
+          "are reviewed the following month. You’ll hear back within 6–12 weeks. Applications are accepted on a rolling basis with a brief closure at year-end. We accept applications in English only. Eligibility Who Can Apply We fund ind",
+          "ber 30th at 11:59pm US Eastern Time. They will reopen on January 1st, 2027 Application form Useful links Home Our Approach Partner With Us Stories Blog Apply for Funding FAQ Work with us Annual Report Contact us Th",
+          " 501c3 Nonprofit Organization. Tax ID # 46-0675457 — Copyright 2012 – 2026 © The Pollination Project Foundation, All Rights Reserved. We use cookies on our website to give you the most relevant experience by rememb"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://thepollinationproject.smapply.us/prog/daily_grants_program/",
+        "url": "https://thepollinationproject.smapply.us/prog/daily_grants_program",
+        "snippets": [
+          " Skip to left navigation The Pollination Project Daily Grants Program Deadline Nov 30 2026 11:59 PM (PST) Description Welcome to The Pollination Project's Daily Grant! ! I mportant : This grant application will close o",
+          "vigation The Pollination Project Daily Grants Program Deadline Nov 30 2026 11:59 PM (PST) Description Welcome to The Pollination Project's Daily Grant! ! I mportant : This grant application will close on November 3",
+          "ons by the end of the year. The application will reopen on January 1, 2027. Before you start, please read our funding guidelines . After submitting your application, our team will review it and let you know within ",
+          "ons by the end of the year. The application will reopen on January 1, 2027. Before you start, please read our funding guidelines . After submitting your application, our team will review it and let you know within ",
+          "e reach out to our team: applications@thepollinationproject.org Apply Deadline Nov 30 2026 11:59 PM (PST) Copyright © SurveyMonkey | Help | Privacy | Terms |",
+          "ur team: applications@thepollinationproject.org Apply Deadline Nov 30 2026 11:59 PM (PST) Copyright © SurveyMonkey | Help | Privacy | Terms |"
+        ]
+      }
+    },
+    "Pulitzer Center — Rainforest Reporting Grant": {
+      "source": {
+        "response": "403 text/html; charset=UTF-8 https://pulitzercenter.org/grants-fellowships/opportunities-journalists/rainforest-reporting-grant",
+        "url": "https://pulitzercenter.org/grants-fellowships/opportunities-journalists/rainforest-reporting-grant",
+        "snippets": []
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://pulitzercenter.tfaforms.net/5052132",
+        "url": "https://pulitzercenter.tfaforms.net/5052132",
+        "snippets": []
+      }
+    },
+    "Rare Disease Reporting Fellowship and Grants 2026 (up to $2,000)": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://nationalpress.org/training/apply-2026-rare-disease-reporting-fellowship-and-grants/",
+        "url": "https://nationalpress.org/training/apply-2026-rare-disease-reporting-fellowship-and-grants/",
+        "snippets": [
+          "APPLY by Oct. 22: 2026 Rare Disease Reporting Fellowship and Grants - National Press Foundation | NPF National Press Foundation Upcoming Fellowships Widening the ",
+          " NPF AI Principles Funding FAQ Annual Report Donate APPLY by Oct. 22: 2026 Rare Disease Reporting Fellowship and Grants Online Journalism Training, Nov. 16-20: Leveraging the Promise of Biotechnology for Rare Disea",
+          " for Rare Disease Patients and Families Worldwide Updated Wed Sep 23, 2026 As biotechnology continues its march toward revolutionary treatments and cures for complex medical conditions, the daily realities for peop",
+          "me in executing a rare disease project of their choosing. Application Deadline: Oct. 22, 2026 Apply Here All accepted fellows will receive the training. Fellows who require and qualify for a reporting grant will receiv",
+          "are disease project of their choosing. Application Deadline: Oct. 22, 2026 Apply Here All accepted fellows will receive the training. Fellows who require and qualify for a reporting grant will receive $1,000 upon c",
+          "mission of their work, which must be published no later than March 1, 2027. For fellows who receive a grant, their work will be published first in the journalists’ chosen outlets, then reprinted in a compilation bo",
+          "nglish, as the training will be conducted in English. The application deadline is 11:59 p.m. ET Oct. 22, 2026 . Employed journalists will need a letter of support from their editor, including a commitment to allow four",
+          "ducted in English. The application deadline is 11:59 p.m. ET Oct. 22, 2026 . Employed journalists will need a letter of support from their editor, including a commitment to allow four hours off work each day from N"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://airtable.com/app1hoO0l2ZhVjEg1/pagpVsxKOoTSbdk2G/form",
+        "url": "https://airtable.com/app1hoO0l2ZhVjEg1/pagpVsxKOoTSbdk2G/form",
+        "snippets": []
+      }
+    },
+    "REACT 2.0 Regional Digital Innovation Fund for Energy & Climate (DIFEC) - Windows 1 and 2": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.aecfafrica.org/approach/our-programmes/renewable-energy/react-2-0-regional-digital-innovation-fund-for-energy-climate-programme-difec/window-1-growing-digital-innovation-funding-window/",
+        "url": "https://www.aecfafrica.org/approach/our-programmes/renewable-energy/react-2-0-regional-digital-innovation-fund-for-energy-climate-programme-difec/window-1-growing-digital-innovation-funding-window/",
+        "snippets": [
+          "ccess Procurement Investee Employee Subscribe for updates Subscribe © 2026 Africa Enterprise Challenge Fund. All Rights Reserved GDPR Cookie Banner We are using cookies to give you the best experience on our websit"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://aecf.submittable.com/submit",
+        "url": "https://aecf.submittable.com",
+        "snippets": []
+      }
+    },
+    "Research Grants on University Ecosystems": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+        "url": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+        "snippets": [
+          "me About Us Who we are CODESRIA Charter CODESRIA Strategic Plan (2023–2027) Donation Our Organs The General Assembly The Executive Committee The Scientific Committee The Executive Secretariat Programmes Research Me",
+          "me About Us Who we are CODESRIA Charter CODESRIA Strategic Plan (2023–2027) Donation Our Organs The General Assembly The Executive Committee The Scientific Committee The Executive Secretariat Programmes Research Me",
+          "s , CODESRIA News , Focus , Grants and Fellowships , News October 23, 2026 Higher Education, Gender, Academic Freedom and Quality Associational Life in African Universities The Council for the Development of Social",
+          "te using the link: https://apply.codesria.org/grants-subventions/ The deadline for submission of applications is 16 January 2027. Late applications will not be considered. For Specific questions, please contact: tgf@co",
+          "ubventions/ The deadline for submission of applications is 16 January 2027. Late applications will not be considered. For Specific questions, please contact: tgf@codesria.org Related Posts ToR – Visual Identity Gui",
+          "Identity Guidelines and Redesign of the CODESRIA Website November 17, 2026 by CODESRIA 2 Thandika Mkandawire 2026 Memorial Lecture November 4, 2026 by CODESRIA 2 Message to the CODESRIA Community November 3, 2026 b",
+          " CODESRIA Website November 17, 2026 by CODESRIA 2 Thandika Mkandawire 2026 Memorial Lecture November 4, 2026 by CODESRIA 2 Message to the CODESRIA Community November 3, 2026 by CODESRIA 2 Moving Africa: Labour Mobi",
+          "6 by CODESRIA 2 Thandika Mkandawire 2026 Memorial Lecture November 4, 2026 by CODESRIA 2 Message to the CODESRIA Community November 3, 2026 by CODESRIA 2 Moving Africa: Labour Mobility, Free Movement and the Democr"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://apply.codesria.org/auth/?next=/grants-subventions/",
+        "url": "https://apply.codesria.org/grants-subventions/",
+        "snippets": []
+      }
+    },
+    "Rufford Small Grants for Nature Conservation": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://apply.ruffordsmallgrants.org/",
+        "url": "https://apply.ruffordsmallgrants.org/",
+        "snippets": [
+          "d Completion Grant. Grants range from £7,000 to £18,000. There are no deadlines - applications can be submitted at any time of year. Unsuccessful applicants may re-apply after 12 months. Find out more about the differe",
+          " Grant. Grants range from £7,000 to £18,000. There are no deadlines - applications can be submitted at any time of year. Unsuccessful applicants may re-apply after 12 months. Find out more about the different grants. 2. Check ",
+          "nd access the application form. Apply for a Grant Apply for a grant © 2026 The Rufford Foundation | Disclaimer | Privacy Policy | Cookies"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://apply.ruffordsmallgrants.org/apply/",
+        "url": "https://apply.ruffordsmallgrants.org/apply/",
+        "snippets": [
+          "rd Small Grants Programme × As a result of the Strategic Review (2023-2026) completed last year, it was agreed that the number of different grants offered would be reduced from five to four but that amounts availab",
+          "ady inputted as this will be helpful in your new application. Close © 2026 The Rufford Foundation | Disclaimer | Privacy Policy | Cookies"
+        ]
+      }
+    },
+    "Save Our Seas Ocean Storytelling Photography Grant 2026": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://saveourseas.com/ocean-storytelling-photography-grant-2026/",
+        "url": "https://saveourseas.com/ocean-storytelling-photography-grant-2026/",
+        "snippets": [
+          "Ocean Storytelling Photography Grant 2026 - Save Our Seas Foundation FOUNDATION MAGAZINE Shop Multimedia Contact us FAQ World of Sharks Projects Centres Grants News Foundation Philo",
+          "nces on Elasmobranchs Ocean News Ocean Storytelling Photography Grant 2026 Photo by Sarang Naik | © Save Our Seas Foundation By Isla Hodgson, 30th September 2026 At the Save Our Seas Foundation (SOSF), we believe t",
+          "ang Naik | © Save Our Seas Foundation By Isla Hodgson, 30th September 2026 At the Save Our Seas Foundation (SOSF), we believe that storytellers have a powerful and unique role in generating meaningful change for ou",
+          "and figures alone cannot. We are therefore delighted to announce that applications are open for the 2026 Ocean Storytelling Photography Grant. Our Storytelling grants are dedicated to supporting early-career and emerging talen",
+          "re therefore delighted to announce that applications are open for the 2026 Ocean Storytelling Photography Grant. Our Storytelling grants are dedicated to supporting early-career and emerging talent in conservation ",
+          "ment between the Foundation and the applicant must be returned by the deadline. This agreement cannot be modified. From left to right, fishermen Meco Andres Manuel Hernandez Ovando, Guadalupe Cruz Salejo and Zenon Hern",
+          " remains her passion. Important Dates Applications open: 30 SEPTEMBER 2026 Applications close: 15 NOVEMBER 2026, 18:00 CET. APPLY HERE Winners announced: In the last quarter of 2026 Assignment: 2027 FUNDING GUIDELI",
+          " Applications open: 30 SEPTEMBER 2026 Applications close: 15 NOVEMBER 2026, 18:00 CET. APPLY HERE Winners announced: In the last quarter of 2026 Assignment: 2027 FUNDING GUIDELINES D'Arros Island and St Joseph Atol"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=UTF-8 https://grants.saveourseas.com/",
+        "url": "https://grants.saveourseas.com/",
+        "snippets": [
+          "on photography in its inaugural year. The online application process, deadlines and conditions are different, depending on the grant category you are applying for. Please read the funding guidelines carefully. Note: If"
+        ]
+      }
+    },
+    "Unearthodox Exploration Co-Lab 2027": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://unearthodox.org/2026/09/open-call-edges-of-possibility-exploration-co-lab-2027/",
+        "url": "https://unearthodox.org/2026/09/open-call-edges-of-possibility-exploration-co-lab-2027/",
+        "snippets": [
+          "Open Call: Edges of Possibility, Exploration Co-Lab 2027 - Our Work Programmes All our work Food for thought Our approach Our vision How we operate Our theory of change Our value chain Our values ",
+          "th us Search News Open Call: Edges of Possibility, Exploration Co-Lab 2027 21 September 2026 Are you working on today's nature-society challenges, while reimagining the systems that caused them? The Exploration Co-",
+          "Open Call: Edges of Possibility, Exploration Co-Lab 2027 21 September 2026 Are you working on today's nature-society challenges, while reimagining the systems that caused them? The Exploration Co-Lab is an alternat",
+          " this level of depth and possibility, we would love to hear from you. Applications are open from 15 September to 16 November 2026. Learn more and Apply! Share on X (Opens in new window) X Share on Facebook (Opens in new window",
+          "hear from you. Applications are open from 15 September to 16 November 2026. Learn more and Apply! Share on X (Opens in new window) X Share on Facebook (Opens in new window) Facebook Share on LinkedIn (Opens in new "
+        ]
+      },
+      "application": {
+        "response": "200 text/html https://apply.younoodle.com/showcase/competition/edges_of_possibility_2027",
+        "url": "https://apply.younoodle.com/showcase/competition/edges_of_possibility_2027",
+        "snippets": [
+          "Unearthodox's Exploration Co-Lab 2027 YouNoodle Showcase expand_content Unearthodox's Exploration Co-Lab 2027 Open calendar_today Launch Sep 15, 2026, 12:00 AM GMT+2 calendar_to",
+          "27 YouNoodle Showcase expand_content Unearthodox's Exploration Co-Lab 2027 Open calendar_today Launch Sep 15, 2026, 12:00 AM GMT+2 calendar_today Deadline Nov 16, 2026, 11:59 PM GMT+1 Apply now share article Progra",
+          "arthodox's Exploration Co-Lab 2027 Open calendar_today Launch Sep 15, 2026, 12:00 AM GMT+2 calendar_today Deadline Nov 16, 2026, 11:59 PM GMT+1 Apply now share article Program details Are you working on today's nat",
+          "pen calendar_today Launch Sep 15, 2026, 12:00 AM GMT+2 calendar_today Deadline Nov 16, 2026, 11:59 PM GMT+1 Apply now share article Program details Are you working on today's nature-society challenges, while reimaginin",
+          "y Launch Sep 15, 2026, 12:00 AM GMT+2 calendar_today Deadline Nov 16, 2026, 11:59 PM GMT+1 Apply now share article Program details Are you working on today's nature-society challenges, while reimagining the systems",
+          ", 12:00 AM GMT+2 calendar_today Deadline Nov 16, 2026, 11:59 PM GMT+1 Apply now share article Program details Are you working on today's nature-society challenges, while reimagining the systems that caused them? The Exp",
+          " this level of depth and possibility, we would love to hear from you. Applications are open from 15 September to 16 November 2026. What to expect This is a space that supports people navigating complexity, embracing their idea",
+          "hear from you. Applications are open from 15 September to 16 November 2026. What to expect This is a space that supports people navigating complexity, embracing their ideas for renewing humanity's relationship with"
+        ]
+      }
+    },
+    "UNESCO SCRS Research Continuity Grants for Africa 2026": {
+      "source": {
+        "response": "200 text/html; charset=utf-8 https://www.unesco.org/en/articles/call-applications-science-crisis-response-and-solutions-research-continuity-grants-africa",
+        "url": "https://www.unesco.org/en/articles/call-applications-science-crisis-response-and-solutions-research-continuity-grants-africa",
+        "snippets": [
+          "r crisis response and solutions research continuity grants for Africa Deadline: 15 November 2026 First pilot call under UNESCO’s Science for Crisis Response and Solutions (SCRS) Programme. © Dragon Images/Shutterstocks",
+          "solutions research continuity grants for Africa Deadline: 15 November 2026 First pilot call under UNESCO’s Science for Crisis Response and Solutions (SCRS) Programme. © Dragon Images/Shutterstocks.com 5 October 202",
+          "lutions (SCRS) Programme. © Dragon Images/Shutterstocks.com 5 October 2026 Last update: 13 October 2026 Summary Who can apply? What can the grant support? How to apply? Apply now More information Applications are n",
+          "ragon Images/Shutterstocks.com 5 October 2026 Last update: 13 October 2026 Summary Who can apply? What can the grant support? How to apply? Apply now More information Applications are now open for the SCRS Research",
+          "2026 Summary Who can apply? What can the grant support? How to apply? Apply now More information Applications are now open for the SCRS Research Continuity Grants for Africa, a new small-grants initiative supporting the",
+          " What can the grant support? How to apply? Apply now More information Applications are now open for the SCRS Research Continuity Grants for Africa, a new small-grants initiative supporting the continuity of natural-science res",
+          "confirm that the same costs are not being funded from another source. Applications are welcome from all African countries meeting the crisis criteria. Women scientists, researchers under 40, and researchers from least develope",
+          "ties. Submit the application online using the application form below. Apply now Application deadline: 15 November 2026, 23:59 Paris time. In English In French Call for Applications_SCRS Research Continuity Grants for Af"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://forms.cloud.microsoft/pages/responsepage.aspx?id=Uq5PHbM5-kuwswIpVrERlHW37JkE9FhGtSeaOfqLz29UQ0kzV1IyTTVQUFRQSUNWSjFZUkdSMkxLUi4u&route=shorturl",
+        "url": "https://forms.cloud.microsoft/e/ZPZXMxni9A",
+        "snippets": []
+      }
+    },
+    "WomenStrong Francophone West Africa Grants 2026": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.womenstrong.org/news-resources/funding-for-francophone-west-africa-call-for-expressions-of-interest-now-open/",
+        "url": "https://www.womenstrong.org/news-resources/funding-for-francophone-west-africa-call-for-expressions-of-interest-now-open/",
+        "snippets": [
+          "ne West Africa: Call for Expressions of Interest Now Open! October 6, 2026 Share LinkedIn X Facebook Copy Link Copied [Disponible En Français ] WomenStrong International is delighted to announce a new funding oppor",
+          "ional’s open call for expressions of interest closes on December 1st, 2026. Click here to apply Information Session WomenStrong will hold a virtual Q&A for all who are interested in applying for this funding. The c",
+          "ed in applying for this funding. The call will be held on November 2, 2026, at 10 EST, 3pm WAT . French and English interpretation will be available. Please register here to attend: https://womenstrong.zoom.us/meet"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://www.surveymonkey.com/r/7V6TNYL",
+        "url": "https://www.surveymonkey.com/r/7V6TNYL",
+        "snippets": [
+          "n the form. WomenStrong DOES NOT use AI to assess grant applications. Deadline for submission: December 1st, 2026 If you have any problems or questions completing this form please contact: nwalston@womenstrong.org Orga",
+          " to assess grant applications. Deadline for submission: December 1st, 2026 If you have any problems or questions completing this form please contact: nwalston@womenstrong.org Organization Overview and Contact Infor"
+        ]
+      }
+    },
+    "Lacuna timeline": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+        "url": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+        "snippets": [
+          "es Through the Utilization of Lacuna Fund’s Open Datasets Application Deadline: November 13, 2026 description Training and Scaling Machine Learning Models for the Global South Implementing Partner African Centre for Te",
+          "ion of Lacuna Fund’s Open Datasets Application Deadline: November 13, 2026 description Training and Scaling Machine Learning Models for the Global South Implementing Partner African Centre for Technology Studies (A",
+          "hnology Studies (ACTS) Funder Wellcome Trust RFP Opens 14th September 2026 Submission Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months)",
+          "(ACTS) Funder Wellcome Trust RFP Opens 14th September 2026 Submission Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants",
+          "rust RFP Opens 14th September 2026 Submission Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and res",
+          "ssion Deadline 13 th November 2026 Awards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and research teams in Global South LMICs Availa",
+          "wards Announced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and research teams in Global South LMICs Available Funding Up to USD 30,000 (three ",
+          "nced By end of November2026 Implementation Period December 2026 – May 2027 (six months) Eligible Applicants Researchers and research teams in Global South LMICs Available Funding Up to USD 30,000 (three awards of u"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; charset=utf-8 https://ai4dafrica.submittable.com/submit",
+        "url": "https://ai4dafrica.submittable.com/submit",
+        "snippets": []
+      }
+    },
+    "Cities timeline": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+        "url": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+        "snippets": [
+          "urces Have questions about the Cities Deliver call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions s",
+          " call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions section. Apply Now Nearly half of the worl",
+          "uestions are now available in the Frequently Asked Questions section. Apply Now Nearly half of the world’s population lives in cities. Public services shape those residents’ everyday lives. They affect whether they can ",
+          " FAQs Have questions about the Cities Deliver call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions s",
+          " call for proposals? The deadline to submit questions was October 31, 2026. Updated FAQs addressing applicant questions are now available in the Frequently Asked Questions section. Apply Now Focus Areas We are seek",
+          "uestions are now available in the Frequently Asked Questions section. Apply Now Focus Areas We are seeking proposals that improve access to and quality of public services in vulnerable or underserved communities in the ",
+          "cludes projects related to voting or elections. Two tracks of funding Applications are accepted in two tracks: Seed $500,000 to < $1 million For: Early concepts ready for a first city pilot Supports: Refining the idea with cit",
+          "onvening to share experiences and lessons and to showcase their work. Apply Now Application Process and Timeline The overall process and timeline as follows: October 14, 2026 – Call for proposals goes live. November 29,"
+        ]
+      },
+      "application": {
+        "response": "200 text/html; Charset=UTF-8 https://citiesdeliver.rockefellerfoundation.org/default.asp?login=true",
+        "url": "https://citiesdeliver.rockefellerfoundation.org/default.asp?login=true",
+        "snippets": [
+          "ny additional questions to citiesdeliver@rockfound.org by October 31, 2026 11:59pm Eastern Time (ET). We will update the FAQs based on your questions by November 4, 2026 by 8:00pm ET. The first steps in the process",
+          " (ET). We will update the FAQs based on your questions by November 4, 2026 by 8:00pm ET. The first steps in the process are due at 11:59pm ET on November 29, 2026 , including eligibility screening, Round 1 Proposal",
+          " The first steps in the process are due at 11:59pm ET on November 29, 2026 , including eligibility screening, Round 1 Proposal and a short video. Create an account Cities Deliver is managed by RF Catalytic Capital ",
+          "ister Forgot Password? Key Dates Call for Proposals Open: October 14, 2026 Call for Proposals Close: November 29, 2026 Resources Overview and FAQs FAQs Updated Nov 2026 Terms and Conditions Screening and Round 1 Pr",
+          "oposals Open: October 14, 2026 Call for Proposals Close: November 29, 2026 Resources Overview and FAQs FAQs Updated Nov 2026 Terms and Conditions Screening and Round 1 Proposal Questions Letter of Intent Contact Us",
+          "Close: November 29, 2026 Resources Overview and FAQs FAQs Updated Nov 2026 Terms and Conditions Screening and Round 1 Proposal Questions Letter of Intent Contact Us Email: citiesdeliver@rockfound.org Copyright 2026",
+          "ter of Intent Contact Us Email: citiesdeliver@rockfound.org Copyright 2026 The Rockefeller Foundation All rights reserved. Set Profile Picture Reset Password You can reset your password here. Please enter your emai"
+        ]
+      }
+    },
+    "MQA": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+        "url": "https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+        "snippets": [
+          "Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships – MQA Skip to content MQA 011 547 2600 info@mqa.org.za MIS Portal WSP-ATR Portal Lea",
+          "Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships – MQA Skip to content MQA 011 547 2600 info@mqa.org.za MIS Portal WSP-ATR Portal Learner ",
+          "Gallery Contact Us Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships Adverts Anywhere Posted on October 26, 2026 The Mining Qualifications Authority (MQA",
+          "ry Contact Us Call for Applications for MQA Discretionary Grants 2026-2027 Financial Year: Special Projects and Partnerships Adverts Anywhere Posted on October 26, 2026 The Mining Qualifications Authority (MQA) is ",
+          "cial Projects and Partnerships Adverts Anywhere Posted on October 26, 2026 The Mining Qualifications Authority (MQA) is a Sector Education and Training Authority (SETA) for the mining and minerals sector in terms o",
+          " window for Discretionary Grants allocations, for the period 01 April 2026 to 31 March 2027 , will open on Monday, 26 October 2026 at 08H00 . Eligible stakeholders are invited to submit applications for the followi",
+          "etionary Grants allocations, for the period 01 April 2026 to 31 March 2027 , will open on Monday, 26 October 2026 at 08H00 . Eligible stakeholders are invited to submit applications for the following programme: Spe",
+          "riod 01 April 2026 to 31 March 2027 , will open on Monday, 26 October 2026 at 08H00 . Eligible stakeholders are invited to submit applications for the following programme: Special Projects and Partnerships Stakehol"
+        ]
+      }
+    },
+    "IKI Small": {
+      "source": {
+        "response": "200 text/html; charset=UTF-8 https://iki-small-grants.de/funding/",
+        "url": "https://iki-small-grants.de/funding/",
+        "snippets": [
+          "o make an impact? Apply for the 8th International Call for Proposals! Apply Now Get Information IKI Small Grants is a global funding and capacity development programme that supports impactful local and regional initiati",
+          "he 8th IKI Small Grants ‘Call for Proposals’ will open on 15 November 2026 and the application period will be closed on 8 January 2027. The thematic focus of this call for proposals is Nature-based Solutions (NbS) ",
+          " November 2026 and the application period will be closed on 8 January 2027. The thematic focus of this call for proposals is Nature-based Solutions (NbS) . NbS refers to an integrated approach that the Internationa",
+          " and confirms eligibility to the eligible organisations by 2 February 2027. Only organisations that qualified eligible are invited to submit their project proposals with details of the project idea and budget. Proj",
+          "t idea and budget. Project proposals have to be submitted by 16 March 2027 and must meet the criteria outlined in the Funding Information below. Organisations will be informed of the results as soon as possible. Do",
+          " soon as possible. Documents: Funding Information Funding Information 2027 Call 8 Application Guidelines Application Guidelines 2027 Call 8 Revenue Template Revenue Template 2027 Call 8 Funding criteria Project dur",
+          "Information 2027 Call 8 Application Guidelines Application Guidelines 2027 Call 8 Revenue Template Revenue Template 2027 Call 8 Funding criteria Project duration The duration of the projects covers a minimum of twe",
+          " Application Guidelines 2027 Call 8 Revenue Template Revenue Template 2027 Call 8 Funding criteria Project duration The duration of the projects covers a minimum of twelve months and a maximum of two years. In exce"
+        ]
+      }
+    }
+  },
+  "material_changes": [
+    {
+      "programme": "Microsoft AI Economy Institute Cohort 4",
+      "previous_deadline": "November 30, 2026 (6:00 PM Pacific)",
+      "current_deadline": "December 31, 2026 (6:00 PM Pacific)",
+      "deadline_at": "2027-01-01T02:00:00Z",
+      "timezone": "America/Los_Angeles",
+      "source": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "evidence": "Official timeline explicitly publishes updated deadline. Official-linked portal returned HTTP 200 and presents programme information, sign-in and sign-up. No conflicting portal cutoff found."
+    }
+  ],
+  "held_or_excluded": [
+    {
+      "programme": "Draper Richards Kaplan Foundation",
+      "sources": [
+        "https://www.drkfoundation.org/apply/",
+        "https://www.drkfoundation.org/apply/faq/"
+      ],
+      "reason": "Rolling Africa-eligible intake but funding may be either unrestricted grant or investment capital, instrument determined later. Not verified as a pure non-repayable grant."
+    },
+    {
+      "programme": "Africa No Filter Kekere Storytellers Fund",
+      "source": "https://africanofilter.org/what-we-do/community/kekere-storytellers-fund/",
+      "reason": "Generic end-of-year or 12–14 selections wording; current cycle and remaining capacity unverified. No invented December 31 deadline."
+    },
+    {
+      "programme": "Royal Society of Chemistry Researcher Development and Travel Grant",
+      "source": "https://www.rsc.org/funding-and-support/funding/researcher-development-and-travel-grant",
+      "reason": "Official page currently closed; next opens 7 December 2026, closes 25 January 2027 at 14:00 GMT. Not added as accepting."
+    },
+    {
+      "programme": "Mohamed bin Zayed Species Conservation Fund",
+      "source": "https://www.speciesconservation.org/grants/",
+      "reason": "Official page HTTP 403; not independently verified."
+    }
+  ],
+  "access_failures": [
+    "Enabel, Global EbA, British Council Green and Digital, and JIF application portals HTTP 403; remain unconfirmed.",
+    "Pulitzer source HTTP 403; a live portal alone does not establish verified intake."
+  ],
+  "known_issue": "IKI hourly parser may misread future conditional platform closure. Current official call and portal rechecked; audited open restored. Verified links and deadlines retained.",
+  "unreviewed_actionable_records_in_snapshot": [],
+  "discovery_health": [
+    {
+      "discovered_count": 33,
+      "feed_pages": 13,
+      "imported_count": 1,
+      "started_at": "2026-11-18 06:17:03.098205+00",
+      "status": "success"
+    },
+    {
+      "discovered_count": 33,
+      "feed_pages": 13,
+      "imported_count": 2,
+      "started_at": "2026-11-18 00:17:03.026127+00",
+      "status": "success"
+    }
+  ],
+  "production_read_back": [
+    {
+      "application_status": "closed",
+      "application_url": "https://cega.submittable.com/submit",
+      "audited": true,
+      "deadline": "November 15, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "a234b0e1-6b23-55db-b974-600f7ac163fc",
+      "registered": true,
+      "source_url": "https://cega.berkeley.edu/article/2026-research-grant-competition-request-for-proposals-2/",
+      "status": "published",
+      "title": "2026 CEGA Global Networks Research Grant Competition",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest/eligibility",
+      "audited": true,
+      "deadline": "Application deadline: Friday, December 11, 2026 at 11:59 pm ET",
+      "deadline_at": "2026-12-12 04:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "id": "8da19996-ac7d-5137-8465-61eed913fc0d",
+      "registered": true,
+      "source_url": "https://interledger.org/grant/innovation/financial-services/",
+      "status": "published",
+      "title": "2027 Digital Financial Services Grant - Expression of Interest",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://ai4dafrica.submittable.com/submit",
+      "audited": true,
+      "deadline": "November 13, 2026, 21:00 UTC (application portal)",
+      "deadline_at": "2026-11-13 21:00:00+00",
+      "deadline_timezone": "Etc/UTC",
+      "id": "db07e149-e483-58d0-8b74-e93f7d42fa08",
+      "registered": true,
+      "source_url": "https://acts-net.org/opportunities/advancing-sdg-outcomes-through-the-utilization-of-lacuna-funds-open-datasets/",
+      "status": "published",
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://procontract.due-north.com/Advert?advertId=68178893-7fd3-f111-8142-6045bdf14b1f&p=7344c2cd-e625-e711-80df-005056b64545",
+      "audited": true,
+      "deadline": "09 December 2026, 14:00 (CET)",
+      "deadline_at": "2026-12-09 13:00:00+00",
+      "deadline_timezone": "Europe/Brussels",
+      "id": "7d496b51-81e6-550c-84c2-4e545a76ae77",
+      "registered": true,
+      "source_url": "https://www.ecmwf.int/en/about/grants/arcx-grants",
+      "status": "published",
+      "title": "ArcX Regional Centres of Excellence on Climate Change Resilience",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://cieif.org/guidelines-for-grant-applicants/",
+      "audited": true,
+      "deadline": "December 1, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "b9575e01-5a7c-590d-854e-9ad4f3fa6c18",
+      "registered": true,
+      "source_url": "https://cieif.org/guidelines-for-grant-applicants/",
+      "status": "published",
+      "title": "CIEIF Climate Intervention Environmental Impact Grants, Sixth Round",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://citiesdeliver.rockefellerfoundation.org/",
+      "audited": true,
+      "deadline": "11:59pm ET on November 29, 2026",
+      "deadline_at": "2026-11-30 04:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "id": "c41254c0-de07-5722-bc25-36e2bcfeeabc",
+      "registered": true,
+      "source_url": "https://www.rockefellerfoundation.org/cities-deliver-ai-solutions-for-public-services/",
+      "status": "published",
+      "title": "Cities Deliver: AI Solutions for Public Services",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "unknown",
+      "application_url": "https://www.surveymonkey.com/r/BCIRoundII",
+      "audited": true,
+      "deadline": "Funder page: Friday 11 December 2026, 23:59 GMT (UTC+0). Application form: 11th December 2026 Midnight GMT (UTC+0).",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "50c06f49-93e4-5cae-ae29-0ed8639b4af1",
+      "registered": true,
+      "source_url": "https://thecommonwealth.org/commonwealth-blue-charter-incubator-round-2",
+      "status": "published",
+      "title": "Commonwealth Blue Charter Incubator Round II",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://www.grantinterface.com/Home/Logon?urlkey=gma",
+      "audited": true,
+      "deadline": "December 22",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "2a74be84-40da-5895-b229-e51d4833bfe4",
+      "registered": true,
+      "source_url": "https://cfhfoundation.grantsmanagement08.com/?page_id=6",
+      "status": "published",
+      "title": "Conservation, Food & Health Foundation Concept Grants, Fall 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "audited": true,
+      "deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "deadline_at": "2026-11-09 23:59:00+00",
+      "deadline_timezone": "Etc/GMT",
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "registered": true,
+      "source_url": "https://creatives.swarovskifoundation.org/",
+      "status": "published",
+      "title": "Creatives For Our Future 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://natureforward.org/wp-content/uploads/2026/08/2027-C-M-Proposal-Application-INSTRUCTIONS-and-FORM.pdf",
+      "audited": true,
+      "deadline": "December 1, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "9a082c1a-e3ee-5e1b-91e0-32c9b83ff772",
+      "registered": true,
+      "source_url": "https://natureforward.org/crowder-messersmith-fund/",
+      "status": "published",
+      "title": "Crowder-Messersmith Conservation Fund 2027",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "unknown",
+      "application_url": "https://enabel.grantplatform.com/",
+      "audited": true,
+      "deadline": "06 December 2026 at 23:59 (Brussels time), concept notes",
+      "deadline_at": "2026-12-06 22:59:00+00",
+      "deadline_timezone": "Europe/Brussels",
+      "id": "417b243e-ba92-532c-b9b8-771ce10b3b20",
+      "registered": true,
+      "source_url": "https://www.enabel.be/grants/call-for-proposals-scaling-pathways/",
+      "status": "published",
+      "title": "Enabel Green Competences in Teacher Training Grants, BEL23004-10148",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://docs.google.com/forms/d/e/1FAIpQLSem0kc9i25IphLwxfPuUha08LPgrPJwIdw6AZVkvsN1vI-t_g/viewform?usp=publish-editor",
+      "audited": true,
+      "deadline": "8 November 2026 EST; official page conflicts: 23:00 vs midnight—submit before 23:00",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "fd2f89cd-fd79-5c56-fce0-688a3e939c96",
+      "registered": true,
+      "source_url": "https://equalityfund.ca/en/posts/journalism-fellowship",
+      "status": "published",
+      "title": "Equality Fund Journalism Fellowship (Jan–September 2027 cohort)",
+      "type": "fellowship",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "audited": true,
+      "deadline": "Application deadline 9 November 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "registered": true,
+      "source_url": "https://fbisafrica.org/small-grants/",
+      "status": "published",
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://globalgrant.hcltech.com/profile-dashboard",
+      "audited": true,
+      "deadline": "January 24, 2027 at 11:59 PM ET (New York)",
+      "deadline_at": "2027-01-25 04:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "id": "0e5d3f0b-043e-cfc1-2c6e-d51e790029f5",
+      "registered": true,
+      "source_url": "https://globalgrant.hcltech.com/",
+      "status": "published",
+      "title": "HCLTech Global Grant for Climate Action 2026–2027",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://theihs.tfaforms.net/4830976?aYCbQb3M=&u6NW89K8=701PM000018ySSX",
+      "audited": true,
+      "deadline": "December 15, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "816a569f-39b7-586b-8f3c-ecde91171de8",
+      "registered": true,
+      "source_url": "https://theihs.org/ai-and-the-workforce/",
+      "status": "published",
+      "title": "IHS AI and the Workforce Faculty Research Grant 2027",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://oap.iki-small-grants.de/",
+      "audited": true,
+      "deadline": "Eligibility check: 8 January 2027 (23:59 CET). Invited eligible organisations must submit project proposals by 16 March 2027.",
+      "deadline_at": "2027-01-08 22:59:00+00",
+      "deadline_timezone": "Europe/Berlin",
+      "id": "d39aa2a9-90dd-58be-a206-c54ba8837c0a",
+      "registered": true,
+      "source_url": "https://iki-small-grants.de/funding/",
+      "status": "published",
+      "title": "IKI Small Grants 2027, Eighth Call",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "audited": true,
+      "deadline": "Application deadline: 15 November 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "59028315-01d4-5ff6-95a3-9f8c1e9b3cf8",
+      "registered": true,
+      "source_url": "https://ilcm.global/community-grants.html",
+      "status": "published",
+      "title": "ILCM Community Impact Fund – Africa",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "audited": true,
+      "deadline": "December 31, 2026 (6:00 PM Pacific)",
+      "deadline_at": "2027-01-01 02:00:00+00",
+      "deadline_timezone": "America/Los_Angeles",
+      "id": "1a1f7ce0-afec-dc26-178e-07aa08ba01b7",
+      "registered": true,
+      "source_url": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "status": "published",
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://mqa.org.za/wp-content/uploads/2026/10/MQA_Special_Project_Partnership_Funding_Application_Fillable_Form.pdf",
+      "audited": true,
+      "deadline": "23:59 on Friday, 20 November 2026. Later applications may be accepted until 28 February 2027, subject to available funding and programme requirements.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "5791d305-fcf2-5eb3-b681-9a0b59aa502a",
+      "registered": true,
+      "source_url": "https://mqa.org.za/job/call-for-applications-for-mqa-discretionary-grants-2026-2027-financial-year-special-projects-and-partnerships/",
+      "status": "published",
+      "title": "MQA Special Projects and Partnerships Discretionary Grants 2026–2027",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "audited": true,
+      "deadline": "Friday, November 13, 2026, 23:59 hrs GMT",
+      "deadline_at": "2026-11-13 23:59:00+00",
+      "deadline_timezone": "Etc/GMT",
+      "id": "d62522fc-a404-587a-870b-a484dce0ccf5",
+      "registered": true,
+      "source_url": "https://oilwatch.africa/en/news/small-grants-programme-2026",
+      "status": "published",
+      "title": "Oilwatch Small Grants Programme 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://forms.gle/J7516hMhnE2akkrNA",
+      "audited": true,
+      "deadline": "November 27, 2026, 11:59 pm UTC",
+      "deadline_at": "2026-11-27 23:59:00+00",
+      "deadline_timezone": "Etc/UTC",
+      "id": "af59ebaa-40ae-5758-9bf2-209db30825a6",
+      "registered": true,
+      "source_url": "https://www.peoplepowered.org/climate-democracy-accelerator",
+      "status": "published",
+      "title": "People Powered Climate Democracy Accelerator Implementation Grant",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "unknown",
+      "application_url": "https://thepollinationproject.smapply.us/prog/daily_grants_program",
+      "audited": true,
+      "deadline": "November 30, 2026 at 11:59 p.m. (funder says US Eastern, official portal says Pacific); reopens January 1, 2027.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "d7960b3d-4a6e-5403-879d-381f7feac18f",
+      "registered": true,
+      "source_url": "https://thepollinationproject.org/apply/",
+      "status": "published",
+      "title": "Pollination Project Seed Grants",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "unknown",
+      "application_url": "https://pulitzercenter.tfaforms.net/5052132",
+      "audited": true,
+      "deadline": "We accept grant proposals on a rolling basis.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "128ae7f2-4f62-a47c-b49e-3bf964422707",
+      "registered": true,
+      "source_url": "https://pulitzercenter.org/grants-fellowships/opportunities-journalists/rainforest-reporting-grant",
+      "status": "published",
+      "title": "Pulitzer Center — Rainforest Reporting Grant",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://airtable.com/app1hoO0l2ZhVjEg1/pagpVsxKOoTSbdk2G/form",
+      "audited": true,
+      "deadline": "11:59 p.m. ET Oct. 22, 2026",
+      "deadline_at": "2026-10-23 03:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "id": "13fb4fb2-30f4-37c9-01ae-57ddd9aa0ea6",
+      "registered": true,
+      "source_url": "https://nationalpress.org/training/apply-2026-rare-disease-reporting-fellowship-and-grants/",
+      "status": "published",
+      "title": "Rare Disease Reporting Fellowship and Grants 2026 (up to $2,000)",
+      "type": "fellowship",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://apply.codesria.org/grants-subventions/",
+      "audited": true,
+      "deadline": "deadline for submission of applications is 16 January 2027",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "registered": true,
+      "source_url": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "status": "published",
+      "title": "Research Grants on University Ecosystems",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "rolling",
+      "application_url": "https://apply.ruffordsmallgrants.org/apply/",
+      "audited": true,
+      "deadline": "There are no deadlines; applications can be submitted at any time of year.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "3cbab021-6a99-5b96-8843-ef23a2dd929d",
+      "registered": true,
+      "source_url": "https://apply.ruffordsmallgrants.org/",
+      "status": "published",
+      "title": "Rufford Small Grants for Nature Conservation",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://grants.saveourseas.com/",
+      "audited": true,
+      "deadline": "15 NOVEMBER 2026, 18:00 CET",
+      "deadline_at": "2026-11-15 17:00:00+00",
+      "deadline_timezone": "Europe/Zurich",
+      "id": "839c580c-07fd-54e9-bb60-9be62deda65f",
+      "registered": true,
+      "source_url": "https://saveourseas.com/ocean-storytelling-photography-grant-2026/",
+      "status": "published",
+      "title": "Save Our Seas Ocean Storytelling Photography Grant 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://apply.younoodle.com/showcase/competition/edges_of_possibility_2027",
+      "audited": true,
+      "deadline": "Nov 16, 2026, 11:59 PM GMT+1",
+      "deadline_at": "2026-11-16 22:59:00+00",
+      "deadline_timezone": "Etc/GMT-1",
+      "id": "038e6332-d5e6-5f92-a47b-ece23aff1870",
+      "registered": true,
+      "source_url": "https://unearthodox.org/2026/09/open-call-edges-of-possibility-exploration-co-lab-2027/",
+      "status": "published",
+      "title": "Unearthodox Exploration Co-Lab 2027",
+      "type": "accelerator",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closed",
+      "application_url": "https://forms.cloud.microsoft/e/ZPZXMxni9A",
+      "audited": true,
+      "deadline": "15 November 2026, 23:59 Paris time (CET)",
+      "deadline_at": "2026-11-15 22:59:00+00",
+      "deadline_timezone": "Europe/Paris",
+      "id": "5f2e2f75-36f2-996e-a975-8fb3c16d5dea",
+      "registered": true,
+      "source_url": "https://www.unesco.org/en/articles/call-applications-science-crisis-response-and-solutions-research-continuity-grants-africa",
+      "status": "published",
+      "title": "UNESCO SCRS Research Continuity Grants for Africa 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://www.surveymonkey.com/r/7V6TNYL",
+      "audited": true,
+      "deadline": "December 1st, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "d4e1f342-7fdd-5090-b67f-46a368b4ccac",
+      "registered": true,
+      "source_url": "https://www.womenstrong.org/news-resources/funding-for-francophone-west-africa-call-for-expressions-of-interest-now-open/",
+      "status": "published",
+      "title": "WomenStrong Francophone West Africa Grants 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    }
+  ],
+  "local_evidence_note": "Raw temporary responses from this run deleted after preserving bounded excerpts and HTTP results because local filesystem returned ENOSPC. Repository and user files untouched."
+}

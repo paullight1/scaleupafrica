@@ -1,0 +1,757 @@
+{
+  "reviewed_on": "2026-11-18",
+  "project": "fqragjhmunphhdnmvpgs",
+  "purpose": "Expand free recurring discovery and add independently verified Africa-eligible grants.",
+  "feed_pages_before": 13,
+  "feed_pages_after": 22,
+  "distinct_publishers_before": 6,
+  "distinct_publishers_after": 11,
+  "production_runs": [
+    {
+      "discovered_count": 27,
+      "imported_count": 0,
+      "sources": [
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://opportunitydesk.org/category/grants/feed/"
+        },
+        {
+          "count": 3,
+          "error": null,
+          "ok": true,
+          "url": "https://opportunitydesk.org/category/grants/feed/?paged=2"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://opportunitydesk.org/category/grants/feed/?paged=3"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/?paged=2"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/?paged=3"
+        },
+        {
+          "count": 4,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/?paged=2"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/?paged=3"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/?paged=2"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.adaptation-fund.org/feed/"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://idrc-crdi.ca/en/rss.xml"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/?paged=3"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/?paged=4"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/?paged=4"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/?paged=4"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.youthopportunitieshub.com/feed/"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://theihs.org/feed.xml"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.enabel.be/feed/"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.nrf.ac.za/feed/"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.africanculturefund.net/en/feed/"
+        }
+      ],
+      "started_at": "2026-11-18 06:54:21.395189+00",
+      "status": "success"
+    },
+    {
+      "discovered_count": 28,
+      "imported_count": 1,
+      "sources": [
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://opportunitydesk.org/category/grants/feed/"
+        },
+        {
+          "count": 3,
+          "error": null,
+          "ok": true,
+          "url": "https://opportunitydesk.org/category/grants/feed/?paged=2"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://opportunitydesk.org/category/grants/feed/?paged=3"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/?paged=2"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/?paged=3"
+        },
+        {
+          "count": 4,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/?paged=2"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/?paged=3"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/?paged=2"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.adaptation-fund.org/feed/"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://idrc-crdi.ca/en/rss.xml"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/?paged=3"
+        },
+        {
+          "count": 2,
+          "error": null,
+          "ok": true,
+          "url": "https://www2.fundsforngos.org/feed/?paged=4"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.opportunitiesforafricans.com/feed/?paged=4"
+        },
+        {
+          "count": 1,
+          "error": null,
+          "ok": true,
+          "url": "https://www.terravivagrants.org/feed/?paged=4"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.youthopportunitieshub.com/feed/"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://theihs.org/feed.xml"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.enabel.be/feed/"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.nrf.ac.za/feed/"
+        },
+        {
+          "count": 0,
+          "error": null,
+          "ok": true,
+          "url": "https://www.africanculturefund.net/en/feed/"
+        }
+      ],
+      "started_at": "2026-11-18 06:52:25.75393+00",
+      "status": "success"
+    }
+  ],
+  "source_probes": [
+    {
+      "index": 0,
+      "url": "https://opportunitiesforyouth.org/feed/",
+      "response": "403 https://opportunitiesforyouth.org/feed/",
+      "error": "",
+      "rss": false,
+      "items": 0,
+      "path": "/tmp/cresciva-expand-feed-0.xml"
+    },
+    {
+      "index": 1,
+      "url": "https://www.youthop.com/feed",
+      "response": "404 https://www.youthop.com/feed",
+      "error": "",
+      "rss": false,
+      "items": 0,
+      "path": "/tmp/cresciva-expand-feed-1.xml"
+    },
+    {
+      "index": 2,
+      "url": "https://www.youthopportunitieshub.com/feed/",
+      "response": "200 https://www.youthopportunitieshub.com/feed/",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-2.xml"
+    },
+    {
+      "index": 3,
+      "url": "https://opportunitydesk.org/category/grants/feed/?paged=4",
+      "response": "200 https://opportunitydesk.org/category/grants/feed/?paged=4",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-3.xml"
+    },
+    {
+      "index": 4,
+      "url": "https://www2.fundsforngos.org/feed/?paged=3",
+      "response": "200 https://www2.fundsforngos.org/feed/?paged=3",
+      "error": "",
+      "rss": true,
+      "items": 25,
+      "path": "/tmp/cresciva-expand-feed-4.xml"
+    },
+    {
+      "index": 5,
+      "url": "https://codesria.org/feed/",
+      "response": "302 https://codesria.org/feed/",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-5.xml"
+    },
+    {
+      "index": 6,
+      "url": "https://theihs.org/feed/",
+      "response": "301 https://theihs.org/feed/",
+      "error": "",
+      "rss": false,
+      "items": 0,
+      "path": "/tmp/cresciva-expand-feed-6.xml"
+    },
+    {
+      "index": 7,
+      "url": "https://www.enabel.be/feed/",
+      "response": "200 https://www.enabel.be/feed/",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-7.xml"
+    },
+    {
+      "index": 8,
+      "url": "https://www.uaf-africa.org/feed/",
+      "response": "200 https://www.uaf-africa.org/feed/",
+      "error": "",
+      "rss": true,
+      "items": 1,
+      "path": "/tmp/cresciva-expand-feed-8.xml"
+    },
+    {
+      "index": 9,
+      "url": "https://www.nrf.ac.za/feed/",
+      "response": "200 https://www.nrf.ac.za/feed/",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-9.xml"
+    },
+    {
+      "index": 10,
+      "url": "https://www.africanculturefund.net/en/feed/",
+      "response": "200 https://www.africanculturefund.net/en/feed/",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-10.xml"
+    },
+    {
+      "index": 11,
+      "url": "https://www.advance-africa.com/Grants-for-NGOs.xml",
+      "response": "404 https://www.advance-africa.com/Grants-for-NGOs.xml",
+      "error": "",
+      "rss": false,
+      "items": 0,
+      "path": "/tmp/cresciva-expand-feed-11.xml"
+    },
+    {
+      "index": 12,
+      "url": "https://opportunitiesforafricans.com/feed/",
+      "response": "301 https://opportunitiesforafricans.com/feed/",
+      "error": "",
+      "rss": false,
+      "items": 0,
+      "path": "/tmp/cresciva-expand-feed-12.xml"
+    },
+    {
+      "index": 13,
+      "url": "https://www.opportunitiesforafricans.com/feed/?paged=4",
+      "response": "200 https://www.opportunitiesforafricans.com/feed/?paged=4",
+      "error": "",
+      "rss": true,
+      "items": 10,
+      "path": "/tmp/cresciva-expand-feed-13.xml"
+    }
+  ],
+  "excluded_feeds": {
+    "CODESRIA": "RSS intermittently redirects HTTP 302 to homepage; retained on manual search watchlist, not added to importer.",
+    "Urgent Action Fund Africa RSS": "Only 2023 Hello world item; programme pages researched directly.",
+    "Opportunities for Youth": "HTTP 403",
+    "Youthop": "HTTP 404",
+    "Advance Africa guessed XML path": "HTTP 404",
+    "Opportunity Desk fourth page": "All current items older than 45-day retention."
+  },
+  "global_search_groups": [
+    "Africa climate and individual microgrants",
+    "International visual artist grant intake",
+    "Human rights defender protection grants",
+    "African women-led protection funding",
+    "Official rolling grant exclusions: Roddenberry and conflicting UAF Rapid Response/Advocacy amounts"
+  ],
+  "new_grants": [
+    {
+      "title": "Awesome Foundation Conservation and Climate Microgrant, November 2026",
+      "source": "https://www.awesomefoundation.org/en/chapters/conservationandclimate",
+      "app": "https://www.awesomefoundation.org/en/submissions/new?chapter=conservationandclimate",
+      "deadline": "November 27, 2026",
+      "state": "open",
+      "funder": "Awesome Foundation — Conservation and Climate Chapter",
+      "amount": "US$1,000",
+      "cycle": "November 2026 review",
+      "eligibility": "Individuals and small teams worldwide, including African applicants, with innovative nature-conservation or climate projects close to implementation. Applicants must be able to receive funds through PayPal, Wise or Venmo. Apply in English. Personal expenses, marketing, salaries, running costs, established projects, travel, political and religious projects are excluded. Previous grantees must wait 12 months.",
+      "summary": "A non-repayable microgrant for original conservation and climate ideas where US$1,000 can enable a practical project. Use the worldwide Conservation and Climate chapter rather than a geographically restricted local chapter.",
+      "notes": "The official worldwide chapter invites applications, lists November 27, 2026 as the next review deadline, and links a live chapter-specific form. No closing time or timezone is published. Later listed review deadlines are not extensions. The official FAQ confirms grants are not loans or investments.",
+      "id": "e850c8de-a2af-5221-8974-e9ab1ad36544",
+      "new": true,
+      "type": "grant",
+      "at": null,
+      "tz": null,
+      "http": 200
+    },
+    {
+      "title": "Pollock-Krasner Foundation Grants for Visual Artists",
+      "source": "https://www.pkf.org/how-to-apply/",
+      "app": "https://bbgm-apply.yourcausegrants.com/apply/programs/afa38443-4f9b-41de-9d80-b14f36899241",
+      "deadline": "None (rolling application)",
+      "deadline_status": "rolling",
+      "state": "rolling",
+      "funder": "Pollock-Krasner Foundation",
+      "amount": "Up to US$50,000; most grants around US$35,000",
+      "cycle": "Rolling artist grants",
+      "eligibility": "Professional visual artists worldwide, including eligible African applicants, primarily working in painting, sculpture or works on paper/printmaking. Minimum 10 professional exhibitions in the past 10 years; active exhibition history and recent work required. Academic study, most students, primarily photography/video/performance/commercial art/craft and AI-generated work are excluded. Applicants from sanctioned countries must contact the funder before applying. Applications in English; reapplication waiting periods apply.",
+      "summary": "Unrestricted one-year support for professional visual artists. Apply online with a cover letter, statement, CV, 10 recent artwork images and three professional references. Review normally takes 9–12 months; this is not an emergency grant.",
+      "notes": "Official guidelines explicitly accept year-round applications and artists worldwide. The official-linked Blackbaud/YourCause programme route returned HTTP 200; real browser rendering reached the loaded Applicant Portal sign-in and Create account controls. No account or application was created.",
+      "id": "ad0850e4-8493-5e7e-bb36-268e2ed9a08f",
+      "new": true,
+      "type": "grant",
+      "at": null,
+      "tz": null,
+      "http": 200
+    },
+    {
+      "title": "Front Line Defenders Protection Grants",
+      "source": "https://www.frontlinedefenders.org/en/programme/protection-grants",
+      "app": "https://www.frontlinedefenders.org/secure/grant.php?l=EN",
+      "deadline": "No application deadline published; the official secure form currently accepts protection-grant applications.",
+      "deadline_status": "unknown",
+      "state": "open",
+      "funder": "Front Line Defenders",
+      "amount": "Up to €7,500; generally not 100% of the budget",
+      "cycle": "Current protection grants",
+      "eligibility": "Human rights defenders at risk and their organisations, including African applicants listed in the country selector. Support must address specific risks linked to peaceful human-rights work: physical/digital security, legal or medical costs, or certain family assistance. Not general project funding. Excludes international organisations, retrospective or duplicate funding, defenders already in exile, office running costs, vehicles, armed guards and general living costs. Reporting and receipts required.",
+      "summary": "Rapid practical support for the protection of human rights defenders facing threats because of their work. Use the official encrypted application form and specify safe contact details. Grant conditions require unused or ineligible funds to be returned.",
+      "notes": "The official programme explicitly invites secure applications and its live form states that users can submit a Protection Grant application online. Nigeria, Kenya, Ghana and other African countries are available in the official selector. No deadline is published; do not classify this as rolling merely from a missing deadline.",
+      "id": "a065ef75-82ac-57dc-be15-a8a323c64a25",
+      "new": true,
+      "type": "grant",
+      "at": null,
+      "tz": null,
+      "http": 200
+    },
+    {
+      "title": "Urgent Action Fund-Africa Protection Grants",
+      "source": "https://www.uaf-africa.org/protection-grant-application-form/",
+      "app": "https://www.uaf-africa.org/protection-grant-application-form/",
+      "deadline": "We provide grants throughout the year and have no funding cycle. You can submit your application as soon as an urgent situation requires it.",
+      "deadline_status": "rolling",
+      "state": "rolling",
+      "funder": "Urgent Action Fund-Africa",
+      "amount": "US$5,000 ceiling for Defending the Defenders grants, as listed in the official FAQ",
+      "cycle": "Ongoing protection grants",
+      "eligibility": "Women-led, women-centric organisations or collectives based in Africa, with at least 70% women-identifying membership and women in decision-making roles. Informal groups may apply using a registered fiscal sponsor. Individual support must be through an organisation; no transfers to individual bank accounts. Interventions must be strategic, unanticipated, time-urgent, sustainable and supported, and address activists’ safety/security/wellbeing. Organisations outside Africa implementing African projects are ineligible.",
+      "summary": "Protection support for African women human-rights defenders and their organisations, movements or collectives. Apply using the official protection form; downloadable forms may also be sent to proposals@uaf-africa.org. Ordinary planned activities and routine running costs are not supported.",
+      "notes": "The official apply page links this live protection form; the official FAQ explicitly confirms year-round intake, Africa eligibility, sponsorship rules and the Defending the Defenders ceiling. This record is solely the Protection route. Rapid Response and Advocacy routes are excluded because their separate form ceilings conflict with the FAQ.",
+      "evidence": "https://www.uaf-africa.org/faqs/",
+      "id": "ffc92532-e1c9-5cdb-821d-36e3fde610bb",
+      "new": true,
+      "type": "grant",
+      "at": null,
+      "tz": null,
+      "http": 200
+    }
+  ],
+  "official_source_evidence": [
+    {
+      "url": "https://www.awesomefoundation.org/en/chapters/conservationandclimate",
+      "response": "200 text/html; charset=utf-8 https://www.awesomefoundation.org/en/chapters/conservationandclimate",
+      "error": "",
+      "bytes": 68369,
+      "sha256": "ca1fbfc4266ea0cf79c159d45ea343bb86c5554ffde27c6f433a93a532e092c8",
+      "excerpts": [
+        " meet the criteria. Deadlines: September 25, 2026 November 27, 2026 January 29, 2027 March 26, 2027 May 28, 2027 July 30, 2027 September 24, 2027 November 26, 2027 If You Are Chosen: -Winners will be emailed within 3 business days of our grant decisi",
+        " a year from now). -Applicants must have, or be able to get, a PayPal, Wise, or Venmo account to receive funds if they win a micro grant. What We Don't Fund: Personal expenses, marketing, salaries, operational expenses, established projects, travel e",
+        " win a micro grant. What We Don't Fund: Personal expenses, marketing, salaries, operational expenses, established projects, travel expenses, things having to do with politics or religion. Please submit your application in English (Google Translate is"
+      ]
+    },
+    {
+      "url": "https://www.awesomefoundation.org/en/submissions/new?chapter=conservationandclimate",
+      "response": "200 text/html; charset=utf-8 https://www.awesomefoundation.org/en/submissions/new?chapter=conservationandclimate",
+      "error": "",
+      "bytes": 59274,
+      "sha256": "ed5b36d09a58417defcd0a890498d646e0e83e456491c227c9a76d058bb25e2e",
+      "excerpts": [
+        "mail Phone number * Project title Project website * Tell us about your awesome project! You have 2000 chars left * How will you use the money? You have 500 chars left * Tell us a little about yourself You have 500 chars left Upload images of your pro",
+        "e Project website * Tell us about your awesome project! You have 2000 chars left * How will you use the money? You have 500 chars left * Tell us a little about yourself You have 500 chars left Upload images of your project Upload up to 5 images that "
+      ]
+    },
+    {
+      "url": "https://www.pkf.org/how-to-apply/",
+      "response": "200 text/html; charset=UTF-8 https://www.pkf.org/how-to-apply/",
+      "error": "",
+      "bytes": 190732,
+      "sha256": "7059875d7d9e7ece86eefc4d0916896e9fa56bb93f16e0df964907bc4af81c16",
+      "excerpts": [
+        "sue their practice. Applications are accepted year-round on a rolling basis. Please read all sections carefully before applying. Who Should Apply You can apply if you: Are a professional visual artist Work primarily in: Painting Sculpture Works on pa",
+        " countries to date. Artists throughout the world are encouraged to apply. Please be aware that the US Department of Treasury maintains a sanctioned country list. If you are a citizen or resident of any country on the sanctioned list, it is important ",
+        "ast 10 years Have a minimum of 10 exhibitions within the past 10 years at professional galleries, museums, or recognized exhibition spaces Important : Professional exhibition and award history are taken into consideration. Who Is Not Eligible We do n"
+      ]
+    },
+    {
+      "url": "https://bbgm-apply.yourcausegrants.com/apply/programs/afa38443-4f9b-41de-9d80-b14f36899241",
+      "response": "200 text/html; charset=utf-8 https://bbgm-apply.yourcausegrants.com/apply/programs/afa38443-4f9b-41de-9d80-b14f36899241",
+      "error": "",
+      "bytes": 5241,
+      "sha256": "61ce8a84c36a3609dc262f7b196f17662c71d42f838e50681eb832f5185bd39f"
+    },
+    {
+      "url": "https://www.frontlinedefenders.org/en/programme/protection-grants",
+      "response": "200 text/html; charset=utf-8 https://www.frontlinedefenders.org/en/programme/protection-grants",
+      "error": "",
+      "bytes": 36289,
+      "sha256": "a597168ecb0695d2fbf1d65daf1640c3bc54f6fc237740fa57d29c03a3bfe14a",
+      "excerpts": [
+        "a HRD's activities. Grants are for amounts up to a maximum of €7,500. Click Here to Submit a Secure Application Front Line Defenders does not provide funding for: Retrospective funding; International organisations; Organisations that have applied or ",
+        " maximum of €7,500. Click Here to Submit a Secure Application Front Line Defenders does not provide funding for: Retrospective funding; International organisations; Organisations that have applied or are already receiving funding for the same purpose",
+        "ront Line Defenders does not provide funding for: Retrospective funding; International organisations; Organisations that have applied or are already receiving funding for the same purpose elsewhere; Projects which focus on broader human rights issues"
+      ]
+    },
+    {
+      "url": "https://www.frontlinedefenders.org/secure/grant.php?l=EN",
+      "response": "200 text/html; charset=UTF-8 https://www.frontlinedefenders.org/secure/grant.php?l=EN",
+      "error": "",
+      "bytes": 24712,
+      "sha256": "b34aa77ffc4b167260e69f774b33f6d35e3d8407ac34a6859963218eae140e2b",
+      "excerpts": [
+        "nt Application Form You can submit your Protection Grant application online. Just answer the questions below in the box provided. When you have answered all the questions press submit and the application will be sent directly to Front Line Defenders.",
+        "union / collective: Country *: Select... Afghanistan Åland Islands Albania Algeria American Samoa Andorra Angola Anguilla Antarctica Antigua and Barbuda Argentina Armenia Aruba Australia Austria Azerbaijan Bahamas Bahrain Bangladesh Barbados Belarus "
+      ]
+    },
+    {
+      "url": "https://www.uaf-africa.org/apply-for-a-grant/",
+      "response": "200 text/html; charset=UTF-8 https://www.uaf-africa.org/apply-for-a-grant/",
+      "error": "",
+      "bytes": 59974,
+      "sha256": "a109f8fca1aa3a701c38f22e13c6250a1d5565254db1fe8948782ed23848cbdb",
+      "excerpts": [
+        "hin 6 to 12 months. Protection grant application form: Complete this form if you are seeking support for your safety, security and wellbeing. This may also include but not limited to strengthening the safety and security of your staff, movement, or o",
+        "Downloadable Forms [Send Completed Forms to proposals@uaf-africa.org] Rapid Response Grant Forms View English Swahilli Arabic Portuguese French Protection Grant Forms View English Swahili Arabic Portuguese French Advocacy and Alliance Building Grant "
+      ]
+    },
+    {
+      "url": "https://www.uaf-africa.org/faqs/",
+      "response": "200 text/html; charset=UTF-8 https://www.uaf-africa.org/faqs/",
+      "error": "",
+      "bytes": 72179,
+      "sha256": "fc41d0cb31d0341ab7516a3d4b8597b0189dfa7f441c2013c50b927d2642fff1",
+      "excerpts": [
+        "als@UAF-Africa.org. When can we submit an application for funding? We provide grants throughout the year and have no funding cycle. You can submit your application as soon as an urgent situation requires it. What are the criteria for funding? We are ",
+        "cation for funding? We provide grants throughout the year and have no funding cycle. You can submit your application as soon as an urgent situation requires it. What are the criteria for funding? We are only able to support interventions that are a) ",
+        "rants- 12,000USD b. Defending the Defenders Grants- 5,000USD c. Advocacy and Alliance Building Grants- 20,000USD We applied and did not get the full amount we requested for, why is this? We review the budget and do our own due diligence concerning th",
+        "bers of your group (at least 70%) identify as women and the organisation/collective must be women-led with women holding decision making positions. What are your focus countries? We fund women’s right organizations across the African continent. In wh",
+        "o apply? No, you do not need to be a legally registered organisation or collective in order to apply. We accept and encourage applications from non-registered collectives or groups. We fund both informal and formal organisations. For non-registered g",
+        "ur focus countries? We fund women’s right organizations across the African continent. In what language can we submit our application? We review applications in the 5 African Union Official Languages; English, Swahili, French, Portuguese and Arabic. O"
+      ]
+    },
+    {
+      "url": "https://www.uaf-africa.org/protection-grant-application-form/",
+      "response": "200 text/html; charset=UTF-8 https://www.uaf-africa.org/protection-grant-application-form/",
+      "error": "",
+      "bytes": 97653,
+      "sha256": "087e728b493be4fb00d711c760e403b180a12f0774001ae7ab47f9653739655b",
+      "excerpts": [
+        "Protection Grant Application Form - UAF Make a Donation For donation inquiries, please contact us at finance@UAF-Africa.org . Your support makes a difference! Close x Close Close Home Who We Are Supporters and Funders Actions Sust",
+        "l Address * Phone * Amount Of Request * Full Amount in Words * Detailed Budget * Next 2/4 Protection Grant Application Form THE URGENT ACTION Please state your area of activism. How long have you been active in this area? * Provide a detailed descrip",
+        "om whom? * Previous Submit Δ Urgent Action Fund Africa 2nd Floor, Riara Corporate Suites Riara Road, Kilimani Nairobi, Kenya. +254 726 577 560 | +254 732 577 560 info@uaf-africa.org Sustaining Defenders Feminist Knowledge Leadership Fostering Culture"
+      ]
+    }
+  ],
+  "browser_evidence": {
+    "programme": "Pollock-Krasner Foundation",
+    "official_linked_url": "https://bbgm-apply.yourcausegrants.com/apply/programs/afa38443-4f9b-41de-9d80-b14f36899241",
+    "observed_url": "https://bbgm-apply.yourcausegrants.com/apply/auth/signin",
+    "observed_content": [
+      "Applicant Portal",
+      "Enter your email address to sign in",
+      "Email address",
+      "Create account",
+      "Sign in",
+      "Loaded"
+    ],
+    "note": "Actual browser JavaScript rendering; no credentials entered, account created or application submitted."
+  },
+  "excluded_calls": [
+    {
+      "programme": "Roddenberry Catalyst Fund",
+      "source": "https://apply.roddenberryfoundation.org/app/main/faqs",
+      "reason": "Official FAQ explicitly says no programmes are open for proposals."
+    },
+    {
+      "programme": "UAF-Africa Rapid Response and Advocacy",
+      "sources": [
+        "https://www.uaf-africa.org/faqs/",
+        "https://www.uaf-africa.org/rapid-response-grant-application-form/",
+        "https://www.uaf-africa.org/advocacy-and-alliance-building-grant-application/"
+      ],
+      "reason": "FAQ/form amounts conflict (12k/15k Rapid Response and 20k/30k Advocacy). Not added or misapplied to separate Protection programme."
+    }
+  ],
+  "production_read_back": [
+    {
+      "application_status": "open",
+      "application_url": "https://www.awesomefoundation.org/en/submissions/new?chapter=conservationandclimate",
+      "audited": true,
+      "deadline": "November 27, 2026",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "e850c8de-a2af-5221-8974-e9ab1ad36544",
+      "registered": true,
+      "source_url": "https://www.awesomefoundation.org/en/chapters/conservationandclimate",
+      "status": "published",
+      "title": "Awesome Foundation Conservation and Climate Microgrant, November 2026",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://www.frontlinedefenders.org/secure/grant.php?l=EN",
+      "audited": true,
+      "deadline": "No application deadline published; the official secure form currently accepts protection-grant applications.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "a065ef75-82ac-57dc-be15-a8a323c64a25",
+      "registered": true,
+      "source_url": "https://www.frontlinedefenders.org/en/programme/protection-grants",
+      "status": "published",
+      "title": "Front Line Defenders Protection Grants",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "rolling",
+      "application_url": "https://bbgm-apply.yourcausegrants.com/apply/programs/afa38443-4f9b-41de-9d80-b14f36899241",
+      "audited": true,
+      "deadline": "None (rolling application)",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "ad0850e4-8493-5e7e-bb36-268e2ed9a08f",
+      "registered": true,
+      "source_url": "https://www.pkf.org/how-to-apply/",
+      "status": "published",
+      "title": "Pollock-Krasner Foundation Grants for Visual Artists",
+      "type": "grant",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "rolling",
+      "application_url": "https://www.uaf-africa.org/protection-grant-application-form/",
+      "audited": true,
+      "deadline": "We provide grants throughout the year and have no funding cycle. You can submit your application as soon as an urgent situation requires it.",
+      "deadline_at": null,
+      "deadline_timezone": null,
+      "id": "ffc92532-e1c9-5cdb-821d-36e3fde610bb",
+      "registered": true,
+      "source_url": "https://www.uaf-africa.org/protection-grant-application-form/",
+      "status": "published",
+      "title": "Urgent Action Fund-Africa Protection Grants",
+      "type": "grant",
+      "verification_status": "verified"
+    }
+  ],
+  "preserved_editorial_rows": [
+    {
+      "application_url": "https://citiesdeliver.rockefellerfoundation.org/",
+      "deadline": "11:59pm ET on November 29, 2026",
+      "deadline_at": "2026-11-30 04:59:00+00",
+      "deadline_timezone": "America/New_York",
+      "title": "Cities Deliver: AI Solutions for Public Services"
+    },
+    {
+      "application_url": "https://ai4dafrica.submittable.com/submit",
+      "deadline": "November 13, 2026, 21:00 UTC (application portal)",
+      "deadline_at": "2026-11-13 21:00:00+00",
+      "deadline_timezone": "Etc/UTC",
+      "title": "Advancing SDG Outcomes Through the Utilization of Lacuna Fund's Open Datasets"
+    }
+  ],
+  "cron_health": [
+    {
+      "active": true,
+      "jobname": "cresciva-free-grant-discovery",
+      "schedule": "17 */6 * * *"
+    },
+    {
+      "active": true,
+      "jobname": "cresciva-free-official-grant-checks",
+      "schedule": "23 * * * *"
+    }
+  ],
+  "automation": {
+    "id": "find-and-verify-global-grants",
+    "status": "ACTIVE",
+    "schedule": "Daily 07:30 Africa/Lagos",
+    "notification_policy": "failed_runs_only preserved",
+    "guide": "docs/FUNDING_GLOBAL_SEARCH.md",
+    "target": "Screen up to 20, verify up to 12 if access/allowances permit; no publication quota."
+  },
+  "validation": {
+    "focused_tests": "32 passed using existing cached Vitest, 12 discovery + 20 official verification parser tests",
+    "typecheck": "Shared discovery parser passed tsc ES2022, DOM and DOM.Iterable",
+    "deployed_function": "grant-discovery, Supabase project fqragjhmunphhdnmvpgs",
+    "idempotency": "Repeat 22-page live run imported zero records",
+    "editorial_preservation": "Lacuna application URL and Cities Deliver deadline/application URL unchanged from today initial snapshot"
+  },
+  "cost": "Only public sources and existing connected search/Supabase/Codex tools. No paid API, subscription, extraction service or Lovable engine invoked."
+}

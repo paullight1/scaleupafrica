@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 /**
- * Profile / directory contracts. The write schema (ProfileUpsertSchema) ports the
- * form schema in src/lib/validation/profile.ts and is `.strict()` so a client can
- * never smuggle `user_id`, `status`, `featured`, `view_count`, or `slug` into an
- * upsert (FOUNDATION §8.3, plan 07 §7.2). Pure zod.
+ * Profile / directory contracts. Public directory responses intentionally exclude
+ * private Funding Intelligence fields. The strict owner write contract accepts
+ * only member-editable values; enrichment provenance stamps remain server-owned.
  */
 
-/**
- * Normalize + validate a web address. Prepends `https://` when scheme-less; rejects
- * anything that isn't http/https (blocks `javascript:`, `data:`…). Mirrors src/lib/url.ts.
- */
+export const BUSINESS_STAGE_VALUES = ["idea", "early", "growth", "scale"] as const;
+export const APPLICATION_READINESS_VALUES = ["exploring", "preparing", "ready"] as const;
+export const ACQUISITION_SOURCE_VALUES = ["linkedin", "whatsapp", "founders_webinar", "instagram", "facebook", "other"] as const;
+export type AcquisitionSource = (typeof ACQUISITION_SOURCE_VALUES)[number];
+
 export function sanitizeWebUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const t = raw.trim();
@@ -39,6 +39,9 @@ const webUrl = (max: number, msg: string) =>
     .refine((v) => !v || sanitizeWebUrl(v) !== null, msg)
     .transform((v) => (v ? sanitizeWebUrl(v) ?? undefined : undefined));
 
+export const OfferingSchema = z.object({ name: z.string().trim().min(1, "Add a name").max(120), description: optStr(500), url: webUrl(500, "Enter a valid product or service link") }).strict();
+export type Offering = z.infer<typeof OfferingSchema>;
+
 export const ProfileUpsertSchema = z
   .object({
     business_name: z
@@ -51,6 +54,8 @@ export const ProfileUpsertSchema = z
     sector: z.string().trim().min(1, "Choose a sector"),
     short_description: optStr(180),
     long_description: optStr(2000),
+    target_customers: optStr(1000),
+    offerings: z.array(OfferingSchema).max(10, "Add up to 10 products or services").default([]),
     website: webUrl(255, "Enter a valid web address like https://example.com"),
     email: z
       .string()
@@ -74,11 +79,31 @@ export const ProfileUpsertSchema = z
       .transform((arr) =>
         Array.from(new Set(arr.map((k) => k.trim().toLowerCase()).filter(Boolean))),
       ),
+    business_stage: z.enum(BUSINESS_STAGE_VALUES).nullable().optional(),
+    funding_target_usd: z.number().positive().max(1_000_000_000).nullable().optional(),
+    preferred_funding_types: z
+      .array(z.string().trim().min(1).max(60))
+      .max(7)
+      .default([])
+      .transform((arr) =>
+        Array.from(new Set(arr.map((v) => v.trim().toLowerCase()).filter(Boolean))),
+      ),
+    application_readiness: z.enum(APPLICATION_READINESS_VALUES).nullable().optional(),
+    organisation_type: optStr(80),
+    operating_countries: z
+      .array(z.string().trim().min(1).max(120))
+      .max(30)
+      .default([])
+      .transform((arr) => Array.from(new Set(arr.map((v) => v.trim()).filter(Boolean)))),
+    founding_year: z.number().int().min(1800).max(2100).nullable().optional(),
+    acquisition_source: z.enum(ACQUISITION_SOURCE_VALUES).nullable().optional(),
+    acquisition_source_other: optStr(160),
     show_email: z.boolean().default(true),
     show_phone: z.boolean().default(true),
     show_whatsapp: z.boolean().default(true),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => { if (value.acquisition_source === "other" && !value.acquisition_source_other) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["acquisition_source_other"], message: "Tell us where you heard about Cresciva" }); });
 
 export type ProfileUpsertInput = z.infer<typeof ProfileUpsertSchema>;
 
@@ -92,7 +117,6 @@ export const ProfileListQuerySchema = z.object({
 });
 export type ProfileListQuery = z.infer<typeof ProfileListQuerySchema>;
 
-/** Card subset the Directory grid needs (excludes long_description + contact). */
 export interface ProfileCard {
   id: string;
   slug: string;
@@ -106,7 +130,7 @@ export interface ProfileCard {
   created_at: string;
 }
 
-/** Full public profile (get-by-slug). Contact fields honor show_* flags. */
+/** Public directory profile. Funding targeting/readiness/provenance is private. */
 export interface ProfileDetail {
   id: string;
   slug: string;
@@ -118,6 +142,8 @@ export interface ProfileDetail {
   sector: string;
   short_description: string | null;
   long_description: string | null;
+  target_customers: string | null;
+  offerings: Offering[];
   website: string | null;
   instagram: string | null;
   linkedin: string | null;
@@ -136,5 +162,19 @@ export interface ProfileDetail {
   updated_at: string;
 }
 
-/** Own profile (full row incl. contact + flags). */
-export type OwnProfile = ProfileDetail & { user_id: string };
+export interface PrivateFundingProfileFields {
+  business_stage: (typeof BUSINESS_STAGE_VALUES)[number] | null;
+  funding_target_usd: number | null;
+  preferred_funding_types: string[];
+  application_readiness: (typeof APPLICATION_READINESS_VALUES)[number] | null;
+  organisation_type: string | null;
+  operating_countries: string[];
+  founding_year: number | null;
+  business_identity_confirmed_at: string | null;
+  business_identity_source_urls: string[];
+  business_identity_run_id: string | null;
+  business_identity_candidate_id: string | null;
+}
+
+/** Owner-only response. */
+export type OwnProfile = ProfileDetail & PrivateFundingProfileFields & { user_id: string; acquisition_source: AcquisitionSource | null; acquisition_source_other: string | null };

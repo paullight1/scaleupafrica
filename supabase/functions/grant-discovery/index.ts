@@ -21,6 +21,8 @@ Deno.serve(async (request) => {
   }
   const { data: run, error: runError } = await service.from('grant_discovery_runs').insert({}).select('id').single();
   if (runError || !run) return reply({ error: 'Could not start import' }, 503);
+  let importedCount = 0;
+  let discoveredCount = 0;
   try {
     const outcomes = await Promise.all(GRANT_FEEDS.map(async (source) => {
       try {
@@ -55,16 +57,22 @@ Deno.serve(async (request) => {
     }));
     const rows = [...new Map(outcomes.flatMap(o => o.rows).map(row => [row.url, row])).values()];
     const successCount = outcomes.filter(o => o.ok).length;
-    const { data: imported, error: importError } = successCount ? await service.rpc('import_grant_discoveries', { _rows: rows }) : { data: 0, error: null };
-    if (importError) throw new Error('database_import_failed');
+    discoveredCount = rows.length;
+    // The insert-only RPC accepts at most 300 candidates per transaction.
+    // If a later batch fails, the next run can safely retry the earlier ones.
+    for (let offset = 0; offset < rows.length; offset += 300) {
+      const { data, error } = await service.rpc('import_grant_discoveries', { _rows: rows.slice(offset, offset + 300) });
+      if (error) throw new Error('database_import_failed');
+      importedCount += data ?? 0;
+    }
     const status = successCount === 0 ? 'failed' : successCount === outcomes.length ? 'success' : 'partial';
     const sources = outcomes.map(({ rows: _rows, ...outcome }) => outcome);
-    const { error: finishError } = await service.from('grant_discovery_runs').update({ status, finished_at: new Date().toISOString(), imported_count: imported ?? 0, discovered_count: rows.length, sources }).eq('id', run.id);
+    const { error: finishError } = await service.from('grant_discovery_runs').update({ status, finished_at: new Date().toISOString(), imported_count: importedCount, discovered_count: discoveredCount, sources }).eq('id', run.id);
     if (finishError) throw new Error('run_update_failed');
-    console.log(JSON.stringify({ event: 'grant_discovery_finished', run_id: run.id, status, imported: imported ?? 0, discovered: rows.length }));
-    return reply({ run_id: run.id, status, imported: imported ?? 0, discovered: rows.length, sources }, successCount ? 200 : 502);
+    console.log(JSON.stringify({ event: 'grant_discovery_finished', run_id: run.id, status, imported: importedCount, discovered: discoveredCount }));
+    return reply({ run_id: run.id, status, imported: importedCount, discovered: discoveredCount, sources }, successCount ? 200 : 502);
   } catch {
-    await service.from('grant_discovery_runs').update({ status: 'failed', finished_at: new Date().toISOString() }).eq('id', run.id);
+    await service.from('grant_discovery_runs').update({ status: 'failed', finished_at: new Date().toISOString(), imported_count: importedCount, discovered_count: discoveredCount }).eq('id', run.id);
     return reply({ error: 'Grant import failed', run_id: run.id }, 500);
   }
 });
