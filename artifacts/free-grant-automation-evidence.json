@@ -1,0 +1,37 @@
+{
+  "verified_on": "2026-11-06",
+  "discovery": {
+    "cron": "cresciva-free-grant-discovery",
+    "interval_hours": 6,
+    "feed_pages": 9,
+    "first_live_run_status": "success",
+    "first_live_run_discovered": 26,
+    "first_live_run_imported": 12
+  },
+  "maintenance": {
+    "cron": "cresciva-free-official-grant-checks",
+    "schedule_utc": "23 * * * *",
+    "batch_max": 8,
+    "concurrency_max": 4,
+    "function": "free-grant-maintenance",
+    "live_batches_http_status": 200,
+    "maintained_records": 18,
+    "first_party_records_queued": 2,
+    "unauthenticated_http_status": 401,
+    "paid_extraction_calls": 0
+  },
+  "global_research": {
+    "automation_id": "find-and-verify-global-grants",
+    "status": "ACTIVE",
+    "schedule": "Daily 07:30 Africa/Lagos",
+    "requires": "Codex app/machine available and existing account allowance",
+    "paid_data_api_subscriptions_added": 0
+  },
+  "tests": {
+    "focused_passed": 36,
+    "sql_maintenance_regression": "passed, fixtures rolled back",
+    "sql_first_party_queue_regression": "passed, fixtures rolled back",
+    "frontend_typecheck": "passed",
+    "new_security_advisor_findings": 0
+  }
+}

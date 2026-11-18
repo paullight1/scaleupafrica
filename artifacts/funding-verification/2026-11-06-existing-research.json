@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.0",
+  "researched_at": "2026-11-06",
+  "scope": "Research-only verification of four existing imported Cresciva opportunities; no database writes were made.",
+  "method": "Official funder/project pages and application links were checked. Publisher listings were used only to locate the primary source links.",
+  "opportunities": [
+    {
+      "listing_url": "https://opportunitydesk.org/2026/10/28/british-council-green-digital-employability-and-enterprise-programme-2027/",
+      "canonical_title": "Green and Digital Employability and Enterprise programme",
+      "listing_title": "British Council Green & Digital Employability and Enterprise Programme 2027 (£150,000 grant)",
+      "official_funder": "British Council",
+      "official_source_title": "Green and Digital Employability and Enterprise programme",
+      "official_source_url": "https://opportunities-insight.britishcouncil.org/short-articles/opportunities/green-and-digital-employability-and-enterprise-programme",
+      "official_parent_url": "https://www.britishcouncil.org/education/he-science/opportunities/going-global-partnerships",
+      "application_url": "https://goingglobalpartnerships.grantplatform.com/",
+      "supporting_official_links": {
+        "call_guidance": "https://opportunities-insight.britishcouncil.org/download/data/50506/22925",
+        "grant_agreement_template": "https://opportunities-insight.britishcouncil.org/download/data/50506/22924"
+      },
+      "type": "Grant",
+      "application_state_as_of_2026_11_06": "open",
+      "deadline": {
+        "date": "2026-11-17",
+        "time_as_published": "11:00 a.m.",
+        "timezone_as_published": "UK time",
+        "deadline_at": null,
+        "time_note": "The official opportunity page says 'UK time' rather than a fixed UTC offset; preserve that wording.",
+        "deadline_status_as_of": "open"
+      },
+      "amount": "One grant of £150,000",
+      "grant_period": "21 months, starting December 2026",
+      "sector": [
+        "Education and TVET",
+        "Employability and workforce development",
+        "Green economy and sustainability",
+        "Digital skills and enterprise"
+      ],
+      "geography": [
+        "United Kingdom",
+        "South Africa"
+      ],
+      "entity_eligibility": "The applicant must be a UK higher-education institution or UK TVET/further-education institution acting as UK Lead Partner. The consortium must include one South African TVET college, one South African university (one designated South African lead), and one or more relevant South African industry partners. Only the UK lead institution can start and submit the online application.",
+      "programme_focus": "A practical pilot for at least 50 current South African TVET and university students, combining green/digital skills, entrepreneurship, industry exposure, education-industry partnerships and institutional embedding; the call is not for a broad research, mapping or scoping exercise.",
+      "evidence_paraphrase": "The British Council page identifies one £150,000 grant, a 21-month pilot beginning December 2026, a UK–South Africa tertiary/TVET/industry consortium, a minimum cohort of 50 South African students, and a 17 November 2026 11:00 a.m. UK-time submission deadline.",
+      "verbatim_quotes": [],
+      "verification_notes": [
+        "The official British Council Opportunities & Insight URL is the primary source linked from the publisher listing and the official British Council Going Global Partnerships page.",
+        "The web fetcher returned 403 for the Opportunities & Insight page, but a direct HTTP retrieval of that same official URL on 2026-11-06 returned the page and its current call details. Treat the URL as authoritative but retain this access limitation.",
+        "The application portal is a JavaScript Good Grants page; its public shell was reachable, but the opportunity list requires JavaScript."
+      ],
+      "status_recommendation": "open"
+    },
+    {
+      "listing_url": "https://opportunitydesk.org/2026/10/27/codesria-research-grants-on-university-ecosystems-2027/",
+      "canonical_title": "Research Grants on University Ecosystems",
+      "official_funder": "Council for the Development of Social Science Research in Africa (CODESRIA), with funding support from the Andrew Carnegie Foundation",
+      "official_source_title": "Call for Proposals: Research Grants on University Ecosystems – CODESRIA",
+      "official_source_url": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "application_url": "https://apply.codesria.org/grants-subventions/",
+      "type": "Grant",
+      "application_state_as_of_2026_11_06": "open",
+      "deadline": {
+        "date": "2027-01-16",
+        "time_as_published": null,
+        "timezone_as_published": null,
+        "deadline_at": null,
+        "time_note": "The official call gives the date only and says late applications will not be considered; no time or timezone is stated.",
+        "deadline_status_as_of": "open"
+      },
+      "amount": "USD 5,000–15,000 draft budget range; the official call does not state a separate award amount or cap",
+      "grant_period": "15 months of support for selected fellows",
+      "sector": [
+        "Higher-education research",
+        "Social sciences and humanities",
+        "Gender and university associational life",
+        "Academic and intellectual freedom"
+      ],
+      "geography": [
+        "Africa"
+      ],
+      "entity_eligibility": "Applicants must be affiliated with a recognized African higher-education or research institution. African scholars in the diaspora may apply with colleagues from an African-based institution. Individual and collaborative proposals are eligible; collaborative teams should have 3–5 members. Applicants with outstanding or pending deliverables from current or prior CODESRIA-funded projects are not encouraged to apply.",
+      "programme_focus": "Crosscutting interdisciplinary research on higher education, gender, academic freedom and quality associational life in African universities, with publishable research/policy outputs and engagement activities.",
+      "evidence_paraphrase": "CODESRIA's current call, dated 23 October 2026, names African university/research-institution affiliation as the core eligibility requirement, gives a USD 5,000–15,000 draft-budget range, links to the CODESRIA application system, and sets 16 January 2027 as the late-submission cutoff.",
+      "verbatim_quotes": [],
+      "verification_notes": [
+        "The official application link redirects to the CODESRIA Applications System login/sign-up page, confirming the application route.",
+        "No official closing time or timezone could be confirmed because the call states only 16 January 2027."
+      ],
+      "status_recommendation": "open"
+    },
+    {
+      "listing_url": "https://www.terravivagrants.org/freshwater-biodiversity-information-system-for-africa-small-grants/",
+      "canonical_title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "official_funder": "Freshwater Research Centre (FBIS-Africa project), supported by the JRS Biodiversity Foundation and the GBIF Biodiversity Information for Development (BID) programme",
+      "official_source_title": "FBIS Africa | Call for Applications",
+      "official_source_url": "https://fbisafrica.org/small-grants/",
+      "application_url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "application_submission": "Complete the linked application form and submit it with the Project Leader's CV by email to nazley@frcsa.org.za, using the subject 'FBIS-Africa small grant application submission'.",
+      "type": "Grant",
+      "application_state_as_of_2026_11_06": "open",
+      "deadline": {
+        "date": "2026-11-09",
+        "time_as_published": null,
+        "timezone_as_published": null,
+        "deadline_at": null,
+        "time_note": "The official call gives 9 November 2026 but no closing time or timezone.",
+        "deadline_status_as_of": "closing_soon"
+      },
+      "amount": "USD 5,000–10,000",
+      "grant_period": "January–June 2027 (6 months)",
+      "sector": [
+        "Freshwater biodiversity",
+        "Biodiversity data mobilisation",
+        "Conservation and GBIF data publication"
+      ],
+      "geography": [
+        "Africa"
+      ],
+      "entity_eligibility": "African freshwater-biodiversity data holders, including universities, research institutions, museums/natural-history collections, government agencies, NGOs, freshwater-biodiversity programmes, and individual researchers/data custodians working through eligible host institutions.",
+      "data_eligibility": "Proposed records must be African freshwater occurrence data not already published to GBIF, include at least taxon name, sampling date and spatial coordinates, have clear ownership/custodianship and publication permission, and be mobilisable during January–June 2027. Eligible groups are freshwater fishes, amphibians, molluscs, crustaceans, Odonata, Ephemeroptera, Plecoptera, Trichoptera and Megaloptera.",
+      "evidence_paraphrase": "The FBIS-Africa call identifies the Freshwater Research Centre as project lead and names JRS Biodiversity Foundation and GBIF BID support; it states USD 5,000–10,000 grants, a January–June 2027 period, the 9 November 2026 deadline, eligible African data-holder entities and the required unpublished freshwater occurrence-data conditions.",
+      "verbatim_quotes": [],
+      "verification_notes": [
+        "The official FBIS application form is a DOCX; the web fetcher could not render that content type, but the official call page links it and provides the submission email and deadline.",
+        "The FBIS Africa About page identifies the Freshwater Research Centre and the JRS Biodiversity Foundation's four-year grant supporting the platform."
+      ],
+      "status_recommendation": "open"
+    },
+    {
+      "listing_url": "https://www.opportunitiesforafricans.com/the-equality-fund-journalism-fellowship-2027-for-journalists-from-the-global-south/",
+      "canonical_title": "Equality Fund Journalism Fellowship (Jan–September 2027 cohort)",
+      "listing_title": "The Equality Fund Journalism Fellowship 2027 for Journalists from the Global South",
+      "official_funder": "Equality Fund, in partnership with Canadian Journalists for Free Expression (CJFE) and African Women in Media (AWiM)",
+      "official_source_title": "Equality Fund launches inaugural Equality Fund Journalism Fellowship",
+      "official_source_url": "https://equalityfund.ca/en/posts/journalism-fellowship",
+      "official_application_guidelines_url": "https://equalityfund.ca/en/posts/application-journalism-fellowship",
+      "application_url": "https://docs.google.com/forms/d/e/1FAIpQLSem0kc9i25IphLwxfPuUha08LPgrPJwIdw6AZVkvsN1vI-t_g/viewform?usp=publish-editor",
+      "type": "Fellowship",
+      "type_correction": "Correct the imported Grant classification to Fellowship: the official Equality Fund pages describe an individual journalism fellowship with a stipend, cohort programming and reporting expenses, not an organisational grant call.",
+      "application_state_as_of_2026_11_06": "open",
+      "deadline": {
+        "date": "2026-11-08",
+        "timezone_as_published": "Eastern Standard Time (EST)",
+        "time_as_published_conflicting": [
+          "11:00 p.m. EST (introductory sentence)",
+          "midnight EST (closing-date line)"
+        ],
+        "deadline_at": null,
+        "time_note": "The official application-guidelines page conflicts with itself on the closing time. A single exact deadline cannot be confirmed; to avoid a late submission, treat 11:00 p.m. EST on 8 November 2026 as the conservative cutoff.",
+        "deadline_status_as_of": "closing_soon"
+      },
+      "amount": "CAD 4,000 stipend plus up to CAD 500 in reporting expenses; travel for the in-person convening is covered",
+      "programme_period": "Six months of programming January–June 2027, with an additional three months to finish reporting/publication (through September 2027); up to five fellows",
+      "sector": [
+        "Journalism and media",
+        "Fact-based reporting",
+        "Gender-focused local solutions to global crises"
+      ],
+      "geography": [
+        "ODA-recipient countries / Global South"
+      ],
+      "entity_eligibility": "Individual working journalists (full-time or independent freelance), not organisations. The official application guidelines require at least three years of journalism experience, residence in and reporting on communities in ODA-recipient countries, three strong journalism samples, English fluency, ability to attend meetings during Eastern Standard Time daytime, and a bank account able to receive international wire transfers. The programme page welcomes women, men and LGBTQI+ people and any text, digital, video or audio platform.",
+      "programme_focus": "Each fellow develops and publishes at least one reported story about local solutions to a global crisis, with a focus on gender, while retaining editorial independence.",
+      "evidence_paraphrase": "Equality Fund's official announcement describes a 2027 programme for up to five journalists in ODA-eligible countries with a CAD 4,000 stipend and up to CAD 500 reporting expenses. Its official application-guidelines page links the Google Form and sets 8 November 2026 as the closing date, but uses both 11 p.m. and midnight EST wording.",
+      "verbatim_quotes": [],
+      "verification_notes": [
+        "The official Google Form link returned HTTP 401 to automated fetches; it is nevertheless the form linked by the official Equality Fund application-guidelines page.",
+        "The official application-guidelines page title says 2026, while the official programme announcement says the cohort/programme runs in early 2027; preserve the 2026 application / 2027 cohort distinction rather than relabelling it as an unqualified 2027 call."
+      ],
+      "status_recommendation": "open"
+    }
+  ]
+}

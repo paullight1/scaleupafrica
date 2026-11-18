@@ -1,0 +1,22 @@
+.git
+.worktrees
+node_modules
+**/node_modules
+**/dist
+**/dist-ssr
+**/.env.local
+**/.env.*.local
+.env
+supabase/.env
+supabase/.temp
+Backend/.env
+output
+artifacts
+.playwright-cli
+.labx
+.mcp.json
+**/*-preview.html
+**/*-preview.tsx
+# Legacy lowercase contracts coexist in Git; active workspaces use Shared/.
+shared
+server

@@ -243,4 +243,5 @@ Production uses the `resource-link-preview` Edge Function. Deploy that function 
 Funding Radar now has a standalone free RSS importer and a six-hour Supabase scheduler.
 Listings appear in members' Explore view with publisher links and unverified status.
 See [FUNDING_DISCOVERY.md](docs/FUNDING_DISCOVERY.md) for sources, operations,
-production verification and the current public-hosting blocker.
+production verification and the Dokploy migration. See [DOKPLOY.md](docs/DOKPLOY.md)
+for deployment and the Squarespace DNS cutover.

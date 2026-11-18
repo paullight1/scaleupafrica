@@ -121,7 +121,9 @@ export function OpportunityCard({
   const resolvedDeadlineStatus = o.deadline_status ?? deadlineStatus ?? "unknown";
   const resolvedDeadlineAt = o.deadline_at ?? deadlineAt ?? null;
   const resolvedApplicationUrl = o.application_url ?? applicationUrl ?? null;
-  const confirmedDeadline = resolvedDeadlineStatus === "confirmed" && resolvedDeadlineAt ? formatDate(resolvedDeadlineAt) : "";
+  const confirmedDeadline = resolvedDeadlineStatus === "confirmed"
+    ? o.deadline.trim() || (resolvedDeadlineAt ? formatDate(resolvedDeadlineAt) : "")
+    : "";
   const canApplyNow = Boolean(primaryApplyEligible && resolvedApplicationUrl && resolvedVerification === "verified" && eligibilityStatus === "eligible" && (resolvedStatus === "open" || resolvedStatus === "closing_soon" || resolvedStatus === "rolling"));
 
   const handleToggle = () => {

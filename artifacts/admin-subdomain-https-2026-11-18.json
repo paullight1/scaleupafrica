@@ -1,0 +1,102 @@
+{
+  "checked_on": "2026-11-18",
+  "hostname": "admin.crescivacapital.com",
+  "root_cause": "DNS pointed to existing VPS, but no matching Dokploy domain or Traefik router existed; proxy returned HTTP 404 and its default self-signed TLS certificate.",
+  "fix": {
+    "application_id": "vraMK32zfqRYsVT5CvdtH",
+    "domain_id": "acc1be11-b8f1-5a33-bfe7-b910998ab85f",
+    "unique_config_key": 27,
+    "port": 80,
+    "path": "/",
+    "https": true,
+    "certificate": "letsencrypt",
+    "persisted_in_dokploy": true,
+    "existing_routes_preserved": true,
+    "proxy_restart": false,
+    "application_redeploy": false,
+    "backup": "/root/cresciva-admin-domain-backup-20261118/"
+  },
+  "certificate": {
+    "subject": "admin.crescivacapital.com",
+    "issuer": "Lets Encrypt YR1",
+    "not_before_utc": "2026-11-18T06:00:19Z",
+    "not_after_utc": "2027-02-16T06:00:18Z",
+    "hostname_verified": true
+  },
+  "http_checks": [
+    {
+      "url": "http://admin.crescivacapital.com/",
+      "result": "200 https://admin.crescivacapital.com/admin/ 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://admin.crescivacapital.com/",
+      "result": "200 https://admin.crescivacapital.com/admin/ 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://admin.crescivacapital.com/admin/",
+      "result": "200 https://admin.crescivacapital.com/admin/ 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://admin.crescivacapital.com/admin/funding",
+      "result": "200 https://admin.crescivacapital.com/admin/funding 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://admin.crescivacapital.com/healthz",
+      "result": "200 https://admin.crescivacapital.com/healthz 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://www.crescivacapital.com/admin/",
+      "result": "200 https://www.crescivacapital.com/admin/ 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://www.crescivacapital.com/healthz",
+      "result": "200 https://www.crescivacapital.com/healthz 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://www.crescivacapital.com/api/v1/health",
+      "result": "200 https://www.crescivacapital.com/api/v1/health 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://admin.crescivacapital.com/admin/assets/index-ChIjtsEA.js",
+      "result": "200 https://admin.crescivacapital.com/admin/assets/index-ChIjtsEA.js 0",
+      "error": "",
+      "exit": 0
+    },
+    {
+      "url": "https://admin.crescivacapital.com/admin/assets/index-4VFCBiFy.css",
+      "result": "200 https://admin.crescivacapital.com/admin/assets/index-4VFCBiFy.css 0",
+      "error": "",
+      "exit": 0
+    }
+  ],
+  "browser_check": {
+    "url": "https://admin.crescivacapital.com/admin/",
+    "title": "Cresciva Admin",
+    "observed_heading": "Staff sign in",
+    "observed_controls": [
+      "Work email",
+      "Password",
+      "Sign in"
+    ],
+    "certificate_warning": false,
+    "credentials_entered": false
+  },
+  "nginx_test": "configuration syntax ok; test successful",
+  "services": "All observed existing Swarm services remain at 1/1 replicas."
+}

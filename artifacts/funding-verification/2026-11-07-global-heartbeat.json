@@ -1,0 +1,234 @@
+{
+  "reviewed_on": "2026-11-07",
+  "records": [
+    {
+      "title": "ILCM Community Impact Fund – Africa",
+      "source": "https://ilcm.global/community-grants.html",
+      "app": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "deadline": "15 November 2026 (closing time and timezone not published)",
+      "state": "closing_soon",
+      "id": "59028315-01d4-5ff6-95a3-9f8c1e9b3cf8",
+      "new": true,
+      "funder": "International Liver Cancer Movement",
+      "amount": "One €10,000 award or two €5,000 awards",
+      "eligibility": "Africa-based patient organisations, community organisations and grassroots advocacy groups addressing liver cancer or liver disease.",
+      "summary": "Community-led liver cancer projects. Download the application form and email it with a budget and timeline to grants@ilcm.global.",
+      "notes": "Official call explicitly accepts applications. The linked PDF returned HTTP 200. Submit the completed form by email.",
+      "scope": "pan_african"
+    },
+    {
+      "title": "Joint Innovation Facility Circularity Call",
+      "source": "https://project-spark.africa/joint-innovation-facility-circularity-call/",
+      "app": "https://jif.grantplatform.com/",
+      "deadline": "29 January 2027 pre-screening. Invited proposals due 28 February 2027 (closing times and timezones not published)",
+      "state": "unknown",
+      "id": "6067304a-85e7-5294-833a-cf879feafe91",
+      "new": true,
+      "funder": "GIZ Project SPARK and SWITCH-2-CE",
+      "amount": "€100,000–€200,000",
+      "eligibility": "Revenue-generating circular businesses in eligible African countries, operating at least three years, leading a consortium with an EU-registered for-profit partner.",
+      "summary": "Milestone-based non-dilutive funding for plastics or electronics circularity. The African lead must be registered in Ethiopia, Kenya, Malawi, Mozambique, Namibia, Rwanda, Tanzania, Uganda, South Africa or Zambia.",
+      "notes": "Current official call gives revised January and February dates. The linked Good Grants portal returned HTTP 403 to a direct fetch and a JavaScript shell to web browsing. Intake remains unconfirmed.",
+      "countries": [
+        "Ethiopia",
+        "Kenya",
+        "Malawi",
+        "Mozambique",
+        "Namibia",
+        "Rwanda",
+        "Tanzania",
+        "Uganda",
+        "South Africa",
+        "Zambia"
+      ],
+      "entity": [
+        "for_profit"
+      ],
+      "error": "application_portal_unconfirmed"
+    },
+    {
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "source": "https://www.microsoft.com/en-us/research/group/aiei/aiei-open-call-4/",
+      "app": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "deadline": "30 November 2026 at 6:00 p.m. Pacific",
+      "state": "open",
+      "id": "1a1f7ce0-afec-dc26-178e-07aa08ba01b7",
+      "new": false,
+      "funder": "Microsoft Research",
+      "amount": "US$75,000 research gift",
+      "eligibility": "Researchers worldwide affiliated with accredited universities or research institutions. Principal investigators need a PhD or equivalent terminal degree.",
+      "summary": "Research funding for work on AI and jobs. Up to two principal investigators per proposal.",
+      "notes": "Current official call provides the opening date and invites submissions. The cohort-specific linked login portal returned HTTP 200.",
+      "at": "2026-12-01T02:00:00Z",
+      "tz": "America/Los_Angeles",
+      "scope": "global",
+      "entity": [
+        "academic"
+      ],
+      "expected_updated_at": "2026-11-06 18:17:04.142629+00"
+    },
+    {
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "source": "https://fbisafrica.org/small-grants/",
+      "app": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "deadline": "9 November 2026 (closing time and timezone not published)",
+      "state": "closing_soon",
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "new": false,
+      "notes": "Funder explicitly invites African data holders. Linked DOCX returned HTTP 200. Complete the form and email it with the project leader’s CV to nazley@frcsa.org.za, subject FBIS-Africa small grant application submission.",
+      "expected_updated_at": "2026-11-07 04:23:03.057091+00"
+    },
+    {
+      "title": "Creatives For Our Future 2026",
+      "source": "https://creatives.swarovskifoundation.org/",
+      "app": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "state": "closing_soon",
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "new": false,
+      "evidence_url": "https://creatives.swarovskifoundation.org/application",
+      "at": "2026-11-09T23:59:00Z",
+      "tz": "Etc/GMT",
+      "notes": "Official application page explicitly states the intake window and links to the current CFOF 2026 form, which returned HTTP 200.",
+      "expected_updated_at": "2026-11-07 06:23:02.122173+00"
+    },
+    {
+      "title": "CODESRIA Research Grants on University Ecosystems",
+      "source": "https://codesria.org/call-for-proposals-research-grants-on-university-ecosystems/",
+      "app": "https://apply.codesria.org/grants-subventions/",
+      "deadline": "16 January 2027 (closing time and timezone not published)",
+      "state": "open",
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "new": false,
+      "notes": "Current official call solicits proposals from researchers affiliated with recognised African institutions. Official submission URL reached the CODESRIA login with HTTP 200.",
+      "expected_updated_at": "2026-11-07 06:23:03.46429+00"
+    }
+  ],
+  "excluded": [
+    {
+      "title": "Commonwealth Foundation 2026–27 open call",
+      "source": "https://grants.commonwealthfoundation.com/",
+      "reason": "Official deadline passed 26 October 2026 despite later aggregator dates."
+    },
+    {
+      "title": "WHO AFRO/TDR Impact Grants 2026–27",
+      "source": "https://www.afro.who.int/call-for-applications-joint-who-afro-tdr-impact-grants-2026-2027",
+      "reason": "Official 15 September 2026 deadline passed."
+    },
+    {
+      "title": "SAIS Livestock Investment Readiness Programme",
+      "source": "https://sais-accelerator.com/livestock-apply-now-for-2027/",
+      "reason": "Two existing discovery rows, one previously edited. The €15,000 is an assistance budget. No new grant record added."
+    }
+  ],
+  "verified_database_rows": [
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "deadline": "9 November 2026 at 11:59 p.m. GMT",
+      "deadline_at": "2026-11-09 23:59:00+00",
+      "id": "c40fb7ba-4632-5e3a-8092-d23af520f217",
+      "review_checks": 1,
+      "title": "Creatives For Our Future 2026",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "deadline": "9 November 2026 (closing time and timezone not published)",
+      "deadline_at": null,
+      "id": "b6483844-3300-aca5-a442-1df8b495f815",
+      "review_checks": 1,
+      "title": "FBIS Africa Freshwater Biodiversity Data Mobilisation Small Grants",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "closing_soon",
+      "application_url": "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "deadline": "15 November 2026 (closing time and timezone not published)",
+      "deadline_at": null,
+      "id": "59028315-01d4-5ff6-95a3-9f8c1e9b3cf8",
+      "review_checks": 1,
+      "title": "ILCM Community Impact Fund – Africa",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "unknown",
+      "application_url": "https://jif.grantplatform.com/",
+      "deadline": "29 January 2027 pre-screening. Invited proposals due 28 February 2027 (closing times and timezones not published)",
+      "deadline_at": null,
+      "id": "6067304a-85e7-5294-833a-cf879feafe91",
+      "review_checks": 1,
+      "title": "Joint Innovation Facility Circularity Call",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "deadline": "30 November 2026 at 6:00 p.m. Pacific",
+      "deadline_at": "2026-12-01 02:00:00+00",
+      "id": "1a1f7ce0-afec-dc26-178e-07aa08ba01b7",
+      "review_checks": 1,
+      "title": "Microsoft AI Economy Institute Cohort 4 research funding",
+      "verification_status": "verified"
+    },
+    {
+      "application_status": "open",
+      "application_url": "https://apply.codesria.org/grants-subventions/",
+      "deadline": "16 January 2027 (closing time and timezone not published)",
+      "deadline_at": null,
+      "id": "26a37aea-a3f6-5a0a-9b56-1f3b87c2d737",
+      "review_checks": 1,
+      "title": "Research Grants on University Ecosystems",
+      "verification_status": "verified"
+    }
+  ],
+  "application_endpoint_checks": [
+    [
+      "https://jif.grantplatform.com/",
+      "403 text/html;charset=utf-8 776 https://jif.grantplatform.com/",
+      0
+    ],
+    [
+      "https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      "200 application/pdf 175359 https://ilcm.global/files/ilcm_layout/RESOURCES/ILCM%20Grant_Google%20Form%20and%20Scoring%20Card_%20%28002%29-1%20%281%29.pdf",
+      0
+    ],
+    [
+      "https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      "200 text/html; charset=UTF-8 23594 https://webportalapp.com/sp/login/2027_msr_aiei_open_call_4_portal",
+      0
+    ],
+    [
+      "https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      "200 text/html; charset=UTF-8 118293 https://swarovskifoundation.formstack.com/forms/cfof_2026",
+      0
+    ],
+    [
+      "https://partner.equisy.io/intake-apply/Eisi4jdws2t40r11fbkxbxNA",
+      "200 text/html; charset=utf-8 2060 https://partner.equisy.io/intake-apply/Eisi4jdws2t40r11fbkxbxNA",
+      0
+    ],
+    [
+      "https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      "200 application/vnd.openxmlformats-officedocument.wordprocessingml.document 364773 https://fbisafrica.org/uploaded/ckeditor/2026/10/05/fbis_africa_small_grant_application_form_restricted.docx",
+      0
+    ],
+    [
+      "https://apply.codesria.org/grants-subventions/",
+      "200 text/html; charset=utf-8 26432 https://apply.codesria.org/auth/?next=/grants-subventions/",
+      0
+    ],
+    [
+      "https://kcp-conduit.org/apply/kcp/",
+      "200 text/html; charset=utf-8 24507 https://kcp-conduit.org/apply/kcp/",
+      0
+    ]
+  ],
+  "rechecked_active_portals": [
+    "https://submit.interledger.org/submit/369477/2027-digital-financial-services-grant-expression-of-interest",
+    "https://ai4dafrica.submittable.com/submit",
+    "https://apply.ruffordsmallgrants.org/apply/",
+    "https://thepollinationproject.smapply.us/"
+  ]
+}

@@ -20,7 +20,7 @@ BEGIN
   first_count := public.import_grant_discoveries(payload);
   IF first_count <> 1 THEN RAISE EXCEPTION 'First import should insert one row'; END IF;
   SELECT id INTO row_id FROM public.funding_opportunities WHERE url='https://opportunitydesk.org/cresciva-transaction-test/';
-  IF NOT EXISTS(SELECT 1 FROM public.funding_opportunities WHERE id=row_id AND verification_status='unverified' AND application_status='unknown' AND status='published' AND last_verified_at IS NULL) THEN
+  IF NOT EXISTS(SELECT 1 FROM public.funding_opportunities WHERE id=row_id AND verification_status='unverified' AND application_status='unknown' AND status='published' AND last_verified_at IS NULL AND source_url IS NULL) THEN
     RAISE EXCEPTION 'Discovery must not imply verification or open status';
   END IF;
   UPDATE public.funding_opportunities SET title='Staff edited title',status='draft' WHERE id=row_id;

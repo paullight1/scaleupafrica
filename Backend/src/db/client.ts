@@ -12,9 +12,9 @@ import {
 } from "./funding-intelligence-schema";
 
 /**
- * postgres-js + drizzle. The direct Postgres connection BYPASSES RLS (connects as
- * `postgres`, so auth.uid() is NULL) — which is exactly why every handler derives
- * ownership from the JWT `sub`, never from client input.
+ * postgres-js + drizzle. The private backend database login has explicit policies
+ * for its app tables; auth.uid() is NULL on this server connection. Every handler
+ * therefore derives ownership from the verified JWT `sub`, never from client input.
  *
  * `prepare: false` is mandatory with Supavisor transaction pooling.
  * Same-table projections (`profileFundingIntelligence`, `fundingOpportunityStatus`)
